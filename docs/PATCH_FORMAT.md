@@ -81,6 +81,24 @@ a file just because it parsed"):
   thread regardless -- it goes through the same `AlgorithmGraphCompiler::compile()`
   validation as any other graph, with the same known-safe fallback on failure.
 
+## Wavetable Resource Resolution
+
+**PARTIAL.** An operator on the Wavetable engine (`OperatorPatch::engine == 1`)
+names its table via `wavetableId` (a string). In this pass, `wavetableId` is
+resolved as a plain **filesystem path** -- relative to the process's current
+working directory, or absolute -- and loaded directly by
+`render::Engine::loadPatch()` via `oscillator::loadWavetableFromFile()`. There is
+no content-addressed ID registry, search-path configuration, or de-duplication of
+tables shared across operators yet (each operator slot that references a table
+loads and owns its own copy in memory, even if two slots name the same file). A
+missing or malformed file does not fail the whole patch load -- that operator just
+renders silence, matching `WavetableOscillator`'s existing "invalid view -> silence"
+contract. `content/presets/wt-morph.pw8` names
+`"content/wavetables/basic_harmonic.json"` and works correctly when run from the
+repo root (e.g. via `pw8-render` or the Python bindings, both of which resolve
+relative paths against the caller's working directory). A proper content-addressed
+resolution system, matching the rest of the content pipeline, is PLANNED.
+
 ## Metadata & Categories
 
 Category vocabulary (bass, lead, pluck, keyboard, pad, arp, drone, chord, fx, brass,

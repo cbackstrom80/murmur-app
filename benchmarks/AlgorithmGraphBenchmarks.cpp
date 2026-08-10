@@ -40,7 +40,7 @@ namespace
 
         std::array<op::OperatorParams, core::kNodesPerLayer> params{};
         std::array<op::OperatorState, core::kNodesPerLayer> states{};
-        std::array<oscillator::WavetableView, core::kNodesPerLayer> tables{};
+        std::array<const oscillator::WavetableTable*, core::kNodesPerLayer> tables{};
         for (auto& s : states)
             s.prepare(48000.0);
 

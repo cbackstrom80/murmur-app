@@ -6,7 +6,7 @@ Status as of this repository's initial engineering pass. Legend: **DONE** / **PA
 |---|---|---|
 | 0 | Repository foundation (structure, CMake, core library skeleton, tests, benchmarks, docs, CI, coding standards) | **DONE** |
 | 1 | First sound (Engine, Voice, VoiceAllocator, ClassicOscillator, DAHDSR, MIDI note handling, stereo output, native renderer) | **DONE** |
-| 2 | Wavetable (preprocessing, mipmapping, frame interpolation, wavetable source) | **PARTIAL** -- oscillator + builder tool implemented; mip-mapping/band-limiting not yet done (see DSP_ENGINE.md) |
+| 2 | Wavetable (preprocessing, mipmapping, frame interpolation, wavetable source) | **DONE** -- oscillator, builder tool, and FFT-based mip-mapping/band-limiting all implemented and proven to reduce aliasing by a measured >2x (see DSP_ENGINE.md); a real factory table and preset (`wt-morph.pw8`) exercise the full pipeline end to end |
 | 3 | 8-node algorithm graph (nodes, edges, validation, compiler, compiled execution, audio routing) | **DONE**, and beyond AUDIO-only -- all 7 edge types implemented |
 | 4 | PM/FM/AM/RING typed modulation edges | **DONE** at the graph level (stretch goal achieved); a dedicated Engine Type 3 (FM/PM) with its own ratio/fixed-frequency modes is still PLANNED |
 | 5 | Modulation (envelopes, LFO, mod matrix, macros, performance controls) | **PARTIAL** -- amplitude envelope, one per-voice LFO (6 waveforms, 4 modes incl. tempo-sync), and a VOICE-scoped mod matrix (6 sources incl. 8 macros, 4 destinations) are all IMPLEMENTED; 8-envelope/8-LFO/LAYER+GLOBAL-scope targets PLANNED |
@@ -47,16 +47,20 @@ goals), this pass shipped:
   working phase-modulation edges (exceeding "basic PM edge" -- full FM/PM/AM/RM/
   SYNC/FEEDBACK typed edges)
 
-## Competitive check: Serum 2 & Phase Plant
+## Competitive check: Serum 2, Phase Plant & Zebra 3
 
 See [COMPETITIVE_ANALYSIS.md](COMPETITIVE_ANALYSIS.md) for the full feature-parity
-matrix. Summary: every gap identified (modulator count, oscillator variety, effects
-breadth, UI) was already tracked under an existing PLANNED phase above -- this
-research validated the existing phase scope rather than changing it. The algorithm
-graph, deterministic rendering, and native headless rendering are genuine
-differentiators neither competitor has. Per the master spec's explicit prohibition
-on copying UI layout/visual identity from commercial products, no UI design or code
-resulted from this pass -- only a feature/gap comparison.
+matrix. Summary: nearly every gap identified (modulator count, oscillator variety,
+filter breadth, effects breadth, UI) was already tracked under an existing PLANNED
+phase above -- this research mostly validated the existing phase scope rather than
+changing it. The one exception: wavetable mip-mapping (Zebra's continuous splines
+and Serum's smooth interpolation both solve the aliasing problem our Phase 2
+wavetable oscillator hadn't yet) was bumped up and implemented in this same pass --
+see "Follow-up pass: wavetable mip-mapping" below. The algorithm graph, deterministic
+rendering, and native headless rendering remain genuine differentiators none of the
+three competitors have. Per the master spec's explicit prohibition on copying UI
+layout/visual identity from commercial products, no UI design or code resulted from
+this pass -- only a feature/gap comparison.
 
 ## Follow-up pass: what "build it all" added
 
@@ -110,16 +114,61 @@ highest-leverage next steps (items 2 and 3 below, prior to this pass):
   Phase Plant's "8 routable macros" structurally, and validated that no roadmap
   rescoping was needed.
 
+## Follow-up pass: wavetable mip-mapping (Phase 2 -> DONE)
+
+Closes the one concrete gap the Serum/Zebra research surfaced:
+
+- `pw8::dsp::fft` -- a from-scratch textbook radix-2 Cooley-Tukey FFT/IFFT
+  (`pw8/dsp/Fft.hpp`), control-path only.
+- `oscillator::WavetableTable` -- multi-mip table data model with
+  `viewForFrequency(freq, sampleRate)`, a cheap (<=16-comparison) per-sample-safe
+  scan that picks the highest-fidelity mip that won't alias at the current note and
+  actual output sample rate.
+- `pw8-wavetable-builder` now generates real mip chains via FFT harmonic truncation
+  (schema v2: a `mips` array, each with `maxHarmonic` and its own frame data).
+- **Measured proof, not just plausible design**: `tests/unit/WavetableTableTests.cpp`
+  synthesizes a harmonically rich table, renders the same high note through both the
+  mip-selected path and the raw full-bandwidth mip, FFTs both outputs, and requires
+  the mip-selected render's out-of-band spectral energy to be less than half the
+  un-mipped render's -- passing with real margin.
+- The full pipeline is wired end to end for the first time: `render::Engine::loadPatch()`
+  now actually loads referenced wavetable files (`OperatorPatch::wavetableId`,
+  currently resolved as a filesystem path -- see docs/PATCH_FORMAT.md "Wavetable
+  Resource Resolution" for why that's still PARTIAL) rather than always rendering
+  silence on the Wavetable engine.
+- A new mod destination, `OperatorWavetablePosition`, and a real factory table +
+  preset (`content/wavetables/basic_harmonic.json`, `content/presets/wt-morph.pw8`)
+  prove it audibly: an LFO continuously sweeps the wavetable frame position.
+- 17 new tests (FFT correctness/robustness, mip-selection logic, the aliasing-
+  reduction proof, wavetable JSON loader roundtrip/robustness) -- 67 total, all
+  passing. `pw8-fuzz-render` batch (3,000 patches) and a full plugin rebuild +
+  `auval` re-validation both confirmed clean after the change.
+
+## GPU acceleration (researched, not adopted)
+
+Per user request, researched GPU Audio (the company), NVIDIA VRWorks Audio, and AMD
+TrueAudio Next -- see [GPU_ACCELERATION_RESEARCH.md](GPU_ACCELERATION_RESEARCH.md).
+This repository stays CPU-only: a hard CUDA dependency would break the portability
+this project already commits to (Apple Silicon, embedded/ARM, Linux render-farm
+nodes without NVIDIA GPUs), the real difficulty (a realtime-deadline-aware GPU
+scheduler bridging the SIMD-batch/MIMD-realtime mismatch) is nontrivial systems
+engineering rather than a quick win, and current CPU headroom is enormous (32-voice
+96kHz full-patch render at ~16ms per second of audio, in an unoptimized Debug
+build). No roadmap phase was added or changed; this is a decision record for future
+reference, most relevant to the PLANNED Additive/Granular/Resonator engines and
+Phase 11 reverb if pursued later.
+
 ## Immediate next steps (suggested, not committed)
 
-1. Wavetable mip-mapping (finishes Phase 2 properly).
-2. `juce::AudioProcessorValueTreeState` parameter wiring + `pluginval` + a real DAW
+1. `juce::AudioProcessorValueTreeState` parameter wiring + `pluginval` + a real DAW
    host-matrix pass -- the plugin now builds and passes `auval`, so this is the
    natural next increment toward a genuinely shippable plugin rather than a
    from-scratch effort.
-3. Expand modulation to the full 8-envelope/8-LFO/LAYER+GLOBAL-scope target now that
+2. Expand modulation to the full 8-envelope/8-LFO/LAYER+GLOBAL-scope target now that
    the 1-of-each VOICE-scoped version has proven the data model and execution
    pattern end to end.
-4. Filter 2 (nonlinear character filter) -- Filter 1's TPT SVF proved the per-voice
+3. Filter 2 (nonlinear character filter) -- Filter 1's TPT SVF proved the per-voice
    filter integration point; a second filter stage is now a smaller increment than
    it was before Filter 1 existed.
+4. Wavetable content-addressed resource resolution (replacing the current
+   filesystem-path-as-`wavetableId` scheme) as part of the broader content pipeline.

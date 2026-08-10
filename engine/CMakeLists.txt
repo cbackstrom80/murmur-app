@@ -4,8 +4,9 @@
 include(FetchContent)
 
 # nlohmann/json -- MIT license, header-only. Used ONLY behind the
-# pw8/patch/PatchSerializer.hpp boundary (patch load/save), never in any header
-# included by realtime/hot-loop code. See THIRD_PARTY_LICENSES.md.
+# pw8/patch/PatchSerializer.hpp and pw8/oscillator/WavetableTableLoader.hpp
+# boundaries (patch/wavetable load+save), never in any header included by
+# realtime/hot-loop code. See THIRD_PARTY_LICENSES.md.
 FetchContent_Declare(
     nlohmann_json
     GIT_REPOSITORY https://github.com/nlohmann/json.git
@@ -19,6 +20,7 @@ add_library(pw8_core STATIC
     src/algorithm/AlgorithmGraphCompiler.cpp
     src/patch/PatchSerializer.cpp
     src/midi/StandardMidiFile.cpp
+    src/oscillator/WavetableTableLoader.cpp
     src/render/Engine.cpp
     src/render/Renderer.cpp
     src/render/WavWriter.cpp

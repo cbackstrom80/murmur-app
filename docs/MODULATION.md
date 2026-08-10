@@ -43,14 +43,16 @@ Sources: `Lfo1`, `AmpEnvelope`, `Velocity`, `ChannelPressure`, `PolyAftertouch`,
 
 Destinations: `FilterCutoff` (exponential/semitone-scaled), `FilterResonance`
 (additive), `OperatorLevel` (multiplicative, per-node via `targetIndex`), `Pan`
-(additive).
+(additive), `OperatorWavetablePosition` (additive, per-node via `targetIndex`,
+result clamped 0..1 -- only meaningful for operators on the Wavetable engine).
 
 `tests/unit/ModMatrixTests.cpp` covers: neutral output with no routes, correct
 Velocity->FilterCutoff scaling, multiplicative composition of multiple routes to the
 same operator, inactive-route skipping, and macro-index resolution.
 `content/presets/dark-bass.pw8` (AmpEnvelope/Velocity -> FilterCutoff),
-`content/presets/soft-pad.pw8` (Lfo1 -> FilterCutoff), and
-`content/presets/wide-saw.pw8` (Velocity -> FilterCutoff) all ship real routes as
+`content/presets/soft-pad.pw8` (Lfo1 -> FilterCutoff),
+`content/presets/wide-saw.pw8` (Velocity -> FilterCutoff), and
+`content/presets/wt-morph.pw8` (Lfo1 -> OperatorWavetablePosition) all ship real routes as
 working examples.
 
 **Not yet implemented:** LAYER and GLOBAL scope (`ModScope` is recorded on every

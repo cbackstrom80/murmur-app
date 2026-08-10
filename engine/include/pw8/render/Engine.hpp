@@ -2,10 +2,11 @@
 
 #include <array>
 #include <cstdint>
+#include <optional>
 
 #include "pw8/algorithm/AlgorithmGraphCompiler.hpp"
 #include "pw8/core/AudioBlock.hpp"
-#include "pw8/oscillator/WavetableOscillator.hpp"
+#include "pw8/oscillator/WavetableTable.hpp"
 #include "pw8/patch/Patch.hpp"
 #include "pw8/tuning/TuningService.hpp"
 #include "pw8/voice/VoiceAllocator.hpp"
@@ -66,7 +67,15 @@ namespace pw8::render
         algorithm::CompileStatus lastCompileStatus_ = algorithm::CompileStatus::Ok;
 
         std::array<op::OperatorParams, core::kNodesPerLayer> operatorParamsTemplateA_{};
-        std::array<oscillator::WavetableView, core::kNodesPerLayer> wavetablesA_{};
+
+        /// Owns loaded wavetable content (control-path-populated in loadPatch(), which
+        /// treats `OperatorPatch::wavetableId` as a filesystem path -- see
+        /// docs/PATCH_FORMAT.md "Wavetable Resource Resolution" for the current, PARTIAL
+        /// resolution scheme). `wavetableTablesA_` holds read-only pointers into this
+        /// storage for the audio thread; rebuilt only in loadPatch(), never mutated
+        /// concurrently with process().
+        std::array<std::optional<oscillator::WavetableTable>, core::kNodesPerLayer> wavetableStorageA_{};
+        std::array<const oscillator::WavetableTable*, core::kNodesPerLayer> wavetableTablesA_{};
 
         voice::VoicePool voices_{};
         voice::VoiceAllocator allocator_{};

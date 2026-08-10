@@ -3,6 +3,7 @@
 #include "pw8/algorithm/AlgorithmTypes.hpp"
 #include "pw8/oscillator/ClassicOscillator.hpp"
 #include "pw8/oscillator/WavetableOscillator.hpp"
+#include "pw8/oscillator/WavetableTable.hpp"
 
 // A single node ("operator") inside a layer's 8-node algorithm graph.
 // Holds per-voice DSP state for whichever engine type it's configured as.
@@ -39,6 +40,7 @@ namespace pw8::op
         {
             classicOsc.prepare(sampleRate);
             waveOsc.prepare(sampleRate);
+            sampleRate_ = sampleRate;
         }
 
         void reset(float initialPhase = 0.0f) noexcept
@@ -51,7 +53,11 @@ namespace pw8::op
         /// Renders one sample. `baseFrequencyHz` is the voice's key-tracked note
         /// frequency (before this operator's ratio/fixed override); `phaseMod` and
         /// `freqModHz` are this-sample modulation accumulated from algorithm-graph edges.
-        [[nodiscard]] float render(const OperatorParams& params, const oscillator::WavetableView& wavetable,
+        /// `wavetableTable` may be nullptr (renders silence on the Wavetable engine) --
+        /// when present, the appropriate band-limited mip is picked fresh every sample
+        /// based on this sample's carrier frequency (see WavetableTable::viewForFrequency,
+        /// a cheap linear scan, no allocation -- safe on the audio thread).
+        [[nodiscard]] float render(const OperatorParams& params, const oscillator::WavetableTable* wavetableTable,
                                     float baseFrequencyHz, float phaseMod, float freqModHz) noexcept
         {
             const float carrierHz = (params.keyTrack ? baseFrequencyHz * params.frequencyRatio
@@ -67,9 +73,14 @@ namespace pw8::op
                     break;
 
                 case algorithm::EngineType::Wavetable:
+                {
                     waveOsc.setFrequency(carrierHz);
-                    out = waveOsc.renderSample(wavetable, params.wavetableFramePosition, phaseMod);
+                    const oscillator::WavetableView view =
+                        wavetableTable != nullptr ? wavetableTable->viewForFrequency(carrierHz, sampleRate_)
+                                                   : oscillator::WavetableView{};
+                    out = waveOsc.renderSample(view, params.wavetableFramePosition, phaseMod);
                     break;
+                }
 
                 // Engine types 3-8 (FM/PM, Additive, Phase/Shape, Granular, Noise, Resonator)
                 // are architected (see algorithm::EngineType, docs/ROADMAP.md Phase 10) but not
@@ -83,6 +94,9 @@ namespace pw8::op
             lastOutput = out;
             return out;
         }
+
+    private:
+        double sampleRate_ = 48000.0;
     };
 
 } // namespace pw8::op

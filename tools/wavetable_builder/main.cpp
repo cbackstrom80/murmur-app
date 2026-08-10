@@ -1,17 +1,22 @@
 // pw8-wavetable-builder -- imports a mono 16-bit PCM WAV single-cycle-or-multi-cycle
 // source, splits it into equal-length frames, normalizes each frame, and emits a
-// pw8 wavetable JSON table.
+// pw8 wavetable JSON table with real band-limited mip levels.
 //
-// Status: PARTIAL, matching pw8::oscillator::WavetableOscillator's current
-// limitations (see docs/DSP_ENGINE.md) -- this tool does NOT yet generate
-// band-limited mip levels per octave; it emits exactly one (full-bandwidth) frame
-// set. Mip-level generation is tracked in docs/ROADMAP.md as a Phase 2 follow-up.
+// Status: IMPLEMENTED. Each frame is treated as exactly one wavetable cycle, so its
+// forward FFT bins correspond exactly to harmonics (bin k == harmonic k). Mip level 0
+// is full-bandwidth (unmodified); each subsequent level halves the retained harmonic
+// count via FFT harmonic truncation (zero out bins above the cutoff, and their
+// conjugate-symmetric mirror, then inverse FFT) -- standard band-limiting technique,
+// not sourced from any product. `--samples-per-frame` must be a power of two (the
+// FFT requirement); `--mip-levels` caps how many are generated (fewer are emitted
+// once the retained harmonic count would drop to zero).
 //
 //   pw8-wavetable-builder --input source.wav --frames 8 --samples-per-frame 2048 \
-//                          --output content/wavetables/my_table.pw8wt.json
+//                          --output content/wavetables/my_table.json [--mip-levels 10]
 
 #include <algorithm>
 #include <cmath>
+#include <complex>
 #include <cstdint>
 #include <cstring>
 #include <fstream>
@@ -21,6 +26,9 @@
 #include <vector>
 
 #include <nlohmann/json.hpp>
+
+#include "pw8/dsp/Fft.hpp"
+#include "pw8/oscillator/WavetableTable.hpp"
 
 namespace
 {
@@ -103,6 +111,38 @@ namespace
         result.ok = true;
         return result;
     }
+
+    /// Band-limits one frame to `maxHarmonic` via FFT harmonic truncation. `frame`
+    /// must have a power-of-two size. `maxHarmonic == fullBandwidthHarmonic` is a
+    /// no-op copy (mip level 0).
+    std::vector<float> bandLimitFrame(const std::vector<float>& frame, int maxHarmonic)
+    {
+        const std::size_t n = frame.size();
+        std::vector<std::complex<float>> spectrum(n);
+        for (std::size_t i = 0; i < n; ++i)
+            spectrum[i] = std::complex<float>(frame[i], 0.0f);
+
+        pw8::dsp::fft(spectrum, /*invert=*/false);
+
+        const auto nyquistBin = static_cast<int>(n / 2);
+        for (int bin = 0; bin < static_cast<int>(n); ++bin)
+        {
+            // Harmonic index for this bin: bins 1..nyquistBin-1 are positive
+            // frequencies k; bins n-1..nyquistBin+1 are their conjugate mirrors
+            // (harmonic n-bin). Bin 0 is DC, bin nyquistBin is the Nyquist bin itself.
+            const int harmonic = (bin <= nyquistBin) ? bin : static_cast<int>(n) - bin;
+            if (harmonic > maxHarmonic)
+                spectrum[static_cast<std::size_t>(bin)] = {0.0f, 0.0f};
+        }
+
+        pw8::dsp::fft(spectrum, /*invert=*/true);
+
+        std::vector<float> out(n);
+        for (std::size_t i = 0; i < n; ++i)
+            out[i] = spectrum[i].real();
+        return out;
+    }
+
 } // namespace
 
 int main(int argc, char** argv)
@@ -110,6 +150,7 @@ int main(int argc, char** argv)
     std::string inputPath, outputPath;
     int numFrames = 1;
     int samplesPerFrame = 2048;
+    int requestedMipLevels = 10;
 
     for (int i = 1; i < argc; ++i)
     {
@@ -119,10 +160,11 @@ int main(int argc, char** argv)
         else if (arg == "--output") outputPath = next();
         else if (arg == "--frames") numFrames = std::stoi(next());
         else if (arg == "--samples-per-frame") samplesPerFrame = std::stoi(next());
+        else if (arg == "--mip-levels") requestedMipLevels = std::stoi(next());
         else if (arg == "--help")
         {
             std::cout << "Usage: pw8-wavetable-builder --input <in.wav> --output <out.json> "
-                         "[--frames N] [--samples-per-frame N]\n";
+                         "[--frames N] [--samples-per-frame N (power of two)] [--mip-levels N]\n";
             return 0;
         }
     }
@@ -135,6 +177,16 @@ int main(int argc, char** argv)
     if (numFrames < 1 || samplesPerFrame < 8)
     {
         std::cerr << "Invalid --frames/--samples-per-frame.\n";
+        return 2;
+    }
+    if (!pw8::dsp::isPowerOfTwo(static_cast<std::size_t>(samplesPerFrame)))
+    {
+        std::cerr << "--samples-per-frame must be a power of two (FFT requirement); got " << samplesPerFrame << ".\n";
+        return 2;
+    }
+    if (requestedMipLevels < 1 || requestedMipLevels > static_cast<int>(pw8::oscillator::kMaxWavetableMipLevels))
+    {
+        std::cerr << "--mip-levels must be between 1 and " << pw8::oscillator::kMaxWavetableMipLevels << ".\n";
         return 2;
     }
 
@@ -153,33 +205,61 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    nlohmann::json framesJson = nlohmann::json::array();
+    // Extract and per-frame-normalize the full-bandwidth (mip 0) frames first.
+    std::vector<std::vector<float>> fullBandwidthFrames(static_cast<std::size_t>(numFrames));
     for (int fr = 0; fr < numFrames; ++fr)
     {
-        // Normalize each frame independently to unit peak (avoids silent/quiet frames
-        // if the source has uneven levels across its cycles).
         float peak = 1.0e-9f;
         for (int i = 0; i < samplesPerFrame; ++i)
             peak = std::max(peak, std::abs(wav.samples[static_cast<std::size_t>(fr) * static_cast<std::size_t>(samplesPerFrame) +
                                                         static_cast<std::size_t>(i)]));
 
-        nlohmann::json frame = nlohmann::json::array();
+        std::vector<float> frame(static_cast<std::size_t>(samplesPerFrame));
         for (int i = 0; i < samplesPerFrame; ++i)
+            frame[static_cast<std::size_t>(i)] =
+                wav.samples[static_cast<std::size_t>(fr) * static_cast<std::size_t>(samplesPerFrame) + static_cast<std::size_t>(i)] /
+                peak;
+        fullBandwidthFrames[static_cast<std::size_t>(fr)] = std::move(frame);
+    }
+
+    // Build mip levels: level 0 is full-bandwidth (maxHarmonic = Nyquist bin - 1);
+    // each subsequent level halves the retained harmonic count until it would hit 0.
+    const int fullBandwidthHarmonic = samplesPerFrame / 2 - 1;
+    std::vector<int> mipHarmonics;
+    for (int level = 0, maxHarmonic = fullBandwidthHarmonic; level < requestedMipLevels && maxHarmonic >= 1; ++level, maxHarmonic /= 2)
+        mipHarmonics.push_back(maxHarmonic);
+
+    nlohmann::json mipsJson = nlohmann::json::array();
+    for (std::size_t level = 0; level < mipHarmonics.size(); ++level)
+    {
+        const int maxHarmonic = mipHarmonics[level];
+        nlohmann::json framesJson = nlohmann::json::array();
+
+        for (int fr = 0; fr < numFrames; ++fr)
         {
-            const float s = wav.samples[static_cast<std::size_t>(fr) * static_cast<std::size_t>(samplesPerFrame) +
-                                         static_cast<std::size_t>(i)] / peak;
-            frame.push_back(s);
+            const auto& src = fullBandwidthFrames[static_cast<std::size_t>(fr)];
+            const std::vector<float> banded =
+                (level == 0) ? src : bandLimitFrame(src, maxHarmonic);
+
+            nlohmann::json frameJson = nlohmann::json::array();
+            for (float s : banded)
+                frameJson.push_back(s);
+            framesJson.push_back(frameJson);
         }
-        framesJson.push_back(frame);
+
+        nlohmann::json mipJson;
+        mipJson["maxHarmonic"] = maxHarmonic;
+        mipJson["frames"] = framesJson;
+        mipsJson.push_back(mipJson);
     }
 
     nlohmann::json root;
-    root["schemaVersion"] = 1;
+    root["schemaVersion"] = 2; // v2: multi-mip "mips" array (v1 had a single flat "frames" array).
     root["numFrames"] = numFrames;
     root["samplesPerFrame"] = samplesPerFrame;
-    root["mipLevels"] = 1; // PARTIAL: single (full-bandwidth) mip level only, see docs/DSP_ENGINE.md.
+    root["mipLevels"] = static_cast<int>(mipsJson.size());
     root["sourceFile"] = inputPath;
-    root["frames"] = framesJson;
+    root["mips"] = mipsJson;
 
     std::ofstream out(outputPath);
     if (!out.is_open())
@@ -190,6 +270,7 @@ int main(int argc, char** argv)
     out << root.dump(2);
 
     std::cout << "Wrote wavetable: " << outputPath << " (" << numFrames << " frames x " << samplesPerFrame
-              << " samples)\n";
+              << " samples, " << mipsJson.size() << " mip levels, harmonics "
+              << mipHarmonics.front() << ".." << mipHarmonics.back() << ")\n";
     return 0;
 }

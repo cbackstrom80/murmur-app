@@ -22,8 +22,8 @@ ctest --preset dev --output-on-failure
 ```
 
 This builds `pw8_core`, the CLI tools (`pw8-render`, `pw8-info`, `pw8-graph`,
-`pw8-wavetable-builder`), and the Catch2 test suite. Confirmed working: 37 test
-cases / 165,192 assertions pass, all tools run and were smoke-tested against every
+`pw8-wavetable-builder`, `pw8-fuzz-render`), and the Catch2 test suite. Confirmed
+working: 67 test cases / 811,735 assertions pass, all tools run and were smoke-tested against every
 file in `content/`.
 
 ## Presets
@@ -72,7 +72,7 @@ cmake --build build -j
 ./build/dev/tools/pw8-graph inspect content/presets/fm-bell.pw8
 
 ./build/dev/tools/pw8-wavetable-builder --input source.wav --output content/wavetables/my_table.json \
-    --frames 4 --samples-per-frame 2048
+    --frames 4 --samples-per-frame 2048 --mip-levels 10  # --samples-per-frame must be a power of two
 
 ./build/dev/tools/pw8-fuzz-render --count 10000 --seed 1
 ```

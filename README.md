@@ -20,7 +20,7 @@ for the full phase-by-phase breakdown against the product spec.
 |---|---|
 | Framework-independent `pw8_core` DSP library (no JUCE dependency) | **IMPLEMENTED** |
 | Band-limited (PolyBLEP) Classic oscillator: sine/triangle/saw/square, continuous morph | **IMPLEMENTED** |
-| Wavetable oscillator | **PARTIAL** (works, not yet mip-mapped/band-limited) |
+| Wavetable oscillator (FFT-based mip-mapping, measured >2x aliasing reduction) | **IMPLEMENTED** |
 | DAHDSR envelope | **IMPLEMENTED** |
 | Polyphonic voice allocation (configurable, default 16 / max 32 voices), sensible stealing policy | **IMPLEMENTED** |
 | 8-node-per-layer algorithm graph: AUDIO/PHASE_MOD/FREQUENCY_MOD/AMPLITUDE_MOD/RING_MOD/SYNC/FEEDBACK edges, validated + compiled + executed | **IMPLEMENTED** |
@@ -35,7 +35,7 @@ for the full phase-by-phase breakdown against the product spec.
 | Deterministic/seeded randomness throughout | **IMPLEMENTED** |
 | JUCE VST3/AU/Standalone plugin | **PARTIAL, build-verified** (AU passes Apple's `auval` in full; off by default) |
 | Google Benchmark suite | **IMPLEMENTED** (oscillators, algorithm graph, voice, full-patch render, at 44.1/48/96 kHz x 1/8/16/32 voices) |
-| Fuzz-render harness (`pw8-fuzz-render`) | **IMPLEMENTED** (verified: 5,000 random valid patches, 0 failures) |
+| Fuzz-render harness (`pw8-fuzz-render`) | **IMPLEMENTED** (verified across 3 batches, 13,000 random valid patches total, 0 failures) |
 | Filter 2 (character), FX, sequencer, dual-layer mixing, algorithm morph, additional engine types (additive/phase-shape/granular/noise/resonator) | **PLANNED** |
 
 ## Architecture
@@ -62,7 +62,7 @@ cmake --build --preset dev -j
 ctest --preset dev --output-on-failure
 ```
 
-37 test cases, 165,192 assertions, all passing. See [docs/BUILD.md](docs/BUILD.md)
+67 test cases, 811,735 assertions, all passing. See [docs/BUILD.md](docs/BUILD.md)
 for every preset (release/asan/ubsan/benchmarks/python/plugin).
 
 ## Running the renderer
@@ -78,9 +78,9 @@ for every preset (release/asan/ubsan/benchmarks/python/plugin).
 ./build/dev/tools/pw8-info
 ```
 
-Seven engineering test patches ship in `content/presets/`: `INIT SINE`, `INIT SAW`,
-`WIDE SAW`, `SUB BASS`, `FM BELL`, `DARK BASS`, `SOFT PAD`. These are engineering
-patches proving specific capabilities, not curated factory content (see
+Eight engineering test patches ship in `content/presets/`: `INIT SINE`, `INIT SAW`,
+`WIDE SAW`, `SUB BASS`, `FM BELL`, `DARK BASS`, `SOFT PAD`, `WT MORPH`. These are
+engineering patches proving specific capabilities, not curated factory content (see
 docs/ROADMAP.md Phase 19).
 
 ## Documentation
@@ -99,7 +99,8 @@ docs/ROADMAP.md Phase 19).
 - [LICENSING.md](docs/LICENSING.md) -- dependency license analysis
 - [PATCHWORK_INTEGRATION.md](docs/PATCHWORK_INTEGRATION.md) -- how this connects to Patchwork AI
 - [PRIOR_ART.md](docs/PRIOR_ART.md) -- design lineage, incl. the Mutable Instruments `eurorack` concept mapping
-- [COMPETITIVE_ANALYSIS.md](docs/COMPETITIVE_ANALYSIS.md) -- feature-parity check against Serum 2 and Phase Plant (research only, no UI/code copied)
+- [COMPETITIVE_ANALYSIS.md](docs/COMPETITIVE_ANALYSIS.md) -- feature-parity check against Serum 2, Phase Plant, and Zebra 3 (research only, no UI/code copied)
+- [GPU_ACCELERATION_RESEARCH.md](docs/GPU_ACCELERATION_RESEARCH.md) -- CUDA/GPU Audio research and why this repo stays CPU-only for now (decision record, no GPU code)
 
 ## License
 

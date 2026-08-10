@@ -63,7 +63,7 @@ TEST_CASE("VoiceAllocator steals a released voice over an actively-gated one", "
     pw8::algorithm::CompiledAlgorithm compiled;
     [[maybe_unused]] const auto compileStatus = pw8::algorithm::AlgorithmGraphCompiler::compile(
         pw8::algorithm::AlgorithmGraphDefinition::makeDefaultParallel8(), compiled);
-    std::array<pw8::oscillator::WavetableView, pw8::core::kNodesPerLayer> tables{};
+    std::array<const pw8::oscillator::WavetableTable*, pw8::core::kNodesPerLayer> tables{};
     for (int i = 0; i < 10000; ++i)
     {
         float l = 0.0f, r = 0.0f;

@@ -32,7 +32,7 @@ namespace pw8::algorithm
         [[nodiscard]] float processSample(const CompiledAlgorithm& compiled,
                                            std::array<op::OperatorParams, core::kNodesPerLayer>& params,
                                            std::array<op::OperatorState, core::kNodesPerLayer>& states,
-                                           const std::array<oscillator::WavetableView, core::kNodesPerLayer>& wavetables,
+                                           const std::array<const oscillator::WavetableTable*, core::kNodesPerLayer>& wavetableTables,
                                            float baseFrequencyHz) noexcept
         {
             if (!compiled.isValid)
@@ -75,7 +75,7 @@ namespace pw8::algorithm
                 if (pendingSyncReset[i])
                     states[i].reset(0.0f);
 
-                const float raw = states[i].render(params[i], wavetables[i], baseFrequencyHz,
+                const float raw = states[i].render(params[i], wavetableTables[i], baseFrequencyHz,
                                                      phaseModAcc[i], freqModAcc[i]);
 
                 float shaped = raw * ampMulAcc[i] * ringMulAcc[i];

@@ -15,7 +15,7 @@ namespace
         algorithm::CompiledAlgorithm compiled;
         [[maybe_unused]] const auto status =
             algorithm::AlgorithmGraphCompiler::compile(algorithm::AlgorithmGraphDefinition::makeDefaultParallel8(), compiled);
-        std::array<oscillator::WavetableView, core::kNodesPerLayer> tables{};
+        std::array<const oscillator::WavetableTable*, core::kNodesPerLayer> tables{};
 
         voice::Voice v;
         v.prepare(48000.0);

@@ -35,8 +35,9 @@ namespace pw8::modulation
         None = 0,
         FilterCutoff,   ///< exponential (semitone-style) offset, see ModMatrixExecutor.
         FilterResonance,
-        OperatorLevel,  ///< requires `targetIndex` in [0, kNodesPerLayer).
+        OperatorLevel,           ///< requires `targetIndex` in [0, kNodesPerLayer).
         Pan,
+        OperatorWavetablePosition, ///< requires `targetIndex`; additive offset, 0..1 result.
     };
 
     /// Scope is recorded for forward compatibility with docs/MODULATION.md's

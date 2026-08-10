@@ -172,7 +172,7 @@ namespace
         {
             modulation::ModRoute r;
             r.source = static_cast<modulation::ModSource>(static_cast<int>(rng.nextRange(0.0f, 14.999f)));
-            r.destination = static_cast<modulation::ModDestination>(static_cast<int>(rng.nextRange(0.0f, 4.999f)));
+            r.destination = static_cast<modulation::ModDestination>(static_cast<int>(rng.nextRange(0.0f, 5.999f)));
             r.targetIndex = static_cast<std::uint8_t>(rng.nextRange(0.0f, 7.999f));
             r.amount = rng.nextRange(-48.0f, 48.0f); // deliberately extreme -- exercises the clamps.
             routes.push_back(r);

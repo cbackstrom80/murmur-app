@@ -18,8 +18,11 @@ add_executable(pw8_tests
     unit/AlgorithmGraphCompilerTests.cpp
     unit/DeterministicRngTests.cpp
     unit/ModMatrixTests.cpp
+    unit/FftTests.cpp
+    unit/WavetableTableTests.cpp
     serialization/PatchSerializerTests.cpp
     serialization/StandardMidiFileTests.cpp
+    serialization/WavetableTableLoaderTests.cpp
     regression/RenderSanityTests.cpp
 )
 

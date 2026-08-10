@@ -1,6 +1,7 @@
 #include "pw8/render/Engine.hpp"
 
 #include "pw8/dsp/Denormal.hpp"
+#include "pw8/oscillator/WavetableTableLoader.hpp"
 
 namespace pw8::render
 {
@@ -52,8 +53,24 @@ namespace pw8::render
         for (std::size_t i = 0; i < core::kNodesPerLayer; ++i)
             operatorParamsTemplateA_[i] = toOperatorParams(patch_.layerA.operators[i]);
 
-        for (auto& wt : wavetablesA_)
-            wt = oscillator::WavetableView{}; // Wavetable content loading is PLANNED; empty view renders silence.
+        // Load referenced wavetable content. `wavetableId` is currently treated as a
+        // filesystem path (relative to the process's working directory, or absolute) --
+        // see docs/PATCH_FORMAT.md "Wavetable Resource Resolution" for why this is
+        // PARTIAL rather than a full content-addressed resolution system. A missing or
+        // malformed file just leaves that operator silent (documented WavetableOscillator
+        // behavior for an invalid view), not a load failure for the whole patch.
+        for (std::size_t i = 0; i < core::kNodesPerLayer; ++i)
+        {
+            wavetableStorageA_[i].reset();
+            const auto& op = patch_.layerA.operators[i];
+            if (op.engine == algorithm::EngineType::Wavetable && !op.wavetableId.empty())
+            {
+                auto loadResult = oscillator::loadWavetableFromFile(op.wavetableId);
+                if (loadResult.ok)
+                    wavetableStorageA_[i] = std::move(loadResult.table);
+            }
+            wavetableTablesA_[i] = wavetableStorageA_[i].has_value() ? &*wavetableStorageA_[i] : nullptr;
+        }
 
         allocator_.configure(patch_.voiceSettings.polyphony);
         tuning_.setA4(patch_.voiceSettings.a4Hz);
@@ -167,7 +184,7 @@ namespace pw8::render
             for (std::size_t i = 0; i < allocator_.getPolyphony(); ++i)
             {
                 float vl = 0.0f, vr = 0.0f;
-                voices_[i].renderSample(compiledLayerA_, wavetablesA_, bpm_, vl, vr);
+                voices_[i].renderSample(compiledLayerA_, wavetableTablesA_, bpm_, vl, vr);
                 sumL += vl;
                 sumR += vr;
             }

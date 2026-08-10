@@ -21,6 +21,9 @@
 //                       route, targeting `targetIndex` (0..7). Multiple routes to
 //                       the same operator compose multiplicatively.
 //   Pan             -- additive offset to layer pan (-1..1), summed then clamped.
+//   OperatorWavetablePosition -- additive offset to wavetable frame position
+//                       (0..1), per route, targeting `targetIndex` (0..7). Only
+//                       meaningful for operators on the Wavetable engine.
 //
 // Only ModScope::Voice routes are meaningful in this pass -- Layer/Global-scoped
 // execution (sharing one computed value across all voices in a layer, or across the
@@ -45,6 +48,7 @@ namespace pw8::modulation
         float filterCutoffSemitones = 0.0f;
         float filterResonanceOffset = 0.0f;
         std::array<float, core::kNodesPerLayer> operatorLevelMultiplier{};
+        std::array<float, core::kNodesPerLayer> operatorWavetablePositionOffset{};
         float panOffset = 0.0f;
 
         ModOutputs() noexcept { operatorLevelMultiplier.fill(1.0f); }
@@ -81,6 +85,13 @@ namespace pw8::modulation
                     case ModDestination::Pan:
                         out.panOffset += sourceValue * route.amount;
                         break;
+                    case ModDestination::OperatorWavetablePosition:
+                    {
+                        const std::uint8_t idx =
+                            route.targetIndex < core::kNodesPerLayer ? route.targetIndex : std::uint8_t{0};
+                        out.operatorWavetablePositionOffset[idx] += sourceValue * route.amount;
+                        break;
+                    }
                     case ModDestination::None:
                         break;
                 }

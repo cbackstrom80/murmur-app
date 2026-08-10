@@ -186,7 +186,7 @@ namespace pw8::patch
         void fromJson(const json& j, modulation::ModRoute& r)
         {
             r.source = static_cast<modulation::ModSource>(clampNum(j.value("source", 0), 0, 14));
-            r.destination = static_cast<modulation::ModDestination>(clampNum(j.value("destination", 0), 0, 4));
+            r.destination = static_cast<modulation::ModDestination>(clampNum(j.value("destination", 0), 0, 5));
             r.targetIndex = static_cast<std::uint8_t>(clampNum(j.value("targetIndex", 0), 0, 255));
             r.amount = clampNum(j.value("amount", 0.0f), -1000.0f, 1000.0f);
             r.scope = static_cast<modulation::ModScope>(clampNum(j.value("scope", 0), 0, 2));

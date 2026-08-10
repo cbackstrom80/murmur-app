@@ -104,7 +104,7 @@ namespace pw8::voice
         /// Renders one stereo sample. Returns silence and frees the voice once its
         /// envelope has fully finished its release.
         void renderSample(const algorithm::CompiledAlgorithm& compiled,
-                           const std::array<oscillator::WavetableView, core::kNodesPerLayer>& wavetables,
+                           const std::array<const oscillator::WavetableTable*, core::kNodesPerLayer>& wavetableTables,
                            float bpm, float& outLeft, float& outRight) noexcept
         {
             if (noteNumber < 0 && !ampEnvelope.isActive())
@@ -141,9 +141,13 @@ namespace pw8::voice
             // 8-struct stack copy, no allocation).
             std::array<op::OperatorParams, core::kNodesPerLayer> modulatedParams = operatorParams;
             for (std::size_t i = 0; i < core::kNodesPerLayer; ++i)
+            {
                 modulatedParams[i].level *= modOut.operatorLevelMultiplier[i];
+                modulatedParams[i].wavetableFramePosition = dsp::clamp(
+                    modulatedParams[i].wavetableFramePosition + modOut.operatorWavetablePositionOffset[i], 0.0f, 1.0f);
+            }
 
-            const float raw = executor.processSample(compiled, modulatedParams, operatorStates, wavetables, effectiveFreq);
+            const float raw = executor.processSample(compiled, modulatedParams, operatorStates, wavetableTables, effectiveFreq);
 
             float filtered = raw;
             if (filterParams.enabled)
