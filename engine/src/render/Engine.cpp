@@ -217,6 +217,99 @@ namespace pw8::render
                 v.macroValues[index] = value;
     }
 
+    void Engine::setFilterLive(const filter::FilterParams& params) noexcept
+    {
+        patch_.layerA.filter1 = params;
+        for (auto& v : voices_)
+            v.filterParams = params;
+    }
+
+    void Engine::setLfoLive(const lfo::LfoParams& params) noexcept
+    {
+        patch_.layerA.lfo1 = params;
+        for (auto& v : voices_)
+            v.lfoParams = params;
+    }
+
+    void Engine::setOperatorLive(std::size_t opIndex, const op::OperatorParams& params) noexcept
+    {
+        if (opIndex >= core::kNodesPerLayer)
+            return;
+
+        operatorParamsTemplateA_[opIndex] = params;
+        for (auto& v : voices_)
+            v.operatorParams[opIndex] = params;
+
+        // Keep patch_ (the getStateInformation()/preset-save source of truth) in sync
+        // too -- mapping back into OperatorPatch's flattened field names, and
+        // deliberately NOT touching wavetableId or pan (not part of the live API).
+        auto& stored = patch_.layerA.operators[opIndex];
+        stored.engine = params.engine;
+        stored.classicWaveform = params.classic.waveform;
+        stored.classicMorph = params.classic.morph;
+        stored.pulseWidth = params.classic.pulseWidth;
+        stored.wavetableFramePosition = params.wavetableFramePosition;
+        stored.frequencyRatio = params.frequencyRatio;
+        stored.fixedFrequencyHz = params.fixedFrequencyHz;
+        stored.keyTrack = params.keyTrack;
+        stored.level = params.level;
+    }
+
+    void Engine::setAmpEnvelopeLive(const envelope::DahdsrParams& params) noexcept
+    {
+        patch_.layerA.ampEnvelope = params;
+    }
+
+    void Engine::setLayerGainLive(float gain) noexcept
+    {
+        patch_.layerA.gain = gain;
+        const float newOutputGain = gain * patch_.voiceSettings.masterGain;
+        for (auto& v : voices_)
+            v.outputGain = newOutputGain;
+    }
+
+    void Engine::setLayerPanLive(float pan) noexcept
+    {
+        patch_.layerA.pan = pan;
+        for (auto& v : voices_)
+            v.pan = pan;
+    }
+
+    void Engine::setMasterGainLive(float masterGain) noexcept
+    {
+        patch_.voiceSettings.masterGain = masterGain;
+        const float newOutputGain = patch_.layerA.gain * masterGain;
+        for (auto& v : voices_)
+            v.outputGain = newOutputGain;
+    }
+
+    void Engine::setInsertEffectLive(std::size_t slot, const effects::EffectSlotParams& params) noexcept
+    {
+        if (slot < patch_.layerA.insertEffects.size())
+            patch_.layerA.insertEffects[slot] = params;
+    }
+
+    void Engine::setMasterEffectLive(std::size_t slot, const effects::EffectSlotParams& params) noexcept
+    {
+        if (slot < patch_.masterEffects.size())
+            patch_.masterEffects[slot] = params;
+    }
+
+    void Engine::setArpeggiatorScalarLive(const sequencer::ArpeggiatorParams& params) noexcept
+    {
+        auto merged = patch_.arpeggiator; // preserves .steps -- see the header doc comment.
+        merged.enabled = params.enabled;
+        merged.mode = params.mode;
+        merged.rateMode = params.rateMode;
+        merged.rateHz = params.rateHz;
+        merged.syncDivisionIndex = params.syncDivisionIndex;
+        merged.octaveRange = params.octaveRange;
+        merged.numSteps = params.numSteps;
+        merged.latch = params.latch;
+        patch_.arpeggiator = merged;
+        arpeggiator_.setLiveParams(merged);
+    }
+
     void Engine::process(core::StereoBlockView output) noexcept
     {
         const dsp::ScopedDenormalGuard denormalGuard;

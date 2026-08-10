@@ -11,11 +11,14 @@ VST3, AU, and Standalone artifacts:
 - The **Standalone app launches and runs cleanly** (verified: process stays alive,
   no crash, no JUCE assertion failures).
 - The **VST3** bundle builds and ad-hoc-signs successfully.
-- **8 host-automatable parameters** (macros 1-8, `juce::AudioProcessorValueTreeState`)
-  are live-wired end to end -- automating one mid-note-hold audibly changes a
-  currently-sustaining voice, not just the next one -- and **`pluginval` passes at
-  strictness level 5 (maximum)** on both the VST3 and the AU. See "Automation" and
-  "pluginval" below.
+- **270 host-automatable parameters** (`juce::AudioProcessorValueTreeState`) --
+  macros, Filter1, LFO1, all 8 operators, the amp envelope, layer gain/pan,
+  master gain, all 7 FX slots' scalar controls, and the arpeggiator's scalar
+  fields -- are live-wired end to end -- automating one mid-note-hold audibly
+  changes a currently-sustaining voice (where physically meaningful; see
+  "Automation" for the amp-envelope exception), not just the next one -- and
+  **`pluginval` passes at strictness level 5 (maximum)** on both the VST3 and
+  the AU at this full parameter count. See "Automation" and "pluginval" below.
 
 None of this has been tested inside a real DAW host yet, and there is no host-matrix
 CI job beyond a single macOS build-and-`auval` check (`.github/workflows/ci.yml`'s
@@ -44,11 +47,13 @@ pluginval --strictness-level 5 --validate "Patchwork Eight.component"  # AU must
 Both **SUCCESS** at every suite: Open plugin (cold/warm), Plugin info, Editor, Open
 editor whilst processing, Audio processing (44.1/48/96kHz x 64/128/256/512/1024
 sample block sizes), Plugin state, Automation (same sample-rate/block-size matrix,
-32-sample sub-blocks -- this is the suite that actually drives the 8 macro
+32-sample sub-blocks -- this is the suite that actually drives all 270
 parameters through automation-style value changes mid-stream), Editor Automation,
 Automatable Parameters, and (embedded) `auval`. This is a materially stronger signal
 than `auval` alone: `auval` is AU-specific and doesn't exercise
 block-size-varying/automation-under-processing scenarios the way `pluginval` does.
+Re-run and re-confirmed SUCCESS after expanding from 8 to 270 published
+parameters -- this is not a stale result from the smaller parameter set.
 
 ## Design
 
@@ -87,48 +92,109 @@ drift apart. `auval`'s MIDI test exercises this path directly and passes.
 
 ### Automation
 
-**IMPLEMENTED** (as far as the master spec's scope for this control surface goes).
-Per the master spec, not every internal patch parameter is exposed as flat DAW
-automation -- only the 8 macros are, matching the "8 routable macros" model
-validated against Phase Plant's in the COMPETITIVE_ANALYSIS.md research pass.
-`plugin/src/state/PluginState.h`/`.cpp` build a real
-`juce::AudioProcessorValueTreeState` (`PatchworkEightProcessor::apvts`) with 8
-`AudioParameterFloat`s (`macro1`..`macro8`, 0..1, matching `Patch::macros[0..7]`).
+**IMPLEMENTED, ~270 parameters.** The original design here exposed only the 8
+macros to host automation (matching Phase Plant's "8 routable macros" model,
+per the COMPETITIVE_ANALYSIS.md research pass). Per explicit user direction
+("every param should be automatable"), that scope was deliberately widened to
+every scalar field that is both (a) POD -- safe to read/write from the audio
+thread with zero allocation risk -- and (b) currently audible (Layer A, the
+only voiced layer). `plugin/src/state/PluginState.h`/`.cpp` builds a real
+`juce::AudioProcessorValueTreeState` (`PatchworkEightProcessor::apvts`) with:
 
-Two things had to be true for this to actually *work*, not just compile:
+| Group | Count | Fields |
+|---|---|---|
+| Macros | 8 | `macro1`..`macro8` |
+| Filter1 | 5 | enabled, mode, cutoffHz, resonance, keyTrack |
+| LFO1 | 5 | waveform, mode, rateHz, syncDivisionIndex, phaseOffset |
+| 8 operators | 72 | engine, waveform, morph, pulseWidth, wavetableFramePosition, frequencyRatio, fixedFrequencyHz, keyTrack, level (x8) |
+| Amp envelope | 8 | delay, attack, hold, decay, sustain, release, curve, legato |
+| Layer gain/pan, master gain | 3 | `layerGain`, `layerPan`, `masterGain` |
+| 3 insert + 4 master FX slots | 161 | type, mix, and every scalar knob for all 6 algorithms (23 fields x 7 slots) |
+| Arpeggiator | 8 | enabled, mode, rateMode, rateHz, syncDivisionIndex, octaveRange, numSteps, latch |
+| **Total** | **270** | |
 
-1. **A live macro change must reach a currently-held note, not just the next
-   one.** `render::Engine::setMacroValue()` writes straight into every active
-   voice's `macroValues` array -- a plain per-sample-read array (see
-   `Voice::renderSample`), so a mod-matrix route from a macro (e.g. to filter
-   cutoff or operator level) responds immediately. `processBlock()` pushes all 8
-   parameters' current values into the running Engine every block via cached
-   `std::atomic<float>*` pointers (`getRawParameterValue()`, the standard
-   audio-thread-safe JUCE read path) -- proven, not just asserted, by
-   `tests/unit/EngineMacroLiveUpdateTests.cpp`: mid-hold, muting a macro-routed
-   operator via `setMacroValue()` measurably drops the still-playing voice's RMS,
-   and un-muting restores it.
-2. **A saved session must round-trip the macros' current values, not just a
-   preset's defaults.** `getStateInformation()` calls
-   `syncPatchMacrosFromParameters()` (APVTS -> `currentPatch_.macros`) before
+**Explicitly out of scope**, with rationale (same POD/audibility bar applied
+consistently, documented in full in `plugin/src/state/PluginState.h`):
+std::string fields (wavetableId, all patch/macro metadata) -- not a
+continuous-automation-shaped data type; algorithm graph topology and the
+mod-route list -- structural patch-editing data, not a performance knob;
+the arpeggiator's 64-step array and NodeDelay/FractalEcho's node-tree
+arrays/seeds -- same reasoning, and already fully covered by the native `.pw8`
+JSON round-trip regardless; unison and layer width/centerGravity -- schema-
+present but not DSP-wired yet (Phase 7/8 PARTIAL), so publishing automation
+for them would audibly do nothing, which is worse than honestly excluding it;
+Layer B's operators/filter/LFO/envelope -- Layer B isn't voiced yet (Phase 8);
+`voiceSettings.polyphony`/`a4Hz` and the patch seed -- structural/tuning-
+reference changes, not continuous performance parameters.
+
+Three things had to be true for this to actually *work* at this scale, not
+just compile:
+
+1. **A live parameter change must reach a currently-held note, not just the
+   next one, for every group where that's physically meaningful.**
+   `render::Engine`'s "Live parameter API" (`setFilterLive`/`setLfoLive`/
+   `setOperatorLive`/`setLayerGainLive`/`setLayerPanLive`/`setMasterGainLive`)
+   writes straight into every active voice's live per-sample-read fields (the
+   same pattern `setMacroValue()` established) -- proven by
+   `tests/unit/EngineLiveParamsTests.cpp`: a lowpass filter closing mid-hold
+   measurably darkens a still-ringing saw, and muting an operator's level
+   mid-hold measurably silences it. Effect slots don't even need a
+   voice-push step: `Engine::process()` already reads
+   `patch_.layerA.insertEffects`/`patch_.masterEffects` fresh every sample, so
+   `setInsertEffectLive()`/`setMasterEffectLive()` just overwrite those
+   structs directly and the very next sample picks it up (also tested).
+   The one deliberate exception is the amp envelope: `DahdsrEnvelope` captures
+   its targets/coefficients once at `noteOn()` with no live mid-ramp-retarget
+   API, so `setAmpEnvelopeLive()` takes effect on the *next* note-on, not an
+   already-ringing voice's current ramp -- documented on the method itself
+   rather than silently glossed over.
+2. **Automating the arpeggiator's rate/mode/etc. must not restart its
+   pattern.** `Arpeggiator::configure()` resets held notes, pattern position,
+   and pending ratchet/tie events -- calling it every block would make the arp
+   re-start from step 0 constantly and never actually play. A new
+   `Arpeggiator::setLiveParams()` swaps `params_` without resetting anything;
+   `Engine::setArpeggiatorScalarLive()` uses it, and additionally preserves the
+   loaded per-step pattern (`.steps`) by merging only the 8 scalar fields into
+   the existing `patch_.arpeggiator` rather than overwriting the whole struct.
+   `tests/unit/EngineLiveParamsTests.cpp` proves this directly: two held notes
+   keep producing arp-triggered onsets across a live rate change with no
+   intervening note-on/note-off.
+3. **A saved session must round-trip every automatable field's current
+   value, not just a preset's defaults**, and NodeDelay/FractalEcho's
+   non-automated `nodes[]`/seed fields must survive a live effect-parameter
+   push untouched. `getStateInformation()` calls
+   `syncPatchFromAllParameters()` (APVTS -> `currentPatch_`) before
    serializing; `loadPatch()`/`setStateInformation()` call the reverse
-   (`syncMacroParametersFromPatch()`, `currentPatch_.macros` -> APVTS, via
-   `setValueNotifyingHost()` so the host's own UI/automation lane sees it). This
-   keeps `currentPatch_` the single source of truth (docs/PLUGIN_ARCHITECTURE.md
-   "Host State") rather than a second, divergent store of the same 8 floats.
+   (`syncAllParametersFromPatch()`, via `setValueNotifyingHost()` so the
+   host's own UI/automation lane sees it). Effect-slot pushes in
+   `processBlock()` read the engine's current `EffectSlotParams` first (via
+   `getInsertEffectParams()`/`getMasterEffectParams()`) and only overwrite the
+   23 automated scalar fields, preserving whatever isn't exposed. This all
+   keeps `currentPatch_` the single source of truth (see "Host State" above)
+   rather than a second, divergent store of the same ~270 values.
 
-`auval` now reports 8 published parameters (`Checking parameter setting`/
-`Checking ramped parameter scheduling` both pass -- previously skipped entirely
-when there were zero parameters to test). `pluginval --strictness-level 5`
-(the maximum) passes on both the VST3 and the AU, including its `Automation`,
-`Plugin state`, and `Automatable Parameters` suites -- see "pluginval" below.
+`auval` reports exactly 270 published parameters (confirmed:
+`grep -c "Parameter ID:"` against its verbose output) and passes
+`Checking parameter setting`/`Checking ramped parameter scheduling` in full.
+`pluginval --strictness-level 5` (the maximum) passes on both the VST3 and the
+AU at this full parameter count, including its `Automation`, `Plugin state`,
+and `Automatable Parameters` suites -- see "pluginval" below.
+
+Implementation note: enum-valued parameters (filter mode, effect type, etc.)
+are exposed as stepped `AudioParameterFloat`s rather than
+`AudioParameterChoice`, for implementation uniformity across all ~270
+parameters (one read path, `getRawParameterValue()->load()`, for everything).
+A host shows a continuous slider rather than a named dropdown for these; a
+real PLAY/DESIGN/LAB UI (Phase 17) would present them better. Frequency-ratio-
+style parameters (`op{N}FreqRatio`, 0.001..128) are also linear rather than
+log-scaled -- a known, minor UX rough edge, not a correctness issue.
 
 ## Editor
 
 `createEditor()` returns a `juce::GenericAudioProcessorEditor` -- JUCE's built-in
 generic parameter-list editor, exactly the pragmatic placeholder this doc previously
-said it *would* use once the target actually built. It's empty today (no
-`AudioProcessorParameter`s are registered yet), but it's a real, consistent editor:
+said it *would* use once the target actually built. It now shows a real (if
+unstyled) list of all 270 registered parameters rather than an empty list:
 `hasEditor()` returning `true` with a non-null `createEditor()` result is a JUCE
 internal-consistency invariant (`AudioProcessor::createEditorIfNeeded()` asserts on
 exactly this), and standalone-launch testing caught the earlier
@@ -215,14 +281,18 @@ same reason the rest of the UI does: proving the DSP first.
 2. `pluginval` isn't wired into CI yet -- it was installed and run locally
    (`brew install --cask pluginval`) for this verification pass, not vendored or
    added as a `.github/workflows/ci.yml` job.
-3. Beyond the 8 macros, no other patch parameters are host-automatable (by
-   design, per the master spec -- see "Automation" above) -- there's no
-   automation lane for, say, filter cutoff or an effect's mix directly; that
-   requires either mapping specific fields to more APVTS parameters or a
-   generic "any patch field" automation scheme, neither of which exists yet.
+3. A deliberately-excluded set of fields are still NOT host-automatable -- see
+   "Automation" above's full list (Layer B entirely, unison, layer width/
+   centerGravity, the arpeggiator's per-step array, effect delay-tree node
+   arrays/seeds, algorithm graph topology, mod-route list, `wavetableId` and
+   all string metadata, `voiceSettings.polyphony`/`a4Hz`, the patch seed).
+   Each is excluded for a documented reason (string-typed, structural, or not
+   DSP-wired yet), not an oversight -- but they're real gaps if a use case
+   needs them.
 4. The real PLAY/DESIGN/LAB UI (Phase 17) -- `GenericAudioProcessorEditor` is a
-   placeholder (now showing 8 real macro sliders, not an empty list, but still
-   not a step toward the signature UI).
+   placeholder (now showing all 270 real parameters as generic sliders, not an
+   empty list, but still not a step toward the signature UI -- 270 flat
+   sliders is not how this synth should actually be played).
 5. Code signing / notarization for actual distribution (the build today produces an
    ad-hoc-signed VST3, sufficient for local testing only).
 6. Spectrum analyzer / oscilloscope / wavetable preview visualization (architected

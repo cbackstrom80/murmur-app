@@ -23,6 +23,7 @@ add_executable(pw8_tests
     unit/ArpeggiatorTests.cpp
     unit/EffectsTests.cpp
     unit/EngineMacroLiveUpdateTests.cpp
+    unit/EngineLiveParamsTests.cpp
     serialization/PatchSerializerTests.cpp
     serialization/StandardMidiFileTests.cpp
     serialization/WavetableTableLoaderTests.cpp

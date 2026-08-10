@@ -1,7 +1,8 @@
 #pragma once
 
 // STATUS: PARTIAL, build-verified against real JUCE 8.0.6 (AU passes `auval` in
-// full) -- see plugin/CMakeLists.txt and docs/PLUGIN_ARCHITECTURE.md.
+// full; both AU and VST3 pass `pluginval` at max strictness) -- see
+// plugin/CMakeLists.txt and docs/PLUGIN_ARCHITECTURE.md.
 //
 // Threading contract (docs/PLUGIN_ARCHITECTURE.md "Host State"):
 //   - prepareToPlay() / releaseResources() / setStateInformation() run on the message
@@ -57,7 +58,7 @@ namespace pw8::plugin
         /// new Engine off-thread and atomically publishes it for processBlock() to pick up.
         bool loadPatch(const patch::Patch& newPatch);
 
-        /// The host-automatable macro parameters (docs/PLUGIN_ARCHITECTURE.md
+        /// The ~270 host-automatable parameters (docs/PLUGIN_ARCHITECTURE.md
         /// "Automation"). Public so createEditor()/tests can reach it; processBlock()
         /// reads it via the cached raw-value pointers below, never through this
         /// directly (getRawParameterValue() is the audio-thread-safe path).
@@ -66,27 +67,50 @@ namespace pw8::plugin
     private:
         void publishEngine(std::unique_ptr<render::Engine> newEngine);
 
-        /// Message-thread only: pushes `currentPatch_.macros[*].value` into the APVTS
-        /// parameters (e.g. after loading a preset or a saved session), so the host's
-        /// UI/automation lane reflects the patch's macro values rather than whatever
-        /// was there from the previously loaded patch.
-        void syncMacroParametersFromPatch();
+        /// Caches every parameter's `getRawParameterValue()` pointer once, at
+        /// construction -- the audio-thread-safe read path processBlock() uses every
+        /// block instead of the heavier getParameter()/normalisation lookup.
+        void cacheParameterPointers();
+
+        /// Message-thread only: pushes every automatable field currently in
+        /// `currentPatch_` into the matching APVTS parameter (e.g. after loading a
+        /// preset or a saved session), so the host's UI/automation lane reflects the
+        /// patch's values rather than whatever was there from the previously loaded
+        /// patch.
+        void syncAllParametersFromPatch();
 
         /// Message-thread only: the reverse direction -- called right before
-        /// serializing state, so a saved session captures the macros' current
-        /// (possibly host-automated) values rather than only the patch's original
-        /// defaults. Keeps `currentPatch_` as the single source of truth described in
-        /// docs/PLUGIN_ARCHITECTURE.md "Host State" rather than a second, divergent
-        /// store of the same 8 floats.
-        void syncPatchMacrosFromParameters();
+        /// serializing state, so a saved session captures every automatable field's
+        /// current (possibly host-automated) value rather than only the patch's
+        /// original defaults. Keeps `currentPatch_` as the single source of truth
+        /// described in docs/PLUGIN_ARCHITECTURE.md "Host State" rather than a second,
+        /// divergent store of the same ~270 values.
+        void syncPatchFromAllParameters();
+
+        /// Audio-thread only, called once per block from processBlock(): pushes every
+        /// cached parameter's current value into the live Engine via its POD-only
+        /// "Live parameter API" (Engine::setFilterLive/setOperatorLive/...). This is
+        /// what makes automating, say, filter cutoff or an effect's mix audible on a
+        /// currently-sustaining voice, not just the next note-on.
+        void pushLiveParametersToEngine(render::Engine& engine) noexcept;
 
         patch::Patch currentPatch_ = patch::Patch::makeInit();
 
         // Cached once in the constructor: audio-thread-safe raw pointers into the
-        // APVTS's atomic parameter storage (the standard JUCE pattern for reading
-        // parameters from processBlock() without going through the heavier
-        // getParameter()/normalisation path each block).
+        // APVTS's atomic parameter storage. Organized to mirror the field-spec tables
+        // in PluginState.h exactly (same field order), so building a POD params
+        // struct in pushLiveParametersToEngine() is a straight positional read.
         std::array<std::atomic<float>*, 8> macroParamPointers_{};
+        std::array<std::atomic<float>*, kNumFilterFields> filterParamPointers_{};
+        std::array<std::atomic<float>*, kNumLfoFields> lfoParamPointers_{};
+        std::array<std::array<std::atomic<float>*, kNumOperatorFields>, kNumOperators> operatorParamPointers_{};
+        std::array<std::atomic<float>*, kNumEnvelopeFields> envelopeParamPointers_{};
+        std::atomic<float>* layerGainPointer_ = nullptr;
+        std::atomic<float>* layerPanPointer_ = nullptr;
+        std::atomic<float>* masterGainPointer_ = nullptr;
+        std::array<std::array<std::atomic<float>*, kNumEffectSlotFields>, kNumInsertFxSlots> insertFxParamPointers_{};
+        std::array<std::array<std::atomic<float>*, kNumEffectSlotFields>, kNumMasterFxSlots> masterFxParamPointers_{};
+        std::array<std::atomic<float>*, kNumArpFields> arpParamPointers_{};
 
         // The audio thread only ever dereferences activeEngine_.load(); everything else
         // (loadPatch, prepareToPlay building a replacement) happens off-thread and swaps

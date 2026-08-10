@@ -1,41 +1,111 @@
 #pragma once
 
-// Host-visible automatable parameters (docs/PLUGIN_ARCHITECTURE.md "Automation"):
-// the plugin does NOT expose every internal pw8::patch::Patch field as a flat DAW
-// automation lane -- only macros (M1-M8) are, matching the master spec's "8
-// routable macros" as the primary host-facing control surface (the same macro
-// model validated against Phase Plant's in docs/ROADMAP.md's competitive-research
-// pass). The rest of the patch travels through getStateInformation()/
-// setStateInformation() as the native .pw8 JSON document (see
-// PatchworkEightProcessor), so there is exactly one source of truth for patch
-// data, per docs/PLUGIN_ARCHITECTURE.md "Host State" -- macro parameter *values*
-// are additionally kept in sync with that document (see
-// PatchworkEightProcessor::syncMacroParametersFromPatch/syncPatchMacrosFromParameters)
-// rather than being a second, divergent store of the same 8 floats.
+// Host-visible automatable parameters (docs/PLUGIN_ARCHITECTURE.md "Automation").
+//
+// Scope: every scalar (float/int/bool/enum) field that (a) currently has an
+// audible effect on Layer A (the only voiced layer, Phase 8) or is genuinely a
+// live performance control (macros, arpeggiator's scalar fields, effect slot
+// scalar fields), and (b) is POD -- safe to read/write from the audio thread with
+// zero allocation risk. That's ~270 parameters: 8 macros, Filter1 (5), LFO1 (5),
+// 8 operators x 9 fields (72), the amp envelope (8), layer gain/pan + master gain
+// (3), 3 insert + 4 master FX slots x 23 scalar fields each (161), and the
+// arpeggiator's 8 top-level scalar fields.
+//
+// Deliberately NOT exposed as flat automation (see render::Engine's "Live
+// parameter API" doc comment for the parallel, more detailed rationale):
+//   - Any std::string field (wavetableId, patch/macro metadata) -- not a
+//     continuous-automation-shaped data type.
+//   - Algorithm graph topology (nodes/edges) and the mod-route list -- structural
+//     patch-editing data, not something a performer turns a knob on.
+//   - The arpeggiator's per-step array (up to 64 steps x 8 fields = 512 more
+//     parameters) and NodeDelay/FractalEcho's node-tree arrays (6 nodes x 7
+//     fields, plus FractalEcho's 2 seeds) -- same reasoning, and each is already
+//     fully covered by the native .pw8 JSON round-trip via getStateInformation/
+//     setStateInformation.
+//   - Unison and layer width/centerGravity -- schema-present but not yet DSP-wired
+//     (ROADMAP Phase 7/8 PARTIAL); publishing automation for a parameter with no
+//     audible effect yet would be misleading rather than useful.
+//   - Layer B's operators/filter/LFO/envelope -- Layer B isn't voiced yet
+//     (Phase 8); symmetric automation lands once dual-layer mixing does.
+//   - voiceSettings.polyphony/a4Hz, and the patch seed -- structural/tuning-
+//     reference changes, not continuous performance parameters.
+//
+// Implementation note: enum-valued parameters (filter mode, LFO waveform, effect
+// type, etc.) are exposed as stepped `AudioParameterFloat`s (integer-valued,
+// `discrete = true` in `ParamFieldSpec`) rather than `AudioParameterChoice`, for
+// implementation uniformity across all ~270 parameters -- every one of them is
+// read the same way (`getRawParameterValue()->load()`), avoiding needing several
+// different JUCE parameter subclasses and per-type read paths. The host UI will
+// show a continuous slider rather than a named dropdown for these; a real
+// PLAY/DESIGN/LAB UI (Phase 17) would present them better.
 
 #include <array>
+#include <cstddef>
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
 namespace pw8::plugin
 {
-    /// Stable macro parameter IDs exposed to host automation, matching
-    /// pw8::patch::Patch::macros[0..7]. These strings are the DAW-automation contract:
-    /// once shipped, they must never be renamed (see docs/PATCH_FORMAT.md "Parameter
-    /// System" for the same stability rule applied to the engine's own parameter IDs).
     inline constexpr std::array<const char*, 8> kMacroParameterIds = {
         "macro1", "macro2", "macro3", "macro4", "macro5", "macro6", "macro7", "macro8",
     };
-
     inline constexpr std::array<const char*, 8> kMacroParameterNames = {
         "Macro 1", "Macro 2", "Macro 3", "Macro 4", "Macro 5", "Macro 6", "Macro 7", "Macro 8",
     };
 
+    inline constexpr std::size_t kNumOperators = 8;
+    inline constexpr std::size_t kNumInsertFxSlots = 3;
+    inline constexpr std::size_t kNumMasterFxSlots = 4;
+    inline constexpr std::size_t kNumOperatorFields = 9;
+    inline constexpr std::size_t kNumFilterFields = 5;
+    inline constexpr std::size_t kNumLfoFields = 5;
+    inline constexpr std::size_t kNumEnvelopeFields = 8;
+    inline constexpr std::size_t kNumEffectSlotFields = 23;
+    inline constexpr std::size_t kNumArpFields = 8;
+
+    /// One automatable field's shape: a stable ID suffix, a human-readable label,
+    /// its range, and its reset default. `discrete` means integer-stepped (bools,
+    /// enums, and int-typed fields like syncDivisionIndex/numSteps) -- everything
+    /// else is a continuous float.
+    struct ParamFieldSpec
+    {
+        const char* idSuffix;
+        const char* label;
+        float minValue;
+        float maxValue;
+        float defaultValue;
+        bool discrete = false;
+    };
+
+    // Field order matches op::OperatorParams's own field order (see Engine::setOperatorLive).
+    extern const std::array<ParamFieldSpec, kNumOperatorFields> kOperatorFieldSpecs;
+    // Field order matches filter::FilterParams.
+    extern const std::array<ParamFieldSpec, kNumFilterFields> kFilterFieldSpecs;
+    // Field order matches lfo::LfoParams.
+    extern const std::array<ParamFieldSpec, kNumLfoFields> kLfoFieldSpecs;
+    // Field order matches envelope::DahdsrParams.
+    extern const std::array<ParamFieldSpec, kNumEnvelopeFields> kEnvelopeFieldSpecs;
+    // Field order matches effects::EffectSlotParams's scalar fields (excludes
+    // `nodes[]`, `fractalSeedA/B`) -- shared by both insert and master FX slots.
+    extern const std::array<ParamFieldSpec, kNumEffectSlotFields> kEffectSlotFieldSpecs;
+    // Field order matches sequencer::ArpeggiatorParams's scalar fields (excludes `steps[]`).
+    extern const std::array<ParamFieldSpec, kNumArpFields> kArpFieldSpecs;
+
+    [[nodiscard]] juce::String operatorParamId(std::size_t opIndex, const char* fieldSuffix);
+    [[nodiscard]] juce::String insertFxParamId(std::size_t slot, const char* fieldSuffix);
+    [[nodiscard]] juce::String masterFxParamId(std::size_t slot, const char* fieldSuffix);
+
+    inline constexpr const char* kFilterIdPrefix = "filter";
+    inline constexpr const char* kLfoIdPrefix = "lfo";
+    inline constexpr const char* kEnvelopeIdPrefix = "env";
+    inline constexpr const char* kArpIdPrefix = "arp";
+    inline constexpr const char* kLayerGainId = "layerGain";
+    inline constexpr const char* kLayerPanId = "layerPan";
+    inline constexpr const char* kMasterGainId = "masterGain";
+
     /// Builds the plugin's full `AudioProcessorValueTreeState` parameter layout --
-    /// currently just the 8 macros, each a plain 0..1 float. Kept as a free function
-    /// (rather than inline in the processor) so it's easy to extend with the "small
-    /// set of performance-critical parameters" docs/PLUGIN_ARCHITECTURE.md leaves
-    /// room for, without processor constructor clutter.
+    /// all ~270 parameters described above, generated from the field-spec tables
+    /// rather than hand-written one at a time.
     [[nodiscard]] juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
 } // namespace pw8::plugin

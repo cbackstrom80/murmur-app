@@ -2,7 +2,7 @@
 
 ## Current Status
 
-**97 Catch2 test cases, all passing** as of this pass (`ctest --preset dev` /
+**101 Catch2 test cases, all passing** as of this pass (`ctest --preset dev` /
 `./build/tests/pw8_tests`). Framework: Catch2 v3.8.1, fetched via CMake
 `FetchContent` (see `tests/CMakeLists.txt`), registered with `ctest` via
 `catch_discover_tests`. (Catch2 was bumped from v3.6.0 to v3.8.1 after v3.6.0's
@@ -25,6 +25,7 @@ individually-discovered `ctest` output was confirmed correct after the bump.)
 | `tests/unit/ArpeggiatorTests.cpp` | Per-mode note-sequence generation (Up/Down/UpDown/AsPlayed hand-verified exact sequences), Chord mode firing every held note together, latch keeping the pattern alive after release vs. stopping without it, seeded-probability determinism, ratchet sub-hit count, tie suppressing retrigger, polymetric step/note-sequence independence |
 | `tests/unit/EffectsTests.cpp` | Saturation transparency/compression; Chorus transparency and fixed-delay impulse response; TapeDelay Static echo spacing/decay and PingPong channel alternation; NodeDelay parent-child chaining and disabled-node exclusion; `FrequencyShifter`'s measured shift amount (FFT peak) and `FreqShiftEcho`'s bounded output; FractalEcho topology determinism/seed divergence/depth-scaling rule/finite output across a full morph sweep; `EffectChain` Bypass transparency and in-series processing |
 | `tests/unit/EngineMacroLiveUpdateTests.cpp` | `Engine::setMacroValue()` measurably changes a currently-held voice's output immediately (RMS drop/recovery via a macro->OperatorLevel mod route), not just the next note-on -- the property plugin macro automation depends on |
+| `tests/unit/EngineLiveParamsTests.cpp` | The rest of Engine's "Live parameter API": a filter cutoff closing mid-hold measurably darkens a still-ringing voice, muting an operator's level mid-hold measurably silences it, an insert effect's saturation mid-hold measurably compresses a loud signal, and an arpeggiator rate change mid-pattern (`setArpeggiatorScalarLive`, not `configure()`) doesn't reset held notes/pattern position -- the property all 270 plugin-automatable parameters depend on |
 | `tests/serialization/PatchSerializerTests.cpp` | Full patch roundtrip (incl. algorithm graph), malformed-JSON rejection, non-object-root rejection, minimal-document defaulting |
 | `tests/serialization/StandardMidiFileTests.cpp` | Hand-built minimal SMF parses correctly (tempo-to-seconds math verified), too-small-buffer and bad-magic-header rejection, `MidiSequence::durationSeconds()` |
 | `tests/serialization/WavetableTableLoaderTests.cpp` | Valid multi-mip table parses correctly, malformed-JSON/mismatched-sample-count/out-of-range-dimensions rejection, missing-file error reporting |

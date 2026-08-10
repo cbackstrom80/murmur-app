@@ -68,6 +68,82 @@ namespace pw8::render
             return index < patch_.macros.size() ? patch_.macros[index].value : 0.0f;
         }
 
+        // --- Live parameter API (docs/PLUGIN_ARCHITECTURE.md "Automation") ---
+        //
+        // Every setter below is audio-thread safe: each writes only into the POD
+        // (string-free) substructs of `patch_` -- so a host/plugin can call these once
+        // per block without ever risking a std::string allocation on the audio thread
+        // -- and, where the corresponding field is read live per-sample by a currently
+        // *sustaining* voice (filter/LFO/operators/gain/pan; see Voice::renderSample),
+        // pushes the new value into every active voice too, exactly like
+        // setMacroValue() above. Fields NOT covered here (per-operator wavetableId,
+        // algorithm graph topology, mod-route list, arpeggiator per-step array, effect
+        // delay-tree node arrays/seeds, AI lock flags, patch metadata) are structural
+        // or string-typed data, not continuous performance parameters -- see
+        // docs/PLUGIN_ARCHITECTURE.md "Automation" for the full scope rationale.
+        // Layer B is not voiced yet (Phase 8), so only Layer A has a live API.
+
+        void setFilterLive(const filter::FilterParams& params) noexcept;
+        [[nodiscard]] const filter::FilterParams& getFilterParams() const noexcept { return patch_.layerA.filter1; }
+
+        void setLfoLive(const lfo::LfoParams& params) noexcept;
+        [[nodiscard]] const lfo::LfoParams& getLfoParams() const noexcept { return patch_.layerA.lfo1; }
+
+        /// `opIndex` in [0, kNodesPerLayer). Out-of-range is a no-op.
+        void setOperatorLive(std::size_t opIndex, const op::OperatorParams& params) noexcept;
+        [[nodiscard]] op::OperatorParams getOperatorParams(std::size_t opIndex) const noexcept
+        {
+            return opIndex < core::kNodesPerLayer ? operatorParamsTemplateA_[opIndex] : op::OperatorParams{};
+        }
+
+        /// Takes effect on the NEXT note-on (triggerNoteOnDirect() reads
+        /// `patch_.layerA.ampEnvelope` fresh every trigger) -- an already-ringing
+        /// voice's envelope keeps the shape it was triggered with, since DahdsrEnvelope
+        /// captures its targets/coefficients once at noteOn() and has no live
+        /// mid-ramp-retarget API. Automating envelope times still works exactly as a
+        /// performer would expect between notes; it just isn't a glitch-free
+        /// mid-attack edit.
+        void setAmpEnvelopeLive(const envelope::DahdsrParams& params) noexcept;
+        [[nodiscard]] const envelope::DahdsrParams& getAmpEnvelopeParams() const noexcept { return patch_.layerA.ampEnvelope; }
+
+        void setLayerGainLive(float gain) noexcept;
+        [[nodiscard]] float getLayerGain() const noexcept { return patch_.layerA.gain; }
+
+        void setLayerPanLive(float pan) noexcept;
+        [[nodiscard]] float getLayerPan() const noexcept { return patch_.layerA.pan; }
+
+        void setMasterGainLive(float masterGain) noexcept;
+        [[nodiscard]] float getMasterGainValue() const noexcept { return patch_.voiceSettings.masterGain; }
+
+        /// `slot` in [0, kNumLayerInsertSlots)/[0, kNumMasterSlots). Read-modify-write
+        /// against the getter first if you need to preserve fields this API doesn't
+        /// expose to automation (NodeDelay/FractalEcho's `nodes[]`, FractalEcho's
+        /// seeds) -- `Engine::process()` reads these structs live every sample
+        /// (`layerAInsertChain_.process(patch_.layerA.insertEffects, ...)`), so a
+        /// write here takes effect on the very next sample with no extra plumbing.
+        void setInsertEffectLive(std::size_t slot, const effects::EffectSlotParams& params) noexcept;
+        [[nodiscard]] effects::EffectSlotParams getInsertEffectParams(std::size_t slot) const noexcept
+        {
+            return slot < patch_.layerA.insertEffects.size() ? patch_.layerA.insertEffects[slot]
+                                                               : effects::EffectSlotParams{};
+        }
+
+        void setMasterEffectLive(std::size_t slot, const effects::EffectSlotParams& params) noexcept;
+        [[nodiscard]] effects::EffectSlotParams getMasterEffectParams(std::size_t slot) const noexcept
+        {
+            return slot < patch_.masterEffects.size() ? patch_.masterEffects[slot] : effects::EffectSlotParams{};
+        }
+
+        /// Only the scalar top-level fields of `params` (enabled/mode/rateMode/rateHz/
+        /// syncDivisionIndex/octaveRange/numSteps/latch) are applied -- `params.steps`
+        /// is ignored, the currently-loaded per-step pattern is always preserved (see
+        /// getArpeggiatorParams() if you need to read it back first). Uses
+        /// Arpeggiator::setLiveParams(), NOT configure() -- held notes, pattern
+        /// position, and pending ratchet/tie events are never reset by this call, so
+        /// automating the rate mid-pattern doesn't restart it from step 0.
+        void setArpeggiatorScalarLive(const sequencer::ArpeggiatorParams& params) noexcept;
+        [[nodiscard]] const sequencer::ArpeggiatorParams& getArpeggiatorParams() const noexcept { return patch_.arpeggiator; }
+
         /// Renders `output.numFrames()` samples into `output`, accumulating from all
         /// active voices. Audio-thread safe.
         void process(core::StereoBlockView output) noexcept;

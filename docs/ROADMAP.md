@@ -20,7 +20,7 @@ Status as of this repository's initial engineering pass. Legend: **DONE** / **PA
 | 13 | Patch format productionization (schema, migrations, metadata) | **PARTIAL** -- schema v1 complete and hardened against untrusted input; migration *mechanism* exists with nothing to migrate yet (only one schema version so far) |
 | 14 | Python API productionization | **PARTIAL** -- see PYTHON_API.md coverage table |
 | 15 | Patchwork integration (Sound IR compilation boundary) | **PARTIAL** -- CLI/Python/schema boundaries exist and work; `EightPatchCompiler` (IR -> Patch) itself is PLANNED, see PATCHWORK_INTEGRATION.md |
-| 16 | Plugin (VST3, AU, Standalone) | **PARTIAL, build-verified** -- builds against real JUCE 8.0.6; AU passes `auval` in full; `pluginval` passes at strictness 5 (max) on VST3 and AU; 8 macro parameters live-automatable end to end (`juce::AudioProcessorValueTreeState`); Standalone launches cleanly; no signature UI or real-DAW host-matrix yet. See PLUGIN_ARCHITECTURE.md |
+| 16 | Plugin (VST3, AU, Standalone) | **PARTIAL, build-verified** -- builds against real JUCE 8.0.6; AU passes `auval` in full; `pluginval` passes at strictness 5 (max) on VST3 and AU; 270 parameters (macros, filter, LFO, all 8 operators, envelope, gain/pan, all 7 FX slots, arpeggiator) live-automatable end to end (`juce::AudioProcessorValueTreeState`); Standalone launches cleanly; no signature UI or real-DAW host-matrix yet. See PLUGIN_ARCHITECTURE.md |
 | 17 | UI | **PLANNED** (deliberately, per spec) -- `createEditor()` returns JUCE's generic placeholder editor, not a step toward the real UI |
 | 18 | AI features (Generate, Mutate, Breed, Lock) via Patchwork | **PLANNED** -- metadata hooks (`LockFlags`, `lineage`, deterministic seeding) exist; the AI pipeline itself lives in Patchwork |
 | 19 | Factory bank (512-1024 curated presets) | **PLANNED** -- 7 engineering test patches exist (`content/presets/`), not factory-curated content |
@@ -250,6 +250,45 @@ Closes the plugin's biggest gap between "builds and passes `auval`" and
   "pluginval" for full detail, and "What's still missing" for what this pass
   deliberately didn't cover (real DAW host-matrix testing, `pluginval` in CI,
   automation beyond the 8 macros).
+
+## Follow-up pass: every automatable parameter (Phase 16, continued -- 8 -> 270 parameters)
+
+Per explicit user direction ("every param should be automatable"), the
+automation surface above was deliberately widened from 8 macros to every
+scalar field that's both POD-safe and currently audible on Layer A -- 270
+parameters total. Full detail in [PLUGIN_ARCHITECTURE.md](PLUGIN_ARCHITECTURE.md)
+"Automation" (including the complete, reasoned list of what's still
+deliberately excluded and why); summary:
+
+- `render::Engine` gained a full "Live parameter API": `setFilterLive`/
+  `setLfoLive`/`setOperatorLive` (x8)/`setAmpEnvelopeLive`/`setLayerGainLive`/
+  `setLayerPanLive`/`setMasterGainLive`/`setInsertEffectLive` (x3)/
+  `setMasterEffectLive` (x4)/`setArpeggiatorScalarLive`, each POD-only (never
+  touches a `std::string` field) and audio-thread safe, matching the pattern
+  `setMacroValue()` already established.
+- Two real correctness issues were caught and fixed while wiring this, not
+  after: (1) `Arpeggiator::configure()` resets held-note/pattern state, so a
+  new non-resetting `setLiveParams()` had to be added, or automating the
+  arp's rate would have silently stopped it from ever playing; (2) effect
+  slots' `nodes[]`/seed fields (not exposed to automation) had to be
+  preserved via read-modify-write in `processBlock()`, or every block would
+  have overwritten a NodeDelay/FractalEcho patch's actual topology with
+  defaults.
+- `plugin/src/state/PluginState.h`/`.cpp`: a field-spec-table-driven
+  `createParameterLayout()` (not 270 hand-written near-duplicate blocks) --
+  `ParamFieldSpec` tables for operators/filter/LFO/envelope/effect-slot/arp
+  fields, looped over 8 operators and 7 FX slots.
+- 4 new Engine-level unit tests (`tests/unit/EngineLiveParamsTests.cpp`):
+  filter cutoff closing mid-hold measurably darkens a still-ringing voice,
+  muting an operator's level mid-hold measurably silences it, an insert
+  effect's saturation mid-hold measurably compresses a loud signal, and an
+  arpeggiator rate change mid-pattern doesn't stop it from playing -- 101
+  total tests, all passing.
+- `auval` confirms exactly 270 published parameters and still passes in
+  full; `pluginval --strictness-level 5` re-run and re-confirmed SUCCESS on
+  both the VST3 and the AU at the full 270-parameter count (not a stale
+  result carried over from the 8-macro version).
+- All 4 build configs (dev/benchmarks/python/plugin) rebuilt clean.
 
 ## GPU acceleration (researched, not adopted)
 

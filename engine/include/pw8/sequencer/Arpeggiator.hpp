@@ -60,6 +60,15 @@ namespace pw8::sequencer
                 slot.active = false;
         }
 
+        /// Swaps in new parameters WITHOUT resetting held notes, pattern position, or
+        /// pending events -- unlike configure(). For live automation of the scalar
+        /// fields (rate/mode/octaveRange/latch/...) from a running plugin: every index
+        /// derived from `numSteps`/`noteSequence_.size()` is already taken modulo that
+        /// size on every use (see fireStep()/tieLookaheadSamples()), so swapping
+        /// `params_` mid-stream can never read out of bounds even if numSteps shrinks
+        /// between one tick and the next. See docs/PLUGIN_ARCHITECTURE.md "Automation".
+        void setLiveParams(const ArpeggiatorParams& params) noexcept { params_ = params; }
+
         void prepare(double sampleRate) noexcept { sampleRate_ = sampleRate > 0.0 ? sampleRate : 48000.0; }
 
         void noteHeld(int note, int channel, float velocityUnit) noexcept
