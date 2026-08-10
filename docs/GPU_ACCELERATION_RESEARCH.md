@@ -9,6 +9,15 @@ explained below. Sources:
 [roadtovr.com/nvidias-vrworks-audio-brings-physically-based-3d-gpu-accelerated-sound](https://www.roadtovr.com/nvidias-vrworks-audio-brings-physically-based-3d-gpu-accelerated-sound/),
 [gpuopen.com/archived/true-audio-next](https://gpuopen.com/archived/true-audio-next/).
 
+**Scope note:** this document is specifically about offloading *DSP compute*
+(synthesis, convolution, resonator banks) to a GPU compute API. It says nothing
+about, and doesn't apply to, using a GPU for *UI rendering acceleration*
+(hardware-accelerated drawing of a spectrum analyzer, oscilloscope, or wavetable
+preview via `juce::OpenGLContext`) -- that's a different, lower-risk, already-planned
+use of "GPU" with no NVIDIA-specific dependency, documented separately in
+`docs/PLUGIN_ARCHITECTURE.md` "Visualization: spectrum, oscilloscope, waveform/
+wavetable previews".
+
 ## What GPU Audio (the company) actually does
 
 GPU Audio (Los Angeles) ships an SDK that offloads DSP work from CPU to GPU (NVIDIA

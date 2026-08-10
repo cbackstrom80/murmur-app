@@ -96,6 +96,57 @@ OP2 -> OP1 --+
 `plugin/src/ui/` is an empty, documented placeholder for that future work -- the
 `GenericAudioProcessorEditor` above is explicitly a placeholder, not a step toward it.
 
+## Visualization: spectrum, oscilloscope, waveform/wavetable previews (PLANNED)
+
+Researched and architected at the user's request; **not implemented** -- this is
+the same documentation-only treatment as `docs/GPU_ACCELERATION_RESEARCH.md`, and
+the two documents are deliberately about two *different* uses of "GPU" that
+shouldn't be conflated:
+
+- `GPU_ACCELERATION_RESEARCH.md` is about offloading **DSP compute** (synthesis,
+  convolution, resonator banks) to a GPU compute API (CUDA) -- declined for now,
+  for portability and complexity reasons that have nothing to do with graphics.
+- This section is about **GPU-accelerated UI rendering** -- using `juce::OpenGLContext`
+  to hardware-accelerate whatever the editor draws. This is low-risk, standard
+  practice for real-time-updating plugin UIs (spectrum analyzers, scopes, and
+  wavetable displays are the canonical case a GPU-backed `Component` render path
+  exists for), has no NVIDIA-specific dependency (OpenGL is cross-vendor; JUCE also
+  has a Metal-adjacent path on Apple platforms), and doesn't touch `pw8_core` at
+  all -- it's purely a `plugin/` concern.
+
+Three visualization surfaces, all PLANNED for Phase 17, sharing the same
+audio-tap-plus-render-loop shape:
+
+1. **Spectrum analyzer** (live). Needs a realtime-safe tap of `processBlock()`'s
+   output into a fixed-capacity ring buffer (single-producer/single-consumer:
+   audio thread writes, UI-thread timer reads a snapshot -- no allocation, no
+   locking, matching the realtime rules in `docs/ARCHITECTURE.md`). The UI-thread
+   timer callback runs `pw8::dsp::fft` (already implemented, `pw8/dsp/Fft.hpp` --
+   built for wavetable mip generation but equally usable for analysis) over the
+   latest window and paints a magnitude spectrum. `juce::OpenGLContext` attached to
+   the top-level editor component accelerates that repainting at animation rates
+   without the DSP core needing to know a UI exists.
+2. **Oscilloscope** (live). Same ring-buffer tap as the spectrum analyzer; paints
+   raw time-domain samples instead of an FFT magnitude. Shares the tap
+   infrastructure and the OpenGL-accelerated paint path -- the two are really one
+   piece of plumbing with two different `paint()` implementations on top.
+3. **Waveform/wavetable previews** (static, no audio tap needed). Rendering a
+   `oscillator::WavetableTable` frame -- or a sweep across its frames/mips -- is
+   just reading `MipLevel::samples` and drawing a line; unlike the two live views
+   above, this needs no realtime audio-thread involvement at all, since the table
+   data already lives in memory once loaded (`Engine::loadPatch()`). This is the
+   natural place to *see* what `pw8-wavetable-builder` produced (mip level,
+   harmonic content, frame morph) without leaving the plugin. Still benefits from
+   the same `juce::OpenGLContext` acceleration if drawn inside the same
+   GPU-backed editor, but doesn't require it functionally the way the live views do
+   (nothing here is animating at audio-block rate).
+
+None of the three requires any change to `pw8_core`'s realtime-safety contract --
+the tap is a plugin-side addition, `pw8::dsp::fft` already exists and is control-path/
+UI-thread-only here (not called from `processBlock()`), and the wavetable preview
+reads data the engine already owns. All three wait on Phase 17 starting for the
+same reason the rest of the UI does: proving the DSP first.
+
 ## What's still missing
 
 1. `pluginval` (beyond `auval`) -- PLANNED, not run in this pass.
@@ -106,3 +157,5 @@ OP2 -> OP1 --+
    placeholder, not a step toward it.
 5. Code signing / notarization for actual distribution (the build today produces an
    ad-hoc-signed VST3, sufficient for local testing only).
+6. Spectrum analyzer / oscilloscope / wavetable preview visualization (architected
+   above, GPU-accelerated via `juce::OpenGLContext`) -- documentation only, no code.

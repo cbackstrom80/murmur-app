@@ -158,6 +158,12 @@ build). No roadmap phase was added or changed; this is a decision record for fut
 reference, most relevant to the PLANNED Additive/Granular/Resonator engines and
 Phase 11 reverb if pursued later.
 
+A related but distinct question -- GPU-accelerated *UI rendering* (spectrum
+analyzer, oscilloscope, wavetable preview via `juce::OpenGLContext`, no CUDA/compute
+dependency) -- was also researched and architected, documented (not implemented) in
+`docs/PLUGIN_ARCHITECTURE.md` "Visualization"; it stays under Phase 17 like the rest
+of the UI.
+
 ## Immediate next steps (suggested, not committed)
 
 1. `juce::AudioProcessorValueTreeState` parameter wiring + `pluginval` + a real DAW
