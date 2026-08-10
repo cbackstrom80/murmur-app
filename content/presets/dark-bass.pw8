@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "id": "pw8-dark-bass",
+    "name": "DARK BASS",
+    "author": "Patchwork Eight Engineering",
+    "description": "Sine/triangle-morphed carrier (OP0, morph=0.15 -- leaning toward triangle rather than saw) plus a sub sine an octave down (OP1). Darkness comes from oscillator/morph choice, not filtering: Filter 1/Filter 2 are architected but not yet in the signal path (docs/ROADMAP.md Phase 6).",
+    "category": "bass",
+    "moods": ["dark", "warm"],
+    "genres": [],
+    "tags": ["engineering", "bass", "dark"],
+    "createdAt": "2026-08-10T00:00:00Z",
+    "engineVersion": "0.1.0",
+    "schemaVersion": 1,
+    "seed": 1006,
+    "lineage": []
+  },
+  "layerMode": 0,
+  "layerMorph": 0.0,
+  "layerA": {
+    "operators": [
+      {"engine": 0, "classicWaveform": 1, "classicMorph": 0.15, "frequencyRatio": 1.0, "keyTrack": true, "level": 0.85, "pan": 0.0},
+      {"engine": 0, "classicWaveform": 0, "frequencyRatio": 0.5, "keyTrack": true, "level": 0.5, "pan": 0.0},
+      {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}
+    ],
+    "algorithm": {
+      "nodes": [
+        {"id": 0, "engine": 0, "isOutput": true}, {"id": 1, "engine": 0, "isOutput": true},
+        {"id": 2, "engine": 0, "isOutput": true}, {"id": 3, "engine": 0, "isOutput": true},
+        {"id": 4, "engine": 0, "isOutput": true}, {"id": 5, "engine": 0, "isOutput": true},
+        {"id": 6, "engine": 0, "isOutput": true}, {"id": 7, "engine": 0, "isOutput": true}
+      ],
+      "edges": []
+    },
+    "ampEnvelope": {"attackSeconds": 0.006, "decaySeconds": 0.35, "sustainLevel": 0.55, "releaseSeconds": 0.35, "curveShape": 2.5},
+    "unison": {"mode": 0, "voices": 1},
+    "gain": 0.9, "pan": 0.0, "width": 0.4, "centerGravity": 0.85
+  },
+  "layerB": {
+    "operators": [
+      {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}
+    ],
+    "algorithm": {
+      "nodes": [
+        {"id": 0, "engine": 0, "isOutput": true}, {"id": 1, "engine": 0, "isOutput": false},
+        {"id": 2, "engine": 0, "isOutput": false}, {"id": 3, "engine": 0, "isOutput": false},
+        {"id": 4, "engine": 0, "isOutput": false}, {"id": 5, "engine": 0, "isOutput": false},
+        {"id": 6, "engine": 0, "isOutput": false}, {"id": 7, "engine": 0, "isOutput": false}
+      ],
+      "edges": []
+    },
+    "ampEnvelope": {"attackSeconds": 0.006, "decaySeconds": 0.35, "sustainLevel": 0.55, "releaseSeconds": 0.35},
+    "gain": 1.0, "pan": 0.0, "width": 1.0, "centerGravity": 0.5
+  },
+  "voiceSettings": {"polyphony": 8, "masterGain": 0.85, "a4Hz": 440.0},
+  "locks": {},
+  "macros": [
+    {"id": "m1", "name": "DARKNESS", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m2", "name": "IMPACT", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m3", "name": "MOTION", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m4", "name": "SPACE", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m5", "name": "BODY", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m6", "name": "METAL", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m7", "name": "CHAOS", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m8", "name": "MORPH", "description": "Reserved -- not yet routed.", "value": 0.0}
+  ],
+  "seed": 1006
+}

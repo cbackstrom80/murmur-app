@@ -1,0 +1,114 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 24, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "dev",
+      "displayName": "Developer (Debug)",
+      "description": "Debug build with tests and tools, no sanitizers.",
+      "binaryDir": "${sourceDir}/build/dev",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "PW8_BUILD_TESTS": "ON",
+        "PW8_BUILD_TOOLS": "ON"
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "Release",
+      "description": "Optimized build with tests and tools.",
+      "binaryDir": "${sourceDir}/build/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "PW8_BUILD_TESTS": "ON",
+        "PW8_BUILD_TOOLS": "ON"
+      }
+    },
+    {
+      "name": "asan",
+      "displayName": "AddressSanitizer",
+      "description": "Debug build with ASan enabled for tests.",
+      "binaryDir": "${sourceDir}/build/asan",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "PW8_BUILD_TESTS": "ON",
+        "PW8_BUILD_TOOLS": "ON",
+        "PW8_ENABLE_ASAN": "ON"
+      }
+    },
+    {
+      "name": "ubsan",
+      "displayName": "UndefinedBehaviorSanitizer",
+      "description": "Debug build with UBSan enabled for tests.",
+      "binaryDir": "${sourceDir}/build/ubsan",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "PW8_BUILD_TESTS": "ON",
+        "PW8_BUILD_TOOLS": "ON",
+        "PW8_ENABLE_UBSAN": "ON"
+      }
+    },
+    {
+      "name": "benchmarks",
+      "displayName": "Benchmarks",
+      "description": "Release build with Google Benchmark suite enabled.",
+      "binaryDir": "${sourceDir}/build/benchmarks",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "PW8_BUILD_TESTS": "OFF",
+        "PW8_BUILD_TOOLS": "OFF",
+        "PW8_BUILD_BENCHMARKS": "ON"
+      }
+    },
+    {
+      "name": "python",
+      "displayName": "Python bindings",
+      "description": "Debug build with the pybind11 module enabled (requires Python dev headers).",
+      "binaryDir": "${sourceDir}/build/python",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "PW8_BUILD_TESTS": "OFF",
+        "PW8_BUILD_TOOLS": "OFF",
+        "PW8_BUILD_PYTHON_BINDINGS": "ON"
+      }
+    },
+    {
+      "name": "plugin",
+      "displayName": "Plugin (JUCE) -- SCAFFOLD, untested",
+      "description": "Attempts to build pw8_plugin against JUCE. See docs/PLUGIN_ARCHITECTURE.md -- not verified in this pass.",
+      "binaryDir": "${sourceDir}/build/plugin",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "PW8_BUILD_TESTS": "OFF",
+        "PW8_BUILD_TOOLS": "OFF",
+        "PW8_BUILD_PLUGIN": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "dev", "configurePreset": "dev" },
+    { "name": "release", "configurePreset": "release" },
+    { "name": "asan", "configurePreset": "asan" },
+    { "name": "ubsan", "configurePreset": "ubsan" },
+    { "name": "benchmarks", "configurePreset": "benchmarks" },
+    { "name": "python", "configurePreset": "python" },
+    { "name": "plugin", "configurePreset": "plugin" }
+  ],
+  "testPresets": [
+    {
+      "name": "dev",
+      "configurePreset": "dev",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "asan",
+      "configurePreset": "asan",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "ubsan",
+      "configurePreset": "ubsan",
+      "output": { "outputOnFailure": true }
+    }
+  ]
+}

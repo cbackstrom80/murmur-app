@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    name: Build core + run tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake --preset dev
+
+      - name: Build
+        run: cmake --build --preset dev -j
+
+      - name: Test
+        run: ctest --preset dev --output-on-failure
+
+  build-and-test-windows:
+    name: Build core + run tests (windows-latest)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake --preset dev
+
+      - name: Build
+        run: cmake --build --preset dev -j --config Debug
+
+      - name: Test
+        run: ctest --preset dev --output-on-failure -C Debug
+
+  sanitizers:
+    name: ASan / UBSan (ubuntu-latest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure (ASan)
+        run: cmake --preset asan
+
+      - name: Build (ASan)
+        run: cmake --build --preset asan -j
+
+      - name: Test (ASan)
+        run: ctest --preset asan --output-on-failure
+
+      - name: Configure (UBSan)
+        run: cmake --preset ubsan
+
+      - name: Build (UBSan)
+        run: cmake --build --preset ubsan -j
+
+      - name: Test (UBSan)
+        run: ctest --preset ubsan --output-on-failure
+
+# NOTE: pw8_plugin (JUCE) and the pybind11 module are NOT built in CI in this pass --
+# the plugin target is an untested scaffold (see docs/PLUGIN_ARCHITECTURE.md) and
+# the Python bindings require a Python dev-headers setup step not yet added here.
+# Both are candidates for future CI jobs once those targets are exercised more.

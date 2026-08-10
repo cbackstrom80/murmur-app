@@ -1,0 +1,24 @@
+{
+  "id": "serial_8",
+  "name": "Serial 8",
+  "description": "OP7 phase-modulates OP6, which modulates OP5, and so on down to OP0, which alone reaches the output. A deep single-chain FM/PM stack.",
+  "nodes": [
+    {"id": 0, "engine": 0, "isOutput": true},
+    {"id": 1, "engine": 0, "isOutput": false},
+    {"id": 2, "engine": 0, "isOutput": false},
+    {"id": 3, "engine": 0, "isOutput": false},
+    {"id": 4, "engine": 0, "isOutput": false},
+    {"id": 5, "engine": 0, "isOutput": false},
+    {"id": 6, "engine": 0, "isOutput": false},
+    {"id": 7, "engine": 0, "isOutput": false}
+  ],
+  "edges": [
+    {"source": 7, "destination": 6, "type": 1, "amount": 1.0},
+    {"source": 6, "destination": 5, "type": 1, "amount": 1.0},
+    {"source": 5, "destination": 4, "type": 1, "amount": 1.0},
+    {"source": 4, "destination": 3, "type": 1, "amount": 1.0},
+    {"source": 3, "destination": 2, "type": 1, "amount": 1.0},
+    {"source": 2, "destination": 1, "type": 1, "amount": 1.0},
+    {"source": 1, "destination": 0, "type": 1, "amount": 1.0}
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "id": "carrier_cluster",
+  "name": "Carrier Cluster",
+  "description": "Topologically identical to Parallel 8 (all 8 nodes are independent output carriers, no cross-modulation) -- the 'cluster' character comes from the patch's per-operator frequencyRatio detuning, not the graph shape. Intended as the algorithm template for dense unison/cluster pads and drones.",
+  "nodes": [
+    {"id": 0, "engine": 0, "isOutput": true},
+    {"id": 1, "engine": 0, "isOutput": true},
+    {"id": 2, "engine": 0, "isOutput": true},
+    {"id": 3, "engine": 0, "isOutput": true},
+    {"id": 4, "engine": 0, "isOutput": true},
+    {"id": 5, "engine": 0, "isOutput": true},
+    {"id": 6, "engine": 0, "isOutput": true},
+    {"id": 7, "engine": 0, "isOutput": true}
+  ],
+  "edges": []
+}

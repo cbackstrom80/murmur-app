@@ -1,0 +1,101 @@
+# Patchwork Eight
+
+An AI-native, dual-layer, 8-engine algorithmic software synthesizer. This is a new,
+standalone repository -- it does not depend on, embed, or modify the existing
+Patchwork AI repository (see [docs/PATCHWORK_INTEGRATION.md](docs/PATCHWORK_INTEGRATION.md)
+for how they're meant to connect).
+
+`patchwork-eight` / **PATCHWORK EIGHT** are working/codename names, chosen to be
+easy to rename later.
+
+## What this is, right now
+
+This is an early engineering pass: a real, tested, framework-independent C++20 DSP
+core plus enough surrounding tooling to prove the architecture end-to-end --
+**not** a finished synth. Every capability below is explicitly labeled
+**IMPLEMENTED**, **PARTIAL**, or **PLANNED**; see [docs/ROADMAP.md](docs/ROADMAP.md)
+for the full phase-by-phase breakdown against the product spec.
+
+| Capability | Status |
+|---|---|
+| Framework-independent `pw8_core` DSP library (no JUCE dependency) | **IMPLEMENTED** |
+| Band-limited (PolyBLEP) Classic oscillator: sine/triangle/saw/square, continuous morph | **IMPLEMENTED** |
+| Wavetable oscillator | **PARTIAL** (works, not yet mip-mapped/band-limited) |
+| DAHDSR envelope | **IMPLEMENTED** |
+| Polyphonic voice allocation (configurable, default 16 / max 32 voices), sensible stealing policy | **IMPLEMENTED** |
+| 8-node-per-layer algorithm graph: AUDIO/PHASE_MOD/FREQUENCY_MOD/AMPLITUDE_MOD/RING_MOD/SYNC/FEEDBACK edges, validated + compiled + executed | **IMPLEMENTED** |
+| MPE-shaped per-note expression capture (pitch bend, pressure, aftertouch, slide) | **PARTIAL** (captured; only pitch bend currently audible -- mod matrix pending) |
+| `.pw8` patch format (JSON, versioned schema, untrusted-input-hardened) | **IMPLEMENTED** |
+| Native offline renderer (no plugin host / DAW required) -> WAV + JSON receipt | **IMPLEMENTED** |
+| Standard MIDI File input (hand-rolled reader, tempo map, running status) | **IMPLEMENTED** |
+| Python bindings (pybind11) | **IMPLEMENTED** (partial API surface, see docs/PYTHON_API.md) |
+| Deterministic/seeded randomness throughout | **IMPLEMENTED** |
+| JUCE VST3/AU/Standalone plugin | **SCAFFOLD** (untested in this pass, off by default) |
+| Filters, FX, LFO, mod matrix, macros, sequencer, dual-layer mixing, algorithm morph, additional engine types (additive/phase-shape/granular/noise/resonator) | **PLANNED** |
+
+## Architecture
+
+```
+                      pw8_core
+                          |
+         +----------------+----------------+
+         |                |                |
+         v                v                v
+     pw8_plugin      patchwork_eight    pw8-render / pw8-info / pw8-graph / ...
+   (JUCE, SCAFFOLD)   (pybind11)        (native CLI tools)
+```
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full threading model,
+realtime-safety rules, and buffer design.
+
+## Building
+
+```bash
+cmake --preset dev
+cmake --build --preset dev -j
+ctest --preset dev --output-on-failure
+```
+
+37 test cases, 165,192 assertions, all passing. See [docs/BUILD.md](docs/BUILD.md)
+for every preset (release/asan/ubsan/benchmarks/python/plugin).
+
+## Running the renderer
+
+```bash
+./build/dev/tools/pw8-render \
+    --patch content/presets/dark-bass.pw8 \
+    --midi content/test_midi/bass-line.mid \
+    --sample-rate 48000 --bpm 105 \
+    --output /tmp/dark-bass.wav --receipt /tmp/dark-bass.receipt.json
+
+./build/dev/tools/pw8-graph inspect content/presets/fm-bell.pw8
+./build/dev/tools/pw8-info
+```
+
+Seven engineering test patches ship in `content/presets/`: `INIT SINE`, `INIT SAW`,
+`WIDE SAW`, `SUB BASS`, `FM BELL`, `DARK BASS`, `SOFT PAD`. These are engineering
+patches proving specific capabilities, not curated factory content (see
+docs/ROADMAP.md Phase 19).
+
+## Documentation
+
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md) -- layering, threading model, realtime rules
+- [BUILD.md](docs/BUILD.md) -- presets, options, dependency fetching
+- [DSP_ENGINE.md](docs/DSP_ENGINE.md) -- every engine type's design rationale and status
+- [ALGORITHM_GRAPH.md](docs/ALGORITHM_GRAPH.md) -- the 8-node graph, compiler, execution semantics
+- [PATCH_FORMAT.md](docs/PATCH_FORMAT.md) -- the `.pw8` schema
+- [MODULATION.md](docs/MODULATION.md) -- envelope (done), LFO/matrix/macros (planned)
+- [RENDERER.md](docs/RENDERER.md) -- native offline rendering, MIDI input, WAV output
+- [PYTHON_API.md](docs/PYTHON_API.md) -- pybind11 bindings
+- [PLUGIN_ARCHITECTURE.md](docs/PLUGIN_ARCHITECTURE.md) -- JUCE scaffold design
+- [TESTING.md](docs/TESTING.md) -- what's covered, what isn't yet
+- [ROADMAP.md](docs/ROADMAP.md) -- phase-by-phase status against the full product spec
+- [LICENSING.md](docs/LICENSING.md) -- dependency license analysis
+- [PATCHWORK_INTEGRATION.md](docs/PATCHWORK_INTEGRATION.md) -- how this connects to Patchwork AI
+- [PRIOR_ART.md](docs/PRIOR_ART.md) -- design lineage, incl. the Mutable Instruments `eurorack` concept mapping
+
+## License
+
+No license has been chosen yet for this project's own code (see
+[docs/LICENSING.md](docs/LICENSING.md)); third-party dependencies retain their own
+licenses ([THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md)).

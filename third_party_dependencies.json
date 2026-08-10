@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "dependencies": [
+    {
+      "name": "nlohmann-json",
+      "purpose": "JSON parsing/serialization for the .pw8 patch format",
+      "license": "MIT",
+      "version": "v3.11.3",
+      "source": "https://github.com/nlohmann/json",
+      "fetchMethod": "CMake FetchContent",
+      "usedIn": ["pw8_core (patch serialization only, not in public/audio-thread headers)"],
+      "commercialClosedSourceCompatible": true,
+      "buildDefault": true
+    },
+    {
+      "name": "Catch2",
+      "purpose": "Unit/dsp/serialization/regression test framework",
+      "license": "BSL-1.0",
+      "version": "v3.6.0",
+      "source": "https://github.com/catchorg/Catch2",
+      "fetchMethod": "CMake FetchContent",
+      "usedIn": ["pw8_tests (test-only, never shipped)"],
+      "commercialClosedSourceCompatible": true,
+      "buildDefault": true
+    },
+    {
+      "name": "pybind11",
+      "purpose": "C++ to Python bindings",
+      "license": "BSD-3-Clause",
+      "version": "v2.13.6",
+      "source": "https://github.com/pybind/pybind11",
+      "fetchMethod": "CMake FetchContent",
+      "usedIn": ["bindings/python (patchwork_eight module)"],
+      "commercialClosedSourceCompatible": true,
+      "buildDefault": false,
+      "buildOption": "PW8_BUILD_PYTHON_BINDINGS"
+    },
+    {
+      "name": "JUCE",
+      "purpose": "VST3/AU/Standalone plugin wrapper",
+      "license": "GPL-3.0-or-later OR Commercial (dual-licensed)",
+      "version": "7.0.12",
+      "source": "https://github.com/juce-framework/JUCE",
+      "fetchMethod": "CMake FetchContent",
+      "usedIn": ["plugin (pw8_plugin, SCAFFOLD/untested in this pass)"],
+      "commercialClosedSourceCompatible": false,
+      "commercialClosedSourceNote": "Requires a paid JUCE commercial license before any closed-source plugin build/ship. Free tier is GPLv3-only.",
+      "buildDefault": false,
+      "buildOption": "PW8_BUILD_PLUGIN"
+    },
+    {
+      "name": "Google Benchmark",
+      "purpose": "Performance benchmarking suite",
+      "license": "Apache-2.0",
+      "version": "not yet pinned -- benchmarks/ has no CMakeLists.txt in this pass",
+      "source": "https://github.com/google/benchmark",
+      "fetchMethod": "CMake FetchContent (not yet wired)",
+      "usedIn": ["benchmarks/ (PLANNED, not implemented)"],
+      "commercialClosedSourceCompatible": true,
+      "buildDefault": false,
+      "buildOption": "PW8_BUILD_BENCHMARKS"
+    }
+  ],
+  "conceptualReferences": [
+    {
+      "name": "Mutable Instruments eurorack",
+      "purpose": "Architectural/conceptual inspiration only -- no code copied or vendored. See docs/PRIOR_ART.md.",
+      "license": "MIT (STM32F-target modules referenced only; GPLv3 AVR-target modules explicitly excluded)",
+      "source": "https://github.com/pichenettes/eurorack",
+      "isCodeDependency": false
+    }
+  ]
+}

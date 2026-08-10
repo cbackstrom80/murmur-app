@@ -1,0 +1,19 @@
+{
+  "id": "cross_mod",
+  "name": "Cross Mod",
+  "description": "OP0 and OP1 modulate each other's phase for a classic cross-modulation timbre. True same-sample cross-modulation would form a zero-delay cycle, which the compiler rejects (see docs/ALGORITHM_GRAPH.md) -- so one direction (OP1 -> OP0) is feed-forward PM and the other (OP0 -> OP1) is a one-sample-delayed FEEDBACK-type edge. Both carriers reach output.",
+  "nodes": [
+    {"id": 0, "engine": 0, "isOutput": true},
+    {"id": 1, "engine": 0, "isOutput": true},
+    {"id": 2, "engine": 0, "isOutput": false},
+    {"id": 3, "engine": 0, "isOutput": false},
+    {"id": 4, "engine": 0, "isOutput": false},
+    {"id": 5, "engine": 0, "isOutput": false},
+    {"id": 6, "engine": 0, "isOutput": false},
+    {"id": 7, "engine": 0, "isOutput": false}
+  ],
+  "edges": [
+    {"source": 1, "destination": 0, "type": 1, "amount": 0.5},
+    {"source": 0, "destination": 1, "type": 6, "amount": 0.5}
+  ]
+}

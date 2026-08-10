@@ -1,0 +1,21 @@
+{
+  "id": "spectral_exciter",
+  "name": "Spectral Exciter",
+  "description": "OP0 is a hub node that sums three excitation sources (OP1-3, AUDIO edges) and is additionally phase-modulated by OP4. Written as a forward-looking template for Engine Type 8 (resonator, see docs/ROADMAP.md Phase 10) -- today the exciter/hub node just runs the Classic engine, but the routing shape (multiple audio sources feeding one hub, plus a modulator) is exactly what a resonator patch will want once that engine ships.",
+  "nodes": [
+    {"id": 0, "engine": 0, "isOutput": true},
+    {"id": 1, "engine": 0, "isOutput": false},
+    {"id": 2, "engine": 0, "isOutput": false},
+    {"id": 3, "engine": 0, "isOutput": false},
+    {"id": 4, "engine": 0, "isOutput": false},
+    {"id": 5, "engine": 0, "isOutput": false},
+    {"id": 6, "engine": 0, "isOutput": false},
+    {"id": 7, "engine": 0, "isOutput": false}
+  ],
+  "edges": [
+    {"source": 1, "destination": 0, "type": 0, "amount": 0.5},
+    {"source": 2, "destination": 0, "type": 0, "amount": 0.5},
+    {"source": 3, "destination": 0, "type": 0, "amount": 0.5},
+    {"source": 4, "destination": 0, "type": 1, "amount": 0.3}
+  ]
+}

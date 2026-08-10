@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "id": "pw8-soft-pad",
+    "name": "SOFT PAD",
+    "author": "Patchwork Eight Engineering",
+    "description": "Four gently detuned sine/triangle carriers (OP0-3), including a quiet octave-up triangle for shimmer. Slow attack and long release for a lush, evolving pad character.",
+    "category": "pad",
+    "moods": ["lush", "dreamy", "airy", "evolving"],
+    "genres": [],
+    "tags": ["engineering", "pad", "soft"],
+    "createdAt": "2026-08-10T00:00:00Z",
+    "engineVersion": "0.1.0",
+    "schemaVersion": 1,
+    "seed": 1007,
+    "lineage": []
+  },
+  "layerMode": 0,
+  "layerMorph": 0.0,
+  "layerA": {
+    "operators": [
+      {"engine": 0, "classicWaveform": 0, "frequencyRatio": 1.000, "keyTrack": true, "level": 0.45, "pan": -0.3},
+      {"engine": 0, "classicWaveform": 0, "frequencyRatio": 1.004, "keyTrack": true, "level": 0.45, "pan": 0.3},
+      {"engine": 0, "classicWaveform": 1, "frequencyRatio": 0.998, "keyTrack": true, "level": 0.35, "pan": -0.6},
+      {"engine": 0, "classicWaveform": 1, "frequencyRatio": 2.003, "keyTrack": true, "level": 0.18, "pan": 0.6},
+      {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}
+    ],
+    "algorithm": {
+      "nodes": [
+        {"id": 0, "engine": 0, "isOutput": true}, {"id": 1, "engine": 0, "isOutput": true},
+        {"id": 2, "engine": 0, "isOutput": true}, {"id": 3, "engine": 0, "isOutput": true},
+        {"id": 4, "engine": 0, "isOutput": true}, {"id": 5, "engine": 0, "isOutput": true},
+        {"id": 6, "engine": 0, "isOutput": true}, {"id": 7, "engine": 0, "isOutput": true}
+      ],
+      "edges": []
+    },
+    "ampEnvelope": {"attackSeconds": 1.2, "decaySeconds": 1.0, "sustainLevel": 0.8, "releaseSeconds": 2.0, "curveShape": 1.5},
+    "unison": {"mode": 0, "voices": 1},
+    "gain": 0.85, "pan": 0.0, "width": 1.0, "centerGravity": 0.3
+  },
+  "layerB": {
+    "operators": [
+      {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}
+    ],
+    "algorithm": {
+      "nodes": [
+        {"id": 0, "engine": 0, "isOutput": true}, {"id": 1, "engine": 0, "isOutput": false},
+        {"id": 2, "engine": 0, "isOutput": false}, {"id": 3, "engine": 0, "isOutput": false},
+        {"id": 4, "engine": 0, "isOutput": false}, {"id": 5, "engine": 0, "isOutput": false},
+        {"id": 6, "engine": 0, "isOutput": false}, {"id": 7, "engine": 0, "isOutput": false}
+      ],
+      "edges": []
+    },
+    "ampEnvelope": {"attackSeconds": 1.2, "decaySeconds": 1.0, "sustainLevel": 0.8, "releaseSeconds": 2.0},
+    "gain": 1.0, "pan": 0.0, "width": 1.0, "centerGravity": 0.5
+  },
+  "voiceSettings": {"polyphony": 16, "masterGain": 0.75, "a4Hz": 440.0},
+  "locks": {},
+  "macros": [
+    {"id": "m1", "name": "DARKNESS", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m2", "name": "IMPACT", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m3", "name": "MOTION", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m4", "name": "SPACE", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m5", "name": "BODY", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m6", "name": "METAL", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m7", "name": "CHAOS", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m8", "name": "MORPH", "description": "Reserved -- not yet routed.", "value": 0.0}
+  ],
+  "seed": 1007
+}

@@ -1,0 +1,16 @@
+{
+  "id": "parallel_8",
+  "name": "Parallel 8",
+  "description": "All 8 nodes are independent carriers summed directly to the layer output. No cross-modulation. The simplest possible topology -- a good default and a good stress-test baseline.",
+  "nodes": [
+    {"id": 0, "engine": 0, "isOutput": true},
+    {"id": 1, "engine": 0, "isOutput": true},
+    {"id": 2, "engine": 0, "isOutput": true},
+    {"id": 3, "engine": 0, "isOutput": true},
+    {"id": 4, "engine": 0, "isOutput": true},
+    {"id": 5, "engine": 0, "isOutput": true},
+    {"id": 6, "engine": 0, "isOutput": true},
+    {"id": 7, "engine": 0, "isOutput": true}
+  ],
+  "edges": []
+}

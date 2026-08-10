@@ -1,0 +1,163 @@
+#pragma once
+
+#include <array>
+#include <cstdint>
+#include <string>
+#include <vector>
+
+#include "pw8/algorithm/AlgorithmTypes.hpp"
+#include "pw8/core/Types.hpp"
+#include "pw8/core/Version.hpp"
+#include "pw8/envelope/DahdsrEnvelope.hpp"
+#include "pw8/operator/OperatorNode.hpp"
+
+// Pure data model for the native `.pw8` patch format (schemaVersion 1).
+// Deliberately free of any JSON/serialization dependency -- see
+// pw8/patch/PatchSerializer.hpp for the (de)serialization boundary, which is the
+// only place nlohmann::json is allowed to appear. This header is safe to include
+// from anywhere, including realtime-adjacent code, without dragging in a JSON parser.
+//
+// Control-path only: nothing in this header is touched by the audio thread directly.
+// A Patch is compiled into voice-ready operator params + a CompiledAlgorithm by
+// pw8::render::Engine::loadPatch() (background/UI thread), and only that compiled
+// result crosses to the audio thread.
+
+namespace pw8::patch
+{
+    /// How Layer A and Layer B combine. Only SINGLE_A is exercised by the render path
+    /// in this pass -- see docs/ROADMAP.md Phase 8 (dual layer mixing) and Phase 9
+    /// (algorithm/layer morph). The rest of the enum exists now so patch data authored
+    /// today keeps meaning as those phases land (no retrofitted schema break).
+    enum class LayerMode : std::uint8_t
+    {
+        SingleA = 0,
+        SingleB,
+        Stack,
+        Split,
+        VelocitySplit,
+        Morph,
+        KeyZone,
+    };
+
+    enum class UnisonMode : std::uint8_t
+    {
+        Off = 0,
+        Full,
+        Operator,
+        Stereo,
+        Hyper,
+        Harmonic,
+    };
+
+    struct UnisonSettings
+    {
+        UnisonMode mode = UnisonMode::Off;
+        int voices = 1;          ///< 1..kMaxUnisonVoices
+        float detuneCents = 0.0f;
+        float spread = 0.0f;     ///< stereo spread, 0..1
+        float phaseRandom = 0.0f;
+        float blend = 1.0f;
+    };
+
+    /// Persisted per-node operator configuration (maps to op::OperatorParams at compile time).
+    struct OperatorPatch
+    {
+        algorithm::EngineType engine = algorithm::EngineType::Classic;
+        oscillator::ClassicWaveform classicWaveform = oscillator::ClassicWaveform::Saw;
+        float classicMorph = -1.0f;
+        float pulseWidth = 0.5f;
+        float wavetableFramePosition = 0.0f;
+        std::string wavetableId; ///< empty == none loaded; resolved by content pipeline, not the core.
+        float frequencyRatio = 1.0f;
+        float fixedFrequencyHz = 440.0f;
+        bool keyTrack = true;
+        float level = 1.0f;
+        float pan = 0.0f; ///< reserved for per-operator stereo placement (PLANNED).
+    };
+
+    struct LayerPatch
+    {
+        std::array<OperatorPatch, core::kNodesPerLayer> operators{};
+        algorithm::AlgorithmGraphDefinition algorithm = algorithm::AlgorithmGraphDefinition::makeDefaultParallel8();
+        envelope::DahdsrParams ampEnvelope{};
+        UnisonSettings unison{};
+
+        float gain = 1.0f;
+        float pan = 0.0f;
+        float width = 1.0f; ///< stereo width, 0 (mono) .. 1 (full) .. 2 (wide), reserved (PLANNED).
+        float centerGravity = 0.5f; ///< see docs/DSP_ENGINE.md "Center Gravity" (PLANNED wiring).
+
+        // Filter 1 / Filter 2 (character) and per-layer insert effects are architected
+        // as of docs/DSP_ENGINE.md but not yet part of the signal path in this pass --
+        // see docs/ROADMAP.md Phase 6 / Phase 11.
+    };
+
+    /// AI-generation lock flags: control what Generate/Mutate/Breed are allowed to touch.
+    /// These are metadata for the (future, Patchwork-side) AI pipeline, not DSP parameters.
+    struct LockFlags
+    {
+        bool lockSources = false;
+        bool lockAlgorithm = false;
+        bool lockFilters = false;
+        bool lockModulation = false;
+        bool lockEffects = false;
+        bool lockSequence = false;
+    };
+
+    struct PatchMetadata
+    {
+        std::string id;
+        std::string name = "Init";
+        std::string author;
+        std::string description;
+        std::string category; ///< bass, lead, pluck, keyboard, pad, arp, drone, chord, fx, brass, vocal texture, strings, sequence
+        std::vector<std::string> moods;
+        std::vector<std::string> genres;
+        std::vector<std::string> tags;
+        std::string createdAt; ///< ISO-8601
+        std::string engineVersion = std::string(core::EngineVersion::string());
+        int schemaVersion = core::kPatchSchemaVersion;
+        std::uint64_t seed = 0;
+        std::vector<std::string> lineage; ///< parent patch IDs, for breeding provenance.
+    };
+
+    struct GlobalVoiceSettings
+    {
+        std::size_t polyphony = core::kDefaultVoices;
+        float masterGain = 1.0f;
+        float a4Hz = 440.0f; ///< tuning reference; full tuning service is PLANNED (docs/ROADMAP.md).
+    };
+
+    struct Macro
+    {
+        std::string id;
+        std::string name;
+        std::string description;
+        float value = 0.0f; ///< 0..1
+        // Macro routing (destinations) lands with the mod matrix -- Phase 5. A macro
+        // with no routes is valid and simply does nothing yet.
+    };
+
+    struct Patch
+    {
+        int schemaVersion = core::kPatchSchemaVersion;
+        PatchMetadata metadata{};
+        LayerMode layerMode = LayerMode::SingleA;
+        float layerMorph = 0.0f; ///< 0 = A, 1 = B (PLANNED, see LayerMode).
+        LayerPatch layerA{};
+        LayerPatch layerB{};
+        GlobalVoiceSettings voiceSettings{};
+        LockFlags locks{};
+        std::array<Macro, 8> macros{};
+        std::uint64_t seed = 0;
+
+        [[nodiscard]] static Patch makeInit() noexcept
+        {
+            Patch p;
+            p.metadata.name = "Init";
+            p.metadata.category = "lead";
+            return p;
+        }
+    };
+
+} // namespace pw8::patch

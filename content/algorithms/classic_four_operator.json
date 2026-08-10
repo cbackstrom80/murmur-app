@@ -1,0 +1,19 @@
+{
+  "id": "classic_four_operator",
+  "name": "Classic Four Operator",
+  "description": "Two independent 2-operator PM stacks (OP1->OP0, OP3->OP2), both carriers reaching output. OP4-7 are present but unused (isOutput=false, unconnected) -- a deliberate demonstration that not all 8 nodes need be active in a given algorithm.",
+  "nodes": [
+    {"id": 0, "engine": 0, "isOutput": true},
+    {"id": 1, "engine": 0, "isOutput": false},
+    {"id": 2, "engine": 0, "isOutput": true},
+    {"id": 3, "engine": 0, "isOutput": false},
+    {"id": 4, "engine": 0, "isOutput": false},
+    {"id": 5, "engine": 0, "isOutput": false},
+    {"id": 6, "engine": 0, "isOutput": false},
+    {"id": 7, "engine": 0, "isOutput": false}
+  ],
+  "edges": [
+    {"source": 1, "destination": 0, "type": 1, "amount": 1.0},
+    {"source": 3, "destination": 2, "type": 1, "amount": 1.0}
+  ]
+}
