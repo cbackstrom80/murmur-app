@@ -6,13 +6,14 @@
 // audible effect on Layer A (the only voiced layer, Phase 8) or is genuinely a
 // live performance control (macros, arpeggiator's scalar fields, effect slot
 // scalar fields), and (b) is POD -- safe to read/write from the audio thread with
-// zero allocation risk. That's 501 parameters: 8 macros, Filter1 (5), 8 LFOs x 5
+// zero allocation risk. That's 578 parameters: 8 macros, Filter1 (5), 8 LFOs x 5
 // fields (40), 8 operators x 9 fields (72), 8 envelopes x 8 fields (64), layer
-// gain/pan + master gain (3), 3 insert + 4 master FX slots x 43 scalar fields
-// each (301, covering all 10 effect algorithms including GATE 10's
-// Reverb/Eq/Compressor/Limiter), and the arpeggiator's 8 top-level scalar
-// fields -- see docs/PLUGIN_ARCHITECTURE.md "Automation" for the exact count and
-// running total across passes (8 -> 270 -> 361 -> 501, docs/ROADMAP.md).
+// gain/pan + master gain (3), 3 insert + 4 master FX slots x 54 scalar fields
+// each (378, covering all 10 effect algorithms -- Reverb grew from 4 to 15
+// fields in GATE 11's multiband redesign), and the arpeggiator's 8 top-level
+// scalar fields -- see docs/PLUGIN_ARCHITECTURE.md "Automation" for the exact
+// count and running total across passes (8 -> 270 -> 361 -> 501 -> 578,
+// docs/ROADMAP.md).
 //
 // Deliberately NOT exposed as flat automation (see render::Engine's "Live
 // parameter API" doc comment for the parallel, more detailed rationale):
@@ -71,7 +72,7 @@ namespace pw8::plugin
     inline constexpr std::size_t kNumFilterFields = 5;
     inline constexpr std::size_t kNumLfoFields = 5;
     inline constexpr std::size_t kNumEnvelopeFields = 8;
-    inline constexpr std::size_t kNumEffectSlotFields = 43;
+    inline constexpr std::size_t kNumEffectSlotFields = 54;
     inline constexpr std::size_t kNumArpFields = 8;
 
     /// One automatable field's shape: a stable ID suffix, a human-readable label,

@@ -4,6 +4,7 @@
 #include <complex>
 #include <vector>
 
+#include "pw8/dsp/Biquad.hpp"
 #include "pw8/dsp/Fft.hpp"
 #include "pw8/dsp/HilbertTransformer.hpp"
 #include "pw8/effects/EffectChain.hpp"
@@ -66,6 +67,86 @@ namespace
             if (!std::isfinite(s.l) || !std::isfinite(s.r))
                 return false;
         return true;
+    }
+
+    double windowedRms(const std::vector<StereoSample>& samples, std::size_t from, std::size_t to, bool useLeft)
+    {
+        double sumSq = 0.0;
+        std::size_t n = 0;
+        for (std::size_t i = from; i < to && i < samples.size(); ++i)
+        {
+            const float v = useLeft ? samples[i].l : samples[i].r;
+            sumSq += static_cast<double>(v) * v;
+            ++n;
+        }
+        return n > 0 ? std::sqrt(sumSq / static_cast<double>(n)) : 0.0;
+    }
+
+    /// RMS of the left channel after a Biquad lowpass probe -- a crude but
+    /// sufficient test-side "how much low-frequency content is present" measure
+    /// for *comparative* (not absolute) assertions between two renders.
+    double lowBandRms(const std::vector<StereoSample>& samples, std::size_t from, std::size_t to, double sr,
+                       float cutoffHz)
+    {
+        dsp::Biquad lp;
+        lp.setLowpass(cutoffHz, sr);
+        double sumSq = 0.0;
+        std::size_t n = 0;
+        for (std::size_t i = from; i < to && i < samples.size(); ++i)
+        {
+            const float y = lp.renderSample(samples[i].l);
+            sumSq += static_cast<double>(y) * y;
+            ++n;
+        }
+        return n > 0 ? std::sqrt(sumSq / static_cast<double>(n)) : 0.0;
+    }
+
+    /// Complementary high-band probe: original minus the lowpass probe's output.
+    /// Not a true highpass, but a sufficient comparative measure of "how much
+    /// high-frequency content is present" between two renders of the same signal.
+    double highBandRms(const std::vector<StereoSample>& samples, std::size_t from, std::size_t to, double sr,
+                        float cutoffHz)
+    {
+        dsp::Biquad lp;
+        lp.setLowpass(cutoffHz, sr);
+        double sumSq = 0.0;
+        std::size_t n = 0;
+        for (std::size_t i = from; i < to && i < samples.size(); ++i)
+        {
+            const float low = lp.renderSample(samples[i].l);
+            const float high = samples[i].l - low;
+            sumSq += static_cast<double>(high) * high;
+            ++n;
+        }
+        return n > 0 ? std::sqrt(sumSq / static_cast<double>(n)) : 0.0;
+    }
+
+    /// Crest factor (peak / RMS) within a window -- a measure of how "peaky and
+    /// discrete" vs. "smooth and dense" a signal is. Lower means denser/smoother.
+    double crestFactor(const std::vector<StereoSample>& samples, std::size_t from, std::size_t to)
+    {
+        const double rms = windowedRms(samples, from, to, true);
+        if (rms <= 1.0e-12)
+            return 0.0;
+        double peak = 0.0;
+        for (std::size_t i = from; i < to && i < samples.size(); ++i)
+            peak = std::max(peak, static_cast<double>(std::abs(samples[i].l)));
+        return peak / rms;
+    }
+
+    /// Index of the first sample at or after `from` whose magnitude exceeds
+    /// `threshold` -- used to measure "how long until a meaningful response
+    /// arrives," e.g. to verify Reverb Size actually scales delay-line lengths.
+    /// `from` defaults to 1, not 0, to skip a dry impulse's own passthrough
+    /// sample at index 0 (mix=1 renders include `inL` itself, which trivially
+    /// exceeds any sane threshold at the impulse sample regardless of the wet
+    /// signal's own onset time).
+    std::size_t firstCrossingIndex(const std::vector<StereoSample>& samples, float threshold, std::size_t from = 1)
+    {
+        for (std::size_t i = from; i < samples.size(); ++i)
+            if (std::abs(samples[i].l) > threshold)
+                return i;
+        return samples.size();
     }
 } // namespace
 
@@ -716,21 +797,15 @@ TEST_CASE("Reverb produces a decaying tail after an impulse, not silence or a st
     p.mix = 1.0f;
     p.reverbSizeParam = 1.0f;
     p.reverbDecaySeconds = 1.0f;
-    p.reverbDampingHz = 6000.0f;
     p.reverbPreDelayMs = 0.0f;
 
     const auto response = renderImpulseResponse(proc, p, static_cast<int>(1.5 * kSampleRate));
     REQUIRE(allFinite(response));
 
-    auto windowedRms = [&](std::size_t from, std::size_t to) {
-        double sumSq = 0.0;
-        for (std::size_t i = from; i < to && i < response.size(); ++i)
-            sumSq += static_cast<double>(response[i].l) * response[i].l;
-        return std::sqrt(sumSq / static_cast<double>(to - from));
-    };
-
-    const double early = windowedRms(static_cast<std::size_t>(0.05 * kSampleRate), static_cast<std::size_t>(0.15 * kSampleRate));
-    const double late = windowedRms(static_cast<std::size_t>(1.0 * kSampleRate), static_cast<std::size_t>(1.4 * kSampleRate));
+    const double early = windowedRms(response, static_cast<std::size_t>(0.05 * kSampleRate),
+                                      static_cast<std::size_t>(0.15 * kSampleRate), true);
+    const double late = windowedRms(response, static_cast<std::size_t>(1.0 * kSampleRate),
+                                     static_cast<std::size_t>(1.4 * kSampleRate), true);
 
     REQUIRE(early > 0.0001); // a real tail exists shortly after the impulse.
     REQUIRE(late < early);   // and it decays -- not a static hold or runaway feedback.
@@ -749,4 +824,225 @@ TEST_CASE("Reverb is a transparent passthrough at mix 0", "[effects][reverb]")
     proc.processStereo(0.4f, -0.2f, p, outL, outR);
     REQUIRE(outL == Catch::Approx(0.4f));
     REQUIRE(outR == Catch::Approx(-0.2f));
+}
+
+TEST_CASE("Reverb decays high frequencies faster than low frequencies when HF ratio is well below LF ratio",
+          "[effects][reverb][gate11]")
+{
+    // The M7-informed multiband decay: reverbHighRatio/reverbLowRatio are
+    // multipliers of the mid-band reverbDecaySeconds. A large HF/LF split should
+    // be measurable directly: the ratio of high-band to low-band energy should
+    // fall as the tail progresses, since the highs are decaying much faster.
+    ReverbProcessor proc;
+    proc.prepare(kSampleRate);
+
+    EffectSlotParams p;
+    p.type = EffectType::Reverb;
+    p.mix = 1.0f;
+    p.reverbDecaySeconds = 2.0f;
+    p.reverbHighRatio = 0.2f;      // fastest allowed HF decay.
+    p.reverbHighCrossoverHz = 3000.0f;
+    p.reverbLowRatio = 4.0f;       // slowest allowed... i.e. longest, LF decay.
+    p.reverbLowCrossoverHz = 500.0f;
+    p.reverbDiffusion = 0.0f;
+    p.reverbDensity = 0.0f;
+    p.reverbModDepth = 0.0f;
+    p.reverbEarlyLevel = 0.0f; // isolate the late tank -- early taps aren't band-shaped.
+    p.reverbLateLevel = 1.0f;
+
+    const auto response = renderImpulseResponse(proc, p, static_cast<int>(1.5 * kSampleRate));
+    REQUIRE(allFinite(response));
+
+    const auto earlyFrom = static_cast<std::size_t>(0.05 * kSampleRate);
+    const auto earlyTo = static_cast<std::size_t>(0.15 * kSampleRate);
+    const auto lateFrom = static_cast<std::size_t>(0.8 * kSampleRate);
+    const auto lateTo = static_cast<std::size_t>(1.0 * kSampleRate);
+
+    const double earlyHigh = highBandRms(response, earlyFrom, earlyTo, kSampleRate, 4000.0f);
+    const double earlyLow = lowBandRms(response, earlyFrom, earlyTo, kSampleRate, 300.0f);
+    const double lateHigh = highBandRms(response, lateFrom, lateTo, kSampleRate, 4000.0f);
+    const double lateLow = lowBandRms(response, lateFrom, lateTo, kSampleRate, 300.0f);
+
+    REQUIRE(earlyHigh > 1.0e-6);
+    REQUIRE(earlyLow > 1.0e-6);
+    const double earlyRatio = earlyHigh / earlyLow;
+    const double lateRatio = lateHigh / lateLow;
+    REQUIRE(lateRatio < earlyRatio); // highs have faded relative to lows by the late window.
+}
+
+TEST_CASE("Reverb Density and Diffusion measurably smooth the early tank response", "[effects][reverb][gate11]")
+{
+    auto renderWith = [&](float diffusion, float density) {
+        ReverbProcessor proc;
+        proc.prepare(kSampleRate);
+        EffectSlotParams p;
+        p.type = EffectType::Reverb;
+        p.mix = 1.0f;
+        p.reverbEarlyLevel = 0.0f; // isolate the diffuser -> tank path.
+        p.reverbLateLevel = 1.0f;
+        p.reverbModDepth = 0.0f; // hold modulation out of this comparison.
+        p.reverbPreDelayMs = 0.0f;
+        p.reverbDiffusion = diffusion;
+        p.reverbDensity = density;
+        return renderImpulseResponse(proc, p, static_cast<int>(0.1 * kSampleRate));
+    };
+
+    const auto sparse = renderWith(0.0f, 0.0f);
+    const auto dense = renderWith(1.0f, 1.0f);
+    REQUIRE(allFinite(sparse));
+    REQUIRE(allFinite(dense));
+
+    // Skip the dry impulse sample itself (index 0) -- it passes through at full
+    // magnitude regardless of diffusion/density and would swamp the comparison.
+    const auto from = static_cast<std::size_t>(0.001 * kSampleRate);
+    const auto to = static_cast<std::size_t>(0.04 * kSampleRate);
+    const double sparseCrest = crestFactor(sparse, from, to);
+    const double denseCrest = crestFactor(dense, from, to);
+
+    REQUIRE(denseCrest < sparseCrest); // higher diffusion/density -> smoother, less peaky early response.
+}
+
+TEST_CASE("Reverb late-tank modulation stays finite and bounded at maximum depth and rate", "[effects][reverb][gate11]")
+{
+    ReverbProcessor proc;
+    proc.prepare(kSampleRate);
+
+    EffectSlotParams p;
+    p.type = EffectType::Reverb;
+    p.mix = 1.0f;
+    p.reverbDecaySeconds = 20.0f; // long sustain -- stresses the modulated feedback loop.
+    p.reverbModDepth = 1.0f;
+    p.reverbModRateHz = 2.0f;
+    p.reverbDiffusion = 1.0f;
+    p.reverbDensity = 1.0f;
+
+    const auto response = renderImpulseResponse(proc, p, static_cast<int>(2.0 * kSampleRate));
+    REQUIRE(allFinite(response));
+
+    const double lateRms = windowedRms(response, static_cast<std::size_t>(1.5 * kSampleRate),
+                                        static_cast<std::size_t>(1.9 * kSampleRate), true);
+    REQUIRE(lateRms < 2.0); // nowhere near a runaway blow-up this deep into a long decay.
+}
+
+TEST_CASE("Reverb Early and Late levels are independently controllable", "[effects][reverb][gate11]")
+{
+    auto renderWith = [&](float earlyLevel, float lateLevel) {
+        ReverbProcessor proc;
+        proc.prepare(kSampleRate);
+        EffectSlotParams p;
+        p.type = EffectType::Reverb;
+        p.mix = 1.0f;
+        p.reverbSizeParam = 1.0f;
+        p.reverbDecaySeconds = 1.0f;
+        p.reverbEarlyLevel = earlyLevel;
+        p.reverbLateLevel = lateLevel;
+        return renderImpulseResponse(proc, p, static_cast<int>(0.6 * kSampleRate));
+    };
+
+    // Early only: the discrete tap cluster is fully exhausted well before 150ms
+    // (base taps top out under 39ms, and reverbSizeParam=1 doesn't scale that up),
+    // so a window starting at 300ms should be essentially silent with the late
+    // tank fully muted.
+    const auto earlyOnly = renderWith(1.0f, 0.0f);
+    REQUIRE(allFinite(earlyOnly));
+    const double earlyOnlyEarlyWindow =
+        windowedRms(earlyOnly, static_cast<std::size_t>(0.0 * kSampleRate), static_cast<std::size_t>(0.05 * kSampleRate), true);
+    const double earlyOnlyLateWindow =
+        windowedRms(earlyOnly, static_cast<std::size_t>(0.3 * kSampleRate), static_cast<std::size_t>(0.5 * kSampleRate), true);
+    REQUIRE(earlyOnlyEarlyWindow > 1.0e-5);
+    REQUIRE(earlyOnlyLateWindow < earlyOnlyEarlyWindow * 0.01); // the early cluster has fully died out.
+
+    // Late only: the tank still produces a genuine decaying tail with no
+    // discrete early-reflection contribution.
+    const auto lateOnly = renderWith(0.0f, 1.0f);
+    REQUIRE(allFinite(lateOnly));
+    const double lateOnlyLateWindow =
+        windowedRms(lateOnly, static_cast<std::size_t>(0.3 * kSampleRate), static_cast<std::size_t>(0.5 * kSampleRate), true);
+    REQUIRE(lateOnlyLateWindow > 1.0e-5); // real tail energy still present this deep in, unlike the early-only case.
+}
+
+TEST_CASE("Reverb VLF Cut attenuates low-frequency tail content", "[effects][reverb][gate11]")
+{
+    auto renderTail = [&](float vlfCutDb) {
+        ReverbProcessor proc;
+        proc.prepare(kSampleRate);
+        EffectSlotParams p;
+        p.type = EffectType::Reverb;
+        p.mix = 1.0f;
+        p.reverbDecaySeconds = 2.0f;
+        p.reverbLowRatio = 4.0f; // keep plenty of low-frequency energy alive in the tail to cut.
+        p.reverbVlfCutDb = vlfCutDb;
+        return renderImpulseResponse(proc, p, static_cast<int>(0.5 * kSampleRate));
+    };
+
+    const auto uncut = renderTail(0.0f);
+    const auto cut = renderTail(-18.0f);
+    REQUIRE(allFinite(uncut));
+    REQUIRE(allFinite(cut));
+
+    const auto from = static_cast<std::size_t>(0.1 * kSampleRate);
+    const auto to = static_cast<std::size_t>(0.4 * kSampleRate);
+    const double uncutLow = lowBandRms(uncut, from, to, kSampleRate, 80.0f);
+    const double cutLow = lowBandRms(cut, from, to, kSampleRate, 80.0f);
+
+    REQUIRE(uncutLow > 1.0e-6);
+    REQUIRE(cutLow < uncutLow); // measurably less low-frequency content with the cut engaged.
+}
+
+TEST_CASE("Reverb Roll Off attenuates high-frequency tail content", "[effects][reverb][gate11]")
+{
+    auto renderTail = [&](float rollOffHz) {
+        ReverbProcessor proc;
+        proc.prepare(kSampleRate);
+        EffectSlotParams p;
+        p.type = EffectType::Reverb;
+        p.mix = 1.0f;
+        p.reverbDecaySeconds = 2.0f;
+        p.reverbHighRatio = 1.0f; // keep plenty of high-frequency energy alive in the tail to roll off.
+        p.reverbRollOffHz = rollOffHz;
+        return renderImpulseResponse(proc, p, static_cast<int>(0.5 * kSampleRate));
+    };
+
+    const auto bright = renderTail(20000.0f);
+    const auto dark = renderTail(600.0f);
+    REQUIRE(allFinite(bright));
+    REQUIRE(allFinite(dark));
+
+    const auto from = static_cast<std::size_t>(0.1 * kSampleRate);
+    const auto to = static_cast<std::size_t>(0.4 * kSampleRate);
+    const double brightHigh = highBandRms(bright, from, to, kSampleRate, 4000.0f);
+    const double darkHigh = highBandRms(dark, from, to, kSampleRate, 4000.0f);
+
+    REQUIRE(brightHigh > 1.0e-6);
+    REQUIRE(darkHigh < brightHigh); // a low Roll Off measurably removes high-frequency tail content.
+}
+
+TEST_CASE("Reverb Size scales delay lengths independent of decay time", "[effects][reverb][gate11]")
+{
+    auto renderWith = [&](float size) {
+        ReverbProcessor proc;
+        proc.prepare(kSampleRate);
+        EffectSlotParams p;
+        p.type = EffectType::Reverb;
+        p.mix = 1.0f;
+        p.reverbSizeParam = size;
+        p.reverbDecaySeconds = 1.5f; // held fixed across both renders.
+        p.reverbPreDelayMs = 0.0f;   // isolate size's own effect on onset time.
+        return renderImpulseResponse(proc, p, static_cast<int>(0.3 * kSampleRate));
+    };
+
+    const auto small = renderWith(0.3f);
+    const auto large = renderWith(3.0f);
+    REQUIRE(allFinite(small));
+    REQUIRE(allFinite(large));
+
+    // The earliest tap's base time is ~6.1ms; at size=0.3 that's ~1.8ms (well
+    // under 5ms), at size=3.0 it's ~18.3ms. A generous threshold and midpoint
+    // cutoff distinguish them without being brittle to the exact tap constants.
+    constexpr float kThreshold = 0.01f;
+    const std::size_t smallCross = firstCrossingIndex(small, kThreshold);
+    const std::size_t largeCross = firstCrossingIndex(large, kThreshold);
+    REQUIRE(smallCross < static_cast<std::size_t>(0.005 * kSampleRate));
+    REQUIRE(largeCross > static_cast<std::size_t>(0.01 * kSampleRate));
+    REQUIRE(largeCross > smallCross * 3); // meaningfully scales with size, not a fixed onset.
 }

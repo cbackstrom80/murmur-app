@@ -60,9 +60,18 @@ algorithms plus Bypass), a shared `mix`, and fields for every type -- only the
 active `type`'s fields matter, the rest are simply unused, the same pattern
 `OperatorPatch` uses for its 5 engine types. `nodes[]` (used by NodeDelay) is
 6x `DelayNodeParams` (enabled, parentIndex, delayMs, feedback, pan, distortion,
-level). The struct carries 43 scalar fields in total (GATE 10 added 20 for the
-four newest algorithms): `reverbSizeParam`/`reverbDecaySeconds`/
-`reverbDampingHz`/`reverbPreDelayMs` (Reverb, a 4-line Householder-matrix FDN);
+level). The struct carries 54 scalar fields in total: `reverbSizeParam`/
+`reverbDecaySeconds`/`reverbPreDelayMs`/`reverbHighRatio`/
+`reverbHighCrossoverHz`/`reverbLowRatio`/`reverbLowCrossoverHz`/
+`reverbDiffusion`/`reverbDensity`/`reverbModDepth`/`reverbModRateHz`/
+`reverbEarlyLevel`/`reverbLateLevel`/`reverbRollOffHz`/`reverbVlfCutDb` (15
+fields -- Reverb, an 8-line Jot/Householder-matrix FDN late tank with
+Schroeder/Dattorro-style input diffusion, per-line frequency-dependent
+(multiband) decay, per-line decorrelated late-tank modulation, and an
+independently-leveled early-reflection cluster; GATE 11 redesigned this from
+GATE 10's original 4-field/4-line version -- see FX_BANK.md "GATE 11" for the
+full research writeup. A pre-GATE-11 document's old `reverbDampingHz` field is
+still read for backward compatibility, seeding `reverbHighCrossoverHz`);
 `eqLowFreqHz`/`eqLowGainDb`/`eqMidFreqHz`/`eqMidGainDb`/`eqMidQ`/`eqHighFreqHz`/
 `eqHighGainDb` (Eq, 3-band via RBJ Cookbook biquads); `compThresholdDb`/
 `compRatio`/`compAttackMs`/`compReleaseMs`/`compKneeDb`/`compMakeupDb`

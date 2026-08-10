@@ -21,8 +21,15 @@ namespace pw8::effects
     /// on one delay engine. See docs/FX_BANK.md for the research and design behind
     /// each: TapeDelay/NodeDelay/FreqShiftEcho are informed by (not ported from)
     /// Cocoa Delay, ChowMatrix, and ValhallaFreqEcho respectively; FractalEcho is
-    /// this project's own invention. Reverb/Eq/Compressor/Limiter round out the
-    /// master spec's "first effect set" basics (docs/ROADMAP.md "GATE 10").
+    /// this project's own invention. Eq/Compressor/Limiter round out the master
+    /// spec's "first effect set" basics (docs/ROADMAP.md "GATE 10"). Reverb (GATE
+    /// 10, redesigned in GATE 11) is informed by (not ported from) a family of
+    /// well-published, openly-documented algorithmic reverb techniques: Jot's
+    /// Householder-matrix FDN, Schroeder/Dattorro-style series-allpass input
+    /// diffusion, CloudSeed's many-delay-line approach to density/"massive"
+    /// character, and -- for the frequency-dependent decay architecture
+    /// specifically -- the parameter design documented in the Bricasti M7 owner's
+    /// manual.
     enum class EffectType : std::uint8_t
     {
         Bypass = 0,
@@ -51,9 +58,14 @@ namespace pw8::effects
     inline constexpr float kMaxEffectDelaySeconds = 2.0f;     ///< TapeDelay / FreqShiftEcho.
     inline constexpr float kMaxTreeNodeDelaySeconds = 1.5f;   ///< NodeDelay / FractalEcho, per node.
 
-    inline constexpr std::size_t kNumReverbLines = 4;
+    inline constexpr std::size_t kNumReverbLines = 8;
     inline constexpr float kMaxReverbLineSeconds = 0.25f;      ///< per delay line, before `reverbSizeParam` scaling.
     inline constexpr float kMaxReverbPreDelaySeconds = 0.2f;
+    inline constexpr std::size_t kNumReverbDiffuserStages = 4;  ///< series input allpass chain, see effects::Reverb.
+    inline constexpr float kMaxReverbDiffuserStageSeconds = 0.02f;
+    inline constexpr std::size_t kNumReverbEarlyTaps = 8;       ///< discrete early-reflection cluster, see effects::Reverb.
+    inline constexpr float kMaxReverbEarlyLineSeconds = 0.15f;
+    inline constexpr float kMaxReverbModDepthMs = 4.0f;         ///< late-tank per-line delay-length modulation, at reverbModDepth=1.
     inline constexpr float kMaxLimiterLookaheadSeconds = 0.02f; ///< 20ms cap -- see effects::Limiter.
 
     /// One node in a NodeDelay tree. `parentIndex < static_cast<int>(ownIndex)` is
@@ -114,11 +126,35 @@ namespace pw8::effects
         float fractalRatio = 0.62f;     ///< self-similar time-scaling ratio between tree depths.
         float fractalSpreadMs = 15.0f;  ///< per-node deterministic jitter added to the fractal time.
 
-        // -- Reverb (a 4-line Householder-matrix FDN -- see docs/FX_BANK.md "GATE 10") --
-        float reverbSizeParam = 1.0f;      ///< scales delay-line lengths; ~0.3 (small room) .. ~2.0 (large hall).
-        float reverbDecaySeconds = 2.0f;   ///< approximate RT60.
-        float reverbDampingHz = 6000.0f;   ///< one-pole lowpass in the feedback path -- lower = darker tail.
+        // -- Reverb (see docs/FX_BANK.md "GATE 11" for the full research writeup).
+        // An 8-line Jot/Householder-matrix FDN late tank (informed by CloudSeed's
+        // "massive, modulated ambient spaces from many delay lines" approach) fed
+        // through a Schroeder/Dattorro-style series-allpass input diffuser, plus a
+        // parallel discrete early-reflection tap cluster mixed independently against
+        // the late tank -- and, the single most distinctive researched principle,
+        // *three-band* frequency-dependent decay (independent HF/LF RT60 multipliers
+        // relative to a mid-band `reverbDecaySeconds`, each with its own crossover),
+        // informed by (not ported from) the parameter architecture documented in the
+        // Bricasti M7 owner's manual (Rev 5.02.08): "Reverb Time" is explicitly
+        // defined there as *mid-frequency* reverb time, with independent "HF RT
+        // MPY"/"HF Crossover" and "LF RT MPY"/"LF Crossover" controls -- exactly
+        // `reverbHighRatio`/`reverbHighCrossoverHz`/`reverbLowRatio`/
+        // `reverbLowCrossoverHz` below.
+        float reverbSizeParam = 1.0f;      ///< scales delay-line lengths; ~0.3 (small room) .. ~2.0 (large hall). Decoupled from decay time, matching the M7's separate "Reverb Size" control.
+        float reverbDecaySeconds = 2.0f;   ///< mid-band RT60 (the M7's "Reverb Time" is explicitly mid-frequency).
         float reverbPreDelayMs = 20.0f;
+        float reverbHighRatio = 0.6f;      ///< 0.2..1.0, HF RT60 as a multiplier of reverbDecaySeconds (M7 "HF RT MPY").
+        float reverbHighCrossoverHz = 4500.0f; ///< M7 "HF Crossover".
+        float reverbLowRatio = 1.3f;       ///< 0.2..4.0, LF RT60 multiplier -- can exceed 1 (M7 "LF RT MPY": bass can ring *longer* than mids, not just shorter).
+        float reverbLowCrossoverHz = 400.0f;   ///< M7 "LF Crossover".
+        float reverbDiffusion = 0.65f;     ///< 0..1, input-diffuser allpass coefficient strength (instantaneous smoothness).
+        float reverbDensity = 0.85f;       ///< 0..1, how many diffuser stages are engaged (echo density build-up over time -- M7's distinct "Density" control).
+        float reverbModDepth = 0.35f;      ///< 0..1, late-tank per-line delay modulation depth (M7 "Reverb Modulation": pitch variation that keeps a dense network from ringing metallically).
+        float reverbModRateHz = 0.4f;      ///< 0.05..2.0, per-line-decorrelated modulation rate.
+        float reverbEarlyLevel = 0.5f;     ///< 0..1, early-reflection cluster level (M7 "Early/Reverb Mix", early half).
+        float reverbLateLevel = 1.0f;      ///< 0..1, late-tank level (M7 "Early/Reverb Mix", reverb half).
+        float reverbRollOffHz = 12000.0f;  ///< 80..20000, final output lowpass (M7 "Roll Off").
+        float reverbVlfCutDb = 0.0f;       ///< -18..0 dB, low-shelf cut of very-low-frequency wet content (M7 "VLF Cut").
 
         // -- Eq (3-band: low shelf, mid peak, high shelf; RBJ Audio EQ Cookbook biquads) --
         float eqLowFreqHz = 200.0f;

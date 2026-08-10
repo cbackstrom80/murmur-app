@@ -240,7 +240,13 @@ namespace pw8::patch
                 {"fractalMorph", e.fractalMorph},                   {"fractalBaseDelayMs", e.fractalBaseDelayMs},
                 {"fractalRatio", e.fractalRatio},                   {"fractalSpreadMs", e.fractalSpreadMs},
                 {"reverbSizeParam", e.reverbSizeParam},             {"reverbDecaySeconds", e.reverbDecaySeconds},
-                {"reverbDampingHz", e.reverbDampingHz},             {"reverbPreDelayMs", e.reverbPreDelayMs},
+                {"reverbPreDelayMs", e.reverbPreDelayMs},
+                {"reverbHighRatio", e.reverbHighRatio},             {"reverbHighCrossoverHz", e.reverbHighCrossoverHz},
+                {"reverbLowRatio", e.reverbLowRatio},               {"reverbLowCrossoverHz", e.reverbLowCrossoverHz},
+                {"reverbDiffusion", e.reverbDiffusion},             {"reverbDensity", e.reverbDensity},
+                {"reverbModDepth", e.reverbModDepth},               {"reverbModRateHz", e.reverbModRateHz},
+                {"reverbEarlyLevel", e.reverbEarlyLevel},           {"reverbLateLevel", e.reverbLateLevel},
+                {"reverbRollOffHz", e.reverbRollOffHz},             {"reverbVlfCutDb", e.reverbVlfCutDb},
                 {"eqLowFreqHz", e.eqLowFreqHz},                     {"eqLowGainDb", e.eqLowGainDb},
                 {"eqMidFreqHz", e.eqMidFreqHz},                     {"eqMidGainDb", e.eqMidGainDb},
                 {"eqMidQ", e.eqMidQ},
@@ -303,9 +309,33 @@ namespace pw8::patch
 
             e.reverbSizeParam = clampNum(j.value("reverbSizeParam", 1.0f), 0.2f, 3.0f);
             e.reverbDecaySeconds = clampNum(j.value("reverbDecaySeconds", 2.0f), 0.05f, 20.0f);
-            e.reverbDampingHz = clampNum(j.value("reverbDampingHz", 6000.0f), 200.0f, 20000.0f);
             e.reverbPreDelayMs =
                 clampNum(j.value("reverbPreDelayMs", 20.0f), 0.0f, effects::kMaxReverbPreDelaySeconds * 1000.0f);
+
+            // GATE 11 replaced the single one-pole "reverbDampingHz" feedback filter
+            // with an independent HF/LF multiband decay pair. A pre-GATE-11
+            // document only ever has "reverbDampingHz"; read it as the seed for the
+            // new HF crossover (it already sat at roughly "where highs start
+            // rolling off," a reasonable crossover point) with a fixed 0.5 ratio
+            // approximating what a single one-pole damping filter sounded like --
+            // not an exact match, an honest approximation, same spirit as the
+            // v1->v2 migration's documented compatibility decisions. A document
+            // that already has the new keys (or omits both) just uses their own
+            // defaults below, untouched.
+            const float legacyDampingHz = j.value("reverbDampingHz", 6000.0f);
+            e.reverbHighRatio = clampNum(j.value("reverbHighRatio", 0.6f), 0.2f, 1.0f);
+            e.reverbHighCrossoverHz =
+                clampNum(j.value("reverbHighCrossoverHz", legacyDampingHz), 200.0f, 16000.0f);
+            e.reverbLowRatio = clampNum(j.value("reverbLowRatio", 1.3f), 0.2f, 4.0f);
+            e.reverbLowCrossoverHz = clampNum(j.value("reverbLowCrossoverHz", 400.0f), 80.0f, 4800.0f);
+            e.reverbDiffusion = clampNum(j.value("reverbDiffusion", 0.65f), 0.0f, 1.0f);
+            e.reverbDensity = clampNum(j.value("reverbDensity", 0.85f), 0.0f, 1.0f);
+            e.reverbModDepth = clampNum(j.value("reverbModDepth", 0.35f), 0.0f, 1.0f);
+            e.reverbModRateHz = clampNum(j.value("reverbModRateHz", 0.4f), 0.05f, 2.0f);
+            e.reverbEarlyLevel = clampNum(j.value("reverbEarlyLevel", 0.5f), 0.0f, 1.0f);
+            e.reverbLateLevel = clampNum(j.value("reverbLateLevel", 1.0f), 0.0f, 1.0f);
+            e.reverbRollOffHz = clampNum(j.value("reverbRollOffHz", 12000.0f), 80.0f, 20000.0f);
+            e.reverbVlfCutDb = clampNum(j.value("reverbVlfCutDb", 0.0f), -18.0f, 0.0f);
 
             e.eqLowFreqHz = clampNum(j.value("eqLowFreqHz", 200.0f), 20.0f, 20000.0f);
             e.eqLowGainDb = clampNum(j.value("eqLowGainDb", 0.0f), -24.0f, 24.0f);

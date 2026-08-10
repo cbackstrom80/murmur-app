@@ -245,9 +245,104 @@ codebase already has (TapeDelay/NodeDelay/FreqShiftEcho all clamp their delay
 parameters' minimums to 1ms+ for exactly this reason, just never needed a
 0ms-*meaning*-"none" case before Reverb's pre-delay did).
 
+## GATE 11: Reverb redesign -- "nuanced and massive"
+
+GATE 10's Reverb (above) was deliberately the simplest correct FDN that could
+prove the integration end to end: 4 lines, one damping filter, no early/late
+split. Per explicit user direction ("research Bricasti M7 and make Reverb algos
+adhere to these principles. It needs to be nuanced and massive"), it was
+redesigned from the ground up, informed by (not ported from) a family of
+well-published, openly-documented algorithmic reverb techniques rather than
+any single product:
+
+- **The late tank grew from 4 to 8 Householder-mixed FDN lines.** CloudSeed's
+  documented approach to "massive, modulated ambient spaces" is specifically to
+  use many delay lines for density -- more lines is the single biggest lever
+  against the metallic/flutter character a small FDN has, and the Householder
+  reflection matrix (kept from GATE 10) is already O(N) and unitary regardless
+  of N, so this was a mechanical, low-risk extension of the existing math.
+- **A Schroeder/Dattorro-style series-allpass input diffuser** (4 stages) now
+  sits between pre-delay and the tank, standard practice in essentially every
+  published algorithmic reverb design in this family (Freeverb/Dragonfly's
+  underlying engine, FAUST's reverb library, STK's classic JCRev/PRCRev).
+  `reverbDensity` controls how many stages are engaged (echo density *building
+  up* over the chain -- each stage always keeps processing and updating its own
+  internal delay line regardless of how much it's blended into the output, so
+  live-automating density crossfades smoothly instead of popping a stage in
+  with stale buffer content); `reverbDiffusion` controls each engaged stage's
+  own allpass coefficient (instantaneous smoothness). These are two genuinely
+  different, independently-useful controls, not one knob wearing two names.
+- **Frequency-dependent (multiband) decay** is the single most distinctive
+  researched principle, and the one most directly informed by (not ported
+  from) the parameter architecture documented in the actual Bricasti M7 owner's
+  manual (Rev 5.02.08, fetched and read directly, not inferred from secondhand
+  summaries -- an earlier web search surfaced a plausible-sounding but *wrong*
+  claim that the M7 has "Spin"/"Wander" controls, which are actually Lexicon's
+  terms; the real manual doesn't use them, and the actual controls it does
+  document are considerably more specific and useful as an engineering
+  reference than that would have been). The manual defines "Reverb Time" as
+  explicitly *mid-frequency* reverb time, with independent "HF RT MPY" (0.2 to
+  1.0x)/"HF Crossover" and "LF RT MPY" (0.2 to 4.0x, i.e. bass can ring
+  *longer* than mid, not just shorter)/"LF Crossover" controls layered on top.
+  `reverbHighRatio`/`reverbHighCrossoverHz`/`reverbLowRatio`/
+  `reverbLowCrossoverHz` are a direct implementation of that same parameter
+  shape. The DSP technique realizing it -- per Jot's own published work on FDN
+  "absorptive filters" -- computes an independent target per-pass gain for the
+  low/mid/high bands from each band's own RT60 and how much of it a given
+  line's specific length represents, then combines them as a low-shelf +
+  high-shelf `dsp::Biquad` pair around the flat mid-band gain (which is why
+  `dsp::Biquad` gained a `setLowpass` method alongside its existing shelf/peak
+  formulas -- reused again for the final "Roll Off" stage below).
+  This computes fresh biquad coefficients per line per sample (16 shelf
+  coefficient recomputes for 8 lines), matching this codebase's established
+  precedent of prioritizing correctness/live-automation-safety over avoiding
+  recomputation (Saturation/Compressor/etc. already recompute their own
+  derived quantities fresh every sample); benchmark/fuzz timing after the
+  change confirmed this stays comfortably realtime (see "What's covered by
+  tests" below).
+- **Per-line, per-line-decorrelated delay-length modulation** in the late tank
+  (`reverbModDepth`/`reverbModRateHz`, each line getting its own rate ratio and
+  phase offset so the 8 lines' modulation never synchronizes) is the M7
+  manual's "Reverb Modulation: amount of modulation and pitch variation in the
+  later part of the reverberant field" -- the mechanism that keeps a dense
+  multi-line network sounding smooth and alive rather than ringing at fixed
+  comb frequencies, the same principle behind Dattorro's tank allpasses and
+  CloudSeed/Greyhole-style modulated delay networks.
+- **Early reflections are now a separate, parallel, independently-leveled
+  engine** -- a fixed 8-tap discrete cluster off one shared delay line, scaled
+  by `reverbSizeParam`, panned alternating L/R for width, mixed against the
+  late tank via independent `reverbEarlyLevel`/`reverbLateLevel` controls.
+  This matches the M7 manual's explicit early/late engine split ("Early/Reverb
+  Mix": two independent 0-20 levels) and the early/late separation described
+  in Dattorro's reverberator paper and SuperCollider's JPverb. The M7's
+  further "Early Select" (choice of early-reflection build-up/decay character)
+  and its dedicated below-80Hz early engine are not implemented -- one
+  well-designed fixed early-tap pattern, PLANNED for more variety later (see
+  "What's PLANNED" below), consistent with how NodeDelay/FractalEcho are each
+  one well-designed algorithm rather than exposing every possible variant.
+- **`reverbSizeParam` is explicitly decoupled from `reverbDecaySeconds`**
+  (scales delay-line/early-tap lengths, not decay time) and a dedicated
+  **`reverbRollOffHz`** (final output lowpass) and **`reverbVlfCutDb`**
+  (low-shelf cut of very-low-frequency wet content, -18 to 0dB) round out the
+  M7's "Roll Off" and "VLF Cut" controls -- both explicit, named, separate
+  controls in the manual, not folded into the multiband decay controls the way
+  a less careful design might.
+
+`EffectSlotParams`'s Reverb field count grew from 4 to 15 (`reverbDampingHz`
+retired, replaced with the 12 fields above); `EffectSlotParams` overall grew
+43 -> 54 fields, and plugin automation grew 501 -> 578 parameters (7 slots x 54
+fields is 378, replacing 7 x 43's 301). `reverbDampingHz` is still *read* from
+old documents for backward compatibility (seeding `reverbHighCrossoverHz` with
+its old frequency value and defaulting `reverbHighRatio` to a fixed 0.5 as an
+honest approximation of what a single one-pole feedback-path filter sounded
+like) -- handled entirely inside `EffectSlotParams`'s own JSON defaulting logic
+via key presence, not a schema version bump, the same kind of per-field
+compatibility decision GATE 10 itself made when it grew `EffectSlotParams` from
+23 to 43 fields without needing one.
+
 ## What's covered by tests
 
-- `tests/unit/EffectsTests.cpp` (25 cases): Saturation transparency/compression;
+- `tests/unit/EffectsTests.cpp` (32 cases): Saturation transparency/compression;
   Chorus transparency and fixed-delay impulse response; TapeDelay Static-mode
   echo spacing/decay and PingPong's channel alternation; NodeDelay's
   parent-child chaining (proving a child hears its *parent's output*, not just
@@ -262,7 +357,18 @@ parameters' minimums to 1ms+ for exactly this reason, just never needed a
   no-overshoot guarantee under a sustained tone well above its ceiling plus a
   sharp mid-render transient, and an exact (undistorted, just delayed) mix=0
   passthrough found via empirical lag search; Reverb's decaying (not static or
-  runaway) tail after an impulse.
+  runaway) tail after an impulse, transparent mix=0 passthrough, and 7 GATE 11
+  cases measuring the redesign's specific claims directly: high-band energy
+  fading relative to low-band energy across the tail when `reverbHighRatio` is
+  well below `reverbLowRatio` (multiband decay); a measurably lower early-window
+  crest factor with diffusion/density engaged vs. off (density/diffusion);
+  finite, bounded output at maximum modulation depth/rate over a long 20-second
+  decay (modulation stability); an early-only render going silent well before a
+  late-only render's tail does (early/late independence); measured low-band
+  attenuation with VLF Cut engaged and high-band attenuation with a low Roll
+  Off (output tone shaping); and the first meaningful response arriving
+  measurably later at `reverbSizeParam=3.0` than at `0.3` while
+  `reverbDecaySeconds` stays fixed (size/decay decoupling).
 - `tests/regression/RenderSanityTests.cpp`: a master TapeDelay slot turning one
   short hit into several measured amplitude onsets (the same windowed-RMS
   onset-counting technique proven for the arpeggiator), a layer insert
@@ -271,23 +377,31 @@ parameters' minimums to 1ms+ for exactly this reason, just never needed a
   ceiling, and a master Compressor slot (no makeup gain, so the claim reduces
   to "gain reduction can only lower peak") measurably lowering a loud chord's
   peak.
-- 118 total tests, all passing. `pw8-fuzz-render`'s `randomPatch()` now
-  randomizes all 3 insert + 4 master `EffectSlotParams` slots (closing the gap
-  noted below in earlier passes) -- 1,000 patches (seed 13), zero failures.
+- 125 total tests, 895,937 assertions, all passing. `pw8-fuzz-render`'s
+  `randomPatch()` randomizes all 3 insert + 4 master `EffectSlotParams` slots,
+  including every one of Reverb's new fields -- 1,000 patches (seed 14, post
+  GATE 11), zero failures (198.14s, 5.0 patches/sec -- down slightly from GATE
+  10's 5.9, expected given the reverb's 8 lines/diffuser/early cluster/two
+  extra output filters vs. the old 4-line version, still well clear of the
+  fuzz tool's own 2-second-per-patch "slow" flag).
 - Full cross-build verification: dev/benchmarks/python/plugin all rebuild
-  clean; `auval` reports 501 published parameters and passes in full;
+  clean; `auval` reports 578 published parameters and passes in full;
   `pluginval --strictness-level 5` SUCCESS on both VST3 and AU at that count.
 
 ## Content
 
-Four engineering presets: `content/presets/fx-node-tree.pw8` (NodeDelay, plus a
+Five engineering presets: `content/presets/fx-node-tree.pw8` (NodeDelay, plus a
 subtle layer-insert Chorus in the same patch -- demonstrating both slot types
 together), `content/presets/fx-fractal-morph.pw8` (FractalEcho),
-`content/presets/fx-freq-echo.pw8` (FreqShiftEcho), and
-`content/presets/fx-master-chain.pw8` (all 4 GATE 10 algorithms arranged as a
-realistic mastering chain across the 4 master slots: Eq -> Reverb -> Compressor
--> Limiter). TapeDelay is exercised by a render regression test rather than a
-dedicated preset.
+`content/presets/fx-freq-echo.pw8` (FreqShiftEcho),
+`content/presets/fx-master-chain.pw8` (all 4 GATE 10/11 algorithms arranged as
+a realistic mastering chain across the 4 master slots: Eq -> Reverb ->
+Compressor -> Limiter, its Reverb slot updated in GATE 11 to demonstrate
+extended low-frequency ring, faster high-frequency decay, high diffusion/
+density, and gentle late-tank modulation), and
+`content/presets/gate4-massive-dark-metallic-bass.pw8` (predates the FX bank,
+listed here for completeness of the preset count). TapeDelay is exercised by a
+render regression test rather than a dedicated preset.
 
 ## What's PLANNED, not implemented
 
@@ -295,6 +409,12 @@ dedicated preset.
   PLANNED per the original `pw8/effects/README.md` scope; this project has
   added 10 algorithms across two passes rather than working through that
   original list top-to-bottom, prioritized by explicit user requests both times.
+- **Reverb "Early Select" and a dedicated below-80Hz early-reflection engine**
+  -- the M7 manual documents both; this pass implements one well-designed fixed
+  early-tap pattern instead (see "GATE 11" above). A discrete choice of
+  early-reflection topologies (the way NodeDelay/FractalEcho are each one
+  algorithm, not several) would be the natural next increment if more early-
+  reflection variety is wanted later.
 - **Mod-matrix-modulatable effect parameters** -- `EffectSlotParams` fields
   (e.g. `fractalMorph`, `freqShiftHz`, `compThresholdDb`) aren't yet mod matrix
   destinations, so a live-automated sweep requires host/plugin automation of

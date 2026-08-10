@@ -29,15 +29,15 @@ for the full phase-by-phase breakdown against the product spec.
 | LFO (6 waveforms, free/retrigger/one-shot/tempo-sync, per-voice + shared per-layer bank) | **IMPLEMENTED** (8 per patch) |
 | Modulation: 8 envelopes + 8 LFOs per layer, mod matrix (29 sources incl. all LFOs/envelopes/8 macros -> filter cutoff/resonance, operator level, pan) | **IMPLEMENTED** (VOICE scope for all sources; LAYER/GLOBAL scope for LFOs) |
 | Arpeggiator (7 modes, tempo-sync, per-step gate/probability/ratchet/tie/accent, latch, polymetric) | **IMPLEMENTED** |
-| FX bank (3 layer insert + 4 master slots; Saturation/Chorus/TapeDelay/NodeDelay/FreqShiftEcho/FractalEcho/Reverb/Eq/Compressor/Limiter -- 10 algorithms) | **IMPLEMENTED** |
+| FX bank (3 layer insert + 4 master slots; Saturation/Chorus/TapeDelay/NodeDelay/FreqShiftEcho/FractalEcho/Reverb/Eq/Compressor/Limiter -- 10 algorithms; Reverb is an 8-line multiband FDN with input diffusion, early/late split, and late-tank modulation, researched from Jot/Dattorro/CloudSeed/Bricasti-informed principles) | **IMPLEMENTED** |
 | `.pw8` patch format (JSON, versioned schema, untrusted-input-hardened) | **IMPLEMENTED** |
 | Native offline renderer (no plugin host / DAW required) -> WAV + JSON receipt | **IMPLEMENTED** |
 | Standard MIDI File input (hand-rolled reader, tempo map, running status) | **IMPLEMENTED** |
 | Python bindings (pybind11) | **IMPLEMENTED** (partial API surface, see docs/PYTHON_API.md) |
 | Deterministic/seeded randomness throughout | **IMPLEMENTED** |
-| JUCE VST3/AU/Standalone plugin, 501 parameters live-automatable via `AudioProcessorValueTreeState` | **PARTIAL, build-verified** (AU passes `auval`, both AU and VST3 pass `pluginval` at max strictness; no signature UI; off by default) |
+| JUCE VST3/AU/Standalone plugin, 578 parameters live-automatable via `AudioProcessorValueTreeState` | **PARTIAL, build-verified** (AU passes `auval`, both AU and VST3 pass `pluginval` at max strictness; no signature UI; off by default) |
 | Google Benchmark suite | **IMPLEMENTED** (oscillators, algorithm graph, voice, full-patch render, at 44.1/48/96 kHz x 1/8/16/32 voices) |
-| Fuzz-render harness (`pw8-fuzz-render`) | **IMPLEMENTED** (verified across 4 batches, 14,000 random valid patches total, 0 failures) |
+| Fuzz-render harness (`pw8-fuzz-render`) | **IMPLEMENTED** (verified across 5 batches, 15,000 random valid patches total, 0 failures) |
 | Filter 2 (character), bitcrush/wavefold/ensemble/flanger/phaser/diffusion delay, MSEG, dual-layer mixing, algorithm morph, unison DSP, additional engine types (additive/phase-shape/granular/noise/resonator) | **PLANNED** |
 
 ## Architecture
@@ -64,7 +64,7 @@ cmake --build --preset dev -j
 ctest --preset dev --output-on-failure
 ```
 
-118 test cases, 895,910 assertions, all passing. See [docs/BUILD.md](docs/BUILD.md)
+125 test cases, 895,937 assertions, all passing. See [docs/BUILD.md](docs/BUILD.md)
 for every preset (release/asan/ubsan/benchmarks/python/plugin).
 
 ## Running the renderer

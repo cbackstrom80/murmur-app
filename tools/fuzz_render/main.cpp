@@ -222,8 +222,19 @@ namespace
 
         e.reverbSizeParam = rng.nextRange(0.2f, 3.0f);
         e.reverbDecaySeconds = rng.nextRange(0.05f, 20.0f);
-        e.reverbDampingHz = rng.nextRange(200.0f, 20000.0f);
         e.reverbPreDelayMs = rng.nextRange(0.0f, effects::kMaxReverbPreDelaySeconds * 1000.0f);
+        e.reverbHighRatio = rng.nextRange(0.2f, 1.0f);
+        e.reverbHighCrossoverHz = rng.nextRange(200.0f, 16000.0f);
+        e.reverbLowRatio = rng.nextRange(0.2f, 4.0f);
+        e.reverbLowCrossoverHz = rng.nextRange(80.0f, 4800.0f);
+        e.reverbDiffusion = rng.nextRange(0.0f, 1.0f);
+        e.reverbDensity = rng.nextRange(0.0f, 1.0f);
+        e.reverbModDepth = rng.nextRange(0.0f, 1.0f);
+        e.reverbModRateHz = rng.nextRange(0.05f, 2.0f);
+        e.reverbEarlyLevel = rng.nextRange(0.0f, 1.0f);
+        e.reverbLateLevel = rng.nextRange(0.0f, 1.0f);
+        e.reverbRollOffHz = rng.nextRange(80.0f, 20000.0f);
+        e.reverbVlfCutDb = rng.nextRange(-18.0f, 0.0f);
 
         e.eqLowFreqHz = rng.nextRange(20.0f, 2000.0f);
         e.eqLowGainDb = rng.nextRange(-24.0f, 24.0f);

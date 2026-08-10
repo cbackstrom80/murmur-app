@@ -245,24 +245,35 @@ namespace pw8::plugin
             p.fractalSpreadMs = loadF(ptrs[22]);
             p.reverbSizeParam = loadF(ptrs[23]);
             p.reverbDecaySeconds = loadF(ptrs[24]);
-            p.reverbDampingHz = loadF(ptrs[25]);
-            p.reverbPreDelayMs = loadF(ptrs[26]);
-            p.eqLowFreqHz = loadF(ptrs[27]);
-            p.eqLowGainDb = loadF(ptrs[28]);
-            p.eqMidFreqHz = loadF(ptrs[29]);
-            p.eqMidGainDb = loadF(ptrs[30]);
-            p.eqMidQ = loadF(ptrs[31]);
-            p.eqHighFreqHz = loadF(ptrs[32]);
-            p.eqHighGainDb = loadF(ptrs[33]);
-            p.compThresholdDb = loadF(ptrs[34]);
-            p.compRatio = loadF(ptrs[35]);
-            p.compAttackMs = loadF(ptrs[36]);
-            p.compReleaseMs = loadF(ptrs[37]);
-            p.compKneeDb = loadF(ptrs[38]);
-            p.compMakeupDb = loadF(ptrs[39]);
-            p.limiterCeilingDb = loadF(ptrs[40]);
-            p.limiterLookaheadMs = loadF(ptrs[41]);
-            p.limiterReleaseMs = loadF(ptrs[42]);
+            p.reverbPreDelayMs = loadF(ptrs[25]);
+            p.reverbHighRatio = loadF(ptrs[26]);
+            p.reverbHighCrossoverHz = loadF(ptrs[27]);
+            p.reverbLowRatio = loadF(ptrs[28]);
+            p.reverbLowCrossoverHz = loadF(ptrs[29]);
+            p.reverbDiffusion = loadF(ptrs[30]);
+            p.reverbDensity = loadF(ptrs[31]);
+            p.reverbModDepth = loadF(ptrs[32]);
+            p.reverbModRateHz = loadF(ptrs[33]);
+            p.reverbEarlyLevel = loadF(ptrs[34]);
+            p.reverbLateLevel = loadF(ptrs[35]);
+            p.reverbRollOffHz = loadF(ptrs[36]);
+            p.reverbVlfCutDb = loadF(ptrs[37]);
+            p.eqLowFreqHz = loadF(ptrs[38]);
+            p.eqLowGainDb = loadF(ptrs[39]);
+            p.eqMidFreqHz = loadF(ptrs[40]);
+            p.eqMidGainDb = loadF(ptrs[41]);
+            p.eqMidQ = loadF(ptrs[42]);
+            p.eqHighFreqHz = loadF(ptrs[43]);
+            p.eqHighGainDb = loadF(ptrs[44]);
+            p.compThresholdDb = loadF(ptrs[45]);
+            p.compRatio = loadF(ptrs[46]);
+            p.compAttackMs = loadF(ptrs[47]);
+            p.compReleaseMs = loadF(ptrs[48]);
+            p.compKneeDb = loadF(ptrs[49]);
+            p.compMakeupDb = loadF(ptrs[50]);
+            p.limiterCeilingDb = loadF(ptrs[51]);
+            p.limiterLookaheadMs = loadF(ptrs[52]);
+            p.limiterReleaseMs = loadF(ptrs[53]);
             engine.setInsertEffectLive(slot, p);
         }
 
@@ -295,24 +306,35 @@ namespace pw8::plugin
             p.fractalSpreadMs = loadF(ptrs[22]);
             p.reverbSizeParam = loadF(ptrs[23]);
             p.reverbDecaySeconds = loadF(ptrs[24]);
-            p.reverbDampingHz = loadF(ptrs[25]);
-            p.reverbPreDelayMs = loadF(ptrs[26]);
-            p.eqLowFreqHz = loadF(ptrs[27]);
-            p.eqLowGainDb = loadF(ptrs[28]);
-            p.eqMidFreqHz = loadF(ptrs[29]);
-            p.eqMidGainDb = loadF(ptrs[30]);
-            p.eqMidQ = loadF(ptrs[31]);
-            p.eqHighFreqHz = loadF(ptrs[32]);
-            p.eqHighGainDb = loadF(ptrs[33]);
-            p.compThresholdDb = loadF(ptrs[34]);
-            p.compRatio = loadF(ptrs[35]);
-            p.compAttackMs = loadF(ptrs[36]);
-            p.compReleaseMs = loadF(ptrs[37]);
-            p.compKneeDb = loadF(ptrs[38]);
-            p.compMakeupDb = loadF(ptrs[39]);
-            p.limiterCeilingDb = loadF(ptrs[40]);
-            p.limiterLookaheadMs = loadF(ptrs[41]);
-            p.limiterReleaseMs = loadF(ptrs[42]);
+            p.reverbPreDelayMs = loadF(ptrs[25]);
+            p.reverbHighRatio = loadF(ptrs[26]);
+            p.reverbHighCrossoverHz = loadF(ptrs[27]);
+            p.reverbLowRatio = loadF(ptrs[28]);
+            p.reverbLowCrossoverHz = loadF(ptrs[29]);
+            p.reverbDiffusion = loadF(ptrs[30]);
+            p.reverbDensity = loadF(ptrs[31]);
+            p.reverbModDepth = loadF(ptrs[32]);
+            p.reverbModRateHz = loadF(ptrs[33]);
+            p.reverbEarlyLevel = loadF(ptrs[34]);
+            p.reverbLateLevel = loadF(ptrs[35]);
+            p.reverbRollOffHz = loadF(ptrs[36]);
+            p.reverbVlfCutDb = loadF(ptrs[37]);
+            p.eqLowFreqHz = loadF(ptrs[38]);
+            p.eqLowGainDb = loadF(ptrs[39]);
+            p.eqMidFreqHz = loadF(ptrs[40]);
+            p.eqMidGainDb = loadF(ptrs[41]);
+            p.eqMidQ = loadF(ptrs[42]);
+            p.eqHighFreqHz = loadF(ptrs[43]);
+            p.eqHighGainDb = loadF(ptrs[44]);
+            p.compThresholdDb = loadF(ptrs[45]);
+            p.compRatio = loadF(ptrs[46]);
+            p.compAttackMs = loadF(ptrs[47]);
+            p.compReleaseMs = loadF(ptrs[48]);
+            p.compKneeDb = loadF(ptrs[49]);
+            p.compMakeupDb = loadF(ptrs[50]);
+            p.limiterCeilingDb = loadF(ptrs[51]);
+            p.limiterLookaheadMs = loadF(ptrs[52]);
+            p.limiterReleaseMs = loadF(ptrs[53]);
             engine.setMasterEffectLive(slot, p);
         }
 
@@ -438,7 +460,10 @@ namespace pw8::plugin
                 p.tapeDriftDepthMs,         p.tapeDriftRateHz, static_cast<float>(p.tapePanMode), p.nodeInsanity,
                 p.freqShiftHz,              p.freqShiftDelayMs, p.freqShiftFeedback, p.freqShiftLowCutHz,
                 p.freqShiftHighCutHz,       p.fractalMorph, p.fractalBaseDelayMs, p.fractalRatio, p.fractalSpreadMs,
-                p.reverbSizeParam,          p.reverbDecaySeconds, p.reverbDampingHz, p.reverbPreDelayMs,
+                p.reverbSizeParam,          p.reverbDecaySeconds, p.reverbPreDelayMs,
+                p.reverbHighRatio,          p.reverbHighCrossoverHz, p.reverbLowRatio, p.reverbLowCrossoverHz,
+                p.reverbDiffusion,          p.reverbDensity, p.reverbModDepth,    p.reverbModRateHz,
+                p.reverbEarlyLevel,         p.reverbLateLevel, p.reverbRollOffHz, p.reverbVlfCutDb,
                 p.eqLowFreqHz,              p.eqLowGainDb,  p.eqMidFreqHz,       p.eqMidGainDb,    p.eqMidQ,
                 p.eqHighFreqHz,             p.eqHighGainDb,
                 p.compThresholdDb,          p.compRatio,    p.compAttackMs,      p.compReleaseMs,  p.compKneeDb,
@@ -551,24 +576,35 @@ namespace pw8::plugin
             p.fractalSpreadMs = loadF(ptrs[22]);
             p.reverbSizeParam = loadF(ptrs[23]);
             p.reverbDecaySeconds = loadF(ptrs[24]);
-            p.reverbDampingHz = loadF(ptrs[25]);
-            p.reverbPreDelayMs = loadF(ptrs[26]);
-            p.eqLowFreqHz = loadF(ptrs[27]);
-            p.eqLowGainDb = loadF(ptrs[28]);
-            p.eqMidFreqHz = loadF(ptrs[29]);
-            p.eqMidGainDb = loadF(ptrs[30]);
-            p.eqMidQ = loadF(ptrs[31]);
-            p.eqHighFreqHz = loadF(ptrs[32]);
-            p.eqHighGainDb = loadF(ptrs[33]);
-            p.compThresholdDb = loadF(ptrs[34]);
-            p.compRatio = loadF(ptrs[35]);
-            p.compAttackMs = loadF(ptrs[36]);
-            p.compReleaseMs = loadF(ptrs[37]);
-            p.compKneeDb = loadF(ptrs[38]);
-            p.compMakeupDb = loadF(ptrs[39]);
-            p.limiterCeilingDb = loadF(ptrs[40]);
-            p.limiterLookaheadMs = loadF(ptrs[41]);
-            p.limiterReleaseMs = loadF(ptrs[42]);
+            p.reverbPreDelayMs = loadF(ptrs[25]);
+            p.reverbHighRatio = loadF(ptrs[26]);
+            p.reverbHighCrossoverHz = loadF(ptrs[27]);
+            p.reverbLowRatio = loadF(ptrs[28]);
+            p.reverbLowCrossoverHz = loadF(ptrs[29]);
+            p.reverbDiffusion = loadF(ptrs[30]);
+            p.reverbDensity = loadF(ptrs[31]);
+            p.reverbModDepth = loadF(ptrs[32]);
+            p.reverbModRateHz = loadF(ptrs[33]);
+            p.reverbEarlyLevel = loadF(ptrs[34]);
+            p.reverbLateLevel = loadF(ptrs[35]);
+            p.reverbRollOffHz = loadF(ptrs[36]);
+            p.reverbVlfCutDb = loadF(ptrs[37]);
+            p.eqLowFreqHz = loadF(ptrs[38]);
+            p.eqLowGainDb = loadF(ptrs[39]);
+            p.eqMidFreqHz = loadF(ptrs[40]);
+            p.eqMidGainDb = loadF(ptrs[41]);
+            p.eqMidQ = loadF(ptrs[42]);
+            p.eqHighFreqHz = loadF(ptrs[43]);
+            p.eqHighGainDb = loadF(ptrs[44]);
+            p.compThresholdDb = loadF(ptrs[45]);
+            p.compRatio = loadF(ptrs[46]);
+            p.compAttackMs = loadF(ptrs[47]);
+            p.compReleaseMs = loadF(ptrs[48]);
+            p.compKneeDb = loadF(ptrs[49]);
+            p.compMakeupDb = loadF(ptrs[50]);
+            p.limiterCeilingDb = loadF(ptrs[51]);
+            p.limiterLookaheadMs = loadF(ptrs[52]);
+            p.limiterReleaseMs = loadF(ptrs[53]);
         };
         for (std::size_t slot = 0; slot < kNumInsertFxSlots; ++slot)
             readFxSlot(insertFxParamPointers_[slot], currentPatch_.layerA.insertEffects[slot]);

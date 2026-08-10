@@ -436,6 +436,64 @@ Full design detail in [FX_BANK.md](FX_BANK.md) "GATE 10"; summary:
   across the master bus's 4 slots the way a real mix would use them
   (Eq -> Reverb -> Compressor -> Limiter).
 
+## GATE 11: Reverb redesign -- "nuanced and massive" (Phase 11, continued)
+
+Per explicit user direction ("research Bricasti M7 and make Reverb algos
+adhere to these principles. It needs to be nuanced and massive"), GATE 10's
+Reverb -- deliberately the simplest correct FDN, built to prove the
+integration end to end -- was redesigned from the ground up. Full design
+detail and research citations in [FX_BANK.md](FX_BANK.md) "GATE 11"; summary:
+
+- The late tank grew from 4 to 8 Householder-mixed FDN lines (CloudSeed's
+  documented "many delay lines for density/massiveness" approach), fed through
+  a new Schroeder/Dattorro-style 4-stage series-allpass input diffuser
+  (`reverbDiffusion`/`reverbDensity`, two genuinely distinct controls: per-
+  stage smoothness vs. how many stages are engaged).
+- **Frequency-dependent (multiband) decay** -- the single most distinctive
+  researched principle, informed by (not ported from) the actual Bricasti M7
+  owner's manual (Rev 5.02.08, fetched and read directly): independent HF/LF
+  RT60 *multipliers* of a mid-band `reverbDecaySeconds`, each with its own
+  crossover (`reverbHighRatio`/`reverbHighCrossoverHz`/`reverbLowRatio`/
+  `reverbLowCrossoverHz` -- LF ratio can exceed 1, i.e. bass can ring *longer*
+  than mid, matching the M7's own 0.2-4.0x range), realized per Jot's
+  published FDN "absorptive filter" technique as a low-shelf + high-shelf
+  `dsp::Biquad` pair per line around the flat mid-band gain.
+- Per-line, per-line-decorrelated late-tank delay-length modulation
+  (`reverbModDepth`/`reverbModRateHz`) -- the M7's "Reverb Modulation," the
+  mechanism that keeps a dense multi-line network smooth rather than
+  metallic.
+- A separate, parallel, independently-leveled early-reflection tap cluster
+  (`reverbEarlyLevel`/`reverbLateLevel`), matching the M7's explicit early/
+  late engine split.
+- `reverbSizeParam` explicitly decoupled from decay time; new
+  `reverbRollOffHz` (output lowpass) and `reverbVlfCutDb` (low-shelf cut,
+  -18 to 0dB) round out the M7's "Roll Off" and "VLF Cut".
+- A real research correction caught before it reached any doc or code: an
+  initial web search surfaced a plausible but *wrong* claim that the M7 has
+  "Spin"/"Wander" modulation controls -- those are actually Lexicon's terms.
+  Fetching and reading the real M7 manual directly (not a secondhand summary)
+  caught this before it was cited anywhere.
+- `EffectSlotParams`'s Reverb field count grew from 4 to 15 (`reverbDampingHz`
+  retired -- still read from old documents for backward compatibility via key
+  presence inside `EffectSlotParams`'s own JSON defaulting, no schema version
+  bump needed, the same kind of per-field compatibility decision GATE 10 made
+  growing 23 to 43 fields). `EffectSlotParams` overall: 43 -> 54 fields; plugin
+  automation: 501 -> **578 parameters** (54 fields x 7 FX slots = 378, up from
+  301). `auval` confirms 578 published parameters; `pluginval
+  --strictness-level 5` re-confirmed SUCCESS on both VST3 and AU.
+- `dsp::Biquad` gained a `setLowpass` method (RBJ Cookbook, reused for both
+  Roll Off and, indirectly, the absorption-filter math above).
+- 7 new unit tests, each measuring one of the redesign's specific claims
+  directly (multiband decay's high/low energy ratio shift, diffusion/density's
+  crest-factor reduction, modulation stability at maximum depth/rate over a
+  20-second decay, early/late independence, VLF Cut/Roll Off's targeted-band
+  attenuation, and Size/decay decoupling) -- 125 total tests, all passing.
+- `pw8-fuzz-render` -- 1,000 fully-randomized patches (seed 14) now exercising
+  Reverb's full new 15-field shape, zero failures.
+- `content/presets/fx-master-chain.pw8`'s Reverb slot updated to demonstrate
+  the new capability (extended low-frequency ring, faster high-frequency
+  decay, high diffusion/density, gentle late-tank modulation).
+
 ## Immediate next steps (suggested, not committed)
 
 1. A real DAW host-matrix pass (Ableton, Logic, Reaper, Bitwig, etc.) -- `auval`
