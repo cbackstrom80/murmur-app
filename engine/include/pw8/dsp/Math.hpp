@@ -61,4 +61,18 @@ namespace pw8::dsp
         return std::isfinite(v) ? v : 0.0f;
     }
 
+    /// Drive-normalized tanh soft saturation: `driveLinear == 1` is unity gain at
+    /// small signals, larger drive compresses harder without the output level
+    /// climbing alongside it. Shared by every effect in pw8/effects/ that needs a
+    /// cheap, stable nonlinearity (Saturation, TapeDelay's feedback drive,
+    /// NodeDelay's per-node distortion).
+    [[nodiscard]] inline float softSaturate(float x, float driveLinear) noexcept
+    {
+        const float drive = std::max(driveLinear, 1.0e-6f);
+        const float norm = std::tanh(drive);
+        if (norm <= 1.0e-6f)
+            return x;
+        return flushIfNotFinite(std::tanh(x * drive) / norm);
+    }
+
 } // namespace pw8::dsp

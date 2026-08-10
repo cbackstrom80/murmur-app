@@ -296,3 +296,84 @@ TEST_CASE("Renderer: enabling the arpeggiator turns one held chord into many dis
     // With the arp at 8 Hz over ~2s: many distinct retriggered notes.
     REQUIRE(onsetsWithArp >= 10);
 }
+
+TEST_CASE("Renderer: a master TapeDelay slot turns one short hit into multiple decaying echoes",
+          "[render][regression][effects]")
+{
+    patch::Patch p = patch::Patch::makeInit();
+    p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Sine;
+    p.layerA.ampEnvelope.attackSeconds = 0.002f;
+    p.layerA.ampEnvelope.decaySeconds = 0.03f;
+    p.layerA.ampEnvelope.sustainLevel = 0.0f;
+    p.layerA.ampEnvelope.releaseSeconds = 0.02f;
+
+    auto midiSeq = singleNoteSequence(0.0, 0.05, 60);
+
+    render::RenderOptions options;
+    options.sampleRate = 48000.0;
+    options.durationSecondsOverride = 1.5;
+
+    const auto withoutFx = render::render(p, midiSeq, options);
+    REQUIRE(withoutFx.ok);
+    REQUIRE_FALSE(withoutFx.metrics.containsNaNOrInf);
+
+    p.masterEffects[0].type = effects::EffectType::TapeDelay;
+    p.masterEffects[0].mix = 0.9f;
+    p.masterEffects[0].tapeDelayMs = 150.0f;
+    p.masterEffects[0].tapeFeedback = 0.55f;
+    p.masterEffects[0].tapeDriftDepthMs = 0.0f;
+
+    const auto withFx = render::render(p, midiSeq, options);
+    REQUIRE(withFx.ok);
+    REQUIRE_FALSE(withFx.metrics.containsNaNOrInf);
+    REQUIRE(withFx.metrics.peak > 0.0f);
+
+    constexpr int kWindow = 240; // 5ms windows at 48kHz.
+    constexpr float kThreshold = 0.01f;
+    const int onsetsWithoutFx = countAmplitudeOnsets(withoutFx.interleavedStereo, kWindow, kThreshold);
+    const int onsetsWithFx = countAmplitudeOnsets(withFx.interleavedStereo, kWindow, kThreshold);
+
+    // One short hit, no delay: a single onset.
+    REQUIRE(onsetsWithoutFx <= 1);
+    // 150ms repeats over 1.5s at 55% feedback: several audible echoes before decaying
+    // under the onset threshold.
+    REQUIRE(onsetsWithFx >= 4);
+}
+
+TEST_CASE("Renderer: a layer insert Saturation slot audibly compresses a loud signal (RMS moves toward the ceiling)",
+          "[render][regression][effects]")
+{
+    patch::Patch p = patch::Patch::makeInit();
+    p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Saw;
+    p.layerA.operators[0].level = 1.0f;
+    p.layerA.ampEnvelope.attackSeconds = 0.005f;
+    p.layerA.ampEnvelope.decaySeconds = 0.05f;
+    p.layerA.ampEnvelope.sustainLevel = 0.9f;
+    p.layerA.ampEnvelope.releaseSeconds = 0.05f;
+    p.layerA.gain = 1.8f; // deliberately loud, so saturation has something to bite into.
+
+    auto midiSeq = singleNoteSequence(0.0, 0.6, 48, 127);
+
+    render::RenderOptions options;
+    options.sampleRate = 48000.0;
+    options.durationSecondsOverride = 0.8;
+
+    const auto withoutFx = render::render(p, midiSeq, options);
+    REQUIRE(withoutFx.ok);
+    REQUIRE_FALSE(withoutFx.metrics.containsNaNOrInf);
+
+    p.layerA.insertEffects[0].type = effects::EffectType::Saturation;
+    p.layerA.insertEffects[0].mix = 1.0f;
+    p.layerA.insertEffects[0].saturationDriveDb = 18.0f;
+
+    const auto withFx = render::render(p, midiSeq, options);
+    REQUIRE(withFx.ok);
+    REQUIRE_FALSE(withFx.metrics.containsNaNOrInf);
+
+    // Saturation compresses the loud signal toward unity -- the effect's own peak
+    // must be lower than the dry signal's, even though the dry signal was already
+    // clamped/summed the same way upstream (this isolates the FX slot's own effect,
+    // not a difference in voice rendering).
+    REQUIRE(withFx.metrics.peak < withoutFx.metrics.peak);
+    REQUIRE(withFx.metrics.peak <= 1.05f);
+}

@@ -25,6 +25,7 @@ Top-level shape:
   "locks": { "lockSources", "lockAlgorithm", "lockFilters", "lockModulation", "lockEffects", "lockSequence" },
   "macros": [ /* 8x {"id","name","description","value"} */ ],
   "arpeggiator": { /* ArpeggiatorParams -- performance-wide, see ARPEGGIATOR.md */ },
+  "masterEffects": [ /* 4x EffectSlotParams -- final mixed bus, see FX_BANK.md */ ],
   "seed": 0
 }
 ```
@@ -45,7 +46,16 @@ settings (data model present, DSP wiring PLANNED -- see ROADMAP Phase 7), a
 `filter1` (Filter 1 params: enabled/mode/cutoffHz/resonance/keyTrack -- IMPLEMENTED,
 see DSP_ENGINE.md), an `lfo1` (waveform/mode/rateHz/syncDivisionIndex/phaseOffset --
 IMPLEMENTED, see MODULATION.md), a `modRoutes` array (up to 64 `ModRoute`s --
-IMPLEMENTED, see MODULATION.md), and `gain`/`pan`/`width`/`centerGravity`.
+IMPLEMENTED, see MODULATION.md), `gain`/`pan`/`width`/`centerGravity`, and an
+`insertEffects` array (3x `EffectSlotParams` -- IMPLEMENTED, see FX_BANK.md).
+
+`EffectSlotParams` (see FX_BANK.md for the full field-by-field rationale) is a
+flat struct with a `type` (`EffectType`: Bypass/Saturation/Chorus/TapeDelay/
+NodeDelay/FreqShiftEcho/FractalEcho), a shared `mix`, and fields for every
+type -- only the active `type`'s fields matter, the rest are simply unused,
+the same pattern `OperatorPatch` uses for its 5 engine types. `nodes[]` (used
+by NodeDelay) is 6x `DelayNodeParams` (enabled, parentIndex, delayMs, feedback,
+pan, distortion, level).
 
 See `content/presets/*.pw8` for complete, real, loadable examples, and
 `tests/serialization/PatchSerializerTests.cpp` for the roundtrip contract.

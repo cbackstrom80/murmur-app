@@ -11,6 +11,8 @@ namespace pw8::render
         for (auto& v : voices_)
             v.prepare(sampleRate_);
         arpeggiator_.prepare(sampleRate_);
+        layerAInsertChain_.prepare(sampleRate_);
+        masterChain_.prepare(sampleRate_);
     }
 
     op::OperatorParams Engine::toOperatorParams(const patch::OperatorPatch& p) noexcept
@@ -76,6 +78,12 @@ namespace pw8::render
         allocator_.configure(patch_.voiceSettings.polyphony);
         tuning_.setA4(patch_.voiceSettings.a4Hz);
         arpeggiator_.configure(patch_.arpeggiator, patch_.seed);
+
+        // Clear delay/chorus tails on patch load rather than letting a previous
+        // patch's effect state bleed into the newly loaded one -- keeps rendering
+        // deterministic from a fresh loadPatch() regardless of what was loaded before.
+        layerAInsertChain_.reset();
+        masterChain_.reset();
 
         std::array<float, 8> macroValues{};
         for (std::size_t i = 0; i < macroValues.size(); ++i)
@@ -229,6 +237,13 @@ namespace pw8::render
                 sumL += vl;
                 sumR += vr;
             }
+
+            // Layer A's 3 insert slots, then the engine-wide 4 master slots (see
+            // docs/FX_BANK.md). Layer B isn't voiced yet (Phase 8), so there is
+            // nothing to sum in or run its own insert chain on in this pass.
+            layerAInsertChain_.process(patch_.layerA.insertEffects, sumL, sumR);
+            masterChain_.process(patch_.masterEffects, sumL, sumR);
+
             left[s] = sumL;
             right[s] = sumR;
         }

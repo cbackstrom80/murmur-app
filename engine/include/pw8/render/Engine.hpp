@@ -6,6 +6,7 @@
 
 #include "pw8/algorithm/AlgorithmGraphCompiler.hpp"
 #include "pw8/core/AudioBlock.hpp"
+#include "pw8/effects/EffectChain.hpp"
 #include "pw8/oscillator/WavetableTable.hpp"
 #include "pw8/patch/Patch.hpp"
 #include "pw8/sequencer/Arpeggiator.hpp"
@@ -90,6 +91,13 @@ namespace pw8::render
         voice::VoiceAllocator allocator_{};
         tuning::TuningService tuning_{};
         sequencer::Arpeggiator arpeggiator_{};
+
+        /// Layer A's 3 insert FX slots (applied to the summed voice output) and the
+        /// engine-wide 4 master FX slots (applied to the final mixed bus). See
+        /// docs/FX_BANK.md. Layer B has no voiced signal yet (Phase 8), so it has no
+        /// insert chain of its own in this pass.
+        effects::LayerInsertChain layerAInsertChain_{};
+        effects::MasterChain masterChain_{};
 
         static constexpr float kPitchBendRangeSemitones = 2.0f;
 

@@ -15,7 +15,7 @@ Status as of this repository's initial engineering pass. Legend: **DONE** / **PA
 | 8 | Dual layer (Layer A, Layer B, stack, layer morph) | **PARTIAL** -- schema complete (`LayerMode` enum, full `layerB` data), only `SINGLE_A` is actually voiced/rendered |
 | 9 | Algorithm morph (same-topology, different-topology) | **PLANNED** |
 | 10 | Additional engines (additive, phase/shape, noise, resonator, granular) | **PLANNED** -- `EngineType` enum and dispatch points exist; each renders silence until implemented |
-| 11 | FX (insert slots, master slots, first effect set, reverb, spatial engine) | **PLANNED** |
+| 11 | FX (insert slots, master slots, first effect set, reverb, spatial engine) | **PARTIAL** -- 3 layer insert + 4 master slots **IMPLEMENTED**, with 6 real algorithms (Saturation, Chorus, TapeDelay, NodeDelay, FreqShiftEcho, FractalEcho); reverb/EQ/compressor/limiter and the rest of the original effect-set list still PLANNED. See FX_BANK.md |
 | 12 | MSEG / sequencer | **PARTIAL** -- arpeggiator **IMPLEMENTED** (`pw8/sequencer/Arpeggiator.hpp`, see ARPEGGIATOR.md); MSEG/step-sequencer-as-mod-source still PLANNED |
 | 13 | Patch format productionization (schema, migrations, metadata) | **PARTIAL** -- schema v1 complete and hardened against untrusted input; migration *mechanism* exists with nothing to migrate yet (only one schema version so far) |
 | 14 | Python API productionization | **PARTIAL** -- see PYTHON_API.md coverage table |
@@ -171,6 +171,48 @@ promise:
   clean, `pw8-fuzz-render` (1,500 patches) zero failures, `auval` re-validated.
 - See [ARPEGGIATOR.md](ARPEGGIATOR.md) for full design detail and what's still
   PLANNED within Phase 12 (MSEG/mod-sequencer, arp-output MIDI channel handling).
+
+## Follow-up pass: FX bank (Phase 11 -> PARTIAL)
+
+Researched three named commercial delay/echo plugins (ChowMatrix, Cocoa Delay,
+ValhallaFreqEcho -- architecture and feature set only, never code/UI, the same
+boundary held for the Serum/Phase Plant/Zebra 3 research above) and used that
+research to design and implement a real, multi-algorithmic FX bank, plus one
+algorithm invented specifically for this project. Full detail in
+[FX_BANK.md](FX_BANK.md); summary:
+
+- `effects::EffectSlotParams` / `EffectChain` (`pw8/effects/`): 3 layer insert
+  slots (`LayerPatch::insertEffects`) + 4 master slots (`Patch::masterEffects`),
+  matching the master spec's slot counts. Each slot switches at runtime between
+  6 real algorithms: **Saturation** (drive-normalized tanh), **Chorus**
+  (modulated feedforward delay), **TapeDelay** (Cocoa-Delay-informed: wow/
+  flutter drift, feedback saturation, ducking, Static/PingPong/Circular pan),
+  **NodeDelay** (ChowMatrix-informed: a fixed-capacity 6-node tree of delay
+  lines where a node's input can be another node's *output*, plus deterministic
+  "Insanity" delay-time wander), **FreqShiftEcho** (ValhallaFreqEcho-informed: a
+  single-sideband frequency shifter placed inside the delay's feedback loop, so
+  repeats drift progressively out of tune), and **FractalEcho** -- this
+  project's own invented algorithm: a procedurally-generated, seed-driven,
+  self-similar delay tree, continuously morphable between two generated
+  topologies via real-time coefficient-space interpolation (not a signal-domain
+  crossfade). See FX_BANK.md "The invented algorithm" for the full case for why
+  this specific combination is genuinely new.
+- `dsp::HilbertTransformer`/`dsp::FrequencyShifter` (`pw8/dsp/HilbertTransformer.hpp`):
+  a from-scratch FIR-based single-sideband frequency shifter. Its first
+  implementation (a cascaded-allpass design using a remembered published
+  coefficient table) was caught broken by direct FFT-based measurement before
+  shipping -- see FX_BANK.md "The FrequencyShifter primitive" for the full story
+  and the general lesson (measure a DSP block's actual frequency-domain
+  behavior, don't trust a remembered coefficient table).
+- 16 new unit tests (`tests/unit/EffectsTests.cpp`) plus 2 new render-level
+  regression tests (a master TapeDelay slot turning one hit into several
+  measured amplitude onsets; a layer insert Saturation slot measurably lowering
+  peak) -- 96 total, all passing.
+- 3 new engineering presets (`fx-node-tree.pw8`, `fx-fractal-morph.pw8`,
+  `fx-freq-echo.pw8`), one of which (`fx-node-tree.pw8`) also demonstrates a
+  layer insert slot and a master slot composing in the same patch.
+- Full cross-build verification: dev/benchmarks/python/plugin all clean,
+  `pw8-fuzz-render` (1,500 patches) zero failures, `auval` re-validated.
 
 ## GPU acceleration (researched, not adopted)
 

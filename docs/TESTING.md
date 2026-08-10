@@ -2,7 +2,7 @@
 
 ## Current Status
 
-**78 Catch2 test cases, all passing** as of this pass (`ctest --preset dev` /
+**96 Catch2 test cases, all passing** as of this pass (`ctest --preset dev` /
 `./build/tests/pw8_tests`). Framework: Catch2 v3.8.1, fetched via CMake
 `FetchContent` (see `tests/CMakeLists.txt`), registered with `ctest` via
 `catch_discover_tests`. (Catch2 was bumped from v3.6.0 to v3.8.1 after v3.6.0's
@@ -23,10 +23,11 @@ individually-discovered `ctest` output was confirmed correct after the bump.)
 | `tests/unit/FftTests.cpp` | `isPowerOfTwo` classification, forward+inverse roundtrip accuracy, single-bin sine peak isolation, safe no-op on non-power-of-two input |
 | `tests/unit/WavetableTableTests.cpp` | Higher note frequency selects a more band-limited mip; **measured** aliasing-energy reduction (>2x) vs. always using the full-bandwidth mip |
 | `tests/unit/ArpeggiatorTests.cpp` | Per-mode note-sequence generation (Up/Down/UpDown/AsPlayed hand-verified exact sequences), Chord mode firing every held note together, latch keeping the pattern alive after release vs. stopping without it, seeded-probability determinism, ratchet sub-hit count, tie suppressing retrigger, polymetric step/note-sequence independence |
+| `tests/unit/EffectsTests.cpp` | Saturation transparency/compression; Chorus transparency and fixed-delay impulse response; TapeDelay Static echo spacing/decay and PingPong channel alternation; NodeDelay parent-child chaining and disabled-node exclusion; `FrequencyShifter`'s measured shift amount (FFT peak) and `FreqShiftEcho`'s bounded output; FractalEcho topology determinism/seed divergence/depth-scaling rule/finite output across a full morph sweep; `EffectChain` Bypass transparency and in-series processing |
 | `tests/serialization/PatchSerializerTests.cpp` | Full patch roundtrip (incl. algorithm graph), malformed-JSON rejection, non-object-root rejection, minimal-document defaulting |
 | `tests/serialization/StandardMidiFileTests.cpp` | Hand-built minimal SMF parses correctly (tempo-to-seconds math verified), too-small-buffer and bad-magic-header rejection, `MidiSequence::durationSeconds()` |
 | `tests/serialization/WavetableTableLoaderTests.cpp` | Valid multi-mip table parses correctly, malformed-JSON/mismatched-sample-count/out-of-range-dimensions rejection, missing-file error reporting |
-| `tests/regression/RenderSanityTests.cpp` | Non-silent finite output for INIT SINE, correct silence with no MIDI input, 8-voice polyphonic overlap stays finite, out-of-range sample rate rejected, finite output under an aggressive self-feedback algorithm, Filter 1 audibly changes spectrum (RMS drop), mod matrix (LFO/velocity/pressure -> filter/level/pan) renders finite audio, tempo-synced LFO's rate actually tracks `--bpm` end to end, enabling the arpeggiator turns one held chord into many discrete amplitude onsets (measured: 1 without, 16 with, at 8Hz/2s) |
+| `tests/regression/RenderSanityTests.cpp` | Non-silent finite output for INIT SINE, correct silence with no MIDI input, 8-voice polyphonic overlap stays finite, out-of-range sample rate rejected, finite output under an aggressive self-feedback algorithm, Filter 1 audibly changes spectrum (RMS drop), mod matrix (LFO/velocity/pressure -> filter/level/pan) renders finite audio, tempo-synced LFO's rate actually tracks `--bpm` end to end, enabling the arpeggiator turns one held chord into many discrete amplitude onsets (measured: 1 without, 16 with, at 8Hz/2s), a master TapeDelay slot turns one short hit into several measured echoes, a layer insert Saturation slot measurably lowers a loud patch's peak |
 
 ## Property / Fuzz Testing
 
@@ -42,9 +43,11 @@ amounts up to +-48, all 5 mod destinations including `OperatorWavetablePosition`
 stress the finite-output clamps added alongside them; BPM is randomized across
 [20, 300] to exercise `TempoSync` LFOs. Verified across three batches: **5,000
 patches (seed 1, pre-modulation), 5,000 more (seed 3, post-modulation), and 3,000
-more (seed 4, post-wavetable-mip-mapping), and 1,500 more (seed 5, post-arpeggiator
+more (seed 4, post-wavetable-mip-mapping), 1,500 more (seed 5, post-arpeggiator
 regression check -- `randomPatch()` does not yet randomize `ArpeggiatorParams`
-itself, see below) -- zero failures in any of them** (Debug
+itself, see below), and 1,500 more (seed 6, post-FX-bank regression check --
+`randomPatch()` does not yet randomize `EffectSlotParams` either, same gap) --
+zero failures in any of them** (Debug
 build; a Release build would run substantially faster than the observed
 ~28-37 patches/sec). The master spec's overnight target of 1,000,000+ patches is
 left to whoever runs it -- `--count`/`--seed` are both exposed for exactly that.
@@ -70,6 +73,10 @@ to ~5.0ms (96kHz, 32 voices), comfortably realtime even unoptimized.
   (mode/rate/steps/latch) the way it already randomizes filter/LFO/mod-route
   parameters -- the seed-5 batch above exercises the arpeggiator only in that it's
   present but disabled by default on random patches. PLANNED follow-up.
+- Same gap for `EffectSlotParams` -- the seed-6 batch renders every random patch
+  with all FX slots at their default (Bypass), so it's a regression check that
+  adding the FX bank didn't break anything, not fuzz coverage of the effects
+  themselves. PLANNED follow-up.
 - `tests/plugin/` -- no `ctest`-registered plugin tests. A *manual* verification
   pass was done instead: `plugin/` builds against real JUCE 8.0.6 and the AU target
   passes Apple's `auval` in full (see `docs/PLUGIN_ARCHITECTURE.md`); `.github/workflows/ci.yml`'s

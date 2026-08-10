@@ -194,6 +194,103 @@ namespace pw8::patch
             r.scope = static_cast<modulation::ModScope>(clampNum(j.value("scope", 0), 0, 2));
         }
 
+        void toJson(json& j, const effects::DelayNodeParams& n)
+        {
+            j = json{{"enabled", n.enabled},         {"parentIndex", n.parentIndex},
+                     {"delayMs", n.delayMs},           {"feedback", n.feedback},
+                     {"pan", n.pan},                   {"distortion", n.distortion},
+                     {"level", n.level}};
+        }
+
+        void fromJson(const json& j, effects::DelayNodeParams& n)
+        {
+            n.enabled = j.value("enabled", true);
+            n.parentIndex = clampNum(j.value("parentIndex", -1), -1, static_cast<int>(effects::kMaxDelayNodes) - 1);
+            n.delayMs = clampNum(j.value("delayMs", 250.0f), 1.0f, effects::kMaxTreeNodeDelaySeconds * 1000.0f);
+            n.feedback = clampNum(j.value("feedback", 0.35f), 0.0f, 0.95f);
+            n.pan = clampNum(j.value("pan", 0.0f), -1.0f, 1.0f);
+            n.distortion = clampNum(j.value("distortion", 0.0f), 0.0f, 1.0f);
+            n.level = clampNum(j.value("level", 0.7f), 0.0f, 1.0f);
+        }
+
+        void toJson(json& j, const effects::EffectSlotParams& e)
+        {
+            json nodes = json::array();
+            for (const auto& n : e.nodes)
+            {
+                json jn;
+                toJson(jn, n);
+                nodes.push_back(jn);
+            }
+
+            j = json{
+                {"type", static_cast<int>(e.type)},                 {"mix", e.mix},
+                {"saturationDriveDb", e.saturationDriveDb},
+                {"chorusRateHz", e.chorusRateHz},                   {"chorusDepthMs", e.chorusDepthMs},
+                {"chorusBaseDelayMs", e.chorusBaseDelayMs},
+                {"tapeDelayMs", e.tapeDelayMs},                     {"tapeFeedback", e.tapeFeedback},
+                {"tapeDriveDb", e.tapeDriveDb},                     {"tapeDuckAmount", e.tapeDuckAmount},
+                {"tapeDriftDepthMs", e.tapeDriftDepthMs},           {"tapeDriftRateHz", e.tapeDriftRateHz},
+                {"tapePanMode", static_cast<int>(e.tapePanMode)},
+                {"nodes", nodes},                                   {"nodeInsanity", e.nodeInsanity},
+                {"freqShiftHz", e.freqShiftHz},                     {"freqShiftDelayMs", e.freqShiftDelayMs},
+                {"freqShiftFeedback", e.freqShiftFeedback},         {"freqShiftLowCutHz", e.freqShiftLowCutHz},
+                {"freqShiftHighCutHz", e.freqShiftHighCutHz},
+                {"fractalSeedA", e.fractalSeedA},                   {"fractalSeedB", e.fractalSeedB},
+                {"fractalMorph", e.fractalMorph},                   {"fractalBaseDelayMs", e.fractalBaseDelayMs},
+                {"fractalRatio", e.fractalRatio},                   {"fractalSpreadMs", e.fractalSpreadMs},
+            };
+        }
+
+        void fromJson(const json& j, effects::EffectSlotParams& e)
+        {
+            e.type = static_cast<effects::EffectType>(clampNum(j.value("type", 0), 0, 6));
+            e.mix = clampNum(j.value("mix", 1.0f), 0.0f, 1.0f);
+
+            e.saturationDriveDb = clampNum(j.value("saturationDriveDb", 6.0f), 0.0f, 48.0f);
+
+            e.chorusRateHz = clampNum(j.value("chorusRateHz", 0.5f), 0.01f, 10.0f);
+            e.chorusDepthMs = clampNum(j.value("chorusDepthMs", 4.0f), 0.0f, 20.0f);
+            e.chorusBaseDelayMs = clampNum(j.value("chorusBaseDelayMs", 12.0f), 1.0f, 40.0f);
+
+            e.tapeDelayMs = clampNum(j.value("tapeDelayMs", 350.0f), 1.0f, effects::kMaxEffectDelaySeconds * 1000.0f);
+            e.tapeFeedback = clampNum(j.value("tapeFeedback", 0.4f), 0.0f, 0.98f);
+            e.tapeDriveDb = clampNum(j.value("tapeDriveDb", 3.0f), 0.0f, 48.0f);
+            e.tapeDuckAmount = clampNum(j.value("tapeDuckAmount", 0.0f), 0.0f, 1.0f);
+            e.tapeDriftDepthMs = clampNum(j.value("tapeDriftDepthMs", 1.5f), 0.0f, 20.0f);
+            e.tapeDriftRateHz = clampNum(j.value("tapeDriftRateHz", 0.3f), 0.0f, 10.0f);
+            e.tapePanMode = static_cast<effects::DelayPanMode>(clampNum(j.value("tapePanMode", 0), 0, 2));
+
+            e.nodes = std::array<effects::DelayNodeParams, effects::kMaxDelayNodes>{};
+            if (j.contains("nodes") && j.at("nodes").is_array())
+            {
+                std::size_t i = 0;
+                for (const auto& jn : j.at("nodes"))
+                {
+                    if (i >= effects::kMaxDelayNodes)
+                        break;
+                    fromJson(jn, e.nodes[i]);
+                    ++i;
+                }
+            }
+            e.nodeInsanity = clampNum(j.value("nodeInsanity", 0.0f), 0.0f, 1.0f);
+
+            e.freqShiftHz = clampNum(j.value("freqShiftHz", 7.0f), -2000.0f, 2000.0f);
+            e.freqShiftDelayMs =
+                clampNum(j.value("freqShiftDelayMs", 280.0f), 1.0f, effects::kMaxEffectDelaySeconds * 1000.0f);
+            e.freqShiftFeedback = clampNum(j.value("freqShiftFeedback", 0.55f), 0.0f, 0.98f);
+            e.freqShiftLowCutHz = clampNum(j.value("freqShiftLowCutHz", 120.0f), 5.0f, 20000.0f);
+            e.freqShiftHighCutHz = clampNum(j.value("freqShiftHighCutHz", 8000.0f), 20.0f, 20000.0f);
+
+            e.fractalSeedA = j.value("fractalSeedA", static_cast<std::uint64_t>(1));
+            e.fractalSeedB = j.value("fractalSeedB", static_cast<std::uint64_t>(2));
+            e.fractalMorph = clampNum(j.value("fractalMorph", 0.0f), 0.0f, 1.0f);
+            e.fractalBaseDelayMs =
+                clampNum(j.value("fractalBaseDelayMs", 180.0f), 1.0f, effects::kMaxTreeNodeDelaySeconds * 1000.0f);
+            e.fractalRatio = clampNum(j.value("fractalRatio", 0.62f), 0.1f, 0.95f);
+            e.fractalSpreadMs = clampNum(j.value("fractalSpreadMs", 15.0f), 0.0f, 100.0f);
+        }
+
         void toJson(json& j, const LayerPatch& l)
         {
             json ops = json::array();
@@ -218,10 +315,19 @@ namespace pw8::patch
                 routes.push_back(jr);
             }
 
+            json inserts = json::array();
+            for (const auto& fx : l.insertEffects)
+            {
+                json jfx;
+                toJson(jfx, fx);
+                inserts.push_back(jfx);
+            }
+
             j = json{{"operators", ops},       {"algorithm", algo},           {"ampEnvelope", env},
                      {"unison", uni},           {"filter1", filt},             {"lfo1", lfoJ},
                      {"modRoutes", routes},     {"gain", l.gain},              {"pan", l.pan},
-                     {"width", l.width},         {"centerGravity", l.centerGravity}};
+                     {"width", l.width},         {"centerGravity", l.centerGravity},
+                     {"insertEffects", inserts}};
         }
 
         void fromJson(const json& j, LayerPatch& l)
@@ -265,6 +371,19 @@ namespace pw8::patch
             l.pan = clampNum(j.value("pan", 0.0f), -1.0f, 1.0f);
             l.width = clampNum(j.value("width", 1.0f), 0.0f, 2.0f);
             l.centerGravity = clampNum(j.value("centerGravity", 0.5f), 0.0f, 1.0f);
+
+            l.insertEffects = std::array<effects::EffectSlotParams, effects::kNumLayerInsertSlots>{};
+            if (j.contains("insertEffects") && j.at("insertEffects").is_array())
+            {
+                std::size_t i = 0;
+                for (const auto& jfx : j.at("insertEffects"))
+                {
+                    if (i >= effects::kNumLayerInsertSlots)
+                        break;
+                    fromJson(jfx, l.insertEffects[i]);
+                    ++i;
+                }
+            }
         }
 
         void toJson(json& j, const PatchMetadata& m)
@@ -425,6 +544,15 @@ namespace pw8::patch
             toJson(arp, patch.arpeggiator);
             j["arpeggiator"] = arp;
 
+            json masterFx = json::array();
+            for (const auto& fx : patch.masterEffects)
+            {
+                json jfx;
+                toJson(jfx, fx);
+                masterFx.push_back(jfx);
+            }
+            j["masterEffects"] = masterFx;
+
             j["seed"] = patch.seed;
 
             return indent >= 0 ? j.dump(indent) : j.dump();
@@ -529,6 +657,19 @@ namespace pw8::patch
 
             if (root.contains("arpeggiator"))
                 fromJson(root.at("arpeggiator"), p.arpeggiator);
+
+            p.masterEffects = std::array<effects::EffectSlotParams, effects::kNumMasterSlots>{};
+            if (root.contains("masterEffects") && root.at("masterEffects").is_array())
+            {
+                std::size_t i = 0;
+                for (const auto& jfx : root.at("masterEffects"))
+                {
+                    if (i >= effects::kNumMasterSlots)
+                        break;
+                    fromJson(jfx, p.masterEffects[i]);
+                    ++i;
+                }
+            }
 
             p.seed = root.value("seed", static_cast<std::uint64_t>(0));
 

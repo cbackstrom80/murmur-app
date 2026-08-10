@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "id": "pw8-fx-node-tree",
+    "name": "FX NODE TREE",
+    "author": "Patchwork Eight Engineering",
+    "description": "A short plucky square-wave hit (Filter 1 bandpass for character) demonstrating both new FX bank slot types in one patch: a subtle Chorus in the layer's first insert slot (gentle width, not the star of the show), and a 4-node NodeDelay tree in the first master slot -- informed by ChowMatrix's 'tree of delay nodes' concept (docs/FX_BANK.md). Node 0 taps the dry signal directly; nodes 1 and 2 are both children of node 0 (each delays node 0's OWN output further, not the original input); node 3 is a child of node 1, three generations deep. Each node has its own pan, feedback, and distortion, so the resulting texture is a genuinely branching multi-tap glitch, not a simple repeating echo -- exactly the kind of complex, non-repeating delay network ChowMatrix's manual describes, adapted to this codebase's fixed-capacity realtime-safety discipline (kMaxDelayNodes=6) rather than an unboundedly growable tree.",
+    "category": "fx",
+    "moods": ["glitchy", "percussive", "spacious"],
+    "genres": [],
+    "tags": ["engineering", "effects", "nodedelay"],
+    "createdAt": "2026-08-10T00:00:00Z",
+    "engineVersion": "0.1.0",
+    "schemaVersion": 1,
+    "seed": 2001,
+    "lineage": []
+  },
+  "layerMode": 0,
+  "layerMorph": 0.0,
+  "layerA": {
+    "operators": [
+      {"engine": 0, "classicWaveform": 3, "frequencyRatio": 1.0, "keyTrack": true, "level": 0.85, "pan": 0.0},
+      {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}
+    ],
+    "algorithm": {
+      "nodes": [
+        {"id": 0, "engine": 0, "isOutput": true}, {"id": 1, "engine": 0, "isOutput": true},
+        {"id": 2, "engine": 0, "isOutput": true}, {"id": 3, "engine": 0, "isOutput": true},
+        {"id": 4, "engine": 0, "isOutput": true}, {"id": 5, "engine": 0, "isOutput": true},
+        {"id": 6, "engine": 0, "isOutput": true}, {"id": 7, "engine": 0, "isOutput": true}
+      ],
+      "edges": []
+    },
+    "ampEnvelope": {"attackSeconds": 0.001, "decaySeconds": 0.08, "sustainLevel": 0.0, "releaseSeconds": 0.03, "curveShape": 2.0},
+    "unison": {"mode": 0, "voices": 1},
+    "filter1": {"enabled": true, "mode": 2, "cutoffHz": 1400.0, "resonance": 0.4, "keyTrack": 0.2},
+    "gain": 0.9, "pan": 0.0, "width": 1.0, "centerGravity": 0.5,
+    "insertEffects": [
+      {"type": 2, "mix": 0.25, "chorusRateHz": 0.35, "chorusDepthMs": 3.0, "chorusBaseDelayMs": 10.0}
+    ]
+  },
+  "layerB": {
+    "operators": [
+      {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}
+    ],
+    "algorithm": {
+      "nodes": [
+        {"id": 0, "engine": 0, "isOutput": true}, {"id": 1, "engine": 0, "isOutput": false},
+        {"id": 2, "engine": 0, "isOutput": false}, {"id": 3, "engine": 0, "isOutput": false},
+        {"id": 4, "engine": 0, "isOutput": false}, {"id": 5, "engine": 0, "isOutput": false},
+        {"id": 6, "engine": 0, "isOutput": false}, {"id": 7, "engine": 0, "isOutput": false}
+      ],
+      "edges": []
+    },
+    "ampEnvelope": {"attackSeconds": 0.002, "decaySeconds": 0.15, "sustainLevel": 0.0, "releaseSeconds": 0.05},
+    "gain": 1.0, "pan": 0.0, "width": 1.0, "centerGravity": 0.5
+  },
+  "voiceSettings": {"polyphony": 8, "masterGain": 0.8, "a4Hz": 440.0},
+  "locks": {},
+  "macros": [
+    {"id": "m1", "name": "DARKNESS", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m2", "name": "IMPACT", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m3", "name": "MOTION", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m4", "name": "SPACE", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m5", "name": "BODY", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m6", "name": "METAL", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m7", "name": "CHAOS", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m8", "name": "MORPH", "description": "Reserved -- not yet routed.", "value": 0.0}
+  ],
+  "arpeggiator": {"enabled": false},
+  "masterEffects": [
+    {
+      "type": 4,
+      "mix": 0.8,
+      "nodeInsanity": 0.15,
+      "nodes": [
+        {"enabled": true,  "parentIndex": -1, "delayMs": 180.0, "feedback": 0.30, "pan": -0.4, "distortion": 0.10, "level": 0.80},
+        {"enabled": true,  "parentIndex": 0,  "delayMs": 130.0, "feedback": 0.25, "pan": 0.6,  "distortion": 0.30, "level": 0.60},
+        {"enabled": true,  "parentIndex": 0,  "delayMs": 90.0,  "feedback": 0.20, "pan": 0.0,  "distortion": 0.50, "level": 0.50},
+        {"enabled": true,  "parentIndex": 1,  "delayMs": 220.0, "feedback": 0.15, "pan": -0.8, "distortion": 0.0,  "level": 0.40},
+        {"enabled": false, "parentIndex": -1, "delayMs": 250.0, "feedback": 0.0,  "pan": 0.0,  "distortion": 0.0,  "level": 0.0},
+        {"enabled": false, "parentIndex": -1, "delayMs": 250.0, "feedback": 0.0,  "pan": 0.0,  "distortion": 0.0,  "level": 0.0}
+      ]
+    },
+    {"type": 0}, {"type": 0}, {"type": 0}
+  ],
+  "seed": 2001
+}

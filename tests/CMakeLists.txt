@@ -21,6 +21,7 @@ add_executable(pw8_tests
     unit/FftTests.cpp
     unit/WavetableTableTests.cpp
     unit/ArpeggiatorTests.cpp
+    unit/EffectsTests.cpp
     serialization/PatchSerializerTests.cpp
     serialization/StandardMidiFileTests.cpp
     serialization/WavetableTableLoaderTests.cpp

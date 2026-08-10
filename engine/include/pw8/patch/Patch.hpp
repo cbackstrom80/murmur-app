@@ -8,6 +8,7 @@
 #include "pw8/algorithm/AlgorithmTypes.hpp"
 #include "pw8/core/Types.hpp"
 #include "pw8/core/Version.hpp"
+#include "pw8/effects/EffectTypes.hpp"
 #include "pw8/envelope/DahdsrEnvelope.hpp"
 #include "pw8/filter/StateVariableFilter.hpp"
 #include "pw8/lfo/Lfo.hpp"
@@ -101,9 +102,12 @@ namespace pw8::patch
         float width = 1.0f; ///< stereo width, 0 (mono) .. 1 (full) .. 2 (wide), reserved (PLANNED).
         float centerGravity = 0.5f; ///< see docs/DSP_ENGINE.md "Center Gravity" (PLANNED wiring).
 
-        // Filter 2 (character) and per-layer insert effects are architected as of
-        // docs/DSP_ENGINE.md but not yet part of the signal path in this pass --
-        // see docs/ROADMAP.md Phase 6 (continued) / Phase 11.
+        /// 3 layer insert FX slots, applied in order to this layer's summed voice
+        /// output before it reaches the master bus. See docs/FX_BANK.md.
+        std::array<effects::EffectSlotParams, effects::kNumLayerInsertSlots> insertEffects{};
+
+        // Filter 2 (character) is architected as of docs/DSP_ENGINE.md but not yet
+        // part of the signal path in this pass -- see docs/ROADMAP.md Phase 6.
     };
 
     /// AI-generation lock flags: control what Generate/Mutate/Breed are allowed to touch.
@@ -166,6 +170,9 @@ namespace pw8::patch
         /// Performance-wide (not per-layer): intercepts noteOn/noteOff before they
         /// reach voices when enabled. See docs/ARPEGGIATOR.md.
         sequencer::ArpeggiatorParams arpeggiator{};
+        /// 4 master FX slots, applied in order to the final mixed stereo bus (after
+        /// all layers' insert effects). See docs/FX_BANK.md.
+        std::array<effects::EffectSlotParams, effects::kNumMasterSlots> masterEffects{};
         std::uint64_t seed = 0;
 
         [[nodiscard]] static Patch makeInit() noexcept
