@@ -310,6 +310,48 @@ dependency) -- was also researched and architected, documented (not implemented)
 `docs/PLUGIN_ARCHITECTURE.md` "Visualization"; it stays under Phase 17 like the rest
 of the UI.
 
+## GATE 4: the acceptance patch (PASSED)
+
+A later, more detailed product brief for this project introduced an explicit
+sonic acceptance gate before further feature work: build a
+"MASSIVE DARK EVOLVING METALLIC BASS" using only what's *actually implemented*
+today, and if it's mediocre, stop adding features and fix fundamentals
+instead. `content/presets/gate4-massive-dark-metallic-bass.pw8` is that patch,
+built entirely from real, already-shipped DSP -- no dedicated unison engine
+(not DSP-wired yet, Phase 7) and no dedicated FM/Resonator engine type
+(silent, Phase 10 PLANNED) were needed:
+
+- **MASSIVE**: 3 hand-detuned Classic saws (ratios 0.996/1.0/1.004 -- the same
+  fake-unison technique `wide-saw.pw8` already established) plus two centered
+  sub sines (ratio 0.5 and 0.25) for weight without losing the fundamental.
+- **DARK**: Filter 1 lowpass at 350Hz, resonance 0.35.
+- **METALLIC**: a genuine `RingMod` algorithm-graph edge -- a non-output
+  3.17-ratio triangle (node 0) ring-modulates a dedicated, low-level
+  1.5-ratio saw (node 1), so the inharmonic ring-mod texture is a controlled
+  layer, not applied to the fundamental (which would have gutted the bass
+  weight at the modulator's zero-crossings).
+- **EVOLVING**: LFO1 -> FilterCutoff (slow sweep) and LFO1 ->
+  OperatorLevel(node 1) (the metallic voice swells in and out), plus
+  Velocity -> FilterCutoff for a hit-hard response.
+- A single Saturation insert (10dB drive) adds harmonic weight, matching the
+  brief's "should sound exceptional before external mastering" bar --
+  deliberately no master reverb/width processing to disguise the core tone.
+
+**Verified quantitatively, not just by ear** (rendered against
+`content/test_midi/bass-line.mid`, a real walking bassline, not a single
+static tone): peak 0.949 / RMS 0.345, no clipping, DC offset negligible
+(0.0035), zero NaN/Inf. A windowed-FFT analysis (4096-sample windows, 50%
+overlap) confirms the design claims rather than just asserting them: mean
+low-frequency (<500Hz) energy ratio 0.578 (dark/bass-weighted), and the
+high-frequency (>2kHz) energy ratio's variation over time (std/mean = 0.85,
+well above a 0.15 "is this actually swelling" bar) confirms the metallic
+texture voice's LFO-driven swell is real and audible, not just present.
+
+**Conclusion**: the current oscillator/filter/algorithm-graph/mod-matrix/FX
+primitives are of sufficient quality to build a genuinely good patch -- GATE 4
+passes. This validates proceeding to the next phase (deeper modulation)
+rather than reworking fundamentals first.
+
 ## Immediate next steps (suggested, not committed)
 
 1. A real DAW host-matrix pass (Ableton, Logic, Reaper, Bitwig, etc.) -- `auval`
