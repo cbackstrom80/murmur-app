@@ -475,3 +475,278 @@ TEST_CASE("EffectChain runs slots in series", "[effects][chain]")
     REQUIRE(l < 1.5f);
     REQUIRE(l > 0.0f);
 }
+
+// ---------------------------------------------------------------------------
+// Reverb / Eq / Compressor / Limiter (GATE 10 -- docs/ROADMAP.md)
+// ---------------------------------------------------------------------------
+
+namespace
+{
+    /// RMS of a steady-state sine tone through `proc`, discarding the first half
+    /// (settling time) -- the same measurement pattern StateVariableFilterTests.cpp
+    /// already established for a per-sample DSP block.
+    template <typename Processor>
+    float measureToneRms(Processor& proc, const EffectSlotParams& p, float toneHz, float inputAmplitude,
+                          double seconds)
+    {
+        const auto numSamples = static_cast<int>(seconds * kSampleRate);
+        double sumSq = 0.0;
+        int counted = 0;
+        for (int i = 0; i < numSamples; ++i)
+        {
+            const float t = static_cast<float>(i) / static_cast<float>(kSampleRate);
+            const float in = inputAmplitude * std::sin(2.0f * dsp::kPi * toneHz * t);
+            float outL = 0.0f, outR = 0.0f;
+            proc.processStereo(in, in, p, outL, outR);
+            if (i > numSamples / 2)
+            {
+                sumSq += static_cast<double>(outL) * outL;
+                ++counted;
+            }
+        }
+        return static_cast<float>(std::sqrt(sumSq / counted));
+    }
+} // namespace
+
+TEST_CASE("Eq low shelf boost measurably raises RMS of a tone below the shelf frequency", "[effects][eq]")
+{
+    EqProcessor proc;
+    proc.prepare(kSampleRate);
+
+    EffectSlotParams flat;
+    flat.type = EffectType::Eq;
+    flat.mix = 1.0f;
+    flat.eqLowFreqHz = 200.0f;
+    flat.eqLowGainDb = 0.0f;
+
+    EqProcessor proc2;
+    proc2.prepare(kSampleRate);
+    EffectSlotParams boosted = flat;
+    boosted.eqLowGainDb = 12.0f;
+
+    const float rmsFlat = measureToneRms(proc, flat, 60.0f, 0.3f, 0.05);
+    const float rmsBoosted = measureToneRms(proc2, boosted, 60.0f, 0.3f, 0.05);
+
+    // +12dB is a factor of ~3.98x in amplitude/RMS.
+    REQUIRE(rmsBoosted > rmsFlat * 2.5f);
+}
+
+TEST_CASE("Eq mid peaking cut measurably lowers RMS of a tone at the peak frequency", "[effects][eq]")
+{
+    EqProcessor flatProc, cutProc;
+    flatProc.prepare(kSampleRate);
+    cutProc.prepare(kSampleRate);
+
+    EffectSlotParams flat;
+    flat.type = EffectType::Eq;
+    flat.mix = 1.0f;
+    flat.eqMidFreqHz = 1000.0f;
+    flat.eqMidGainDb = 0.0f;
+    flat.eqMidQ = 1.0f;
+
+    EffectSlotParams cut = flat;
+    cut.eqMidGainDb = -18.0f;
+
+    const float rmsFlat = measureToneRms(flatProc, flat, 1000.0f, 0.3f, 0.05);
+    const float rmsCut = measureToneRms(cutProc, cut, 1000.0f, 0.3f, 0.05);
+
+    REQUIRE(rmsCut < rmsFlat * 0.3f);
+}
+
+TEST_CASE("Eq is a transparent passthrough at mix 0", "[effects][eq]")
+{
+    EqProcessor proc;
+    proc.prepare(kSampleRate);
+    EffectSlotParams p;
+    p.type = EffectType::Eq;
+    p.mix = 0.0f;
+    p.eqLowGainDb = 12.0f;
+    p.eqMidGainDb = -18.0f;
+    p.eqHighGainDb = 12.0f;
+
+    float outL, outR;
+    proc.processStereo(0.5f, -0.3f, p, outL, outR);
+    REQUIRE(outL == Catch::Approx(0.5f));
+    REQUIRE(outR == Catch::Approx(-0.3f));
+}
+
+TEST_CASE("Compressor reduces a loud tone's level by roughly the expected amount above threshold",
+          "[effects][compressor]")
+{
+    CompressorProcessor proc;
+    proc.prepare(kSampleRate);
+
+    EffectSlotParams p;
+    p.type = EffectType::Compressor;
+    p.mix = 1.0f;
+    p.compThresholdDb = -18.0f;
+    p.compRatio = 4.0f;
+    p.compAttackMs = 1.0f;
+    p.compReleaseMs = 50.0f;
+    p.compKneeDb = 0.0f; // hard knee -- exact expected reduction is simple to compute.
+    p.compMakeupDb = 0.0f;
+
+    // A full-scale (amplitude 1.0) sine's peak is 0dBFS -- 18dB above the threshold.
+    // Hard-knee 4:1 above threshold: reduction = (1/4 - 1) * 18 = -13.5dB.
+    const float rmsCompressed = measureToneRms(proc, p, 200.0f, 1.0f, 0.3);
+
+    CompressorProcessor bypassProc;
+    bypassProc.prepare(kSampleRate);
+    EffectSlotParams bypassParams = p;
+    bypassParams.mix = 0.0f;
+    const float rmsUncompressed = measureToneRms(bypassProc, bypassParams, 200.0f, 1.0f, 0.3);
+
+    const float measuredReductionDb = dsp::gainToDb(rmsCompressed / rmsUncompressed);
+    REQUIRE(measuredReductionDb == Catch::Approx(-13.5f).margin(1.5f));
+}
+
+TEST_CASE("Compressor leaves a quiet tone below threshold essentially untouched", "[effects][compressor]")
+{
+    CompressorProcessor proc;
+    proc.prepare(kSampleRate);
+
+    EffectSlotParams p;
+    p.type = EffectType::Compressor;
+    p.mix = 1.0f;
+    p.compThresholdDb = -6.0f;
+    p.compRatio = 4.0f;
+    p.compKneeDb = 0.0f;
+
+    const float rmsCompressed = measureToneRms(proc, p, 200.0f, 0.05f, 0.1); // well below -6dBFS.
+
+    CompressorProcessor bypassProc;
+    bypassProc.prepare(kSampleRate);
+    EffectSlotParams bypassParams = p;
+    bypassParams.mix = 0.0f;
+    const float rmsUncompressed = measureToneRms(bypassProc, bypassParams, 200.0f, 0.05f, 0.1);
+
+    REQUIRE(rmsCompressed == Catch::Approx(rmsUncompressed).margin(0.002f));
+}
+
+TEST_CASE("Limiter never lets a sustained loud tone's output exceed its ceiling", "[effects][limiter]")
+{
+    LimiterProcessor proc;
+    proc.prepare(kSampleRate);
+
+    EffectSlotParams p;
+    p.type = EffectType::Limiter;
+    p.mix = 1.0f;
+    p.limiterCeilingDb = -1.0f;
+    p.limiterLookaheadMs = 5.0f;
+    p.limiterReleaseMs = 50.0f;
+
+    const float ceilingLinear = dsp::dbToGain(p.limiterCeilingDb);
+
+    constexpr int kNumSamples = 24000; // 0.5s.
+    float maxOutputAbs = 0.0f;
+    for (int i = 0; i < kNumSamples; ++i)
+    {
+        const float t = static_cast<float>(i) / static_cast<float>(kSampleRate);
+        // A tone well above the ceiling, plus a sharp transient partway through --
+        // exactly what a limiter's lookahead exists to catch without overshoot.
+        float in = 2.5f * std::sin(2.0f * dsp::kPi * 220.0f * t);
+        if (i == kNumSamples / 2)
+            in = 8.0f;
+        float outL = 0.0f, outR = 0.0f;
+        proc.processStereo(in, in, p, outL, outR);
+        // Skip the very first lookahead window -- the ring buffer hasn't seen a
+        // full window of real signal yet, a known, documented startup edge case
+        // (see LimiterProcessor's header comment), not a violation of the
+        // steady-state no-overshoot guarantee this test targets.
+        if (i > 1000)
+            maxOutputAbs = std::max(maxOutputAbs, std::abs(outL));
+    }
+
+    REQUIRE(maxOutputAbs <= ceilingLinear * 1.01f); // 1% numerical-precision margin.
+}
+
+TEST_CASE("Limiter at mix 0 outputs exactly the delayed input, undistorted, regardless of gain reduction",
+          "[effects][limiter]")
+{
+    // mix=0 means outL = lerp(delayedL, delayedL*gain, 0) == delayedL exactly, even
+    // while a loud signal elsewhere is driving real gain reduction -- proving mix
+    // actually gates the limiting rather than just being cosmetically wired.
+    LimiterProcessor proc;
+    proc.prepare(kSampleRate);
+    EffectSlotParams p;
+    p.type = EffectType::Limiter;
+    p.mix = 0.0f;
+    p.limiterCeilingDb = -6.0f; // a low ceiling -- if mix were doing nothing, this would obviously clip the loud tone.
+
+    constexpr int kNumSamples = 4800;
+    std::vector<float> inputs(kNumSamples);
+    std::vector<float> outputs(kNumSamples);
+    for (int i = 0; i < kNumSamples; ++i)
+    {
+        const float t = static_cast<float>(i) / static_cast<float>(kSampleRate);
+        inputs[static_cast<std::size_t>(i)] = 3.0f * std::sin(2.0f * dsp::kPi * 440.0f * t); // well above the ceiling.
+        float outL = 0.0f, outR = 0.0f;
+        proc.processStereo(inputs[static_cast<std::size_t>(i)], inputs[static_cast<std::size_t>(i)], p, outL, outR);
+        outputs[static_cast<std::size_t>(i)] = outL;
+    }
+
+    // The output stream is just the input stream shifted by the lookahead delay --
+    // find that shift empirically (cross-correlation would be overkill; a direct
+    // search for the best-matching lag is enough here) and confirm the match is
+    // exact, not attenuated.
+    int bestLag = -1;
+    float bestError = 1.0e9f;
+    for (int lag = 1; lag < 1000; ++lag)
+    {
+        float errorSum = 0.0f;
+        for (int i = lag; i < lag + 200 && i < kNumSamples; ++i)
+            errorSum += std::abs(outputs[static_cast<std::size_t>(i)] - inputs[static_cast<std::size_t>(i - lag)]);
+        if (errorSum < bestError)
+        {
+            bestError = errorSum;
+            bestLag = lag;
+        }
+    }
+    REQUIRE(bestLag > 0);
+    REQUIRE(bestError < 0.01f); // near-zero cumulative error across 200 samples -- an exact, undistorted match.
+}
+
+TEST_CASE("Reverb produces a decaying tail after an impulse, not silence or a static hold", "[effects][reverb]")
+{
+    ReverbProcessor proc;
+    proc.prepare(kSampleRate);
+
+    EffectSlotParams p;
+    p.type = EffectType::Reverb;
+    p.mix = 1.0f;
+    p.reverbSizeParam = 1.0f;
+    p.reverbDecaySeconds = 1.0f;
+    p.reverbDampingHz = 6000.0f;
+    p.reverbPreDelayMs = 0.0f;
+
+    const auto response = renderImpulseResponse(proc, p, static_cast<int>(1.5 * kSampleRate));
+    REQUIRE(allFinite(response));
+
+    auto windowedRms = [&](std::size_t from, std::size_t to) {
+        double sumSq = 0.0;
+        for (std::size_t i = from; i < to && i < response.size(); ++i)
+            sumSq += static_cast<double>(response[i].l) * response[i].l;
+        return std::sqrt(sumSq / static_cast<double>(to - from));
+    };
+
+    const double early = windowedRms(static_cast<std::size_t>(0.05 * kSampleRate), static_cast<std::size_t>(0.15 * kSampleRate));
+    const double late = windowedRms(static_cast<std::size_t>(1.0 * kSampleRate), static_cast<std::size_t>(1.4 * kSampleRate));
+
+    REQUIRE(early > 0.0001); // a real tail exists shortly after the impulse.
+    REQUIRE(late < early);   // and it decays -- not a static hold or runaway feedback.
+    REQUIRE(late > 0.0);     // but hasn't already gone completely silent by 1s into a 1s-decay reverb.
+}
+
+TEST_CASE("Reverb is a transparent passthrough at mix 0", "[effects][reverb]")
+{
+    ReverbProcessor proc;
+    proc.prepare(kSampleRate);
+    EffectSlotParams p;
+    p.type = EffectType::Reverb;
+    p.mix = 0.0f;
+
+    float outL, outR;
+    proc.processStereo(0.4f, -0.2f, p, outL, outR);
+    REQUIRE(outL == Catch::Approx(0.4f));
+    REQUIRE(outR == Catch::Approx(-0.2f));
+}

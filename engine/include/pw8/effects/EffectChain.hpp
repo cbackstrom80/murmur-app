@@ -3,20 +3,24 @@
 #include <array>
 
 #include "pw8/effects/Chorus.hpp"
+#include "pw8/effects/Compressor.hpp"
 #include "pw8/effects/EffectTypes.hpp"
+#include "pw8/effects/Eq.hpp"
 #include "pw8/effects/FractalEcho.hpp"
 #include "pw8/effects/FreqShiftEcho.hpp"
+#include "pw8/effects/Limiter.hpp"
 #include "pw8/effects/NodeDelay.hpp"
+#include "pw8/effects/Reverb.hpp"
 #include "pw8/effects/Saturation.hpp"
 #include "pw8/effects/TapeDelay.hpp"
 
-// One slot's worth of processing state (one instance of each of the six
+// One slot's worth of processing state (one instance of each of the ten
 // algorithms) plus `EffectChain<N>`, N slots run in series. Every processor
 // instance is always constructed (a plain struct-of-all rather than a tagged
 // union/variant, matching this codebase's existing style of dispatch-by-enum over
 // every other engine/effect-type switch -- see `algorithm::EngineType`,
 // `filter::FilterMode`, `sequencer::ArpMode`) -- only the one matching
-// `EffectSlotParams::type` is ever exercised on a given sample, but all six keep
+// `EffectSlotParams::type` is ever exercised on a given sample, but all ten keep
 // their own state (delay lines etc.) alive across a live `type` change, so
 // switching a slot's effect type mid-performance never glitches from
 // reading/writing another effect's stale buffers.
@@ -33,6 +37,10 @@ namespace pw8::effects
             nodeDelay_.prepare(sampleRate);
             freqShiftEcho_.prepare(sampleRate);
             fractalEcho_.prepare(sampleRate);
+            reverb_.prepare(sampleRate);
+            eq_.prepare(sampleRate);
+            compressor_.prepare(sampleRate);
+            limiter_.prepare(sampleRate);
         }
 
         void reset() noexcept
@@ -43,6 +51,10 @@ namespace pw8::effects
             nodeDelay_.reset();
             freqShiftEcho_.reset();
             fractalEcho_.reset();
+            reverb_.reset();
+            eq_.reset();
+            compressor_.reset();
+            limiter_.reset();
         }
 
         void processStereo(float inL, float inR, const EffectSlotParams& p, float& outL, float& outR) noexcept
@@ -56,6 +68,10 @@ namespace pw8::effects
                 case EffectType::NodeDelay: nodeDelay_.processStereo(inL, inR, p, outL, outR); return;
                 case EffectType::FreqShiftEcho: freqShiftEcho_.processStereo(inL, inR, p, outL, outR); return;
                 case EffectType::FractalEcho: fractalEcho_.processStereo(inL, inR, p, outL, outR); return;
+                case EffectType::Reverb: reverb_.processStereo(inL, inR, p, outL, outR); return;
+                case EffectType::Eq: eq_.processStereo(inL, inR, p, outL, outR); return;
+                case EffectType::Compressor: compressor_.processStereo(inL, inR, p, outL, outR); return;
+                case EffectType::Limiter: limiter_.processStereo(inL, inR, p, outL, outR); return;
             }
             outL = inL;
             outR = inR;
@@ -68,6 +84,10 @@ namespace pw8::effects
         NodeDelayProcessor nodeDelay_{};
         FreqShiftEchoProcessor freqShiftEcho_{};
         FractalEchoProcessor fractalEcho_{};
+        ReverbProcessor reverb_{};
+        EqProcessor eq_{};
+        CompressorProcessor compressor_{};
+        LimiterProcessor limiter_{};
     };
 
     /// `NumSlots` `EffectSlotProcessor`s run in series (slot 0's output feeds slot

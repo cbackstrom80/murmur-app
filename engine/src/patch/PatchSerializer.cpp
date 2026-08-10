@@ -239,12 +239,23 @@ namespace pw8::patch
                 {"fractalSeedA", e.fractalSeedA},                   {"fractalSeedB", e.fractalSeedB},
                 {"fractalMorph", e.fractalMorph},                   {"fractalBaseDelayMs", e.fractalBaseDelayMs},
                 {"fractalRatio", e.fractalRatio},                   {"fractalSpreadMs", e.fractalSpreadMs},
+                {"reverbSizeParam", e.reverbSizeParam},             {"reverbDecaySeconds", e.reverbDecaySeconds},
+                {"reverbDampingHz", e.reverbDampingHz},             {"reverbPreDelayMs", e.reverbPreDelayMs},
+                {"eqLowFreqHz", e.eqLowFreqHz},                     {"eqLowGainDb", e.eqLowGainDb},
+                {"eqMidFreqHz", e.eqMidFreqHz},                     {"eqMidGainDb", e.eqMidGainDb},
+                {"eqMidQ", e.eqMidQ},
+                {"eqHighFreqHz", e.eqHighFreqHz},                   {"eqHighGainDb", e.eqHighGainDb},
+                {"compThresholdDb", e.compThresholdDb},             {"compRatio", e.compRatio},
+                {"compAttackMs", e.compAttackMs},                   {"compReleaseMs", e.compReleaseMs},
+                {"compKneeDb", e.compKneeDb},                       {"compMakeupDb", e.compMakeupDb},
+                {"limiterCeilingDb", e.limiterCeilingDb},           {"limiterLookaheadMs", e.limiterLookaheadMs},
+                {"limiterReleaseMs", e.limiterReleaseMs},
             };
         }
 
         void fromJson(const json& j, effects::EffectSlotParams& e)
         {
-            e.type = static_cast<effects::EffectType>(clampNum(j.value("type", 0), 0, 6));
+            e.type = static_cast<effects::EffectType>(clampNum(j.value("type", 0), 0, 10));
             e.mix = clampNum(j.value("mix", 1.0f), 0.0f, 1.0f);
 
             e.saturationDriveDb = clampNum(j.value("saturationDriveDb", 6.0f), 0.0f, 48.0f);
@@ -289,6 +300,32 @@ namespace pw8::patch
                 clampNum(j.value("fractalBaseDelayMs", 180.0f), 1.0f, effects::kMaxTreeNodeDelaySeconds * 1000.0f);
             e.fractalRatio = clampNum(j.value("fractalRatio", 0.62f), 0.1f, 0.95f);
             e.fractalSpreadMs = clampNum(j.value("fractalSpreadMs", 15.0f), 0.0f, 100.0f);
+
+            e.reverbSizeParam = clampNum(j.value("reverbSizeParam", 1.0f), 0.2f, 3.0f);
+            e.reverbDecaySeconds = clampNum(j.value("reverbDecaySeconds", 2.0f), 0.05f, 20.0f);
+            e.reverbDampingHz = clampNum(j.value("reverbDampingHz", 6000.0f), 200.0f, 20000.0f);
+            e.reverbPreDelayMs =
+                clampNum(j.value("reverbPreDelayMs", 20.0f), 0.0f, effects::kMaxReverbPreDelaySeconds * 1000.0f);
+
+            e.eqLowFreqHz = clampNum(j.value("eqLowFreqHz", 200.0f), 20.0f, 20000.0f);
+            e.eqLowGainDb = clampNum(j.value("eqLowGainDb", 0.0f), -24.0f, 24.0f);
+            e.eqMidFreqHz = clampNum(j.value("eqMidFreqHz", 1000.0f), 20.0f, 20000.0f);
+            e.eqMidGainDb = clampNum(j.value("eqMidGainDb", 0.0f), -24.0f, 24.0f);
+            e.eqMidQ = clampNum(j.value("eqMidQ", 0.8f), 0.1f, 10.0f);
+            e.eqHighFreqHz = clampNum(j.value("eqHighFreqHz", 6000.0f), 20.0f, 20000.0f);
+            e.eqHighGainDb = clampNum(j.value("eqHighGainDb", 0.0f), -24.0f, 24.0f);
+
+            e.compThresholdDb = clampNum(j.value("compThresholdDb", -18.0f), -60.0f, 0.0f);
+            e.compRatio = clampNum(j.value("compRatio", 3.0f), 1.0f, 20.0f);
+            e.compAttackMs = clampNum(j.value("compAttackMs", 8.0f), 0.1f, 500.0f);
+            e.compReleaseMs = clampNum(j.value("compReleaseMs", 120.0f), 1.0f, 2000.0f);
+            e.compKneeDb = clampNum(j.value("compKneeDb", 6.0f), 0.0f, 24.0f);
+            e.compMakeupDb = clampNum(j.value("compMakeupDb", 0.0f), 0.0f, 24.0f);
+
+            e.limiterCeilingDb = clampNum(j.value("limiterCeilingDb", -0.3f), -12.0f, 0.0f);
+            e.limiterLookaheadMs = clampNum(j.value("limiterLookaheadMs", 5.0f),
+                                             0.5f, effects::kMaxLimiterLookaheadSeconds * 1000.0f);
+            e.limiterReleaseMs = clampNum(j.value("limiterReleaseMs", 60.0f), 1.0f, 2000.0f);
         }
 
         void toJson(json& j, const LayerPatch& l)

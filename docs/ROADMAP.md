@@ -15,7 +15,7 @@ Status as of this repository's initial engineering pass. Legend: **DONE** / **PA
 | 8 | Dual layer (Layer A, Layer B, stack, layer morph) | **PARTIAL** -- schema complete (`LayerMode` enum, full `layerB` data), only `SINGLE_A` is actually voiced/rendered |
 | 9 | Algorithm morph (same-topology, different-topology) | **PLANNED** |
 | 10 | Additional engines (additive, phase/shape, noise, resonator, granular) | **PLANNED** -- `EngineType` enum and dispatch points exist; each renders silence until implemented |
-| 11 | FX (insert slots, master slots, first effect set, reverb, spatial engine) | **PARTIAL** -- 3 layer insert + 4 master slots **IMPLEMENTED**, with 6 real algorithms (Saturation, Chorus, TapeDelay, NodeDelay, FreqShiftEcho, FractalEcho); reverb/EQ/compressor/limiter and the rest of the original effect-set list still PLANNED. See FX_BANK.md |
+| 11 | FX (insert slots, master slots, first effect set, reverb, spatial engine) | **PARTIAL** -- 3 layer insert + 4 master slots **IMPLEMENTED**, with 10 real algorithms (Saturation, Chorus, TapeDelay, NodeDelay, FreqShiftEcho, FractalEcho, Reverb, Eq, Compressor, Limiter -- the master spec's "first effect set" basics now covered); bitcrush/wavefold/ensemble/flanger/phaser/diffusion delay and the spatial engine still PLANNED. See FX_BANK.md |
 | 12 | MSEG / sequencer | **PARTIAL** -- arpeggiator **IMPLEMENTED** (`pw8/sequencer/Arpeggiator.hpp`, see ARPEGGIATOR.md); MSEG/step-sequencer-as-mod-source still PLANNED |
 | 13 | Patch format productionization (schema, migrations, metadata) | **PARTIAL** -- schema v1 complete and hardened against untrusted input; migration *mechanism* exists with nothing to migrate yet (only one schema version so far) |
 | 14 | Python API productionization | **PARTIAL** -- see PYTHON_API.md coverage table |
@@ -397,22 +397,61 @@ LFOs, and VOICE+LAYER/GLOBAL mod scope. Full design rationale in
   behavior, same PARTIAL API-surface scope as before -- exposing all 8
   envelopes/LFOs to Python remains a separate future PYTHON_API.md item).
 
+## GATE 10: Reverb, EQ, Compressor, Limiter (Phase 11, continued)
+
+Per user direction, closed the FX bank's remaining "first effect set" gap --
+the four basics every synth needs that the initial FX bank pass (6 algorithms:
+Saturation/Chorus/TapeDelay/NodeDelay/FreqShiftEcho/FractalEcho) didn't cover.
+Full design detail in [FX_BANK.md](FX_BANK.md) "GATE 10"; summary:
+
+- **Reverb**: a 4-line Householder-matrix FDN (Jean-Marc Jot-style), pre-delay,
+  per-line damping, RT60-derived decay.
+- **Eq**: 3-band parametric (low shelf/mid peak/high shelf), RBJ Audio EQ
+  Cookbook biquad formulas (`dsp::Biquad`, new).
+- **Compressor**: feedforward, stereo-linked peak detection, quadratic soft
+  knee, dB-domain attack/release smoothing.
+- **Limiter**: true lookahead (sliding-window-minimum gain over a ring
+  buffer) -- provably no overshoot above the ceiling, not just a fast
+  compressor.
+- A real bug caught before shipping: Reverb's pre-delay at 0ms produced
+  ~200ms of total silence instead of near-zero pre-delay, because
+  `dsp::DelayLine`'s read-before-write convention means a delay of *exactly*
+  0 samples reads data from a full buffer-length ago. Caught by this effect's
+  own render-level test (expected a decaying tail, measured literal silence)
+  before it ever reached a preset. Fixed by flooring pre-delay at 1 sample,
+  the same floor every other delay-based effect in this codebase already
+  carries for exactly this reason.
+- `EffectSlotParams` grew from 23 to 43 scalar fields (adding the 4 new
+  algorithms' parameters); plugin automation grew from 361 to **501
+  parameters** as a direct consequence (43 fields x 7 FX slots = 301, up from
+  161). `auval` confirms 501 published parameters; `pluginval
+  --strictness-level 5` re-confirmed SUCCESS on both VST3 and AU.
+- `pw8-fuzz-render`'s `randomPatch()` now randomizes all 7 `EffectSlotParams`
+  slots for the first time (closing a gap that had persisted across the
+  arpeggiator, original FX bank, and GATE 5 passes) -- 1,000 fully-randomized
+  patches (seed 13), zero failures.
+- 9 new unit tests + 2 new render-level regression tests -- 118 total, all
+  passing.
+- `content/presets/fx-master-chain.pw8` -- all 4 new algorithms arranged
+  across the master bus's 4 slots the way a real mix would use them
+  (Eq -> Reverb -> Compressor -> Limiter).
+
 ## Immediate next steps (suggested, not committed)
 
 1. A real DAW host-matrix pass (Ableton, Logic, Reaper, Bitwig, etc.) -- `auval`
    and `pluginval` at max strictness are both green now, so this is the natural
    next increment toward a genuinely shippable plugin rather than a
    from-scratch effort.
-2. Reverb, EQ, compressor, limiter -- the FX bank has 6 real algorithms now but
-   none of the master spec's "first effect set" basics; see FX_BANK.md "What's
-   PLANNED, not implemented".
-3. Unison DSP wiring -- the schema (`UnisonSettings`) and every acceptance patch
+2. Unison DSP wiring -- the schema (`UnisonSettings`) and every acceptance patch
    built so far (`wide-saw.pw8`, `gate4-massive-dark-metallic-bass.pw8`) fake it
    via hand-detuned operators; real unison is the single biggest remaining gap
    for the "MASSIVE CENTER" sonic philosophy a later product brief called out.
-4. Filter 2 (nonlinear character filter) -- Filter 1's TPT SVF proved the per-voice
+3. Filter 2 (nonlinear character filter) -- Filter 1's TPT SVF proved the per-voice
    filter integration point; a second filter stage is now a smaller increment than
    it was before Filter 1 existed.
+4. bitcrush/wavefold/ensemble/flanger/phaser/diffusion delay -- the FX bank now
+   covers 10 algorithms including the full "first effect set"; these are the
+   remaining items from the original `pw8/effects/README.md` scope.
 5. Wavetable content-addressed resource resolution (replacing the current
    filesystem-path-as-`wavetableId` scheme) as part of the broader content pipeline.
 6. Algorithm morph and dual-layer mixing (Phase 8/9) -- Layer B's full schema

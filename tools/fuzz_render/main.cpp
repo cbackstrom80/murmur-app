@@ -164,6 +164,89 @@ namespace
         return l;
     }
 
+    effects::DelayNodeParams randomDelayNode(dsp::DeterministicRng& rng, int ownIndex)
+    {
+        effects::DelayNodeParams n;
+        n.enabled = rng.nextFloat() < 0.7f;
+        // -1..(ownIndex-1): "always route from a lower index" -- same acyclic-by-
+        // construction discipline the algorithm graph's feed-forward edges use.
+        n.parentIndex = ownIndex <= 0 ? -1 : static_cast<int>(rng.nextRange(-1.0f, static_cast<float>(ownIndex) - 0.001f));
+        n.delayMs = rng.nextRange(1.0f, effects::kMaxTreeNodeDelaySeconds * 1000.0f);
+        n.feedback = rng.nextRange(0.0f, 0.95f);
+        n.pan = rng.nextRange(-1.0f, 1.0f);
+        n.distortion = rng.nextRange(0.0f, 1.0f);
+        n.level = rng.nextRange(0.0f, 1.0f);
+        return n;
+    }
+
+    /// All ten algorithms' fields are randomized regardless of `type` (harmless --
+    /// only the active type's fields are ever read), deliberately including extreme
+    /// values (max feedback, min/max EQ gain, aggressive compression ratios, tight
+    /// limiter ceilings) to stress each new effect's finite-output clamps the same
+    /// way Filter 1/LFO/mod-route randomization already stresses the voice path.
+    effects::EffectSlotParams randomEffectSlot(dsp::DeterministicRng& rng)
+    {
+        effects::EffectSlotParams e;
+        e.type = static_cast<effects::EffectType>(static_cast<int>(rng.nextRange(0.0f, 10.999f)));
+        e.mix = rng.nextRange(0.0f, 1.0f);
+
+        e.saturationDriveDb = rng.nextRange(0.0f, 48.0f);
+        e.chorusRateHz = rng.nextRange(0.01f, 10.0f);
+        e.chorusDepthMs = rng.nextRange(0.0f, 20.0f);
+        e.chorusBaseDelayMs = rng.nextRange(1.0f, 40.0f);
+
+        e.tapeDelayMs = rng.nextRange(1.0f, effects::kMaxEffectDelaySeconds * 1000.0f);
+        e.tapeFeedback = rng.nextRange(0.0f, 0.98f);
+        e.tapeDriveDb = rng.nextRange(0.0f, 48.0f);
+        e.tapeDuckAmount = rng.nextRange(0.0f, 1.0f);
+        e.tapeDriftDepthMs = rng.nextRange(0.0f, 20.0f);
+        e.tapeDriftRateHz = rng.nextRange(0.0f, 10.0f);
+        e.tapePanMode = static_cast<effects::DelayPanMode>(static_cast<int>(rng.nextRange(0.0f, 2.999f)));
+
+        for (std::size_t i = 0; i < effects::kMaxDelayNodes; ++i)
+            e.nodes[i] = randomDelayNode(rng, static_cast<int>(i));
+        e.nodeInsanity = rng.nextRange(0.0f, 1.0f);
+
+        e.freqShiftHz = rng.nextRange(-2000.0f, 2000.0f);
+        e.freqShiftDelayMs = rng.nextRange(1.0f, effects::kMaxEffectDelaySeconds * 1000.0f);
+        e.freqShiftFeedback = rng.nextRange(0.0f, 0.98f);
+        e.freqShiftLowCutHz = rng.nextRange(5.0f, 5000.0f);
+        e.freqShiftHighCutHz = rng.nextRange(5000.0f, 20000.0f);
+
+        e.fractalSeedA = rng.nextU64();
+        e.fractalSeedB = rng.nextU64();
+        e.fractalMorph = rng.nextRange(0.0f, 1.0f);
+        e.fractalBaseDelayMs = rng.nextRange(1.0f, effects::kMaxTreeNodeDelaySeconds * 1000.0f);
+        e.fractalRatio = rng.nextRange(0.1f, 0.95f);
+        e.fractalSpreadMs = rng.nextRange(0.0f, 100.0f);
+
+        e.reverbSizeParam = rng.nextRange(0.2f, 3.0f);
+        e.reverbDecaySeconds = rng.nextRange(0.05f, 20.0f);
+        e.reverbDampingHz = rng.nextRange(200.0f, 20000.0f);
+        e.reverbPreDelayMs = rng.nextRange(0.0f, effects::kMaxReverbPreDelaySeconds * 1000.0f);
+
+        e.eqLowFreqHz = rng.nextRange(20.0f, 2000.0f);
+        e.eqLowGainDb = rng.nextRange(-24.0f, 24.0f);
+        e.eqMidFreqHz = rng.nextRange(200.0f, 8000.0f);
+        e.eqMidGainDb = rng.nextRange(-24.0f, 24.0f);
+        e.eqMidQ = rng.nextRange(0.1f, 10.0f);
+        e.eqHighFreqHz = rng.nextRange(2000.0f, 20000.0f);
+        e.eqHighGainDb = rng.nextRange(-24.0f, 24.0f);
+
+        e.compThresholdDb = rng.nextRange(-60.0f, 0.0f);
+        e.compRatio = rng.nextRange(1.0f, 20.0f);
+        e.compAttackMs = rng.nextRange(0.1f, 500.0f);
+        e.compReleaseMs = rng.nextRange(1.0f, 2000.0f);
+        e.compKneeDb = rng.nextRange(0.0f, 24.0f);
+        e.compMakeupDb = rng.nextRange(0.0f, 24.0f); // deliberately includes max makeup with max ratio/min threshold.
+
+        e.limiterCeilingDb = rng.nextRange(-12.0f, 0.0f);
+        e.limiterLookaheadMs = rng.nextRange(0.5f, effects::kMaxLimiterLookaheadSeconds * 1000.0f);
+        e.limiterReleaseMs = rng.nextRange(1.0f, 2000.0f);
+
+        return e;
+    }
+
     core::FixedVector<modulation::ModRoute, core::kMaxModRoutes> randomModRoutes(dsp::DeterministicRng& rng)
     {
         core::FixedVector<modulation::ModRoute, core::kMaxModRoutes> routes;
@@ -201,6 +284,11 @@ namespace
         p.layerA.modRoutes = randomModRoutes(rng);
         p.layerA.gain = rng.nextRange(0.1f, 1.5f);
         p.layerA.pan = rng.nextRange(-1.0f, 1.0f);
+
+        for (auto& fx : p.layerA.insertEffects)
+            fx = randomEffectSlot(rng);
+        for (auto& fx : p.masterEffects)
+            fx = randomEffectSlot(rng);
 
         p.voiceSettings.polyphony = static_cast<std::size_t>(rng.nextRange(1.0f, 16.999f));
         p.voiceSettings.masterGain = rng.nextRange(0.3f, 1.0f);

@@ -55,11 +55,20 @@ MODULATION.md), `gain`/`pan`/`width`/`centerGravity`, and an `insertEffects` arr
 
 `EffectSlotParams` (see FX_BANK.md for the full field-by-field rationale) is a
 flat struct with a `type` (`EffectType`: Bypass/Saturation/Chorus/TapeDelay/
-NodeDelay/FreqShiftEcho/FractalEcho), a shared `mix`, and fields for every
-type -- only the active `type`'s fields matter, the rest are simply unused,
-the same pattern `OperatorPatch` uses for its 5 engine types. `nodes[]` (used
-by NodeDelay) is 6x `DelayNodeParams` (enabled, parentIndex, delayMs, feedback,
-pan, distortion, level).
+NodeDelay/FreqShiftEcho/FractalEcho/Reverb/Eq/Compressor/Limiter -- 10 real
+algorithms plus Bypass), a shared `mix`, and fields for every type -- only the
+active `type`'s fields matter, the rest are simply unused, the same pattern
+`OperatorPatch` uses for its 5 engine types. `nodes[]` (used by NodeDelay) is
+6x `DelayNodeParams` (enabled, parentIndex, delayMs, feedback, pan, distortion,
+level). The struct carries 43 scalar fields in total (GATE 10 added 20 for the
+four newest algorithms): `reverbSizeParam`/`reverbDecaySeconds`/
+`reverbDampingHz`/`reverbPreDelayMs` (Reverb, a 4-line Householder-matrix FDN);
+`eqLowFreqHz`/`eqLowGainDb`/`eqMidFreqHz`/`eqMidGainDb`/`eqMidQ`/`eqHighFreqHz`/
+`eqHighGainDb` (Eq, 3-band via RBJ Cookbook biquads); `compThresholdDb`/
+`compRatio`/`compAttackMs`/`compReleaseMs`/`compKneeDb`/`compMakeupDb`
+(Compressor, feedforward soft-knee, stereo-linked); `limiterCeilingDb`/
+`limiterLookaheadMs`/`limiterReleaseMs` (Limiter, true lookahead,
+sliding-window-minimum gain).
 
 See `content/presets/*.pw8` for complete, real, loadable examples, and
 `tests/serialization/PatchSerializerTests.cpp` for the roundtrip contract.

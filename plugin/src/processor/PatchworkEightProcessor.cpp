@@ -243,6 +243,26 @@ namespace pw8::plugin
             p.fractalBaseDelayMs = loadF(ptrs[20]);
             p.fractalRatio = loadF(ptrs[21]);
             p.fractalSpreadMs = loadF(ptrs[22]);
+            p.reverbSizeParam = loadF(ptrs[23]);
+            p.reverbDecaySeconds = loadF(ptrs[24]);
+            p.reverbDampingHz = loadF(ptrs[25]);
+            p.reverbPreDelayMs = loadF(ptrs[26]);
+            p.eqLowFreqHz = loadF(ptrs[27]);
+            p.eqLowGainDb = loadF(ptrs[28]);
+            p.eqMidFreqHz = loadF(ptrs[29]);
+            p.eqMidGainDb = loadF(ptrs[30]);
+            p.eqMidQ = loadF(ptrs[31]);
+            p.eqHighFreqHz = loadF(ptrs[32]);
+            p.eqHighGainDb = loadF(ptrs[33]);
+            p.compThresholdDb = loadF(ptrs[34]);
+            p.compRatio = loadF(ptrs[35]);
+            p.compAttackMs = loadF(ptrs[36]);
+            p.compReleaseMs = loadF(ptrs[37]);
+            p.compKneeDb = loadF(ptrs[38]);
+            p.compMakeupDb = loadF(ptrs[39]);
+            p.limiterCeilingDb = loadF(ptrs[40]);
+            p.limiterLookaheadMs = loadF(ptrs[41]);
+            p.limiterReleaseMs = loadF(ptrs[42]);
             engine.setInsertEffectLive(slot, p);
         }
 
@@ -273,6 +293,26 @@ namespace pw8::plugin
             p.fractalBaseDelayMs = loadF(ptrs[20]);
             p.fractalRatio = loadF(ptrs[21]);
             p.fractalSpreadMs = loadF(ptrs[22]);
+            p.reverbSizeParam = loadF(ptrs[23]);
+            p.reverbDecaySeconds = loadF(ptrs[24]);
+            p.reverbDampingHz = loadF(ptrs[25]);
+            p.reverbPreDelayMs = loadF(ptrs[26]);
+            p.eqLowFreqHz = loadF(ptrs[27]);
+            p.eqLowGainDb = loadF(ptrs[28]);
+            p.eqMidFreqHz = loadF(ptrs[29]);
+            p.eqMidGainDb = loadF(ptrs[30]);
+            p.eqMidQ = loadF(ptrs[31]);
+            p.eqHighFreqHz = loadF(ptrs[32]);
+            p.eqHighGainDb = loadF(ptrs[33]);
+            p.compThresholdDb = loadF(ptrs[34]);
+            p.compRatio = loadF(ptrs[35]);
+            p.compAttackMs = loadF(ptrs[36]);
+            p.compReleaseMs = loadF(ptrs[37]);
+            p.compKneeDb = loadF(ptrs[38]);
+            p.compMakeupDb = loadF(ptrs[39]);
+            p.limiterCeilingDb = loadF(ptrs[40]);
+            p.limiterLookaheadMs = loadF(ptrs[41]);
+            p.limiterReleaseMs = loadF(ptrs[42]);
             engine.setMasterEffectLive(slot, p);
         }
 
@@ -398,6 +438,12 @@ namespace pw8::plugin
                 p.tapeDriftDepthMs,         p.tapeDriftRateHz, static_cast<float>(p.tapePanMode), p.nodeInsanity,
                 p.freqShiftHz,              p.freqShiftDelayMs, p.freqShiftFeedback, p.freqShiftLowCutHz,
                 p.freqShiftHighCutHz,       p.fractalMorph, p.fractalBaseDelayMs, p.fractalRatio, p.fractalSpreadMs,
+                p.reverbSizeParam,          p.reverbDecaySeconds, p.reverbDampingHz, p.reverbPreDelayMs,
+                p.eqLowFreqHz,              p.eqLowGainDb,  p.eqMidFreqHz,       p.eqMidGainDb,    p.eqMidQ,
+                p.eqHighFreqHz,             p.eqHighGainDb,
+                p.compThresholdDb,          p.compRatio,    p.compAttackMs,      p.compReleaseMs,  p.compKneeDb,
+                p.compMakeupDb,
+                p.limiterCeilingDb,         p.limiterLookaheadMs, p.limiterReleaseMs,
             };
             for (std::size_t i = 0; i < kNumEffectSlotFields; ++i)
                 setParam(id + kEffectSlotFieldSpecs[i].idSuffix, values[i]);
@@ -503,6 +549,26 @@ namespace pw8::plugin
             p.fractalBaseDelayMs = loadF(ptrs[20]);
             p.fractalRatio = loadF(ptrs[21]);
             p.fractalSpreadMs = loadF(ptrs[22]);
+            p.reverbSizeParam = loadF(ptrs[23]);
+            p.reverbDecaySeconds = loadF(ptrs[24]);
+            p.reverbDampingHz = loadF(ptrs[25]);
+            p.reverbPreDelayMs = loadF(ptrs[26]);
+            p.eqLowFreqHz = loadF(ptrs[27]);
+            p.eqLowGainDb = loadF(ptrs[28]);
+            p.eqMidFreqHz = loadF(ptrs[29]);
+            p.eqMidGainDb = loadF(ptrs[30]);
+            p.eqMidQ = loadF(ptrs[31]);
+            p.eqHighFreqHz = loadF(ptrs[32]);
+            p.eqHighGainDb = loadF(ptrs[33]);
+            p.compThresholdDb = loadF(ptrs[34]);
+            p.compRatio = loadF(ptrs[35]);
+            p.compAttackMs = loadF(ptrs[36]);
+            p.compReleaseMs = loadF(ptrs[37]);
+            p.compKneeDb = loadF(ptrs[38]);
+            p.compMakeupDb = loadF(ptrs[39]);
+            p.limiterCeilingDb = loadF(ptrs[40]);
+            p.limiterLookaheadMs = loadF(ptrs[41]);
+            p.limiterReleaseMs = loadF(ptrs[42]);
         };
         for (std::size_t slot = 0; slot < kNumInsertFxSlots; ++slot)
             readFxSlot(insertFxParamPointers_[slot], currentPatch_.layerA.insertEffects[slot]);

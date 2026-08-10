@@ -1,10 +1,12 @@
 # FX Bank
 
-**IMPLEMENTED** (Phase 11: FX, PLANNED -> PARTIAL). 6 real, independently-voiced
-effect algorithms, 3 layer insert slots + 4 master slots (`pw8/effects/`), backed
-by research into three named commercial delay/echo plugins plus one algorithm
-this project invented itself. See docs/ROADMAP.md "Follow-up pass: FX bank" for
-the summary and test/verification counts.
+**IMPLEMENTED** (Phase 11: FX, PLANNED -> PARTIAL). 10 real, independently-voiced
+effect algorithms, 3 layer insert slots + 4 master slots (`pw8/effects/`): 6 from
+the initial pass (backed by research into three named commercial delay/echo
+plugins plus one algorithm this project invented itself), plus Reverb/Eq/
+Compressor/Limiter from the later GATE 10 pass rounding out the master spec's
+"first effect set" basics. See docs/ROADMAP.md "Follow-up pass: FX bank" and
+"GATE 10" for the summary and test/verification counts.
 
 ## Research: three plugins, three different approaches to "delay"
 
@@ -195,9 +197,57 @@ precise coefficients** -- consistent with this project's established pattern of
 tracing expected behavior (or, here, literally measuring it) before trusting
 that a subtle DSP claim holds.
 
+## GATE 10: Reverb, EQ, Compressor, Limiter
+
+The master spec's "first effect set" basics -- absent from the initial FX bank
+pass above -- landed in a later GATE 10 pass (docs/ROADMAP.md), rounding the
+bank out to 10 algorithms. All four are original implementations of
+well-documented, openly-published DSP techniques (same citation discipline as
+everything else in this codebase), not ports of any product:
+
+- **Reverb**: a compact 4-line Feedback Delay Network (Jean-Marc Jot-style,
+  Householder reflection matrix for feedback mixing -- `mixed[i] = lineOut[i]
+  - (2/N)*sum(lineOut)`, unitary/energy-preserving for any N, no explicit
+  matrix multiply needed). Pre-delay, per-line damping (a one-pole lowpass in
+  the feedback path), and an RT60-derived per-line decay gain. The 4 delay
+  lines use mutually-irrational-ish base lengths to avoid metallic,
+  rational-ratio comb ringing.
+- **Eq**: a 3-band parametric (low shelf, mid peak, high shelf), each band a
+  `dsp::Biquad` using the RBJ Audio EQ Cookbook formulas -- the standard,
+  openly-published reference (same citation category as this codebase's
+  PolyBLEP oscillator and TPT state-variable filter).
+- **Compressor**: feedforward, stereo-linked peak detection (a single shared
+  envelope driven by `max(|L|,|R|)`, so a transient in either channel ducks
+  both equally rather than shifting the stereo image), a quadratic soft-knee
+  gain computer, and separate attack/release smoothing of the gain-reduction
+  envelope itself in dB (so perceived speed stays consistent across levels).
+- **Limiter**: a *lookahead* peak limiter, not just a fast compressor --
+  guarantees no overshoot above the ceiling by construction. Every incoming
+  sample's own "gain needed to not exceed the ceiling" is recorded into a
+  small ring buffer; the gain actually applied to the output (which reads
+  `limiterLookaheadMs` behind the input) is the minimum of every recorded gain
+  within that lookahead window, so by the time a loud sample reaches the
+  output tap, the gain has already had the full window to ramp down to what
+  it needs. Deliberately the simple O(window) sliding-minimum version (a real
+  mastering-grade limiter would want an O(1)-amortized monotonic deque for a
+  much longer lookahead; a synth's insert/master limiter doesn't need one).
+
+**A real bug caught before shipping, not after**: Reverb's pre-delay,
+parameterized down to 0ms, initially produced ~200ms of total silence instead
+of near-zero pre-delay. Cause: `dsp::DelayLine` reads before writing (the
+convention every delay-based effect in this codebase uses), so a delay of
+*exactly* 0 samples reads whatever was written a full buffer length ago, not
+"this sample, undelayed." Caught immediately by this effect's own render-level
+test (expected a short decaying tail shortly after an impulse, measured
+literal silence) -- fixed by flooring the pre-delay at 1 sample rather than
+allowing a true 0, the same floor every other delay-based effect in this
+codebase already has (TapeDelay/NodeDelay/FreqShiftEcho all clamp their delay
+parameters' minimums to 1ms+ for exactly this reason, just never needed a
+0ms-*meaning*-"none" case before Reverb's pre-delay did).
+
 ## What's covered by tests
 
-- `tests/unit/EffectsTests.cpp` (16 cases): Saturation transparency/compression;
+- `tests/unit/EffectsTests.cpp` (25 cases): Saturation transparency/compression;
   Chorus transparency and fixed-delay impulse response; TapeDelay Static-mode
   echo spacing/decay and PingPong's channel alternation; NodeDelay's
   parent-child chaining (proving a child hears its *parent's output*, not just
@@ -205,43 +255,59 @@ that a subtle DSP claim holds.
   measured shift amount (FFT peak analysis) and `FreqShiftEcho`'s bounded
   output; FractalEcho's topology determinism, seed divergence, depth-scaling
   rule, and finite/bounded output across a full continuous morph sweep;
-  `EffectChain`'s Bypass transparency and in-series slot processing.
+  `EffectChain`'s Bypass transparency and in-series slot processing; Eq's
+  low-shelf boost and mid-peak cut measured directly via steady-state RMS;
+  Compressor's measured gain reduction matching the expected hard-knee formula
+  within margin, and leaving a below-threshold tone untouched; Limiter's
+  no-overshoot guarantee under a sustained tone well above its ceiling plus a
+  sharp mid-render transient, and an exact (undistorted, just delayed) mix=0
+  passthrough found via empirical lag search; Reverb's decaying (not static or
+  runaway) tail after an impulse.
 - `tests/regression/RenderSanityTests.cpp`: a master TapeDelay slot turning one
   short hit into several measured amplitude onsets (the same windowed-RMS
-  onset-counting technique proven for the arpeggiator), and a layer insert
-  Saturation slot measurably lowering a deliberately loud patch's peak.
-- 96 total tests, all passing. `pw8-fuzz-render` (1,500 patches, seed 6) --
-  zero failures; `randomPatch()` does not yet randomize `EffectSlotParams`
-  (same documented gap as the arpeggiator's fuzz coverage, see docs/TESTING.md).
+  onset-counting technique proven for the arpeggiator), a layer insert
+  Saturation slot measurably lowering a deliberately loud patch's peak, a
+  master Limiter slot capping a deliberately hot chord's peak below its
+  ceiling, and a master Compressor slot (no makeup gain, so the claim reduces
+  to "gain reduction can only lower peak") measurably lowering a loud chord's
+  peak.
+- 118 total tests, all passing. `pw8-fuzz-render`'s `randomPatch()` now
+  randomizes all 3 insert + 4 master `EffectSlotParams` slots (closing the gap
+  noted below in earlier passes) -- 1,000 patches (seed 13), zero failures.
 - Full cross-build verification: dev/benchmarks/python/plugin all rebuild
-  clean; AU re-validated with `auval` in full.
+  clean; `auval` reports 501 published parameters and passes in full;
+  `pluginval --strictness-level 5` SUCCESS on both VST3 and AU at that count.
 
 ## Content
 
-Three new engineering presets, one per new algorithm family plus the invented
-one: `content/presets/fx-node-tree.pw8` (NodeDelay, plus a subtle layer-insert
-Chorus in the same patch -- demonstrating both slot types together),
-`content/presets/fx-fractal-morph.pw8` (FractalEcho), and
-`content/presets/fx-freq-echo.pw8` (FreqShiftEcho). TapeDelay is exercised by
-the render regression test above rather than a dedicated preset in this pass.
+Four engineering presets: `content/presets/fx-node-tree.pw8` (NodeDelay, plus a
+subtle layer-insert Chorus in the same patch -- demonstrating both slot types
+together), `content/presets/fx-fractal-morph.pw8` (FractalEcho),
+`content/presets/fx-freq-echo.pw8` (FreqShiftEcho), and
+`content/presets/fx-master-chain.pw8` (all 4 GATE 10 algorithms arranged as a
+realistic mastering chain across the 4 master slots: Eq -> Reverb -> Compressor
+-> Limiter). TapeDelay is exercised by a render regression test rather than a
+dedicated preset.
 
 ## What's PLANNED, not implemented
 
-- **Reverb** -- the master spec's first-effect-set item (basic reverb) and
-  second-wave item (large FDN reverb) are both still absent; none of the six
-  algorithms here is a reverb.
-- **EQ, compressor, limiter, bitcrush, wavefold, ensemble, flanger, phaser,
-  diffusion delay** -- all still PLANNED per the original `pw8/effects/README.md`
-  scope; this pass added six *new* algorithms rather than working through that
-  original list top-to-bottom, prioritized by the user's explicit request.
+- **bitcrush, wavefold, ensemble, flanger, phaser, diffusion delay** -- still
+  PLANNED per the original `pw8/effects/README.md` scope; this project has
+  added 10 algorithms across two passes rather than working through that
+  original list top-to-bottom, prioritized by explicit user requests both times.
 - **Mod-matrix-modulatable effect parameters** -- `EffectSlotParams` fields
-  (e.g. `fractalMorph`, `freqShiftHz`) aren't yet mod matrix destinations, so a
-  live-automated morph sweep (as `fx-fractal-morph.pw8`'s description
-  describes) requires host/plugin automation of the underlying patch field
-  directly, not an in-engine LFO/envelope route. Natural next increment once
-  the mod matrix's destination enum is extended.
+  (e.g. `fractalMorph`, `freqShiftHz`, `compThresholdDb`) aren't yet mod matrix
+  destinations, so a live-automated sweep requires host/plugin automation of
+  the underlying patch field directly (which does exist for all of them now,
+  see docs/PLUGIN_ARCHITECTURE.md "Automation"), not an in-engine LFO/envelope
+  route. Natural next increment once the mod matrix's destination enum is
+  extended.
 - **Layer B insert effects** -- `LayerPatch::insertEffects` exists on both
   layers structurally, but only Layer A's chain is exercised (Layer B isn't
   voiced yet, Phase 8).
+- **Sidechain input** -- Compressor's detector reads the same signal it's
+  compressing; there's no external sidechain source (e.g. keying a pad's
+  compressor off a kick) since effects only ever see the one signal already
+  flowing through their slot.
 - **`pw8-fuzz-render` effect randomization** -- see "What's covered by tests"
   above.

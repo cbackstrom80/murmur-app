@@ -53,7 +53,7 @@ namespace pw8::plugin
     // Matches effects::EffectSlotParams's scalar fields (excludes `nodes[]` and
     // FractalEcho's `fractalSeedA/B` -- see PluginState.h for why).
     const std::array<ParamFieldSpec, kNumEffectSlotFields> kEffectSlotFieldSpecs = {{
-        {"Type",               "Type",                 0.0f,     6.0f,     0.0f,   true},
+        {"Type",               "Type",                 0.0f,     10.0f,    0.0f,   true},
         {"Mix",                "Mix",                  0.0f,     1.0f,     1.0f,   false},
         {"SaturationDrive",    "Saturation Drive",      0.0f,     48.0f,    6.0f,   false},
         {"ChorusRate",         "Chorus Rate",           0.01f,    10.0f,    0.5f,   false},
@@ -76,6 +76,26 @@ namespace pw8::plugin
         {"FractalBaseDelayMs", "Fractal Base Delay Ms", 1.0f,     1500.0f,  180.0f, false},
         {"FractalRatio",       "Fractal Ratio",         0.1f,     0.95f,    0.62f,  false},
         {"FractalSpreadMs",    "Fractal Spread Ms",     0.0f,     100.0f,   15.0f,  false},
+        {"ReverbSize",         "Reverb Size",           0.2f,     3.0f,     1.0f,   false},
+        {"ReverbDecaySeconds", "Reverb Decay Seconds",  0.05f,    20.0f,    2.0f,   false},
+        {"ReverbDampingHz",    "Reverb Damping Hz",     200.0f,   20000.0f, 6000.0f, false},
+        {"ReverbPreDelayMs",   "Reverb Pre-Delay Ms",   0.0f,     200.0f,   20.0f,  false},
+        {"EqLowFreqHz",        "Eq Low Freq Hz",        20.0f,    20000.0f, 200.0f, false},
+        {"EqLowGainDb",        "Eq Low Gain Db",       -24.0f,    24.0f,    0.0f,   false},
+        {"EqMidFreqHz",        "Eq Mid Freq Hz",        20.0f,    20000.0f, 1000.0f, false},
+        {"EqMidGainDb",        "Eq Mid Gain Db",       -24.0f,    24.0f,    0.0f,   false},
+        {"EqMidQ",             "Eq Mid Q",              0.1f,     10.0f,    0.8f,   false},
+        {"EqHighFreqHz",       "Eq High Freq Hz",       20.0f,    20000.0f, 6000.0f, false},
+        {"EqHighGainDb",       "Eq High Gain Db",      -24.0f,    24.0f,    0.0f,   false},
+        {"CompThresholdDb",    "Comp Threshold Db",    -60.0f,    0.0f,    -18.0f,  false},
+        {"CompRatio",          "Comp Ratio",            1.0f,     20.0f,    3.0f,   false},
+        {"CompAttackMs",       "Comp Attack Ms",        0.1f,     500.0f,   8.0f,   false},
+        {"CompReleaseMs",      "Comp Release Ms",       1.0f,     2000.0f,  120.0f, false},
+        {"CompKneeDb",         "Comp Knee Db",          0.0f,     24.0f,    6.0f,   false},
+        {"CompMakeupDb",       "Comp Makeup Db",        0.0f,     24.0f,    0.0f,   false},
+        {"LimiterCeilingDb",   "Limiter Ceiling Db",   -12.0f,    0.0f,    -0.3f,   false},
+        {"LimiterLookaheadMs", "Limiter Lookahead Ms",  0.5f,     20.0f,    5.0f,   false},
+        {"LimiterReleaseMs",   "Limiter Release Ms",    1.0f,     2000.0f,  60.0f,  false},
     }};
 
     // Matches sequencer::ArpeggiatorParams's scalar fields (excludes `steps[]`).

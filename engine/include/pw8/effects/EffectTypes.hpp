@@ -17,11 +17,12 @@
 // runtime never reallocates or restructures anything.
 namespace pw8::effects
 {
-    /// Six real, independently-voiced algorithms plus Bypass -- not six variations
+    /// Ten real, independently-voiced algorithms plus Bypass -- not ten variations
     /// on one delay engine. See docs/FX_BANK.md for the research and design behind
     /// each: TapeDelay/NodeDelay/FreqShiftEcho are informed by (not ported from)
     /// Cocoa Delay, ChowMatrix, and ValhallaFreqEcho respectively; FractalEcho is
-    /// this project's own invention.
+    /// this project's own invention. Reverb/Eq/Compressor/Limiter round out the
+    /// master spec's "first effect set" basics (docs/ROADMAP.md "GATE 10").
     enum class EffectType : std::uint8_t
     {
         Bypass = 0,
@@ -31,6 +32,10 @@ namespace pw8::effects
         NodeDelay,
         FreqShiftEcho,
         FractalEcho,
+        Reverb,
+        Eq,
+        Compressor,
+        Limiter,
     };
 
     enum class DelayPanMode : std::uint8_t
@@ -45,6 +50,11 @@ namespace pw8::effects
     inline constexpr std::size_t kNumMasterSlots = 4;
     inline constexpr float kMaxEffectDelaySeconds = 2.0f;     ///< TapeDelay / FreqShiftEcho.
     inline constexpr float kMaxTreeNodeDelaySeconds = 1.5f;   ///< NodeDelay / FractalEcho, per node.
+
+    inline constexpr std::size_t kNumReverbLines = 4;
+    inline constexpr float kMaxReverbLineSeconds = 0.25f;      ///< per delay line, before `reverbSizeParam` scaling.
+    inline constexpr float kMaxReverbPreDelaySeconds = 0.2f;
+    inline constexpr float kMaxLimiterLookaheadSeconds = 0.02f; ///< 20ms cap -- see effects::Limiter.
 
     /// One node in a NodeDelay tree. `parentIndex < static_cast<int>(ownIndex)` is
     /// required (validated/clamped at load, same "always route from a lower index"
@@ -103,6 +113,34 @@ namespace pw8::effects
         float fractalBaseDelayMs = 180.0f;
         float fractalRatio = 0.62f;     ///< self-similar time-scaling ratio between tree depths.
         float fractalSpreadMs = 15.0f;  ///< per-node deterministic jitter added to the fractal time.
+
+        // -- Reverb (a 4-line Householder-matrix FDN -- see docs/FX_BANK.md "GATE 10") --
+        float reverbSizeParam = 1.0f;      ///< scales delay-line lengths; ~0.3 (small room) .. ~2.0 (large hall).
+        float reverbDecaySeconds = 2.0f;   ///< approximate RT60.
+        float reverbDampingHz = 6000.0f;   ///< one-pole lowpass in the feedback path -- lower = darker tail.
+        float reverbPreDelayMs = 20.0f;
+
+        // -- Eq (3-band: low shelf, mid peak, high shelf; RBJ Audio EQ Cookbook biquads) --
+        float eqLowFreqHz = 200.0f;
+        float eqLowGainDb = 0.0f;
+        float eqMidFreqHz = 1000.0f;
+        float eqMidGainDb = 0.0f;
+        float eqMidQ = 0.8f;
+        float eqHighFreqHz = 6000.0f;
+        float eqHighGainDb = 0.0f;
+
+        // -- Compressor (feedforward, peak detector, soft knee) --
+        float compThresholdDb = -18.0f;
+        float compRatio = 3.0f;
+        float compAttackMs = 8.0f;
+        float compReleaseMs = 120.0f;
+        float compKneeDb = 6.0f;
+        float compMakeupDb = 0.0f;
+
+        // -- Limiter (lookahead, sliding-window-minimum gain -- true no-overshoot) --
+        float limiterCeilingDb = -0.3f;
+        float limiterLookaheadMs = 5.0f;
+        float limiterReleaseMs = 60.0f;
     };
 
 } // namespace pw8::effects

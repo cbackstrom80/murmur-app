@@ -26,19 +26,19 @@ for the full phase-by-phase breakdown against the product spec.
 | 8-node-per-layer algorithm graph: AUDIO/PHASE_MOD/FREQUENCY_MOD/AMPLITUDE_MOD/RING_MOD/SYNC/FEEDBACK edges, validated + compiled + executed | **IMPLEMENTED** |
 | MPE-shaped per-note expression capture (pitch bend, pressure, aftertouch, slide) | **IMPLEMENTED** (pitch bend affects pitch directly; pressure/aftertouch/slide are mod matrix sources) |
 | Filter 1 (TPT state-variable: LP/HP/BP/notch/peak, per-voice, key-tracked) | **IMPLEMENTED** |
-| LFO (6 waveforms, free/retrigger/one-shot/tempo-sync, per-voice) | **IMPLEMENTED** (1 of the eventual 8 per patch) |
+| LFO (6 waveforms, free/retrigger/one-shot/tempo-sync, per-voice + shared per-layer bank) | **IMPLEMENTED** (8 per patch) |
 | Modulation: 8 envelopes + 8 LFOs per layer, mod matrix (29 sources incl. all LFOs/envelopes/8 macros -> filter cutoff/resonance, operator level, pan) | **IMPLEMENTED** (VOICE scope for all sources; LAYER/GLOBAL scope for LFOs) |
 | Arpeggiator (7 modes, tempo-sync, per-step gate/probability/ratchet/tie/accent, latch, polymetric) | **IMPLEMENTED** |
-| FX bank (3 layer insert + 4 master slots; Saturation/Chorus/TapeDelay/NodeDelay/FreqShiftEcho/FractalEcho) | **IMPLEMENTED** (reverb/EQ/compressor still PLANNED, see FX_BANK.md) |
+| FX bank (3 layer insert + 4 master slots; Saturation/Chorus/TapeDelay/NodeDelay/FreqShiftEcho/FractalEcho/Reverb/Eq/Compressor/Limiter -- 10 algorithms) | **IMPLEMENTED** |
 | `.pw8` patch format (JSON, versioned schema, untrusted-input-hardened) | **IMPLEMENTED** |
 | Native offline renderer (no plugin host / DAW required) -> WAV + JSON receipt | **IMPLEMENTED** |
 | Standard MIDI File input (hand-rolled reader, tempo map, running status) | **IMPLEMENTED** |
 | Python bindings (pybind11) | **IMPLEMENTED** (partial API surface, see docs/PYTHON_API.md) |
 | Deterministic/seeded randomness throughout | **IMPLEMENTED** |
-| JUCE VST3/AU/Standalone plugin, 361 parameters live-automatable via `AudioProcessorValueTreeState` | **PARTIAL, build-verified** (AU passes `auval`, both AU and VST3 pass `pluginval` at max strictness; no signature UI; off by default) |
+| JUCE VST3/AU/Standalone plugin, 501 parameters live-automatable via `AudioProcessorValueTreeState` | **PARTIAL, build-verified** (AU passes `auval`, both AU and VST3 pass `pluginval` at max strictness; no signature UI; off by default) |
 | Google Benchmark suite | **IMPLEMENTED** (oscillators, algorithm graph, voice, full-patch render, at 44.1/48/96 kHz x 1/8/16/32 voices) |
-| Fuzz-render harness (`pw8-fuzz-render`) | **IMPLEMENTED** (verified across 3 batches, 13,000 random valid patches total, 0 failures) |
-| Filter 2 (character), reverb/EQ/compressor, MSEG, dual-layer mixing, algorithm morph, additional engine types (additive/phase-shape/granular/noise/resonator) | **PLANNED** |
+| Fuzz-render harness (`pw8-fuzz-render`) | **IMPLEMENTED** (verified across 4 batches, 14,000 random valid patches total, 0 failures) |
+| Filter 2 (character), bitcrush/wavefold/ensemble/flanger/phaser/diffusion delay, MSEG, dual-layer mixing, algorithm morph, unison DSP, additional engine types (additive/phase-shape/granular/noise/resonator) | **PLANNED** |
 
 ## Architecture
 
@@ -64,7 +64,7 @@ cmake --build --preset dev -j
 ctest --preset dev --output-on-failure
 ```
 
-107 test cases, 895,884 assertions, all passing. See [docs/BUILD.md](docs/BUILD.md)
+118 test cases, 895,910 assertions, all passing. See [docs/BUILD.md](docs/BUILD.md)
 for every preset (release/asan/ubsan/benchmarks/python/plugin).
 
 ## Running the renderer
@@ -80,11 +80,12 @@ for every preset (release/asan/ubsan/benchmarks/python/plugin).
 ./build/dev/tools/pw8-info
 ```
 
-12 engineering test patches ship in `content/presets/`: `INIT SINE`, `INIT SAW`,
+14 engineering test patches ship in `content/presets/`: `INIT SINE`, `INIT SAW`,
 `WIDE SAW`, `SUB BASS`, `FM BELL`, `DARK BASS`, `SOFT PAD`, `WT MORPH`,
-`ARP PLUCK`, `FX NODE TREE`, `FX FRACTAL MORPH`, `FX FREQ ECHO`. These are
-engineering patches proving specific capabilities, not curated factory content
-(see docs/ROADMAP.md Phase 19).
+`ARP PLUCK`, `FX NODE TREE`, `FX FRACTAL MORPH`, `FX FREQ ECHO`,
+`GATE4 MASSIVE DARK METALLIC BASS`, `FX MASTER CHAIN`. These are engineering
+patches proving specific capabilities, not curated factory content (see
+docs/ROADMAP.md Phase 19).
 
 ## Documentation
 
@@ -95,7 +96,7 @@ engineering patches proving specific capabilities, not curated factory content
 - [PATCH_FORMAT.md](docs/PATCH_FORMAT.md) -- the `.pw8` schema
 - [MODULATION.md](docs/MODULATION.md) -- 8 envelopes, 8 LFOs (VOICE+LAYER/GLOBAL scope), 29-source mod matrix, macros
 - [ARPEGGIATOR.md](docs/ARPEGGIATOR.md) -- modes, per-step modifiers, polymetric design
-- [FX_BANK.md](docs/FX_BANK.md) -- researched-plugin analysis, the 6 algorithms, the invented FractalEcho
+- [FX_BANK.md](docs/FX_BANK.md) -- researched-plugin analysis, the 10 algorithms, the invented FractalEcho
 - [RENDERER.md](docs/RENDERER.md) -- native offline rendering, MIDI input, WAV output
 - [PYTHON_API.md](docs/PYTHON_API.md) -- pybind11 bindings
 - [PLUGIN_ARCHITECTURE.md](docs/PLUGIN_ARCHITECTURE.md) -- JUCE scaffold design

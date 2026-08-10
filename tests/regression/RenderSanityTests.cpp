@@ -491,3 +491,79 @@ TEST_CASE("Renderer: a LAYER-scoped LFO route is one continuously-running shared
         REQUIRE(std::abs(panImmediate - panDelayed) < 0.25f);
     }
 }
+
+TEST_CASE("Renderer: a master Limiter slot caps peak below its ceiling for a deliberately hot patch",
+          "[render][regression][effects][gate10]")
+{
+    patch::Patch p = patch::Patch::makeInit();
+    p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Saw;
+    p.layerA.operators[0].level = 1.0f;
+    p.layerA.gain = 3.0f; // deliberately hot -- unlimited, this clips well past 0dBFS.
+    p.layerA.envelopes[0].attackSeconds = 0.005f;
+    p.layerA.envelopes[0].sustainLevel = 1.0f;
+
+    auto midiSeq = heldChordSequence(0.0, 1.0, {48, 52, 55}); // a loud chord, not a single tone.
+
+    render::RenderOptions options;
+    options.sampleRate = 48000.0;
+    options.durationSecondsOverride = 1.2;
+
+    const auto withoutLimiter = render::render(p, midiSeq, options);
+    REQUIRE(withoutLimiter.ok);
+    REQUIRE_FALSE(withoutLimiter.metrics.containsNaNOrInf);
+    REQUIRE(withoutLimiter.metrics.peak > 1.0f); // confirms the patch is genuinely hot before limiting.
+
+    p.masterEffects[0].type = effects::EffectType::Limiter;
+    p.masterEffects[0].mix = 1.0f;
+    p.masterEffects[0].limiterCeilingDb = -1.0f;
+    p.masterEffects[0].limiterLookaheadMs = 5.0f;
+
+    const auto withLimiter = render::render(p, midiSeq, options);
+    REQUIRE(withLimiter.ok);
+    REQUIRE_FALSE(withLimiter.metrics.containsNaNOrInf);
+
+    const float ceilingLinear = dsp::dbToGain(-1.0f);
+    REQUIRE(withLimiter.metrics.peak <= ceilingLinear * 1.05f); // small margin for the startup edge case.
+}
+
+TEST_CASE("Renderer: a master Compressor slot (no makeup gain) measurably lowers a loud patch's peak",
+          "[render][regression][effects][gate10]")
+{
+    // No makeup gain, deliberately: with makeup gain in the mix, a fast attack lag
+    // can briefly let a transient's onset through before gain reduction catches up,
+    // which can (correctly!) make peak-to-RMS comparisons behave non-obviously --
+    // see effects::CompressorProcessor's own unit-level tests
+    // (tests/unit/EffectsTests.cpp) for that steady-state-gain-reduction proof
+    // instead. With makeup gain at 0, gain reduction can only ever move a sample's
+    // level down or leave it unchanged, so peak-without-compression must be >=
+    // peak-with-compression by construction -- a simpler, robust claim for this
+    // full-Engine end-to-end check.
+    patch::Patch p = patch::Patch::makeInit();
+    p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Saw;
+    p.layerA.envelopes[0].attackSeconds = 0.005f;
+    p.layerA.envelopes[0].sustainLevel = 1.0f;
+
+    auto midiSeq = heldChordSequence(0.0, 1.0, {48, 52, 55});
+
+    render::RenderOptions options;
+    options.sampleRate = 48000.0;
+    options.durationSecondsOverride = 1.2;
+
+    const auto withoutComp = render::render(p, midiSeq, options);
+    REQUIRE(withoutComp.ok);
+    REQUIRE_FALSE(withoutComp.metrics.containsNaNOrInf);
+
+    p.masterEffects[0].type = effects::EffectType::Compressor;
+    p.masterEffects[0].mix = 1.0f;
+    p.masterEffects[0].compThresholdDb = -20.0f;
+    p.masterEffects[0].compRatio = 8.0f;
+    p.masterEffects[0].compAttackMs = 2.0f;
+    p.masterEffects[0].compReleaseMs = 80.0f;
+    p.masterEffects[0].compMakeupDb = 0.0f;
+
+    const auto withComp = render::render(p, midiSeq, options);
+    REQUIRE(withComp.ok);
+    REQUIRE_FALSE(withComp.metrics.containsNaNOrInf);
+
+    REQUIRE(withComp.metrics.peak < withoutComp.metrics.peak);
+}
