@@ -13,6 +13,7 @@
 #include "pw8/lfo/Lfo.hpp"
 #include "pw8/modulation/ModMatrixTypes.hpp"
 #include "pw8/operator/OperatorNode.hpp"
+#include "pw8/sequencer/ArpeggiatorTypes.hpp"
 
 // Pure data model for the native `.pw8` patch format (schemaVersion 1).
 // Deliberately free of any JSON/serialization dependency -- see
@@ -162,6 +163,9 @@ namespace pw8::patch
         GlobalVoiceSettings voiceSettings{};
         LockFlags locks{};
         std::array<Macro, 8> macros{};
+        /// Performance-wide (not per-layer): intercepts noteOn/noteOff before they
+        /// reach voices when enabled. See docs/ARPEGGIATOR.md.
+        sequencer::ArpeggiatorParams arpeggiator{};
         std::uint64_t seed = 0;
 
         [[nodiscard]] static Patch makeInit() noexcept

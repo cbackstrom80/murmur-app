@@ -20,6 +20,7 @@ add_executable(pw8_tests
     unit/ModMatrixTests.cpp
     unit/FftTests.cpp
     unit/WavetableTableTests.cpp
+    unit/ArpeggiatorTests.cpp
     serialization/PatchSerializerTests.cpp
     serialization/StandardMidiFileTests.cpp
     serialization/WavetableTableLoaderTests.cpp

@@ -24,9 +24,19 @@ Top-level shape:
   "voiceSettings": { "polyphony", "masterGain", "a4Hz" },
   "locks": { "lockSources", "lockAlgorithm", "lockFilters", "lockModulation", "lockEffects", "lockSequence" },
   "macros": [ /* 8x {"id","name","description","value"} */ ],
+  "arpeggiator": { /* ArpeggiatorParams -- performance-wide, see ARPEGGIATOR.md */ },
   "seed": 0
 }
 ```
+
+`arpeggiator` (`sequencer::ArpeggiatorParams` -- **IMPLEMENTED**, see
+[ARPEGGIATOR.md](ARPEGGIATOR.md)) is performance-wide rather than per-layer,
+since MIDI note dispatch itself is engine-wide: `enabled`, `mode` (Up/Down/UpDown/
+DownUp/AsPlayed/Random/Chord), `rateMode` (Free/TempoSync), `rateHz`,
+`syncDivisionIndex`, `octaveRange`, `numSteps`, `latch`, and up to 64 `steps[]`
+(`ArpStep`: enabled, octaveOffset, gate, probability, ratchetCount, tie,
+velocityScale, accent). `numSteps` is re-derived from the parsed `steps[]` array
+length on load if omitted, clamped to `[1, 64]`.
 
 A `LayerPatch` contains: 8 `operators[]` (engine, waveform, morph, pulse width,
 wavetable frame position, frequency ratio / fixed Hz / key-track, level, pan), an

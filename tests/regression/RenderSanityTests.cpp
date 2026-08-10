@@ -1,6 +1,8 @@
+#include <algorithm>
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <cmath>
+#include <vector>
 
 #include "pw8/patch/Patch.hpp"
 #include "pw8/render/Renderer.hpp"
@@ -15,6 +17,44 @@ namespace
         seq.events.push_back(midi::MidiEvent{onTime, midi::EventType::NoteOn, 0, note, velocity, 0, 0});
         seq.events.push_back(midi::MidiEvent{offTime, midi::EventType::NoteOff, 0, note, 0, 0, 0});
         return seq;
+    }
+
+    midi::MidiSequence heldChordSequence(double onTime, double offTime, std::initializer_list<int> notes, int velocity = 100)
+    {
+        midi::MidiSequence seq;
+        for (int note : notes)
+            seq.events.push_back(midi::MidiEvent{onTime, midi::EventType::NoteOn, 0, note, velocity, 0, 0});
+        for (int note : notes)
+            seq.events.push_back(midi::MidiEvent{offTime, midi::EventType::NoteOff, 0, note, 0, 0, 0});
+        return seq;
+    }
+
+    /// Counts how many times a windowed RMS envelope rises from below `threshold` to
+    /// at/above it -- a proxy for "how many discrete note onsets happened", used to
+    /// distinguish "one sustained tone" from "many short retriggered notes" without
+    /// needing to inspect engine internals from the test.
+    int countAmplitudeOnsets(const std::vector<float>& interleavedStereo, int windowSize, float threshold)
+    {
+        const std::size_t numFrames = interleavedStereo.size() / 2;
+        int onsets = 0;
+        bool above = false;
+        for (std::size_t start = 0; start < numFrames; start += static_cast<std::size_t>(windowSize))
+        {
+            const std::size_t end = std::min(numFrames, start + static_cast<std::size_t>(windowSize));
+            double sumSq = 0.0;
+            for (std::size_t i = start; i < end; ++i)
+            {
+                const float l = interleavedStereo[i * 2];
+                const float r = interleavedStereo[i * 2 + 1];
+                sumSq += static_cast<double>(l) * l + static_cast<double>(r) * r;
+            }
+            const float rms = static_cast<float>(std::sqrt(sumSq / (2.0 * static_cast<double>(end - start))));
+            const bool nowAbove = rms >= threshold;
+            if (nowAbove && !above)
+                ++onsets;
+            above = nowAbove;
+        }
+        return onsets;
     }
 } // namespace
 
@@ -207,4 +247,52 @@ TEST_CASE("Renderer: tempo-synced LFO's rate actually tracks --bpm end to end", 
     // Different BPM -> different tremolo rate -> the two renders must differ
     // (a bug that ignores bpm would make these numerically identical).
     REQUIRE(std::abs(slow.metrics.rms - fast.metrics.rms) > 0.01f);
+}
+
+TEST_CASE("Renderer: enabling the arpeggiator turns one held chord into many discrete note onsets",
+          "[render][regression][arpeggiator]")
+{
+    // Short, percussive envelope so each arp-triggered note is a distinct audible
+    // "blip" rather than blending into a sustained tone.
+    patch::Patch p = patch::Patch::makeInit();
+    p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Sine;
+    p.layerA.ampEnvelope.attackSeconds = 0.002f;
+    p.layerA.ampEnvelope.decaySeconds = 0.04f;
+    p.layerA.ampEnvelope.sustainLevel = 0.0f;
+    p.layerA.ampEnvelope.releaseSeconds = 0.02f;
+    p.voiceSettings.polyphony = 8;
+
+    auto midiSeq = heldChordSequence(0.0, 2.0, {60, 64, 67});
+
+    render::RenderOptions options;
+    options.sampleRate = 48000.0;
+    options.durationSecondsOverride = 2.2;
+
+    const auto withoutArp = render::render(p, midiSeq, options);
+    REQUIRE(withoutArp.ok);
+    REQUIRE_FALSE(withoutArp.metrics.containsNaNOrInf);
+
+    p.arpeggiator.enabled = true;
+    p.arpeggiator.mode = sequencer::ArpMode::Up;
+    p.arpeggiator.rateMode = sequencer::ArpRateMode::Free;
+    p.arpeggiator.rateHz = 8.0f; // 8 notes/sec over a 2s hold -> ~16 onsets expected.
+    p.arpeggiator.octaveRange = 1;
+    p.arpeggiator.numSteps = 1;
+    p.arpeggiator.steps[0] = sequencer::ArpStep{};
+
+    const auto withArp = render::render(p, midiSeq, options);
+    REQUIRE(withArp.ok);
+    REQUIRE_FALSE(withArp.metrics.containsNaNOrInf);
+    REQUIRE(withArp.metrics.peak > 0.0f);
+
+    constexpr int kWindow = 240; // 5ms windows at 48kHz.
+    constexpr float kThreshold = 0.02f;
+    const int onsetsWithoutArp = countAmplitudeOnsets(withoutArp.interleavedStereo, kWindow, kThreshold);
+    const int onsetsWithArp = countAmplitudeOnsets(withArp.interleavedStereo, kWindow, kThreshold);
+
+    // Without the arp: one chord attack (plus maybe the shared-envelope release
+    // tail crossing back up briefly) -- a handful of onsets at most.
+    REQUIRE(onsetsWithoutArp <= 3);
+    // With the arp at 8 Hz over ~2s: many distinct retriggered notes.
+    REQUIRE(onsetsWithArp >= 10);
 }

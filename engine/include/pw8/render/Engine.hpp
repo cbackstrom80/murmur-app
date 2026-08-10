@@ -8,6 +8,7 @@
 #include "pw8/core/AudioBlock.hpp"
 #include "pw8/oscillator/WavetableTable.hpp"
 #include "pw8/patch/Patch.hpp"
+#include "pw8/sequencer/Arpeggiator.hpp"
 #include "pw8/tuning/TuningService.hpp"
 #include "pw8/voice/VoiceAllocator.hpp"
 
@@ -62,6 +63,14 @@ namespace pw8::render
     private:
         [[nodiscard]] static op::OperatorParams toOperatorParams(const patch::OperatorPatch& p) noexcept;
 
+        /// Shared by the public noteOn/noteOff and the arpeggiator's internally
+        /// generated events -- the arpeggiator is indistinguishable from a real
+        /// performer as far as voice allocation/envelopes are concerned. Bypasses the
+        /// `patch_.arpeggiator.enabled` redirect that the public methods apply, so
+        /// calling this from the arp tick can never recurse back into the arp.
+        void triggerNoteOnDirect(int note, int channel, int velocity7) noexcept;
+        void triggerNoteOffDirect(int note, int channel, int velocity7) noexcept;
+
         patch::Patch patch_{};
         algorithm::CompiledAlgorithm compiledLayerA_{};
         algorithm::CompileStatus lastCompileStatus_ = algorithm::CompileStatus::Ok;
@@ -80,6 +89,7 @@ namespace pw8::render
         voice::VoicePool voices_{};
         voice::VoiceAllocator allocator_{};
         tuning::TuningService tuning_{};
+        sequencer::Arpeggiator arpeggiator_{};
 
         static constexpr float kPitchBendRangeSemitones = 2.0f;
 

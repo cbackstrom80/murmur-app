@@ -1,5 +1,7 @@
 #include "pw8/patch/PatchSerializer.hpp"
 
+#include <algorithm>
+
 #include <nlohmann/json.hpp>
 
 // Untrusted-input hardening (docs/PATCH_FORMAT.md "Security / Robustness"):
@@ -314,6 +316,70 @@ namespace pw8::patch
             m.value = clampNum(j.value("value", 0.0f), 0.0f, 1.0f);
         }
 
+        void toJson(json& j, const sequencer::ArpStep& s)
+        {
+            j = json{{"enabled", s.enabled},               {"octaveOffset", s.octaveOffset},
+                     {"gate", s.gate},                       {"probability", s.probability},
+                     {"ratchetCount", s.ratchetCount},       {"tie", s.tie},
+                     {"velocityScale", s.velocityScale},     {"accent", s.accent}};
+        }
+
+        void fromJson(const json& j, sequencer::ArpStep& s)
+        {
+            s.enabled = j.value("enabled", true);
+            s.octaveOffset = clampNum(j.value("octaveOffset", 0), -2, 2);
+            s.gate = clampNum(j.value("gate", 0.8f), 0.0f, 1.0f);
+            s.probability = clampNum(j.value("probability", 1.0f), 0.0f, 1.0f);
+            s.ratchetCount = clampNum(j.value("ratchetCount", 1), 1, sequencer::kMaxRatchet);
+            s.tie = j.value("tie", false);
+            s.velocityScale = clampNum(j.value("velocityScale", 1.0f), 0.0f, 1.0f);
+            s.accent = j.value("accent", false);
+        }
+
+        void toJson(json& j, const sequencer::ArpeggiatorParams& a)
+        {
+            json steps = json::array();
+            for (std::size_t i = 0; i < a.numSteps && i < sequencer::kMaxArpSteps; ++i)
+            {
+                json js;
+                toJson(js, a.steps[i]);
+                steps.push_back(js);
+            }
+            j = json{{"enabled", a.enabled},                 {"mode", static_cast<int>(a.mode)},
+                     {"rateMode", static_cast<int>(a.rateMode)}, {"rateHz", a.rateHz},
+                     {"syncDivisionIndex", a.syncDivisionIndex}, {"octaveRange", a.octaveRange},
+                     {"numSteps", a.numSteps},                 {"latch", a.latch},
+                     {"steps", steps}};
+        }
+
+        void fromJson(const json& j, sequencer::ArpeggiatorParams& a)
+        {
+            a.enabled = j.value("enabled", false);
+            a.mode = static_cast<sequencer::ArpMode>(clampNum(j.value("mode", 0), 0, 6));
+            a.rateMode = static_cast<sequencer::ArpRateMode>(clampNum(j.value("rateMode", 1), 0, 1));
+            a.rateHz = clampNum(j.value("rateHz", 8.0f), 0.1f, 100.0f);
+            a.syncDivisionIndex = clampNum(j.value("syncDivisionIndex", 6), 0, 9);
+            a.octaveRange = clampNum(j.value("octaveRange", 1), 1, 4);
+            a.latch = j.value("latch", false);
+
+            a.steps = std::array<sequencer::ArpStep, sequencer::kMaxArpSteps>{};
+            std::size_t stepCount = 0;
+            if (j.contains("steps") && j.at("steps").is_array())
+            {
+                for (const auto& js : j.at("steps"))
+                {
+                    if (stepCount >= sequencer::kMaxArpSteps)
+                        break;
+                    fromJson(js, a.steps[stepCount]);
+                    ++stepCount;
+                }
+            }
+            const std::size_t requestedNumSteps = static_cast<std::size_t>(clampNum(
+                j.value("numSteps", static_cast<int>(stepCount > 0 ? stepCount : 1)), 1,
+                static_cast<int>(sequencer::kMaxArpSteps)));
+            a.numSteps = std::max<std::size_t>(1, requestedNumSteps);
+        }
+
     } // namespace
 
     std::string savePatchToJson(const Patch& patch, int indent) noexcept
@@ -354,6 +420,11 @@ namespace pw8::patch
                 macros.push_back(jm);
             }
             j["macros"] = macros;
+
+            json arp;
+            toJson(arp, patch.arpeggiator);
+            j["arpeggiator"] = arp;
+
             j["seed"] = patch.seed;
 
             return indent >= 0 ? j.dump(indent) : j.dump();
@@ -455,6 +526,9 @@ namespace pw8::patch
                     ++i;
                 }
             }
+
+            if (root.contains("arpeggiator"))
+                fromJson(root.at("arpeggiator"), p.arpeggiator);
 
             p.seed = root.value("seed", static_cast<std::uint64_t>(0));
 

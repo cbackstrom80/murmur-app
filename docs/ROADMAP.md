@@ -16,7 +16,7 @@ Status as of this repository's initial engineering pass. Legend: **DONE** / **PA
 | 9 | Algorithm morph (same-topology, different-topology) | **PLANNED** |
 | 10 | Additional engines (additive, phase/shape, noise, resonator, granular) | **PLANNED** -- `EngineType` enum and dispatch points exist; each renders silence until implemented |
 | 11 | FX (insert slots, master slots, first effect set, reverb, spatial engine) | **PLANNED** |
-| 12 | MSEG / sequencer | **PLANNED** |
+| 12 | MSEG / sequencer | **PARTIAL** -- arpeggiator **IMPLEMENTED** (`pw8/sequencer/Arpeggiator.hpp`, see ARPEGGIATOR.md); MSEG/step-sequencer-as-mod-source still PLANNED |
 | 13 | Patch format productionization (schema, migrations, metadata) | **PARTIAL** -- schema v1 complete and hardened against untrusted input; migration *mechanism* exists with nothing to migrate yet (only one schema version so far) |
 | 14 | Python API productionization | **PARTIAL** -- see PYTHON_API.md coverage table |
 | 15 | Patchwork integration (Sound IR compilation boundary) | **PARTIAL** -- CLI/Python/schema boundaries exist and work; `EightPatchCompiler` (IR -> Patch) itself is PLANNED, see PATCHWORK_INTEGRATION.md |
@@ -143,6 +143,34 @@ Closes the one concrete gap the Serum/Zebra research surfaced:
   reduction proof, wavetable JSON loader roundtrip/robustness) -- 67 total, all
   passing. `pw8-fuzz-render` batch (3,000 patches) and a full plugin rebuild +
   `auval` re-validation both confirmed clean after the change.
+
+## Follow-up pass: Arpeggiator (Phase 12 -> PARTIAL)
+
+Answers "does it have an arpeggiator?" with a real implementation, not a roadmap
+promise:
+
+- `sequencer::Arpeggiator` -- performance-wide, up to 64 steps, 7 modes (Up/Down/
+  UpDown/DownUp/AsPlayed/Random/Chord), free or tempo-synced rate, per-step gate/
+  probability/ratchet/tie/velocity-scale/accent/octave-offset, latch. Two
+  independently-cycling counters (step pattern, note sequence) give correct
+  polymetric behavior when pattern length and chord size don't share a factor.
+- Wired into `render::Engine`: when enabled, incoming MIDI feeds the arpeggiator
+  instead of triggering voices directly, and the arpeggiator's output is fed back
+  through the exact same note-trigger path a performer's MIDI would use -- no
+  separate/parallel voice-triggering logic to keep in sync.
+- Two real design bugs (tie's note-off timing, ratchet's sub-hit scheduling and
+  note selection) were caught by tracing the sample-accurate timeline before
+  writing tests, not by a failing test -- see ARPEGGIATOR.md for the detail.
+- 10 new unit tests plus a render-level regression test that counts actual
+  amplitude onsets in rendered audio (1 onset without the arp vs. 16 with it,
+  exactly matching an 8 Hz/2s prediction) -- 78 total, all passing.
+- `content/presets/arp-pluck.pw8` -- a non-uniform 8-step pattern (accent, a
+  ratcheted double-hit, a deliberate rest) rather than a plain up-arp, proving the
+  per-step modifiers actually compose.
+- Full cross-build verification: all 4 configs (dev/benchmarks/python/plugin)
+  clean, `pw8-fuzz-render` (1,500 patches) zero failures, `auval` re-validated.
+- See [ARPEGGIATOR.md](ARPEGGIATOR.md) for full design detail and what's still
+  PLANNED within Phase 12 (MSEG/mod-sequencer, arp-output MIDI channel handling).
 
 ## GPU acceleration (researched, not adopted)
 

@@ -10,6 +10,7 @@ namespace pw8::render
         sampleRate_ = sampleRate > 0.0 ? sampleRate : 48000.0;
         for (auto& v : voices_)
             v.prepare(sampleRate_);
+        arpeggiator_.prepare(sampleRate_);
     }
 
     op::OperatorParams Engine::toOperatorParams(const patch::OperatorPatch& p) noexcept
@@ -74,6 +75,7 @@ namespace pw8::render
 
         allocator_.configure(patch_.voiceSettings.polyphony);
         tuning_.setA4(patch_.voiceSettings.a4Hz);
+        arpeggiator_.configure(patch_.arpeggiator, patch_.seed);
 
         std::array<float, 8> macroValues{};
         for (std::size_t i = 0; i < macroValues.size(); ++i)
@@ -99,6 +101,34 @@ namespace pw8::render
             return;
         }
 
+        if (patch_.arpeggiator.enabled)
+        {
+            arpeggiator_.noteHeld(note, channel, static_cast<float>(velocity7) / 127.0f);
+            return;
+        }
+
+        triggerNoteOnDirect(note, channel, velocity7);
+    }
+
+    void Engine::noteOff(int note, int channel, int velocity7) noexcept
+    {
+        if (patch_.arpeggiator.enabled)
+        {
+            arpeggiator_.noteReleased(note, channel);
+            return;
+        }
+
+        triggerNoteOffDirect(note, channel, velocity7);
+    }
+
+    void Engine::triggerNoteOnDirect(int note, int channel, int velocity7) noexcept
+    {
+        if (velocity7 <= 0)
+        {
+            triggerNoteOffDirect(note, channel, 0);
+            return;
+        }
+
         const auto idx = allocator_.allocate(voices_);
         auto& v = voices_[idx];
         v.id = static_cast<std::uint32_t>(idx);
@@ -118,7 +148,7 @@ namespace pw8::render
         v.pan = patch_.layerA.pan;
     }
 
-    void Engine::noteOff(int note, int channel, int velocity7) noexcept
+    void Engine::triggerNoteOffDirect(int note, int channel, int velocity7) noexcept
     {
         const float relVel = static_cast<float>(velocity7) / 127.0f;
         allocator_.release(voices_, note, channel, relVel);
@@ -179,6 +209,17 @@ namespace pw8::render
 
         for (std::size_t s = 0; s < numFrames; ++s)
         {
+            core::FixedVector<sequencer::ArpEvent, 32> arpEvents;
+            arpeggiator_.tick(sampleRate_, bpm_, arpEvents);
+            for (const auto& ev : arpEvents)
+            {
+                const int velocity7 = dsp::clamp(static_cast<int>(ev.velocityUnit * 127.0f), 0, 127);
+                if (ev.type == sequencer::ArpEventType::NoteOn)
+                    triggerNoteOnDirect(ev.note, ev.channel, velocity7);
+                else
+                    triggerNoteOffDirect(ev.note, ev.channel, velocity7);
+            }
+
             float sumL = 0.0f;
             float sumR = 0.0f;
             for (std::size_t i = 0; i < allocator_.getPolyphony(); ++i)

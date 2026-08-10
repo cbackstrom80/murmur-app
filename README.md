@@ -28,6 +28,7 @@ for the full phase-by-phase breakdown against the product spec.
 | Filter 1 (TPT state-variable: LP/HP/BP/notch/peak, per-voice, key-tracked) | **IMPLEMENTED** |
 | LFO (6 waveforms, free/retrigger/one-shot/tempo-sync, per-voice) | **IMPLEMENTED** (1 of the eventual 8 per patch) |
 | Mod matrix (LFO/envelope/velocity/pressure/aftertouch/slide/8 macros -> filter cutoff/resonance, operator level, pan) | **IMPLEMENTED** (VOICE scope; LAYER/GLOBAL scope planned) |
+| Arpeggiator (7 modes, tempo-sync, per-step gate/probability/ratchet/tie/accent, latch, polymetric) | **IMPLEMENTED** |
 | `.pw8` patch format (JSON, versioned schema, untrusted-input-hardened) | **IMPLEMENTED** |
 | Native offline renderer (no plugin host / DAW required) -> WAV + JSON receipt | **IMPLEMENTED** |
 | Standard MIDI File input (hand-rolled reader, tempo map, running status) | **IMPLEMENTED** |
@@ -36,7 +37,7 @@ for the full phase-by-phase breakdown against the product spec.
 | JUCE VST3/AU/Standalone plugin | **PARTIAL, build-verified** (AU passes Apple's `auval` in full; off by default) |
 | Google Benchmark suite | **IMPLEMENTED** (oscillators, algorithm graph, voice, full-patch render, at 44.1/48/96 kHz x 1/8/16/32 voices) |
 | Fuzz-render harness (`pw8-fuzz-render`) | **IMPLEMENTED** (verified across 3 batches, 13,000 random valid patches total, 0 failures) |
-| Filter 2 (character), FX, sequencer, dual-layer mixing, algorithm morph, additional engine types (additive/phase-shape/granular/noise/resonator) | **PLANNED** |
+| Filter 2 (character), FX, MSEG, dual-layer mixing, algorithm morph, additional engine types (additive/phase-shape/granular/noise/resonator) | **PLANNED** |
 
 ## Architecture
 
@@ -62,7 +63,7 @@ cmake --build --preset dev -j
 ctest --preset dev --output-on-failure
 ```
 
-67 test cases, 811,735 assertions, all passing. See [docs/BUILD.md](docs/BUILD.md)
+78 test cases, 811,778 assertions, all passing. See [docs/BUILD.md](docs/BUILD.md)
 for every preset (release/asan/ubsan/benchmarks/python/plugin).
 
 ## Running the renderer
@@ -78,10 +79,10 @@ for every preset (release/asan/ubsan/benchmarks/python/plugin).
 ./build/dev/tools/pw8-info
 ```
 
-Eight engineering test patches ship in `content/presets/`: `INIT SINE`, `INIT SAW`,
-`WIDE SAW`, `SUB BASS`, `FM BELL`, `DARK BASS`, `SOFT PAD`, `WT MORPH`. These are
-engineering patches proving specific capabilities, not curated factory content (see
-docs/ROADMAP.md Phase 19).
+Nine engineering test patches ship in `content/presets/`: `INIT SINE`, `INIT SAW`,
+`WIDE SAW`, `SUB BASS`, `FM BELL`, `DARK BASS`, `SOFT PAD`, `WT MORPH`, `ARP PLUCK`.
+These are engineering patches proving specific capabilities, not curated factory
+content (see docs/ROADMAP.md Phase 19).
 
 ## Documentation
 
@@ -91,6 +92,7 @@ docs/ROADMAP.md Phase 19).
 - [ALGORITHM_GRAPH.md](docs/ALGORITHM_GRAPH.md) -- the 8-node graph, compiler, execution semantics
 - [PATCH_FORMAT.md](docs/PATCH_FORMAT.md) -- the `.pw8` schema
 - [MODULATION.md](docs/MODULATION.md) -- envelope (done), LFO/matrix/macros (planned)
+- [ARPEGGIATOR.md](docs/ARPEGGIATOR.md) -- modes, per-step modifiers, polymetric design
 - [RENDERER.md](docs/RENDERER.md) -- native offline rendering, MIDI input, WAV output
 - [PYTHON_API.md](docs/PYTHON_API.md) -- pybind11 bindings
 - [PLUGIN_ARCHITECTURE.md](docs/PLUGIN_ARCHITECTURE.md) -- JUCE scaffold design
