@@ -58,6 +58,14 @@ namespace pw8::plugin
         /// new Engine off-thread and atomically publishes it for processBlock() to pick up.
         bool loadPatch(const patch::Patch& newPatch);
 
+        /// Message-thread only (JUCE guarantees editor construction/paint/resize all
+        /// run on the message thread, the same thread every currentPatch_ mutation
+        /// already runs on per the class-level threading contract above) -- read-only
+        /// access for the UI to structural, non-automatable patch data the APVTS
+        /// deliberately doesn't cover (the algorithm graph's nodes/edges, patch
+        /// metadata) so the editor doesn't need a second, divergent copy of it.
+        [[nodiscard]] const patch::Patch& getCurrentPatch() const noexcept { return currentPatch_; }
+
         /// The 361 host-automatable parameters (docs/PLUGIN_ARCHITECTURE.md
         /// "Automation"). Public so createEditor()/tests can reach it; processBlock()
         /// reads it via the cached raw-value pointers below, never through this

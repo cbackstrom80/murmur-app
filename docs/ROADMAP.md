@@ -21,7 +21,7 @@ Status as of this repository's initial engineering pass. Legend: **DONE** / **PA
 | 14 | Python API productionization | **PARTIAL** -- see PYTHON_API.md coverage table |
 | 15 | Patchwork integration (Sound IR compilation boundary) | **PARTIAL** -- CLI/Python/schema boundaries exist and work; `EightPatchCompiler` (IR -> Patch) itself is PLANNED, see PATCHWORK_INTEGRATION.md |
 | 16 | Plugin (VST3, AU, Standalone) | **PARTIAL, build-verified** -- builds against real JUCE 8.0.6; AU passes `auval` in full; `pluginval` passes at strictness 5 (max) on VST3 and AU; 270 parameters (macros, filter, LFO, all 8 operators, envelope, gain/pan, all 7 FX slots, arpeggiator) live-automatable end to end (`juce::AudioProcessorValueTreeState`); Standalone launches cleanly; no signature UI or real-DAW host-matrix yet. See PLUGIN_ARCHITECTURE.md |
-| 17 | UI | **PLANNED** (deliberately, per spec) -- `createEditor()` returns JUCE's generic placeholder editor, not a step toward the real UI |
+| 17 | UI | **PARTIAL** -- PLAY mode **IMPLEMENTED** (the OBSIDIAN skin, `createEditor()` returns a real custom editor); DESIGN/LAB modes and the other 9 named skins PLANNED. See UI.md |
 | 18 | AI features (Generate, Mutate, Breed, Lock) via Patchwork | **PLANNED** -- metadata hooks (`LockFlags`, `lineage`, deterministic seeding) exist; the AI pipeline itself lives in Patchwork |
 | 19 | Factory bank (512-1024 curated presets) | **PLANNED** -- 7 engineering test patches exist (`content/presets/`), not factory-curated content |
 | 20 | Production hardening (host matrix, pluginval, auval, VST validator, fuzz tests, soak tests, perf optimization) | **PARTIAL** -- `auval` passes in full (see Phase 16); `pw8-fuzz-render` implemented and run (5,000 patches, 0 failures); `pluginval`, host matrix, and soak testing still PLANNED |
@@ -493,6 +493,47 @@ detail and research citations in [FX_BANK.md](FX_BANK.md) "GATE 11"; summary:
 - `content/presets/fx-master-chain.pw8`'s Reverb slot updated to demonstrate
   the new capability (extended low-frequency ring, faster high-frequency
   decay, high diffusion/density, gentle late-tank modulation).
+
+## UI GATE 1: PLAY mode, the OBSIDIAN skin (Phase 17)
+
+Per explicit user direction ("how do we make the UI amazing" -> "1 skin but it
+has to be amazing" -> "do it"), built PLAY mode's first real screen: a custom
+`juce::AudioProcessorEditor` (`ui::PlayModeEditor`) replacing
+`juce::GenericAudioProcessorEditor`, in one fully-realized skin (OBSIDIAN, the
+safest of the master spec's 10 named skins for "genuinely premium") rather
+than scaffolding several. Full design writeup, architecture, and a real
+geometry bug caught and fixed via `lldb` (not guesswork) during this pass:
+see [UI.md](UI.md). Summary:
+
+- Custom `ObsidianLookAndFeel` + `ObsidianPalette` (one file, every color
+  token) -- knobs are flat, precise, glow-arc rotaries, not skeuomorphic chrome.
+- `AlgorithmGraphView`: the centerpiece, a read-only rendering of Layer A's
+  live 8-node graph with nodes fixed on a circle (never a draggable modular
+  patcher -- the master spec's "no patch-cable spaghetti" rule satisfied
+  architecturally) and `EdgeType`-colored curved edges with an animated
+  signal-flow pulse; self-feedback loops and not-yet-implemented engine types
+  (dashed ring) both render distinctly. Verified against a real patch with
+  edges (`fm-bell.pw8`), not just the edge-less default init patch.
+  `PatchworkEightProcessor` gained a message-thread-only `getCurrentPatch()`
+  accessor for this.
+- `MacroStrip`, `FilterLfoPanel`, `FxChainStrip`, `PatchBrowserBar` -- the
+  rest of PLAY mode's one screen, all live-wired to real APVTS parameters via
+  `SliderAttachment`/`ButtonAttachment`.
+- `pluginval --strictness-level 5` re-confirmed SUCCESS on both VST3 and AU
+  against the *real* custom editor (its Editor/Editor Automation suites are
+  what actually exercise a custom editor's paint/resize discipline under
+  automation, unlike `auval` alone).
+- A real bug, not hypothetical: an initial layout budget starved the FX chain
+  strip down to ~10px of height, driving the knob-painting math's derived
+  radii negative -- caught via `lldb`, conditionally breaking on
+  `juce_GraphicsContext.cpp`'s internal bounds check to get the exact call
+  site and dimensions rather than guessing. Fixed both the specific layout
+  (rebalanced so utility strips get fixed generous heights and the graph
+  panel takes the remainder) and defensively (the LookAndFeel now floors its
+  radius math so a future layout mistake can't reproduce the failure mode).
+
+DESIGN and LAB modes, the other 9 named skins, and GPU-accelerated visuals
+(spectrum/scope) all remain PLANNED -- see UI.md "What's PLANNED".
 
 ## Immediate next steps (suggested, not committed)
 

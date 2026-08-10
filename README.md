@@ -35,7 +35,7 @@ for the full phase-by-phase breakdown against the product spec.
 | Standard MIDI File input (hand-rolled reader, tempo map, running status) | **IMPLEMENTED** |
 | Python bindings (pybind11) | **IMPLEMENTED** (partial API surface, see docs/PYTHON_API.md) |
 | Deterministic/seeded randomness throughout | **IMPLEMENTED** |
-| JUCE VST3/AU/Standalone plugin, 578 parameters live-automatable via `AudioProcessorValueTreeState` | **PARTIAL, build-verified** (AU passes `auval`, both AU and VST3 pass `pluginval` at max strictness; no signature UI; off by default) |
+| JUCE VST3/AU/Standalone plugin, 578 parameters live-automatable via `AudioProcessorValueTreeState`, real PLAY-mode UI (the OBSIDIAN skin) | **PARTIAL, build-verified** (AU passes `auval`, both AU and VST3 pass `pluginval` at max strictness against the real custom editor; DESIGN/LAB modes and other skins PLANNED, see docs/UI.md; off by default) |
 | Google Benchmark suite | **IMPLEMENTED** (oscillators, algorithm graph, voice, full-patch render, at 44.1/48/96 kHz x 1/8/16/32 voices) |
 | Fuzz-render harness (`pw8-fuzz-render`) | **IMPLEMENTED** (verified across 5 batches, 15,000 random valid patches total, 0 failures) |
 | Filter 2 (character), bitcrush/wavefold/ensemble/flanger/phaser/diffusion delay, MSEG, dual-layer mixing, algorithm morph, unison DSP, additional engine types (additive/phase-shape/granular/noise/resonator) | **PLANNED** |
@@ -100,6 +100,7 @@ docs/ROADMAP.md Phase 19).
 - [RENDERER.md](docs/RENDERER.md) -- native offline rendering, MIDI input, WAV output
 - [PYTHON_API.md](docs/PYTHON_API.md) -- pybind11 bindings
 - [PLUGIN_ARCHITECTURE.md](docs/PLUGIN_ARCHITECTURE.md) -- JUCE scaffold design
+- [UI.md](docs/UI.md) -- PLAY mode, the OBSIDIAN skin, the algorithm graph view
 - [TESTING.md](docs/TESTING.md) -- what's covered, what isn't yet
 - [ROADMAP.md](docs/ROADMAP.md) -- phase-by-phase status against the full product spec
 - [LICENSING.md](docs/LICENSING.md) -- dependency license analysis

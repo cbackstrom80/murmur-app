@@ -1,7 +1,14 @@
 # plugin/src/ui/
 
-PLANNED (docs/ROADMAP.md Phase 17). Per the master spec, UI is deliberately last:
-"prove engine quality" before building PLAY/DESIGN/LAB. Until then,
-`PatchworkEightProcessor::createEditor()` returns `nullptr` / a generic parameter
-editor. See `docs/PLUGIN_ARCHITECTURE.md` "Signature UI: Graph" for the eventual
-algorithm-graph-centric design intent.
+**PLAY mode: IMPLEMENTED** (the OBSIDIAN skin -- see [docs/UI.md](../../../docs/UI.md)
+for the full design writeup, architecture, and a real bug caught building it).
+`PatchworkEightProcessor::createEditor()` returns `ui::PlayModeEditor`, a real
+custom `juce::AudioProcessorEditor` -- not `juce::GenericAudioProcessorEditor`
+anymore.
+
+**DESIGN and LAB modes: PLANNED.** PLAY mode is the only mode that exists
+today; there is no mode switcher because there is nothing yet to switch to.
+
+See [docs/PLUGIN_ARCHITECTURE.md](../../../docs/PLUGIN_ARCHITECTURE.md)
+"Signature UI: Graph" for the algorithm-graph-centric design intent this
+delivers on.

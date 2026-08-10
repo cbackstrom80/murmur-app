@@ -1,0 +1,63 @@
+#pragma once
+
+#include <juce_graphics/juce_graphics.h>
+
+// OBSIDIAN -- the one launch skin (docs/UI.md), chosen deliberately as the safest
+// path to "genuinely premium" (dark glass/hardware territory already proven by
+// u-he/Arturia/Serum's own dark mode) rather than the boldest option, so the very
+// first real Patchwork Eight screen reads as finished rather than experimental.
+// Every color used anywhere in plugin/src/ui/ comes from this file -- no component
+// hand-rolls its own juce::Colour literal, so the whole skin can be re-tuned (or a
+// second skin added later) by editing one place.
+namespace pw8::plugin::ui::palette
+{
+    // -- Structure: background/panel/border, darkest to lightest. --
+    inline const juce::Colour kBackgroundTop{0xff0b0c0f};
+    inline const juce::Colour kBackgroundBottom{0xff101216};
+    inline const juce::Colour kPanel{0xff16181d};
+    inline const juce::Colour kPanelRaised{0xff1c1f26};
+    inline const juce::Colour kBorder{0xff232630};
+    inline const juce::Colour kBorderBright{0xff30343f};
+
+    // -- Text. --
+    inline const juce::Colour kTextPrimary{0xffe6e8ec};
+    inline const juce::Colour kTextSecondary{0xff8b909c};
+    inline const juce::Colour kTextDim{0xff565a66};
+
+    // -- The one accent, used sparingly: anything "live" glows this color and
+    // nothing else does. Restraint here is the whole point of the skin. --
+    inline const juce::Colour kAccent{0xff7fe7e0};
+    inline const juce::Colour kAccentDim{0xff3d5c59};
+
+    // A second, quieter accent reserved for things that need to read as "armed but
+    // not necessarily active" (e.g. an enabled-but-silent FX slot) -- warmer, less
+    // saturated than the main accent so it never competes with it.
+    inline const juce::Colour kAccentWarm{0xffe0a35f};
+
+    // -- Semantic edge colors for the algorithm graph view, one per
+    // algorithm::EdgeType. Deliberately all desaturated relative to kAccent -- an
+    // *active* edge on any of these still reads via glow/animation, not by being a
+    // louder color than its neighbors. --
+    inline const juce::Colour kEdgeAudio{0xff6f7684};
+    inline const juce::Colour kEdgePhaseMod{0xff8f7fe0};
+    inline const juce::Colour kEdgeFrequencyMod{0xff7f9fe0};
+    inline const juce::Colour kEdgeAmplitudeMod{0xffe0c17f};
+    inline const juce::Colour kEdgeRingMod{0xffe07fb0};
+    inline const juce::Colour kEdgeSync{0xff7fe0a0};
+    inline const juce::Colour kEdgeFeedback{0xffe07f7f};
+
+    [[nodiscard]] inline juce::Colour edgeColour(int edgeTypeOrdinal) noexcept
+    {
+        switch (edgeTypeOrdinal)
+        {
+            case 1: return kEdgePhaseMod;
+            case 2: return kEdgeFrequencyMod;
+            case 3: return kEdgeAmplitudeMod;
+            case 4: return kEdgeRingMod;
+            case 5: return kEdgeSync;
+            case 6: return kEdgeFeedback;
+            default: return kEdgeAudio;
+        }
+    }
+
+} // namespace pw8::plugin::ui::palette

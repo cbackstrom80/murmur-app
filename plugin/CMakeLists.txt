@@ -5,10 +5,10 @@
 # `plugin` job) -- see docs/PLUGIN_ARCHITECTURE.md and docs/ROADMAP.md Phase 16.
 # VST3/AU/Standalone all build against real JUCE 8.0.6, and the AU target passes
 # Apple's `auval` validation tool in full (format tests, render tests at 22.05k/
-# 44.1k/48k/96k/192k Hz and multiple block sizes, MIDI test). What's still missing:
-# a real UI (createEditor() returns JUCE's generic parameter-list editor as a
-# placeholder), parameter automation wiring (plugin/src/parameters/ is still
-# PLANNED), and pluginval / a real DAW host-matrix pass.
+# 44.1k/48k/96k/192k Hz and multiple block sizes, MIDI test). createEditor() now
+# returns a real custom editor (plugin/src/ui/PlayModeEditor -- the OBSIDIAN skin,
+# docs/UI.md), not JUCE's generic parameter list. What's still missing: a real
+# DAW host-matrix pass, and DESIGN/LAB modes (PLAY mode is the only mode today).
 #
 # To attempt a build:
 #   cmake --preset plugin && cmake --build --preset plugin
@@ -44,6 +44,15 @@ juce_add_plugin(pw8_plugin
 target_sources(pw8_plugin PRIVATE
     src/processor/PatchworkEightProcessor.cpp
     src/state/PluginState.cpp
+    src/ui/PlayModeEditor.cpp
+    src/ui/theme/ObsidianLookAndFeel.cpp
+    src/ui/components/GlowKnob.cpp
+    src/ui/components/SectionPanel.cpp
+    src/ui/components/AlgorithmGraphView.cpp
+    src/ui/components/MacroStrip.cpp
+    src/ui/components/FilterLfoPanel.cpp
+    src/ui/components/FxChainStrip.cpp
+    src/ui/components/PatchBrowserBar.cpp
 )
 
 target_include_directories(pw8_plugin PRIVATE src)

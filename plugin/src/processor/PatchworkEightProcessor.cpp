@@ -6,6 +6,7 @@
 
 #include "pw8/core/AudioBlock.hpp"
 #include "pw8/patch/PatchSerializer.hpp"
+#include "ui/PlayModeEditor.h"
 
 namespace pw8::plugin
 {
@@ -358,11 +359,10 @@ namespace pw8::plugin
 
     juce::AudioProcessorEditor* PatchworkEightProcessor::createEditor()
     {
-        // Pragmatic placeholder until the real PLAY/DESIGN/LAB UI lands (Phase 17):
-        // JUCE's built-in generic parameter editor. Shows 361 real sliders (backed by
-        // `apvts`) rather than an empty list -- but it's still a real, consistent
-        // editor either way, which is what AudioProcessor::hasEditor() promises callers.
-        return new juce::GenericAudioProcessorEditor(*this);
+        // The real PLAY-mode editor (docs/PLUGIN_ARCHITECTURE.md "Editor"; the OBSIDIAN
+        // skin, docs/UI.md). DESIGN/LAB modes are PLANNED -- PLAY mode is the one
+        // screen that exists today.
+        return new ui::PlayModeEditor(*this);
     }
 
     void PatchworkEightProcessor::getStateInformation(juce::MemoryBlock& destData)

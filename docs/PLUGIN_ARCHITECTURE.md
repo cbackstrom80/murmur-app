@@ -199,43 +199,41 @@ Implementation note: enum-valued parameters (filter mode, effect type, etc.)
 are exposed as stepped `AudioParameterFloat`s rather than
 `AudioParameterChoice`, for implementation uniformity across all ~578
 parameters (one read path, `getRawParameterValue()->load()`, for everything).
-A host shows a continuous slider rather than a named dropdown for these; a
-real PLAY/DESIGN/LAB UI (Phase 17) would present them better. Frequency-ratio-
-style parameters (`op{N}FreqRatio`, 0.001..128) are also linear rather than
-log-scaled -- a known, minor UX rough edge, not a correctness issue.
+A host's own generic automation-lane UI shows a continuous slider rather than
+a named dropdown for these regardless (that's inherent to `AudioParameterFloat`
+vs. `AudioParameterChoice`, independent of our own editor); PLAY mode's
+`GlowKnob` now presents formatted text ("LOWPASS", "SINE", ...) for the ones
+it surfaces directly, via an optional per-knob formatter -- see
+[UI.md](UI.md). Frequency-ratio-style parameters (`op{N}FreqRatio`,
+0.001..128) are also linear rather than log-scaled -- a known, minor UX rough
+edge, not a correctness issue.
 
 ## Editor
 
-`createEditor()` returns a `juce::GenericAudioProcessorEditor` -- JUCE's built-in
-generic parameter-list editor, exactly the pragmatic placeholder this doc previously
-said it *would* use once the target actually built. It now shows a real (if
-unstyled) list of all 578 registered parameters rather than an empty list:
-`hasEditor()` returning `true` with a non-null `createEditor()` result is a JUCE
-internal-consistency invariant (`AudioProcessor::createEditorIfNeeded()` asserts on
-exactly this), and standalone-launch testing caught the earlier
-`nullptr`-returning version violating it.
+**IMPLEMENTED -- PLAY mode, the OBSIDIAN skin.** `createEditor()` returns
+`ui::PlayModeEditor`, a real custom `juce::AudioProcessorEditor` --
+`juce::GenericAudioProcessorEditor` is no longer used. `hasEditor()` returning
+`true` with a non-null `createEditor()` result is a JUCE internal-consistency
+invariant (`AudioProcessor::createEditorIfNeeded()` asserts on exactly this,
+and `pluginval`'s Editor/Editor Automation suites exercise it directly under
+automation-style value changes and resize scenarios); both AU and VST3
+re-confirmed `pluginval --strictness-level 5` SUCCESS against the real editor,
+not just the parameter layer underneath it. Full design writeup, architecture,
+and a real geometry bug caught and fixed while building it: see
+[UI.md](UI.md).
 
 ## Signature UI: Graph
 
-Per the master spec, UI work is explicitly deferred until the DSP graph is proven
-stable ("do not spend substantial UI time until DSP graph is stable"). The eventual
-centerpiece is a visual rendering of exactly the same structure
-`AlgorithmGraphCompiler` already produces and `pw8-graph inspect` already prints in
-text form:
-
-```
-        OP8
-         |
-         v
-OP6 -> OP4 --+
-             |
-OP7 -> OP3 --+--> OUT
-             |
-OP2 -> OP1 --+
-```
-
-`plugin/src/ui/` is an empty, documented placeholder for that future work -- the
-`GenericAudioProcessorEditor` above is explicitly a placeholder, not a step toward it.
+**IMPLEMENTED** as `ui::AlgorithmGraphView`, PLAY mode's centerpiece -- a
+read-only rendering of exactly the same structure `AlgorithmGraphCompiler`
+already produces and `pw8-graph inspect` already prints in text form, with the
+8 nodes at fixed positions on a circle (not a draggable modular patcher --
+the master spec's "no visible patch-cable spaghetti" constraint, satisfied
+architecturally rather than just cosmetically) and edges rendered as curved,
+`EdgeType`-colored lines with an animated traveling pulse. See
+[UI.md](UI.md) "The algorithm graph view" for the full detail, including what
+the pulse does and doesn't represent (structural, not literal audio-level
+metering) and why editing the graph itself stays DESIGN-mode/PLANNED.
 
 ## Visualization: spectrum, oscilloscope, waveform/wavetable previews (PLANNED)
 
