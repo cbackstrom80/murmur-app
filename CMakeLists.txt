@@ -3,7 +3,9 @@ cmake_minimum_required(VERSION 3.24)
 project(patchwork_eight
     VERSION 0.1.0
     DESCRIPTION "Patchwork Eight -- AI-native dual-layer 8-engine algorithmic software synthesizer"
-    LANGUAGES CXX)
+    LANGUAGES CXX C)
+# C is only needed for the optional JUCE plugin target (a handful of JUCE's
+# helper/vendored bits are plain C); pw8_core and everything else here is pure C++.
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

@@ -17,6 +17,9 @@ add_executable(pw8-wavetable-builder wavetable_builder/main.cpp)
 target_link_libraries(pw8-wavetable-builder PRIVATE pw8::core nlohmann_json::nlohmann_json)
 pw8_set_warnings(pw8-wavetable-builder)
 
-# tools/algorithm_inspector, tools/preset_inspector, tools/fuzz_render, and
-# tools/benchmark are architected (see docs/ROADMAP.md and docs/TESTING.md
-# "Property / Fuzz Testing") but not yet implemented in this pass.
+add_executable(pw8-fuzz-render fuzz_render/main.cpp)
+target_link_libraries(pw8-fuzz-render PRIVATE pw8::core)
+pw8_set_warnings(pw8-fuzz-render)
+
+# tools/algorithm_inspector and tools/preset_inspector remain PLANNED -- their scope
+# is already covered by pw8-graph (see their README.md files for the rationale).

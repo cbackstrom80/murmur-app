@@ -67,11 +67,13 @@ namespace pw8::plugin
 
     juce::AudioProcessorEditor* PatchworkEightProcessor::createEditor()
     {
-        // A developer-oriented minimal editor (parameter list / generic editor) is
-        // sufficient until the real PLAY/DESIGN/LAB UI lands -- see docs/ROADMAP.md
-        // Phase 17. Returning a GenericAudioProcessorEditor here would be the pragmatic
-        // placeholder once this target actually builds against JUCE.
-        return nullptr;
+        // Pragmatic placeholder until the real PLAY/DESIGN/LAB UI lands (Phase 17):
+        // JUCE's built-in generic parameter editor. It'll be an empty list today since
+        // no juce::AudioProcessorValueTreeState parameters are registered yet
+        // (plugin/src/parameters/ is still PLANNED) -- but it's a real, consistent
+        // editor rather than a null one, which is what AudioProcessor::hasEditor()
+        // promises callers.
+        return new juce::GenericAudioProcessorEditor(*this);
     }
 
     void PatchworkEightProcessor::getStateInformation(juce::MemoryBlock& destData)

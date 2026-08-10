@@ -4,7 +4,7 @@ Status as of this repository's initial engineering pass. Legend: **DONE** / **PA
 
 | Phase | Scope | Status |
 |---|---|---|
-| 0 | Repository foundation (structure, CMake, core library skeleton, tests, benchmarks scaffold, docs, CI, coding standards) | **DONE** |
+| 0 | Repository foundation (structure, CMake, core library skeleton, tests, benchmarks, docs, CI, coding standards) | **DONE** |
 | 1 | First sound (Engine, Voice, VoiceAllocator, ClassicOscillator, DAHDSR, MIDI note handling, stereo output, native renderer) | **DONE** |
 | 2 | Wavetable (preprocessing, mipmapping, frame interpolation, wavetable source) | **PARTIAL** -- oscillator + builder tool implemented; mip-mapping/band-limiting not yet done (see DSP_ENGINE.md) |
 | 3 | 8-node algorithm graph (nodes, edges, validation, compiler, compiled execution, audio routing) | **DONE**, and beyond AUDIO-only -- all 7 edge types implemented |
@@ -20,11 +20,11 @@ Status as of this repository's initial engineering pass. Legend: **DONE** / **PA
 | 13 | Patch format productionization (schema, migrations, metadata) | **PARTIAL** -- schema v1 complete and hardened against untrusted input; migration *mechanism* exists with nothing to migrate yet (only one schema version so far) |
 | 14 | Python API productionization | **PARTIAL** -- see PYTHON_API.md coverage table |
 | 15 | Patchwork integration (Sound IR compilation boundary) | **PARTIAL** -- CLI/Python/schema boundaries exist and work; `EightPatchCompiler` (IR -> Patch) itself is PLANNED, see PATCHWORK_INTEGRATION.md |
-| 16 | Plugin (VST3, AU, Standalone) | **PARTIAL (untested scaffold)** -- see PLUGIN_ARCHITECTURE.md |
-| 17 | UI | **PLANNED** (deliberately, per spec) |
+| 16 | Plugin (VST3, AU, Standalone) | **PARTIAL, build-verified** -- builds against real JUCE 8.0.6; AU passes `auval` in full; Standalone launches cleanly; no UI/automation/host-matrix yet. See PLUGIN_ARCHITECTURE.md |
+| 17 | UI | **PLANNED** (deliberately, per spec) -- `createEditor()` returns JUCE's generic placeholder editor, not a step toward the real UI |
 | 18 | AI features (Generate, Mutate, Breed, Lock) via Patchwork | **PLANNED** -- metadata hooks (`LockFlags`, `lineage`, deterministic seeding) exist; the AI pipeline itself lives in Patchwork |
 | 19 | Factory bank (512-1024 curated presets) | **PLANNED** -- 7 engineering test patches exist (`content/presets/`), not factory-curated content |
-| 20 | Production hardening (host matrix, pluginval, auval, VST validator, fuzz tests, soak tests, perf optimization) | **PLANNED** |
+| 20 | Production hardening (host matrix, pluginval, auval, VST validator, fuzz tests, soak tests, perf optimization) | **PARTIAL** -- `auval` passes in full (see Phase 16); `pw8-fuzz-render` implemented and run (5,000 patches, 0 failures); `pluginval`, host matrix, and soak testing still PLANNED |
 
 ## This pass's actual deliverable
 
@@ -47,6 +47,27 @@ goals), this pass shipped:
   working phase-modulation edges (exceeding "basic PM edge" -- full FM/PM/AM/RM/
   SYNC/FEEDBACK typed edges)
 
+## Follow-up pass: what "build it all" added
+
+A second pass built and verified everything that was previously scaffolded or
+merely described:
+
+- `benchmarks/` -- real Google Benchmark suite (oscillators, algorithm graph, voice,
+  full-patch render at the master spec's exact 44.1/48/96 kHz x 1/8/16/32-voice
+  matrix), built and run.
+- `tools/fuzz_render/` (`pw8-fuzz-render`) -- implemented and run: 5,000
+  randomly-generated, schema-valid, compiler-guaranteed-acyclic patches, zero
+  failures, zero NaN/Inf.
+- `plugin/` -- actually built against JUCE (bumped 7.0.12 -> 8.0.6 after 7.0.12
+  failed to compile against the current macOS SDK). VST3/AU/Standalone all build;
+  **AU passes Apple's `auval` validation tool in full**; a real bug was caught and
+  fixed in the process (`hasEditor()`/`createEditor()` inconsistency -- JUCE's own
+  assertion in `AudioProcessor::createEditorIfNeeded()` caught it when the
+  Standalone app was actually launched, not by inspection).
+- `bindings/python` -- rebuilt from a clean preset and re-smoke-tested.
+- CI gained a macOS `plugin` job (build + `auval`, non-blocking) and a Linux+macOS
+  `python-bindings` job (build + smoke test).
+
 ## Immediate next steps (suggested, not committed)
 
 1. Wavetable mip-mapping (finishes Phase 2 properly).
@@ -54,7 +75,7 @@ goals), this pass shipped:
    already captured.
 3. Filter 1 (clean multimode) -- the single highest-leverage missing piece for
    subjective sound quality (Phase 6).
-4. `pw8-fuzz-render` (`tools/fuzz_render/`) -- the algorithm graph's
-   fuzz-safety properties (bounded feedback, finite-output clamps, compiler
-   validation) are architecturally in place; a real fuzz harness would give
-   confidence at scale rather than the current handful of targeted adversarial tests.
+4. `juce::AudioProcessorValueTreeState` parameter wiring + `pluginval` + a real DAW
+   host-matrix pass -- the plugin now builds and passes `auval`, so this is the
+   natural next increment toward a genuinely shippable plugin rather than a
+   from-scratch effort.

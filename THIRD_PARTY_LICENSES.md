@@ -24,7 +24,8 @@ repositories.
 
 - **Purpose:** Test framework (`tests/`). Never linked into any shipped binary.
 - **License:** Boost Software License 1.0
-- **Version:** v3.6.0
+- **Version:** v3.8.1 (bumped from v3.6.0 after hitting a test-discovery/CMake-version
+  interaction bug in the older release -- see `docs/TESTING.md`)
 - **Source:** https://github.com/catchorg/Catch2
 - **Commercial closed-source compatible:** Yes.
 
@@ -40,9 +41,12 @@ repositories.
 ## JUCE
 
 - **Purpose:** VST3/AU/Standalone plugin wrapper (`plugin/`), optional build
-  (`PW8_BUILD_PLUGIN`, off by default, untested scaffold in this pass).
+  (`PW8_BUILD_PLUGIN`, off by default). Build-verified: all three formats compile,
+  and the AU target passes Apple's `auval` validation tool in full.
 - **License:** GPLv3 **or** JUCE commercial license (dual-licensed)
-- **Version:** 7.0.12 (pinned in `plugin/CMakeLists.txt`)
+- **Version:** 8.0.6 (pinned in `plugin/CMakeLists.txt`; 7.0.12 was tried first and
+  failed to compile against the current macOS SDK -- `CGWindowListCreateImage` was
+  obsoleted in macOS 15)
 - **Source:** https://github.com/juce-framework/JUCE
 - **Commercial closed-source compatible:** **Only with a paid JUCE commercial
   license.** Building/shipping `pw8_plugin` closed-source under the free GPLv3 tier
@@ -52,12 +56,11 @@ repositories.
 
 ## Google Benchmark
 
-- **Purpose:** Performance benchmarking (`benchmarks/`), not yet implemented in this
-  pass; declared here in advance since it's named explicitly in the master spec's
-  technology stack.
+- **Purpose:** Performance benchmarking (`benchmarks/`). Build-verified: oscillator,
+  algorithm graph, voice, and full-patch-render benchmarks all run and produce real
+  numbers (see `docs/TESTING.md`).
 - **License:** Apache License 2.0
-- **Version:** not yet pinned (no `FetchContent_Declare` exists yet -- `benchmarks/`
-  has no CMakeLists.txt in this pass)
+- **Version:** v1.9.1
 - **Source:** https://github.com/google/benchmark
 - **Commercial closed-source compatible:** Yes.
 

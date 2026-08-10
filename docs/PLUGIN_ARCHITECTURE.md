@@ -1,13 +1,23 @@
 # Plugin Architecture
 
-**STATUS: SCAFFOLD / PARTIAL.** `plugin/` is real, structurally-considered code
-(`plugin/CMakeLists.txt`, `plugin/src/processor/PatchworkEightProcessor.{h,cpp}`,
-`plugin/src/state/PluginState.h/.cpp`) but has **not been compiled against an actual
-JUCE checkout in this pass** -- `PW8_BUILD_PLUGIN` defaults `OFF`, and CI does not
-build it. Per the master spec's phasing, the plugin is Phase 16, well after the
-Phase 0/1(+2/3) target of this pass; what exists now is written to prove the
-architecture reads correctly against the JUCE `AudioProcessor` API, not to claim a
-working plugin.
+**STATUS: PARTIAL, build-verified.** `plugin/` builds against real JUCE 8.0.6
+(`cmake --preset plugin && cmake --build --preset plugin`) and produces working
+VST3, AU, and Standalone artifacts:
+
+- **AU passes Apple's `auval` validation tool in full**: format tests, render tests
+  at 22.05k/44.1k/48k/96k/192k Hz and multiple block sizes (64/137/512/4096 frames),
+  a 1-channel test, a bad-max-frames failure-mode test, and a MIDI test all pass
+  (`AU VALIDATION SUCCEEDED`).
+- The **Standalone app launches and runs cleanly** (verified: process stays alive,
+  no crash, no JUCE assertion failures).
+- The **VST3** bundle builds and ad-hoc-signs successfully.
+
+None of this has been tested inside a real DAW host yet, and there is no host-matrix
+CI job beyond a single macOS build-and-`auval` check (`.github/workflows/ci.yml`'s
+`plugin` job) -- see "What's still missing" below. Per the master spec's phasing,
+the plugin is Phase 16, well after this pass's Phase 0/1(+2/3) target; what's here
+now goes beyond "compiles" to "passes Apple's own validator," which is further than
+the phase strictly requires, but was verified directly rather than assumed.
 
 ## Design
 
@@ -42,7 +52,7 @@ pitch wheel, CC, channel pressure, and poly aftertouch directly into
 `pw8::render::Engine` calls -- the same entry points the native renderer's MIDI
 dispatch uses (`pw8::render::Engine::noteOn/noteOff/pitchBend/controlChange/
 channelPressure/polyAftertouch`), so plugin and offline-render MIDI handling can't
-drift apart.
+drift apart. `auval`'s MIDI test exercises this path directly and passes.
 
 ### Automation
 
@@ -50,7 +60,19 @@ Per the master spec, not every internal patch parameter is exposed as flat DAW
 automation. `plugin/src/state/PluginState.h` documents the intended parameter ID
 scheme (`macro1`..`macro8`, matching `Patch::macros[0..7]`) for the eventual
 `juce::AudioProcessorValueTreeState` wiring -- **not yet implemented**
-(`plugin/src/parameters/` is an empty, documented placeholder).
+(`plugin/src/parameters/` is an empty, documented placeholder). `auval` reports zero
+published parameters today, consistent with this.
+
+## Editor
+
+`createEditor()` returns a `juce::GenericAudioProcessorEditor` -- JUCE's built-in
+generic parameter-list editor, exactly the pragmatic placeholder this doc previously
+said it *would* use once the target actually built. It's empty today (no
+`AudioProcessorParameter`s are registered yet), but it's a real, consistent editor:
+`hasEditor()` returning `true` with a non-null `createEditor()` result is a JUCE
+internal-consistency invariant (`AudioProcessor::createEditorIfNeeded()` asserts on
+exactly this), and standalone-launch testing caught the earlier
+`nullptr`-returning version violating it.
 
 ## Signature UI: Graph
 
@@ -71,14 +93,16 @@ OP7 -> OP3 --+--> OUT
 OP2 -> OP1 --+
 ```
 
-`plugin/src/ui/` is an empty, documented placeholder
-(`PatchworkEightProcessor::createEditor()` currently returns `nullptr`).
+`plugin/src/ui/` is an empty, documented placeholder for that future work -- the
+`GenericAudioProcessorEditor` above is explicitly a placeholder, not a step toward it.
 
-## What to build first, once JUCE is actually wired up
+## What's still missing
 
-1. Confirm `plugin/CMakeLists.txt` actually configures/builds against real JUCE
-   (FetchContent'd at `7.0.12` in this scaffold -- pin/verify against whatever JUCE
-   version is current when this phase starts).
-2. `pluginval` in CI once the target builds (docs/TESTING.md).
-3. A `GenericAudioProcessorEditor` as the pragmatic placeholder editor before the
-   real PLAY/DESIGN/LAB UI (Phase 17).
+1. `pluginval` (beyond `auval`) -- PLANNED, not run in this pass.
+2. Real DAW host-matrix testing (Ableton, Logic, Reaper, Bitwig, etc.) -- not done;
+   `auval` and a bare Standalone launch are strong but not equivalent signals.
+3. `juce::AudioProcessorValueTreeState` parameter wiring (`plugin/src/parameters/`).
+4. The real PLAY/DESIGN/LAB UI (Phase 17) -- `GenericAudioProcessorEditor` is a
+   placeholder, not a step toward it.
+5. Code signing / notarization for actual distribution (the build today produces an
+   ad-hoc-signed VST3, sufficient for local testing only).

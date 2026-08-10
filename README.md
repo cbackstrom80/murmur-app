@@ -30,7 +30,9 @@ for the full phase-by-phase breakdown against the product spec.
 | Standard MIDI File input (hand-rolled reader, tempo map, running status) | **IMPLEMENTED** |
 | Python bindings (pybind11) | **IMPLEMENTED** (partial API surface, see docs/PYTHON_API.md) |
 | Deterministic/seeded randomness throughout | **IMPLEMENTED** |
-| JUCE VST3/AU/Standalone plugin | **SCAFFOLD** (untested in this pass, off by default) |
+| JUCE VST3/AU/Standalone plugin | **PARTIAL, build-verified** (AU passes Apple's `auval` in full; off by default) |
+| Google Benchmark suite | **IMPLEMENTED** (oscillators, algorithm graph, voice, full-patch render, at 44.1/48/96 kHz x 1/8/16/32 voices) |
+| Fuzz-render harness (`pw8-fuzz-render`) | **IMPLEMENTED** (verified: 5,000 random valid patches, 0 failures) |
 | Filters, FX, LFO, mod matrix, macros, sequencer, dual-layer mixing, algorithm morph, additional engine types (additive/phase-shape/granular/noise/resonator) | **PLANNED** |
 
 ## Architecture
@@ -42,7 +44,8 @@ for the full phase-by-phase breakdown against the product spec.
          |                |                |
          v                v                v
      pw8_plugin      patchwork_eight    pw8-render / pw8-info / pw8-graph / ...
-   (JUCE, SCAFFOLD)   (pybind11)        (native CLI tools)
+  (JUCE, build-       (pybind11)        (native CLI tools)
+    verified)
 ```
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full threading model,

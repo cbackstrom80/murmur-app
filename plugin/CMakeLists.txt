@@ -1,14 +1,18 @@
 # pw8_plugin -- JUCE VST3/AU/Standalone wrapper around pw8_core.
 #
-# STATUS: SCAFFOLD / PARTIAL. This target is off by default (PW8_BUILD_PLUGIN=OFF)
-# and is NOT exercised by CI in this pass -- see docs/PLUGIN_ARCHITECTURE.md and
-# docs/ROADMAP.md Phase 16. It is included now so the directory structure, source
-# layout, and dependency wiring are real and ready rather than an empty folder, but
-# the processor code has not been compiled against an actual JUCE checkout yet.
+# STATUS: PARTIAL, build-verified. Off by default (PW8_BUILD_PLUGIN=OFF) and not
+# built by the main CI job (see .github/workflows/ci.yml's separate macOS-only
+# `plugin` job) -- see docs/PLUGIN_ARCHITECTURE.md and docs/ROADMAP.md Phase 16.
+# VST3/AU/Standalone all build against real JUCE 8.0.6, and the AU target passes
+# Apple's `auval` validation tool in full (format tests, render tests at 22.05k/
+# 44.1k/48k/96k/192k Hz and multiple block sizes, MIDI test). What's still missing:
+# a real UI (createEditor() returns JUCE's generic parameter-list editor as a
+# placeholder), parameter automation wiring (plugin/src/parameters/ is still
+# PLANNED), and pluginval / a real DAW host-matrix pass.
 #
 # To attempt a build:
-#   cmake --preset dev -DPW8_BUILD_PLUGIN=ON
-# This will fetch JUCE (GPLv3/commercial-dual-licensed -- see THIRD_PARTY_LICENSES.md;
+#   cmake --preset plugin && cmake --build --preset plugin
+# This fetches JUCE (GPLv3/commercial-dual-licensed -- see THIRD_PARTY_LICENSES.md;
 # a commercial JUCE license is required before this plugin can ship closed-source).
 
 include(FetchContent)
@@ -16,7 +20,7 @@ include(FetchContent)
 FetchContent_Declare(
     JUCE
     GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
-    GIT_TAG        7.0.12
+    GIT_TAG        8.0.6
     GIT_SHALLOW    TRUE
 )
 FetchContent_MakeAvailable(JUCE)

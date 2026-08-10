@@ -22,8 +22,9 @@ that could end up on the audio thread's include path pulls in a JSON parser. See
 
 Everything else is a consumer of `pw8_core`:
 
-- **`pw8_plugin`** (`plugin/`) -- JUCE VST3/AU/Standalone wrapper. STATUS: **SCAFFOLD /
-  PARTIAL**, off by default (`PW8_BUILD_PLUGIN=OFF`), not built by CI in this pass.
+- **`pw8_plugin`** (`plugin/`) -- JUCE VST3/AU/Standalone wrapper. STATUS: **PARTIAL,
+  build-verified** (AU passes Apple's `auval` in full; off by default,
+  `PW8_BUILD_PLUGIN=OFF`; built by a non-blocking macOS CI job).
 - **`patchwork_eight`** (`bindings/python/`) -- pybind11 module. STATUS:
   **IMPLEMENTED (PARTIAL API surface)**, off by default (`PW8_BUILD_PYTHON_BINDINGS=OFF`
   since it needs Python dev headers), builds and is smoke-tested.

@@ -34,9 +34,9 @@ file in `content/`.
 | `release` | core + tools + tests, Release | |
 | `asan` | core + tests, Debug, AddressSanitizer | `cmake --build --preset asan && ctest --preset asan` |
 | `ubsan` | core + tests, Debug, UndefinedBehaviorSanitizer | |
-| `benchmarks` | core + Google Benchmark suite | suite itself is PLANNED, see `benchmarks/README.md` |
-| `python` | core + `patchwork_eight` pybind11 module | requires Python dev headers; output at `build/python/python/patchwork_eight.cpython-*.so` |
-| `plugin` | core + `pw8_plugin` (JUCE) | **SCAFFOLD, not verified in this pass** -- see `docs/PLUGIN_ARCHITECTURE.md` |
+| `benchmarks` | core + Google Benchmark suite | build-verified; run `./build/benchmarks/benchmarks/pw8_benchmarks` |
+| `python` | core + `patchwork_eight` pybind11 module | requires Python dev headers; output at `build/python/python/patchwork_eight.cpython-*.so`; build-verified + smoke-tested |
+| `plugin` | core + `pw8_plugin` (JUCE) | build-verified: VST3/AU/Standalone all build against JUCE 8.0.6, AU passes `auval` -- see `docs/PLUGIN_ARCHITECTURE.md` for what's still missing (real UI, host-matrix testing) |
 
 Manual (non-preset) configure equivalent:
 
@@ -73,7 +73,42 @@ cmake --build build -j
 
 ./build/dev/tools/pw8-wavetable-builder --input source.wav --output content/wavetables/my_table.json \
     --frames 4 --samples-per-frame 2048
+
+./build/dev/tools/pw8-fuzz-render --count 10000 --seed 1
 ```
+
+## Benchmarks
+
+```bash
+cmake --preset benchmarks
+cmake --build --preset benchmarks -j
+./build/benchmarks/benchmarks/pw8_benchmarks
+```
+
+Covers the Classic and Wavetable oscillators, three algorithm-graph topologies
+(parallel/serial/feedback), a single-voice render loop, and full-patch rendering at
+44.1/48/96 kHz x 1/8/16/32 voices -- matching the master spec's benchmark matrix.
+
+## Plugin (JUCE)
+
+```bash
+cmake --preset plugin
+cmake --build --preset plugin -j
+```
+
+Produces VST3, AU, and Standalone builds under
+`build/plugin/plugin/pw8_plugin_artefacts/Debug/`. On macOS, validate the AU with
+Apple's own tool:
+
+```bash
+cp -R "build/plugin/plugin/pw8_plugin_artefacts/Debug/AU/Patchwork Eight.component" \
+    ~/Library/Audio/Plug-Ins/Components/
+killall -9 AudioComponentRegistrar   # forces auval to see the freshly-copied component
+auval -v aumu Pwe8 Pwei
+```
+
+See [docs/PLUGIN_ARCHITECTURE.md](PLUGIN_ARCHITECTURE.md) for what's verified
+(build + full `auval` pass) versus still missing (real UI, host-matrix testing).
 
 ## Python bindings
 

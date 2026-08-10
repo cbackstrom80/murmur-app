@@ -1,11 +1,20 @@
 # benchmarks/
 
-Google Benchmark suite (docs/TESTING.md "Benchmarks"). PLANNED -- not implemented in
-this pass. Intended coverage once `PW8_BUILD_BENCHMARKS=ON` is wired up:
+**IMPLEMENTED.** Google Benchmark suite (`PW8_BUILD_BENCHMARKS` / `benchmarks`
+preset). Covers:
 
-- Classic oscillator, wavetable oscillator, algorithm graph execution, voice
-  rendering, full-patch rendering, reverb (once implemented)
-- At 44.1 / 48 / 96 kHz
-- At 1 / 8 / 16 / 32 voices
+- `OscillatorBenchmarks.cpp` -- Classic oscillator (saw, morph sweep) and Wavetable
+  oscillator, at 44.1/48/96 kHz.
+- `AlgorithmGraphBenchmarks.cpp` -- parallel-8, serial-8, and feedback-bell topologies.
+- `VoiceBenchmarks.cpp` -- single-voice full render loop (oscillator + envelope +
+  algorithm graph).
+- `RenderBenchmarks.cpp` -- full-patch rendering across the master spec's exact
+  matrix: 44.1/48/96 kHz x 1/8/16/32 voices.
 
-See `docs/ROADMAP.md` and the top-level `CMakeLists.txt`'s `PW8_BUILD_BENCHMARKS` option.
+```bash
+cmake --preset benchmarks
+cmake --build --preset benchmarks -j
+./build/benchmarks/benchmarks/pw8_benchmarks
+```
+
+See [docs/TESTING.md](../docs/TESTING.md) for sample captured numbers.

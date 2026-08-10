@@ -66,7 +66,57 @@ jobs:
       - name: Test (UBSan)
         run: ctest --preset ubsan --output-on-failure
 
-# NOTE: pw8_plugin (JUCE) and the pybind11 module are NOT built in CI in this pass --
-# the plugin target is an untested scaffold (see docs/PLUGIN_ARCHITECTURE.md) and
-# the Python bindings require a Python dev-headers setup step not yet added here.
-# Both are candidates for future CI jobs once those targets are exercised more.
+  plugin:
+    name: Plugin build + auval (macos-latest)
+    runs-on: macos-latest
+    # JUCE FetchContent + full plugin compile is slow; keep this isolated from the
+    # required build-and-test jobs so a plugin regression doesn't block core changes.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake --preset plugin
+
+      - name: Build
+        run: cmake --build --preset plugin -j
+
+      - name: Validate AU with auval
+        run: |
+          set -e
+          COMPONENT="build/plugin/plugin/pw8_plugin_artefacts/Debug/AU/Patchwork Eight.component"
+          cp -R "$COMPONENT" ~/Library/Audio/Plug-Ins/Components/
+          killall -9 AudioComponentRegistrar || true
+          auval -v aumu Pwe8 Pwei
+
+  python-bindings:
+    name: Python bindings build + smoke test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Configure
+        run: cmake --preset python
+
+      - name: Build
+        run: cmake --build --preset python -j
+
+      - name: Smoke test
+        run: |
+          python3 -c "
+          import sys; sys.path.insert(0, 'build/python/python')
+          import patchwork_eight as pw8
+          patch = pw8.Patch.load('content/presets/init-saw.pw8')
+          result = pw8.render(patch, 'content/test_midi/single-note.mid')
+          assert result['metrics']['contains_nan_or_inf'] is False
+          assert result['metrics']['peak'] > 0.0
+          print('OK', result['metrics'])
+          "
