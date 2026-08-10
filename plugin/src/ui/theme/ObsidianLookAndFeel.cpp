@@ -1,5 +1,6 @@
 #include "ObsidianLookAndFeel.h"
 
+#include "ObsidianFonts.h"
 #include "ObsidianPalette.h"
 
 namespace pw8::plugin::ui
@@ -11,6 +12,12 @@ namespace pw8::plugin::ui
         setColour(juce::Slider::textBoxTextColourId, palette::kTextPrimary);
         setColour(juce::Slider::textBoxBackgroundColourId, palette::kPanelRaised);
         setColour(juce::Slider::textBoxOutlineColourId, palette::kBorder);
+        // The default every knob's value arc/pointer paints in unless a specific
+        // GlowKnob asks for the warm variant instead -- see "duotone" in
+        // ObsidianPalette.h. Repurposing JUCE's own rotarySliderFillColourId
+        // rather than inventing a parallel mechanism keeps per-knob accent choice
+        // a one-line `slider.setColour(...)` at the call site.
+        setColour(juce::Slider::rotarySliderFillColourId, palette::kAccent);
         setColour(juce::ToggleButton::textColourId, palette::kTextSecondary);
         setColour(juce::TooltipWindow::backgroundColourId, palette::kPanelRaised);
         setColour(juce::TooltipWindow::textColourId, palette::kTextPrimary);
@@ -18,7 +25,7 @@ namespace pw8::plugin::ui
 
     void ObsidianLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height,
                                                 float sliderPosProportional, float rotaryStartAngle,
-                                                float rotaryEndAngle, juce::Slider&)
+                                                float rotaryEndAngle, juce::Slider& slider)
     {
         // Defensive floor, not just a layout-correctness assumption: every radius
         // below is derived from `diameter`, so an under-sized allotment (a future
@@ -39,6 +46,7 @@ namespace pw8::plugin::ui
         const float radius = diameter * 0.5f;
         const auto centre = knobBounds.getCentre();
         const float angle = rotaryStartAngle + sliderPosProportional * (rotaryEndAngle - rotaryStartAngle);
+        const auto accent = slider.findColour(juce::Slider::rotarySliderFillColourId);
 
         // Background track: a full arc from start to end angle, quiet and recessed.
         const float trackThickness = juce::jmax(2.0f, radius * 0.14f);
@@ -58,11 +66,14 @@ namespace pw8::plugin::ui
             juce::Path value;
             value.addCentredArc(centre.x, centre.y, trackRadius, trackRadius, 0.0f, rotaryStartAngle, angle, true);
 
-            g.setColour(palette::kAccent.withAlpha(0.28f));
-            g.strokePath(value, juce::PathStrokeType(trackThickness * 2.4f, juce::PathStrokeType::curved,
+            g.setColour(accent.withAlpha(0.32f));
+            g.strokePath(value, juce::PathStrokeType(trackThickness * 3.2f, juce::PathStrokeType::curved,
+                                                       juce::PathStrokeType::rounded));
+            g.setColour(accent.withAlpha(0.5f));
+            g.strokePath(value, juce::PathStrokeType(trackThickness * 1.8f, juce::PathStrokeType::curved,
                                                        juce::PathStrokeType::rounded));
 
-            g.setColour(palette::kAccent);
+            g.setColour(accent);
             g.strokePath(value, juce::PathStrokeType(trackThickness, juce::PathStrokeType::curved,
                                                        juce::PathStrokeType::rounded));
         }
@@ -85,7 +96,7 @@ namespace pw8::plugin::ui
         pointer.startNewSubPath(centre.x, centre.y - pointerInner);
         pointer.lineTo(centre.x, centre.y - pointerOuter);
         pointer.applyTransform(juce::AffineTransform::rotation(angle, centre.x, centre.y));
-        g.setColour(palette::kAccent);
+        g.setColour(accent);
         g.strokePath(pointer, juce::PathStrokeType(juce::jmax(1.5f, bodyRadius * 0.09f),
                                                      juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
     }
@@ -117,17 +128,15 @@ namespace pw8::plugin::ui
         if (button.getButtonText().isNotEmpty())
         {
             g.setColour(palette::kTextSecondary);
-            g.setFont(juce::Font(juce::FontOptions(12.0f)));
+            g.setFont(fonts::label(12.0f));
             g.drawText(button.getButtonText(), bounds.withTrimmedLeft(6.0f), juce::Justification::centredLeft, true);
         }
     }
 
     juce::Font ObsidianLookAndFeel::getLabelFont(juce::Label& label)
     {
-        auto font = juce::Font(juce::FontOptions(12.0f));
-        font.setExtraKerningFactor(0.03f);
         juce::ignoreUnused(label);
-        return font;
+        return fonts::label(12.0f);
     }
 
 } // namespace pw8::plugin::ui

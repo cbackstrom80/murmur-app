@@ -23,11 +23,16 @@ components configure a `juce::Slider`/`juce::ToggleButton`'s behavior and let
 the LookAndFeel render it, so the visual language stays consistent by
 construction rather than by convention.
 
-Visual language: near-black charcoal panels with hairline borders and a soft
-inner shadow (a milled panel set into a chassis, not flat black, which reads
-cheap); one accent color (a cool cyan) used sparingly for anything "live" --
-an active knob's value arc/glow, the algorithm graph's output node and
-traveling signal pulses -- restraint here is what separates "premium" from
+Visual language: near-black charcoal cards with a real soft drop shadow (not
+just a border -- see "Visual overhaul" below) set against a subtly grained,
+vignetted background; a deliberate **duotone**, not a single accent -- cool
+cyan for structural/signal things (the algorithm graph, Filter, FX), warm
+amber for the one surface a player's hands are actually on (the 8 macros).
+Neither reads as "extra" because each owns a distinct, consistent role rather
+than competing for the same meaning -- restraint is still the point, just
+spent on two colors instead of one. Anything "live" glows in its lane's
+color -- an active knob's value arc/glow, the algorithm graph's output node
+and traveling signal pulses -- restraint here is what separates "premium" from
 "neon soup"; flat, precise "engineered" controls (a knob is a flat cylinder
 with a thin indicator + glow arc, not skeuomorphic chrome).
 
@@ -95,6 +100,54 @@ looks fully live.
 
 Editing the graph (moving nodes, adding/removing edges) is explicitly out of
 scope for PLAY mode -- DESIGN mode's job, PLANNED.
+
+## UI GATE 2: visual overhaul
+
+Per explicit user direction ("make it way radder," after reviewing a
+reference mockup with much denser information architecture than PLAY mode
+currently has), a second pass pushed the *visual* language further without
+adding new feature surface -- the reference showed real value in typography,
+depth, and duotone color, all buildable today; it also showed things this
+project doesn't have DSP for yet (a GPU/spatial engine, 6 of 8 operator
+engine types that still render silence, a live spectrum analyzer with no
+audio-thread tap built) or that would explicitly violate the master spec
+("CUDA GPU" contradicts its own "never require CUDA" rule) -- building
+gorgeous chrome around those would have been dishonest, so this pass stayed
+disciplined to what's real:
+
+- **Typography**: `theme/ObsidianFonts.h`, a shared font helper every label/
+  value/title routes through -- a curated system-font fallback chain (Avenir
+  Next, preferred) rather than JUCE's plain default sans. The single biggest
+  visual lever per unit of effort; a licensed, embedded, truly cross-platform
+  typeface is the honest PLANNED follow-up once Windows/Linux builds are a
+  real target.
+- **Duotone**: `GlowKnob` gained an optional `accentColour` (wired via
+  JUCE's own `Slider::rotarySliderFillColourId` rather than a parallel
+  mechanism); `MacroStrip` is the only caller that uses it, painting the warm
+  half.
+- **Card depth**: `SectionPanel` gained a real soft drop shadow (three
+  decreasing-alpha passes, not one hard-edged offset rectangle) and a faint
+  top highlight -- the "milled panel set into a chassis" read now depends on
+  both, not just a border. Also gained a card-header treatment (a small
+  accent-colored dot + a hairline divider under the title row) -- visually
+  closer to the reference's tab-style section headers without adding actual
+  tab navigation, since PLAY mode still has exactly one screen.
+- **Background**: `PlayModeEditor` gained a sparse, deterministic dot-grain
+  texture (a cheap positional hash, not per-frame randomness, so it never
+  swims between repaints) and a soft radial vignette pulling the eye toward
+  the algorithm graph.
+- **Ambient life**: the algorithm graph's output node(s) now have a slow
+  breathing glow (sine-modulated alpha/radius) so the graph reads as alive
+  even on the edge-less default init patch, not only when a signal pulse
+  happens to be traveling an edge -- decorative, like the edge pulse itself,
+  not driven by real audio levels.
+- **Header**: `PatchBrowserBar` grew a proper two-line wordmark block
+  ("PATCHWORK EIGHT" + "8-ENGINE ALGORITHMIC SYNTHESIZER"), matching the
+  reference's branding treatment.
+
+`auval` and `pluginval --strictness-level 5` both re-confirmed clean after
+this pass (paint-only changes, no parameter/state-shape changes -- see
+"Verification" below).
 
 ## A real bug, caught and fixed during this pass
 

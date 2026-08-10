@@ -1,14 +1,15 @@
 #include "PatchBrowserBar.h"
 
+#include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 
 namespace pw8::plugin::ui
 {
     PatchBrowserBar::PatchBrowserBar(PatchworkEightProcessor& processor) : processor_(processor)
     {
-        patchNameLabel_.setJustificationType(juce::Justification::centredLeft);
+        patchNameLabel_.setJustificationType(juce::Justification::centredRight);
         patchNameLabel_.setColour(juce::Label::textColourId, palette::kTextPrimary);
-        patchNameLabel_.setFont(juce::Font(juce::FontOptions(15.0f)).withExtraKerningFactor(0.02f));
+        patchNameLabel_.setFont(fonts::title(16.0f));
         addAndMakeVisible(patchNameLabel_);
         startTimerHz(2);
         timerCallback();
@@ -28,15 +29,21 @@ namespace pw8::plugin::ui
 
     void PatchBrowserBar::paint(juce::Graphics& g)
     {
-        g.setColour(palette::kTextDim);
-        g.setFont(juce::Font(juce::FontOptions(11.0f)).withExtraKerningFactor(0.15f));
         auto bounds = getLocalBounds();
-        g.drawText("PATCHWORK EIGHT", bounds.removeFromRight(140), juce::Justification::centredRight);
+        auto wordmarkArea = bounds.removeFromLeft(280);
+
+        g.setColour(palette::kTextPrimary);
+        g.setFont(fonts::title(18.0f));
+        g.drawText("PATCHWORK EIGHT", wordmarkArea.removeFromTop(22), juce::Justification::bottomLeft);
+
+        g.setColour(palette::kTextDim);
+        g.setFont(fonts::label(9.0f));
+        g.drawText("8-ENGINE ALGORITHMIC SYNTHESIZER", wordmarkArea, juce::Justification::topLeft);
     }
 
     void PatchBrowserBar::resized()
     {
-        patchNameLabel_.setBounds(getLocalBounds().withTrimmedRight(140));
+        patchNameLabel_.setBounds(getLocalBounds().withTrimmedLeft(280));
     }
 
 } // namespace pw8::plugin::ui

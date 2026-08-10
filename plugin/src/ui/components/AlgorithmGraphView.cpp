@@ -1,5 +1,8 @@
 #include "AlgorithmGraphView.h"
 
+#include <cmath>
+
+#include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "pw8/algorithm/AlgorithmTypes.hpp"
 
@@ -126,6 +129,19 @@ namespace pw8::plugin::ui
             const auto p = nodePosition(i, nodeCount, area);
             const bool implemented = algorithm::isEngineImplemented(node.engine);
 
+            // A slow ambient "breathing" glow behind output nodes -- the graph
+            // reads as alive even with the default no-edge patch (see the
+            // screenshot-driven review this was added from), not just when a
+            // pulse happens to be traveling an edge. Structural/decorative, like
+            // the edge pulse itself -- not driven by real audio levels.
+            if (node.isOutput)
+            {
+                const float breath = 0.5f + 0.5f * std::sin(pulsePhase_ * juce::MathConstants<float>::twoPi * 2.15f);
+                const float glowRadius = kNodeRadius * (1.35f + 0.25f * breath);
+                g.setColour(palette::kAccent.withAlpha(0.10f + 0.08f * breath));
+                g.fillEllipse(p.x - glowRadius, p.y - glowRadius, glowRadius * 2.0f, glowRadius * 2.0f);
+            }
+
             g.setColour(palette::kPanelRaised);
             g.fillEllipse(p.x - kNodeRadius, p.y - kNodeRadius, kNodeRadius * 2.0f, kNodeRadius * 2.0f);
 
@@ -147,12 +163,12 @@ namespace pw8::plugin::ui
             }
 
             g.setColour(implemented ? palette::kTextPrimary : palette::kTextDim);
-            g.setFont(juce::Font(juce::FontOptions(10.5f)));
+            g.setFont(fonts::label(10.5f));
             g.drawText(engineShortName(node.engine), juce::Rectangle<float>(p.x - kNodeRadius, p.y - 6.0f,
                                                                              kNodeRadius * 2.0f, 12.0f),
                        juce::Justification::centred);
             g.setColour(palette::kTextDim);
-            g.setFont(juce::Font(juce::FontOptions(8.0f)));
+            g.setFont(fonts::value(8.0f));
             g.drawText(juce::String(static_cast<int>(node.id.get())),
                        juce::Rectangle<float>(p.x - kNodeRadius, p.y + 6.0f, kNodeRadius * 2.0f, 10.0f),
                        juce::Justification::centred);

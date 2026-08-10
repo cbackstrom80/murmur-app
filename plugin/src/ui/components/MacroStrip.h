@@ -8,6 +8,7 @@
 
 #include "GlowKnob.h"
 #include "SectionPanel.h"
+#include "../theme/ObsidianPalette.h"
 
 // The 8 macros, laid out as a single row -- Patchwork Eight's actual performance
 // surface, and the reason macros were the very first thing this project exposed
@@ -22,7 +23,7 @@ namespace pw8::plugin::ui
         void resized() override;
 
     private:
-        SectionPanel panel_{"Macros"};
+        SectionPanel panel_{"Macros", palette::kAccentWarm};
         std::array<std::unique_ptr<GlowKnob>, 8> knobs_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MacroStrip)

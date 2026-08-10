@@ -24,15 +24,23 @@ namespace pw8::plugin::ui::palette
     inline const juce::Colour kTextSecondary{0xff8b909c};
     inline const juce::Colour kTextDim{0xff565a66};
 
-    // -- The one accent, used sparingly: anything "live" glows this color and
-    // nothing else does. Restraint here is the whole point of the skin. --
+    // -- A deliberate duotone, not a single accent: cool cyan for structural/signal
+    // things (the algorithm graph, Filter, FX), warm amber for performance things
+    // (the 8 macros -- the one surface a player's hands are actually on). Neither
+    // reads as "extra" because each owns a distinct, consistent role rather than
+    // competing for the same meaning -- restraint is still the point, just spent on
+    // two colors instead of one. --
     inline const juce::Colour kAccent{0xff7fe7e0};
     inline const juce::Colour kAccentDim{0xff3d5c59};
 
-    // A second, quieter accent reserved for things that need to read as "armed but
-    // not necessarily active" (e.g. an enabled-but-silent FX slot) -- warmer, less
-    // saturated than the main accent so it never competes with it.
-    inline const juce::Colour kAccentWarm{0xffe0a35f};
+    inline const juce::Colour kAccentWarm{0xffe8a33d};
+    inline const juce::Colour kAccentWarmDim{0xff5c4a2c};
+
+    // Card depth: a soft shadow beneath every SectionPanel, and a faint highlight
+    // along its top edge -- the "milled panel set into a chassis" read depends on
+    // both, not just a border.
+    inline const juce::Colour kShadow{0x66000000};
+    inline const juce::Colour kTopHighlight{0x14ffffff};
 
     // -- Semantic edge colors for the algorithm graph view, one per
     // algorithm::EdgeType. Deliberately all desaturated relative to kAccent -- an

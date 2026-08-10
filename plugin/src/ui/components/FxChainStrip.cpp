@@ -1,5 +1,6 @@
 #include "FxChainStrip.h"
 
+#include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "state/PluginState.h"
 
@@ -39,7 +40,7 @@ namespace pw8::plugin::ui
 
             slot.typeParam = apvts.getRawParameterValue(prefix + "Type");
             slot.typeLabel.setJustificationType(juce::Justification::centred);
-            slot.typeLabel.setFont(juce::Font(juce::FontOptions(9.5f)));
+            slot.typeLabel.setFont(fonts::label(9.5f));
             slot.typeLabel.setColour(juce::Label::textColourId, palette::kTextSecondary);
             panel_.addAndMakeVisible(slot.typeLabel);
 

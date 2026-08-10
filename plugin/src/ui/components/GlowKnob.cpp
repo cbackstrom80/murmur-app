@@ -1,5 +1,6 @@
 #include "GlowKnob.h"
 
+#include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 
 namespace pw8::plugin::ui
@@ -18,7 +19,8 @@ namespace pw8::plugin::ui
     }
 
     GlowKnob::GlowKnob(juce::AudioProcessorValueTreeState& apvts, const juce::String& paramId,
-                        const juce::String& name, std::function<juce::String(float)> valueToText)
+                        const juce::String& name, std::function<juce::String(float)> valueToText,
+                        juce::Colour accentColour)
     {
         slider_.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
         slider_.setRotaryParameters(juce::MathConstants<float>::pi * 1.2f, juce::MathConstants<float>::pi * 2.8f,
@@ -28,12 +30,14 @@ namespace pw8::plugin::ui
         slider_.setColour(juce::Slider::textBoxBackgroundColourId, palette::kPanelRaised);
         slider_.setColour(juce::Slider::textBoxOutlineColourId, palette::kBorder);
         slider_.setColour(juce::Slider::textBoxTextColourId, palette::kTextPrimary);
+        if (!accentColour.isTransparent())
+            slider_.setColour(juce::Slider::rotarySliderFillColourId, accentColour);
         addAndMakeVisible(slider_);
 
         nameLabel_.setText(name.toUpperCase(), juce::dontSendNotification);
         nameLabel_.setJustificationType(juce::Justification::centred);
         nameLabel_.setColour(juce::Label::textColourId, palette::kTextSecondary);
-        nameLabel_.setFont(juce::Font(juce::FontOptions(10.5f)));
+        nameLabel_.setFont(fonts::label(10.5f));
         addAndMakeVisible(nameLabel_);
 
         attachment_ = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, paramId,

@@ -1,5 +1,6 @@
 #include "MacroStrip.h"
 
+#include "../theme/ObsidianPalette.h"
 #include "state/PluginState.h"
 
 namespace pw8::plugin::ui
@@ -9,7 +10,11 @@ namespace pw8::plugin::ui
         addAndMakeVisible(panel_);
         for (std::size_t i = 0; i < knobs_.size(); ++i)
         {
-            knobs_[i] = std::make_unique<GlowKnob>(apvts, kMacroParameterIds[i], kMacroParameterNames[i]);
+            // The warm half of the duotone: macros are the one surface a player's
+            // hands are actually on, not a structural/signal reading (see
+            // ObsidianPalette.h).
+            knobs_[i] = std::make_unique<GlowKnob>(apvts, kMacroParameterIds[i], kMacroParameterNames[i], nullptr,
+                                                     palette::kAccentWarm);
             panel_.addAndMakeVisible(*knobs_[i]);
         }
     }

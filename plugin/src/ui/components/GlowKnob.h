@@ -21,8 +21,13 @@ namespace pw8::plugin::ui
         /// text readout (e.g. mapping a discrete filter-mode float to "LOWPASS")
         /// instead of the raw number -- used for every enum-valued parameter this
         /// skin exposes, so PLAY mode never shows a bare "2.0" for a mode control.
+        /// `accentColour`, if not transparent (the default), overrides
+        /// ObsidianLookAndFeel's default cool-cyan value arc/pointer with a
+        /// different color for this one knob -- the duotone mechanism (macros use
+        /// the warm variant; see ObsidianPalette.h).
         GlowKnob(juce::AudioProcessorValueTreeState& apvts, const juce::String& paramId, const juce::String& name,
-                  std::function<juce::String(float)> valueToText = nullptr);
+                  std::function<juce::String(float)> valueToText = nullptr,
+                  juce::Colour accentColour = juce::Colours::transparentBlack);
 
         void resized() override;
 
