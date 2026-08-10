@@ -6,14 +6,16 @@ using namespace pw8::voice;
 
 namespace
 {
-    pw8::envelope::DahdsrParams quickEnv()
+    /// 8-envelope array Voice::noteOn() now expects -- only index 0 (the amp
+    /// envelope) matters for these allocator-focused tests, the rest stay default.
+    std::array<pw8::envelope::DahdsrParams, pw8::core::kNumEnvelopesPerLayer> quickEnv()
     {
-        pw8::envelope::DahdsrParams p;
-        p.attackSeconds = 0.001f;
-        p.decaySeconds = 0.001f;
-        p.sustainLevel = 1.0f;
-        p.releaseSeconds = 0.001f;
-        return p;
+        std::array<pw8::envelope::DahdsrParams, pw8::core::kNumEnvelopesPerLayer> envs{};
+        envs[0].attackSeconds = 0.001f;
+        envs[0].decaySeconds = 0.001f;
+        envs[0].sustainLevel = 1.0f;
+        envs[0].releaseSeconds = 0.001f;
+        return envs;
     }
 } // namespace
 
@@ -64,10 +66,11 @@ TEST_CASE("VoiceAllocator steals a released voice over an actively-gated one", "
     [[maybe_unused]] const auto compileStatus = pw8::algorithm::AlgorithmGraphCompiler::compile(
         pw8::algorithm::AlgorithmGraphDefinition::makeDefaultParallel8(), compiled);
     std::array<const pw8::oscillator::WavetableTable*, pw8::core::kNodesPerLayer> tables{};
+    std::array<float, pw8::core::kNumLfosPerLayer> layerLfoValues{};
     for (int i = 0; i < 10000; ++i)
     {
         float l = 0.0f, r = 0.0f;
-        pool[idx0].renderSample(compiled, tables, 120.0f, l, r);
+        pool[idx0].renderSample(compiled, tables, 120.0f, layerLfoValues, l, r);
     }
 
     const auto idx2 = allocator.allocate(pool);

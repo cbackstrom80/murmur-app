@@ -14,7 +14,7 @@
 // Destination semantics:
 //   FilterCutoff    -- `amount` is interpreted as semitones of cutoff shift per unit
 //                       of source value (source values are -1..1 for bipolar sources
-//                       like Lfo1, 0..1 for unipolar ones like AmpEnvelope/Velocity/
+//                       like LFOs, 0..1 for unipolar ones like envelopes/velocity/
 //                       macros). Applied exponentially: cutoffHz *= 2^(sum/12).
 //   FilterResonance -- additive offset to resonance (0..1), summed then clamped.
 //   OperatorLevel   -- multiplicative: level *= (1 + sourceValue * amount), per
@@ -25,17 +25,19 @@
 //                       (0..1), per route, targeting `targetIndex` (0..7). Only
 //                       meaningful for operators on the Wavetable engine.
 //
-// Only ModScope::Voice routes are meaningful in this pass -- Layer/Global-scoped
-// execution (sharing one computed value across all voices in a layer, or across the
-// whole patch) is PLANNED; a Layer/Global-scoped route is still read and applied,
-// just at Voice scope, so it's not silently dropped -- see docs/MODULATION.md.
+// Scope: see ModScope's doc comment in ModMatrixTypes.hpp for the full rationale.
+// In short -- LFO sources read a shared, layer-wide tick when scope is Layer or
+// Global instead of the calling voice's own independent LFO; every other source
+// type ignores the route's declared scope (envelopes/performance sources are
+// inherently per-voice, macros are inherently global already).
 
 namespace pw8::modulation
 {
     struct ModSourceValues
     {
-        float lfo1 = 0.0f;             ///< -1..1
-        float ampEnvelope = 0.0f;      ///< 0..1
+        std::array<float, 8> voiceLfos{}; ///< -1..1 each, this voice's own independently-phased LFOs.
+        std::array<float, 8> layerLfos{}; ///< -1..1 each, one shared tick per LFO index for the whole layer.
+        std::array<float, 8> envelopes{}; ///< 0..1 each; envelopes[0] is conventionally the amp envelope.
         float velocity = 0.0f;         ///< 0..1
         float channelPressure = 0.0f;  ///< 0..1
         float polyAftertouch = 0.0f;   ///< 0..1
@@ -66,7 +68,7 @@ namespace pw8::modulation
                 if (!route.isActive())
                     continue;
 
-                const float sourceValue = resolveSource(route.source, sources);
+                const float sourceValue = resolveSource(route.source, route.scope, sources);
                 switch (route.destination)
                 {
                     case ModDestination::FilterCutoff:
@@ -100,12 +102,28 @@ namespace pw8::modulation
         }
 
     private:
-        [[nodiscard]] static float resolveSource(ModSource src, const ModSourceValues& s) noexcept
+        [[nodiscard]] static float resolveSource(ModSource src, ModScope scope, const ModSourceValues& s) noexcept
         {
+            const bool sharedLfo = scope != ModScope::Voice; // Layer or Global -> the shared layer-wide tick.
+
             switch (src)
             {
-                case ModSource::Lfo1: return s.lfo1;
-                case ModSource::AmpEnvelope: return s.ampEnvelope;
+                case ModSource::Lfo1: return sharedLfo ? s.layerLfos[0] : s.voiceLfos[0];
+                case ModSource::Lfo2: return sharedLfo ? s.layerLfos[1] : s.voiceLfos[1];
+                case ModSource::Lfo3: return sharedLfo ? s.layerLfos[2] : s.voiceLfos[2];
+                case ModSource::Lfo4: return sharedLfo ? s.layerLfos[3] : s.voiceLfos[3];
+                case ModSource::Lfo5: return sharedLfo ? s.layerLfos[4] : s.voiceLfos[4];
+                case ModSource::Lfo6: return sharedLfo ? s.layerLfos[5] : s.voiceLfos[5];
+                case ModSource::Lfo7: return sharedLfo ? s.layerLfos[6] : s.voiceLfos[6];
+                case ModSource::Lfo8: return sharedLfo ? s.layerLfos[7] : s.voiceLfos[7];
+                case ModSource::Env1: return s.envelopes[0];
+                case ModSource::Env2: return s.envelopes[1];
+                case ModSource::Env3: return s.envelopes[2];
+                case ModSource::Env4: return s.envelopes[3];
+                case ModSource::Env5: return s.envelopes[4];
+                case ModSource::Env6: return s.envelopes[5];
+                case ModSource::Env7: return s.envelopes[6];
+                case ModSource::Env8: return s.envelopes[7];
                 case ModSource::Velocity: return s.velocity;
                 case ModSource::ChannelPressure: return s.channelPressure;
                 case ModSource::PolyAftertouch: return s.polyAftertouch;

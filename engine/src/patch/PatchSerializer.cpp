@@ -187,7 +187,7 @@ namespace pw8::patch
 
         void fromJson(const json& j, modulation::ModRoute& r)
         {
-            r.source = static_cast<modulation::ModSource>(clampNum(j.value("source", 0), 0, 14));
+            r.source = static_cast<modulation::ModSource>(clampNum(j.value("source", 0), 0, 28));
             r.destination = static_cast<modulation::ModDestination>(clampNum(j.value("destination", 0), 0, 5));
             r.targetIndex = static_cast<std::uint8_t>(clampNum(j.value("targetIndex", 0), 0, 255));
             r.amount = clampNum(j.value("amount", 0.0f), -1000.0f, 1000.0f);
@@ -300,12 +300,26 @@ namespace pw8::patch
                 toJson(jo, o);
                 ops.push_back(jo);
             }
-            json algo, env, uni, filt, lfoJ;
+            json algo, uni, filt;
             toJson(algo, l.algorithm);
-            toJson(env, l.ampEnvelope);
             toJson(uni, l.unison);
             toJson(filt, l.filter1);
-            toJson(lfoJ, l.lfo1);
+
+            json envelopes = json::array();
+            for (const auto& e : l.envelopes)
+            {
+                json je;
+                toJson(je, e);
+                envelopes.push_back(je);
+            }
+
+            json lfos = json::array();
+            for (const auto& lf : l.lfos)
+            {
+                json jl;
+                toJson(jl, lf);
+                lfos.push_back(jl);
+            }
 
             json routes = json::array();
             for (const auto& r : l.modRoutes)
@@ -323,8 +337,8 @@ namespace pw8::patch
                 inserts.push_back(jfx);
             }
 
-            j = json{{"operators", ops},       {"algorithm", algo},           {"ampEnvelope", env},
-                     {"unison", uni},           {"filter1", filt},             {"lfo1", lfoJ},
+            j = json{{"operators", ops},       {"algorithm", algo},           {"envelopes", envelopes},
+                     {"unison", uni},           {"filter1", filt},             {"lfos", lfos},
                      {"modRoutes", routes},     {"gain", l.gain},              {"pan", l.pan},
                      {"width", l.width},         {"centerGravity", l.centerGravity},
                      {"insertEffects", inserts}};
@@ -345,14 +359,40 @@ namespace pw8::patch
             }
             if (j.contains("algorithm"))
                 fromJson(j.at("algorithm"), l.algorithm);
-            if (j.contains("ampEnvelope"))
-                fromJson(j.at("ampEnvelope"), l.ampEnvelope);
+
+            // By the time fromJson runs, migrateToCurrentSchema() has already rewritten
+            // any v1 singular "ampEnvelope"/"lfo1" into "envelopes"/"lfos" arrays -- this
+            // only ever needs to read the current (v2+) array shape.
+            l.envelopes = std::array<envelope::DahdsrParams, core::kNumEnvelopesPerLayer>{};
+            if (j.contains("envelopes") && j.at("envelopes").is_array())
+            {
+                std::size_t i = 0;
+                for (const auto& je : j.at("envelopes"))
+                {
+                    if (i >= core::kNumEnvelopesPerLayer)
+                        break;
+                    fromJson(je, l.envelopes[i]);
+                    ++i;
+                }
+            }
+
             if (j.contains("unison"))
                 fromJson(j.at("unison"), l.unison);
             if (j.contains("filter1"))
                 fromJson(j.at("filter1"), l.filter1);
-            if (j.contains("lfo1"))
-                fromJson(j.at("lfo1"), l.lfo1);
+
+            l.lfos = std::array<lfo::LfoParams, core::kNumLfosPerLayer>{};
+            if (j.contains("lfos") && j.at("lfos").is_array())
+            {
+                std::size_t i = 0;
+                for (const auto& jl : j.at("lfos"))
+                {
+                    if (i >= core::kNumLfosPerLayer)
+                        break;
+                    fromJson(jl, l.lfos[i]);
+                    ++i;
+                }
+            }
 
             l.modRoutes.clear();
             if (j.contains("modRoutes") && j.at("modRoutes").is_array())
@@ -566,12 +606,84 @@ namespace pw8::patch
     namespace
     {
         /// Migrates an in-memory JSON document to the current schema version in-place.
-        /// Currently a no-op (only schema v1 exists) but establishes the migration chain
-        /// contract described in docs/PATCH_FORMAT.md: each step only ever knows how to
-        /// go from version N to N+1, and the loop below applies them in sequence.
-        void migrateToCurrentSchema(json& /*root*/, int /*fromVersion*/) noexcept
+        /// Each step only ever knows how to go from version N to N+1 (the chain
+        /// contract described in docs/PATCH_FORMAT.md); the `if` below is written so
+        /// a future v2->v3 step can simply be appended, not inserted.
+        void migrateToCurrentSchema(json& root, int fromVersion) noexcept
         {
-            // v1 -> v2 migration would go here once schema v2 exists.
+            if (fromVersion < 2)
+            {
+                // v1 -> v2 (docs/MODULATION.md "8 envelopes / 8 LFOs", core::Version.hpp):
+                // LayerPatch's singular "ampEnvelope"/"lfo1" fields became 8-slot
+                // "envelopes"/"lfos" arrays. The old single object becomes index 0; the
+                // rest default. Applies independently to layerA and layerB -- if either
+                // key is already the new array shape (or absent), this is a no-op for it.
+                //
+                // The SAME v1->v2 step also has to remap every existing "modRoutes"
+                // entry's numeric "source" value: ModSource's enum ordinals shifted when
+                // Lfo2-8/Env1-8 were inserted where AmpEnvelope/Velocity/etc. used to sit
+                // (old: None=0,Lfo1=1,AmpEnvelope=2,Velocity=3,ChannelPressure=4,
+                // PolyAftertouch=5,MpeSlide=6,Macro1-8=7-14; new:
+                // None=0,Lfo1-8=1-8,Env1-8=9-16,Velocity=17,ChannelPressure=18,
+                // PolyAftertouch=19,MpeSlide=20,Macro1-8=21-28). Without this, a v1
+                // preset's "source": 2 (AmpEnvelope) would silently load as the new
+                // enum's Lfo2, and "source": 3 (Velocity) as Lfo3 -- wrong destination,
+                // not a load failure, so it would never surface as an error. Caught by
+                // inspecting this project's own shipped presets (dark-bass.pw8,
+                // wide-saw.pw8) before release, not by a user report.
+                constexpr std::array<int, 15> kV1ToV2Source = {
+                    0,  // None
+                    1,  // Lfo1 -> Lfo1
+                    9,  // AmpEnvelope -> Env1
+                    17, // Velocity
+                    18, // ChannelPressure
+                    19, // PolyAftertouch
+                    20, // MpeSlide
+                    21, 22, 23, 24, 25, 26, 27, 28, // Macro1-8
+                };
+
+                try
+                {
+                    for (const char* layerKey : {"layerA", "layerB"})
+                    {
+                        if (!root.contains(layerKey) || !root.at(layerKey).is_object())
+                            continue;
+                        auto& layer = root.at(layerKey);
+
+                        if (layer.contains("ampEnvelope") && !layer.contains("envelopes"))
+                        {
+                            json arr = json::array();
+                            arr.push_back(layer.at("ampEnvelope"));
+                            layer["envelopes"] = arr;
+                        }
+                        if (layer.contains("lfo1") && !layer.contains("lfos"))
+                        {
+                            json arr = json::array();
+                            arr.push_back(layer.at("lfo1"));
+                            layer["lfos"] = arr;
+                        }
+
+                        if (layer.contains("modRoutes") && layer.at("modRoutes").is_array())
+                        {
+                            for (auto& route : layer.at("modRoutes"))
+                            {
+                                if (!route.is_object() || !route.contains("source"))
+                                    continue;
+                                const int oldSource = route.at("source").get<int>();
+                                if (oldSource >= 0 && oldSource < static_cast<int>(kV1ToV2Source.size()))
+                                    route["source"] = kV1ToV2Source[static_cast<std::size_t>(oldSource)];
+                            }
+                        }
+                    }
+                }
+                catch (const std::exception&)
+                {
+                    // A malformed layerA/layerB won't be fixed by migration -- fromJson's
+                    // own defaulting (missing "envelopes"/"lfos" -> all-default array,
+                    // an unparseable route -> clamped/defaulted ModRoute) still produces
+                    // a valid, safe Patch either way.
+                }
+            }
         }
     } // namespace
 

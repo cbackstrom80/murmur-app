@@ -15,8 +15,8 @@ TEST_CASE("Patch roundtrips through JSON", "[patch][serialization]")
     p.seed = 999;
     p.layerA.operators[0].engine = pw8::algorithm::EngineType::Classic;
     p.layerA.operators[0].classicWaveform = pw8::oscillator::ClassicWaveform::Saw;
-    p.layerA.ampEnvelope.attackSeconds = 0.05f;
-    p.layerA.ampEnvelope.sustainLevel = 0.6f;
+    p.layerA.envelopes[0].attackSeconds = 0.05f;
+    p.layerA.envelopes[0].sustainLevel = 0.6f;
     p.voiceSettings.polyphony = 8;
 
     const auto json = savePatchToJson(p);
@@ -30,10 +30,78 @@ TEST_CASE("Patch roundtrips through JSON", "[patch][serialization]")
     REQUIRE(result.patch.metadata.tags.size() == 2);
     REQUIRE(result.patch.seed == 999);
     REQUIRE(result.patch.layerA.operators[0].classicWaveform == pw8::oscillator::ClassicWaveform::Saw);
-    REQUIRE(result.patch.layerA.ampEnvelope.attackSeconds == Catch::Approx(0.05f));
-    REQUIRE(result.patch.layerA.ampEnvelope.sustainLevel == Catch::Approx(0.6f));
+    REQUIRE(result.patch.layerA.envelopes[0].attackSeconds == Catch::Approx(0.05f));
+    REQUIRE(result.patch.layerA.envelopes[0].sustainLevel == Catch::Approx(0.6f));
     REQUIRE(result.patch.voiceSettings.polyphony == 8);
     REQUIRE(result.patch.schemaVersion == pw8::core::kPatchSchemaVersion);
+}
+
+TEST_CASE("A v1 document's singular ampEnvelope/lfo1 migrate into envelopes[0]/lfos[0]",
+          "[patch][serialization][migration]")
+{
+    // Hand-written schema v1 document (as any real patch saved before this pass
+    // would be) -- proves migrateToCurrentSchema() actually runs on load, not just
+    // that fromJson() can parse the new array shape.
+    constexpr auto v1Json = R"({
+        "schemaVersion": 1,
+        "layerA": {
+            "ampEnvelope": {"attackSeconds": 0.09, "decaySeconds": 0.2, "sustainLevel": 0.55, "releaseSeconds": 0.3},
+            "lfo1": {"waveform": 2, "mode": 1, "rateHz": 3.5, "syncDivisionIndex": 5, "phaseOffset": 0.25}
+        }
+    })";
+
+    const auto result = loadPatchFromJson(v1Json);
+    REQUIRE(result.ok);
+    REQUIRE(result.originalSchemaVersion == 1);
+    REQUIRE(result.patch.schemaVersion == pw8::core::kPatchSchemaVersion); // migrated up to current (2).
+
+    REQUIRE(result.patch.layerA.envelopes[0].attackSeconds == Catch::Approx(0.09f));
+    REQUIRE(result.patch.layerA.envelopes[0].sustainLevel == Catch::Approx(0.55f));
+    // Envelopes 2-8 weren't in the v1 document -- migration doesn't invent data for them.
+    REQUIRE(result.patch.layerA.envelopes[1].attackSeconds == Catch::Approx(0.005f)); // struct default.
+
+    REQUIRE(result.patch.layerA.lfos[0].rateHz == Catch::Approx(3.5f));
+    REQUIRE(result.patch.layerA.lfos[0].syncDivisionIndex == 5);
+    REQUIRE(result.patch.layerA.lfos[1].rateHz == Catch::Approx(2.0f)); // struct default.
+
+    // Re-saving now writes the current (v2) array shape, not the old singular fields.
+    const auto resaved = savePatchToJson(result.patch);
+    REQUIRE(resaved.find("\"envelopes\"") != std::string::npos);
+    REQUIRE(resaved.find("\"lfos\"") != std::string::npos);
+}
+
+TEST_CASE("A v1 document's modRoutes source ordinals remap to the new ModSource enum, not silently reinterpreted",
+          "[patch][serialization][migration]")
+{
+    // Real bug, caught before shipping (docs/ROADMAP.md "GATE 5"): inserting
+    // Lfo2-8/Env1-8 into ModSource between Lfo1 and Velocity shifted every
+    // enum ordinal after Lfo1. A v1 preset's "source": 2 meant AmpEnvelope under
+    // the old 15-value enum; under the new 29-value enum, ordinal 2 means Lfo2 --
+    // silently the WRONG source, not a load failure. This is exactly the shape
+    // dark-bass.pw8 and wide-saw.pw8 (real shipped presets) are in.
+    constexpr auto v1Json = R"({
+        "schemaVersion": 1,
+        "layerA": {
+            "modRoutes": [
+                {"source": 1,  "destination": 1, "targetIndex": 0, "amount": 10.0, "scope": 0},
+                {"source": 2,  "destination": 1, "targetIndex": 0, "amount": 20.0, "scope": 0},
+                {"source": 3,  "destination": 1, "targetIndex": 0, "amount": 30.0, "scope": 0},
+                {"source": 7,  "destination": 3, "targetIndex": 0, "amount": 1.0,  "scope": 0},
+                {"source": 14, "destination": 3, "targetIndex": 0, "amount": 1.0,  "scope": 0}
+            ]
+        }
+    })";
+
+    const auto result = loadPatchFromJson(v1Json);
+    REQUIRE(result.ok);
+    const auto& routes = result.patch.layerA.modRoutes;
+    REQUIRE(routes.size() == 5);
+
+    REQUIRE(routes[0].source == pw8::modulation::ModSource::Lfo1);   // old 1 (Lfo1) -> new Lfo1 (unchanged).
+    REQUIRE(routes[1].source == pw8::modulation::ModSource::Env1);   // old 2 (AmpEnvelope) -> new Env1.
+    REQUIRE(routes[2].source == pw8::modulation::ModSource::Velocity); // old 3 (Velocity) -> new Velocity (17).
+    REQUIRE(routes[3].source == pw8::modulation::ModSource::Macro1); // old 7 (Macro1) -> new Macro1 (21).
+    REQUIRE(routes[4].source == pw8::modulation::ModSource::Macro8); // old 14 (Macro8) -> new Macro8 (28).
 }
 
 TEST_CASE("Patch algorithm graph roundtrips through JSON", "[patch][serialization][algorithm]")

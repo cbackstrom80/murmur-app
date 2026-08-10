@@ -1,6 +1,7 @@
 # Patch Format (`.pw8`)
 
-**IMPLEMENTED** (schema v1, JSON, full load/save, untrusted-input hardening).
+**IMPLEMENTED** (schema v2, JSON, full load/save, untrusted-input hardening,
+v1->v2 migration).
 
 ## Overview
 
@@ -14,7 +15,7 @@ Top-level shape:
 
 ```jsonc
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "metadata": { "id", "name", "author", "description", "category", "moods", "genres",
                 "tags", "createdAt", "engineVersion", "schemaVersion", "seed", "lineage" },
   "layerMode": 0,            // see LayerMode enum below
@@ -41,13 +42,16 @@ length on load if omitted, clamped to `[1, 64]`.
 
 A `LayerPatch` contains: 8 `operators[]` (engine, waveform, morph, pulse width,
 wavetable frame position, frequency ratio / fixed Hz / key-track, level, pan), an
-`algorithm` graph definition (see ALGORITHM_GRAPH.md), an `ampEnvelope`, `unison`
-settings (data model present, DSP wiring PLANNED -- see ROADMAP Phase 7), a
-`filter1` (Filter 1 params: enabled/mode/cutoffHz/resonance/keyTrack -- IMPLEMENTED,
-see DSP_ENGINE.md), an `lfo1` (waveform/mode/rateHz/syncDivisionIndex/phaseOffset --
-IMPLEMENTED, see MODULATION.md), a `modRoutes` array (up to 64 `ModRoute`s --
-IMPLEMENTED, see MODULATION.md), `gain`/`pan`/`width`/`centerGravity`, and an
-`insertEffects` array (3x `EffectSlotParams` -- IMPLEMENTED, see FX_BANK.md).
+`algorithm` graph definition (see ALGORITHM_GRAPH.md), an `envelopes` array (8x
+`DahdsrParams` -- IMPLEMENTED, see MODULATION.md; index 0 is conventionally "the"
+amp envelope, all 8 are equally usable mod matrix sources), `unison` settings (data
+model present, DSP wiring PLANNED -- see ROADMAP Phase 7), a `filter1` (Filter 1
+params: enabled/mode/cutoffHz/resonance/keyTrack -- IMPLEMENTED, see DSP_ENGINE.md),
+a `lfos` array (8x `LfoParams` -- waveform/mode/rateHz/syncDivisionIndex/phaseOffset,
+IMPLEMENTED, VOICE + LAYER/GLOBAL scope, see MODULATION.md), a `modRoutes` array
+(up to 64 `ModRoute`s, each with a 29-value `source` enum -- IMPLEMENTED, see
+MODULATION.md), `gain`/`pan`/`width`/`centerGravity`, and an `insertEffects` array
+(3x `EffectSlotParams` -- IMPLEMENTED, see FX_BANK.md).
 
 `EffectSlotParams` (see FX_BANK.md for the full field-by-field rationale) is a
 flat struct with a `type` (`EffectType`: Bypass/Saturation/Chorus/TapeDelay/
@@ -71,13 +75,33 @@ ROADMAP.md Phase 8 (dual layer) / Phase 9 (algorithm/layer morph).
 
 ## Migration
 
-**PARTIAL** (mechanism exists, nothing to migrate yet -- there is only schema v1).
-`PatchSerializer.cpp`'s internal `migrateToCurrentSchema(json&, int fromVersion)` is
-the seam a v1->v2 step would be added to; today it's a no-op by construction. The
-loader always stamps the *loaded* schema version into `PatchLoadResult::originalSchemaVersion`
-before migration would run, so a future migration step can inspect what it's
-migrating from. Real migration tests will be added once there's a second schema
-version to migrate *to* -- adding one prematurely would just be testing a no-op.
+**IMPLEMENTED** -- a real v1->v2 step now exists, exercising the mechanism for the
+first time (see `PatchSerializer.cpp`'s `migrateToCurrentSchema(json&, int fromVersion)`).
+Schema v2 (docs/MODULATION.md "8 envelopes / 8 LFOs", GATE 5 pass) changed two
+things a v1 document needs migrating for:
+
+1. **`LayerPatch`'s singular `ampEnvelope`/`lfo1` fields became 8-slot
+   `envelopes[]`/`lfos[]` arrays.** A v1 document's single object becomes index 0
+   of the new array; the rest default. Applied independently to `layerA`/`layerB`.
+2. **`ModRoute.source`'s enum ordinals shifted** when `Lfo2`-`Lfo8`/`Env1`-`Env8`
+   were inserted between `Lfo1` and `Velocity` (old 15-value enum:
+   `None=0,Lfo1=1,AmpEnvelope=2,Velocity=3,...`; new 29-value enum:
+   `None=0,Lfo1..Lfo8=1-8,Env1..Env8=9-16,Velocity=17,...`). Every `modRoutes[].source`
+   value in a v1 document is remapped through an explicit old-ordinal -> new-ordinal
+   table. This was a real bug caught before release, not a hypothetical: without
+   it, a v1 preset's `"source": 2` (AmpEnvelope) would have silently loaded as the
+   new enum's `Lfo2` -- the wrong source, not a load failure, so it would never have
+   surfaced as an error. Two of this repo's own shipped presets
+   (`dark-bass.pw8`, `wide-saw.pw8`) were in exactly this shape.
+
+The loader always stamps the *loaded* schema version into
+`PatchLoadResult::originalSchemaVersion` before migration runs, so a future
+migration step can inspect what it's migrating from; the `if (fromVersion < N)`
+structure in `migrateToCurrentSchema()` is written so a future v2->v3 step can be
+appended, not inserted into the middle of v1->v2's logic.
+`tests/serialization/PatchSerializerTests.cpp` covers both migration steps against
+hand-written v1 JSON documents (not just synthetic round-trips through the current
+schema), including the exact `"source": 2`/`"source": 3` shape the real presets had.
 
 ## Security / Robustness
 

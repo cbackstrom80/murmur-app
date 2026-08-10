@@ -27,7 +27,7 @@ for the full phase-by-phase breakdown against the product spec.
 | MPE-shaped per-note expression capture (pitch bend, pressure, aftertouch, slide) | **IMPLEMENTED** (pitch bend affects pitch directly; pressure/aftertouch/slide are mod matrix sources) |
 | Filter 1 (TPT state-variable: LP/HP/BP/notch/peak, per-voice, key-tracked) | **IMPLEMENTED** |
 | LFO (6 waveforms, free/retrigger/one-shot/tempo-sync, per-voice) | **IMPLEMENTED** (1 of the eventual 8 per patch) |
-| Mod matrix (LFO/envelope/velocity/pressure/aftertouch/slide/8 macros -> filter cutoff/resonance, operator level, pan) | **IMPLEMENTED** (VOICE scope; LAYER/GLOBAL scope planned) |
+| Modulation: 8 envelopes + 8 LFOs per layer, mod matrix (29 sources incl. all LFOs/envelopes/8 macros -> filter cutoff/resonance, operator level, pan) | **IMPLEMENTED** (VOICE scope for all sources; LAYER/GLOBAL scope for LFOs) |
 | Arpeggiator (7 modes, tempo-sync, per-step gate/probability/ratchet/tie/accent, latch, polymetric) | **IMPLEMENTED** |
 | FX bank (3 layer insert + 4 master slots; Saturation/Chorus/TapeDelay/NodeDelay/FreqShiftEcho/FractalEcho) | **IMPLEMENTED** (reverb/EQ/compressor still PLANNED, see FX_BANK.md) |
 | `.pw8` patch format (JSON, versioned schema, untrusted-input-hardened) | **IMPLEMENTED** |
@@ -35,7 +35,7 @@ for the full phase-by-phase breakdown against the product spec.
 | Standard MIDI File input (hand-rolled reader, tempo map, running status) | **IMPLEMENTED** |
 | Python bindings (pybind11) | **IMPLEMENTED** (partial API surface, see docs/PYTHON_API.md) |
 | Deterministic/seeded randomness throughout | **IMPLEMENTED** |
-| JUCE VST3/AU/Standalone plugin, 270 parameters live-automatable via `AudioProcessorValueTreeState` | **PARTIAL, build-verified** (AU passes `auval`, both AU and VST3 pass `pluginval` at max strictness; no signature UI; off by default) |
+| JUCE VST3/AU/Standalone plugin, 361 parameters live-automatable via `AudioProcessorValueTreeState` | **PARTIAL, build-verified** (AU passes `auval`, both AU and VST3 pass `pluginval` at max strictness; no signature UI; off by default) |
 | Google Benchmark suite | **IMPLEMENTED** (oscillators, algorithm graph, voice, full-patch render, at 44.1/48/96 kHz x 1/8/16/32 voices) |
 | Fuzz-render harness (`pw8-fuzz-render`) | **IMPLEMENTED** (verified across 3 batches, 13,000 random valid patches total, 0 failures) |
 | Filter 2 (character), reverb/EQ/compressor, MSEG, dual-layer mixing, algorithm morph, additional engine types (additive/phase-shape/granular/noise/resonator) | **PLANNED** |
@@ -64,7 +64,7 @@ cmake --build --preset dev -j
 ctest --preset dev --output-on-failure
 ```
 
-101 test cases, 895,853 assertions, all passing. See [docs/BUILD.md](docs/BUILD.md)
+107 test cases, 895,884 assertions, all passing. See [docs/BUILD.md](docs/BUILD.md)
 for every preset (release/asan/ubsan/benchmarks/python/plugin).
 
 ## Running the renderer
@@ -93,7 +93,7 @@ engineering patches proving specific capabilities, not curated factory content
 - [DSP_ENGINE.md](docs/DSP_ENGINE.md) -- every engine type's design rationale and status
 - [ALGORITHM_GRAPH.md](docs/ALGORITHM_GRAPH.md) -- the 8-node graph, compiler, execution semantics
 - [PATCH_FORMAT.md](docs/PATCH_FORMAT.md) -- the `.pw8` schema
-- [MODULATION.md](docs/MODULATION.md) -- envelope (done), LFO/matrix/macros (planned)
+- [MODULATION.md](docs/MODULATION.md) -- 8 envelopes, 8 LFOs (VOICE+LAYER/GLOBAL scope), 29-source mod matrix, macros
 - [ARPEGGIATOR.md](docs/ARPEGGIATOR.md) -- modes, per-step modifiers, polymetric design
 - [FX_BANK.md](docs/FX_BANK.md) -- researched-plugin analysis, the 6 algorithms, the invented FractalEcho
 - [RENDERER.md](docs/RENDERER.md) -- native offline rendering, MIDI input, WAV output

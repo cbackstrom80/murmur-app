@@ -35,9 +35,9 @@ TEST_CASE("Engine::setFilterLive audibly changes a currently-held voice", "[engi
 {
     patch::Patch p = patch::Patch::makeInit();
     p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Saw; // harmonically rich -- lowpass has something to remove.
-    p.layerA.ampEnvelope.attackSeconds = 0.001f;
-    p.layerA.ampEnvelope.decaySeconds = 0.01f;
-    p.layerA.ampEnvelope.sustainLevel = 1.0f;
+    p.layerA.envelopes[0].attackSeconds = 0.001f;
+    p.layerA.envelopes[0].decaySeconds = 0.01f;
+    p.layerA.envelopes[0].sustainLevel = 1.0f;
 
     render::Engine engine;
     engine.prepare(kSampleRate);
@@ -65,9 +65,9 @@ TEST_CASE("Engine::setOperatorLive changes a currently-held voice's level", "[en
 {
     patch::Patch p = patch::Patch::makeInit();
     p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Sine;
-    p.layerA.ampEnvelope.attackSeconds = 0.001f;
-    p.layerA.ampEnvelope.decaySeconds = 0.01f;
-    p.layerA.ampEnvelope.sustainLevel = 1.0f;
+    p.layerA.envelopes[0].attackSeconds = 0.001f;
+    p.layerA.envelopes[0].decaySeconds = 0.01f;
+    p.layerA.envelopes[0].sustainLevel = 1.0f;
 
     render::Engine engine;
     engine.prepare(kSampleRate);
@@ -95,9 +95,9 @@ TEST_CASE("Engine::setInsertEffectLive changes a currently-held voice's output",
     p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Sine;
     p.layerA.operators[0].level = 1.0f;
     p.layerA.gain = 2.0f; // deliberately loud, so saturation has something to bite into.
-    p.layerA.ampEnvelope.attackSeconds = 0.001f;
-    p.layerA.ampEnvelope.decaySeconds = 0.01f;
-    p.layerA.ampEnvelope.sustainLevel = 1.0f;
+    p.layerA.envelopes[0].attackSeconds = 0.001f;
+    p.layerA.envelopes[0].decaySeconds = 0.01f;
+    p.layerA.envelopes[0].sustainLevel = 1.0f;
 
     render::Engine engine;
     engine.prepare(kSampleRate);
@@ -126,10 +126,10 @@ TEST_CASE("Engine::setArpeggiatorScalarLive preserves held notes and pattern sta
           "[engine][liveparams][arpeggiator]")
 {
     patch::Patch p = patch::Patch::makeInit();
-    p.layerA.ampEnvelope.attackSeconds = 0.001f;
-    p.layerA.ampEnvelope.decaySeconds = 0.02f;
-    p.layerA.ampEnvelope.sustainLevel = 0.0f;
-    p.layerA.ampEnvelope.releaseSeconds = 0.01f;
+    p.layerA.envelopes[0].attackSeconds = 0.001f;
+    p.layerA.envelopes[0].decaySeconds = 0.02f;
+    p.layerA.envelopes[0].sustainLevel = 0.0f;
+    p.layerA.envelopes[0].releaseSeconds = 0.01f;
 
     p.arpeggiator.enabled = true;
     p.arpeggiator.mode = sequencer::ArpMode::Up;

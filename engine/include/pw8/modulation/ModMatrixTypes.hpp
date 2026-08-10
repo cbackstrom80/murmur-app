@@ -11,23 +11,20 @@
 
 namespace pw8::modulation
 {
+    /// 8 LFOs, 8 envelopes (envelope 1 is conventionally the amp envelope -- see
+    /// LayerPatch::envelopes[0] -- but all 8 are fully general-purpose mod sources),
+    /// 4 performance sources, and 8 macros -- docs/MODULATION.md "8 envelopes / 8
+    /// LFOs" target, reached in the GATE 5 pass (docs/ROADMAP.md).
     enum class ModSource : std::uint8_t
     {
         None = 0,
-        Lfo1,
-        AmpEnvelope,
+        Lfo1, Lfo2, Lfo3, Lfo4, Lfo5, Lfo6, Lfo7, Lfo8,
+        Env1, Env2, Env3, Env4, Env5, Env6, Env7, Env8,
         Velocity,
         ChannelPressure,
         PolyAftertouch,
         MpeSlide,
-        Macro1,
-        Macro2,
-        Macro3,
-        Macro4,
-        Macro5,
-        Macro6,
-        Macro7,
-        Macro8,
+        Macro1, Macro2, Macro3, Macro4, Macro5, Macro6, Macro7, Macro8,
     };
 
     enum class ModDestination : std::uint8_t
@@ -40,9 +37,20 @@ namespace pw8::modulation
         OperatorWavetablePosition, ///< requires `targetIndex`; additive offset, 0..1 result.
     };
 
-    /// Scope is recorded for forward compatibility with docs/MODULATION.md's
-    /// VOICE/LAYER/GLOBAL model; only VOICE-scoped routes are executed in this pass
-    /// (every route below runs per-voice, per-sample) -- see ModMatrixExecutor.
+    /// VOICE-scoped routes read a per-voice, independently-phased source (each
+    /// voice's own LFO/envelope). LAYER and GLOBAL-scoped routes are only
+    /// distinguished from VOICE for LFO sources: they instead read ONE shared,
+    /// layer-wide LFO tick computed once per sample and identical across every
+    /// voice in the layer (see `render::Engine`'s layer-scope LFO bank) -- a
+    /// classic "one slow wobble shared by the whole chord" use case that a
+    /// per-voice-independent LFO can't produce. Envelope/performance/macro sources
+    /// are read at VOICE scope regardless of a route's declared scope: envelope
+    /// LAYER/GLOBAL scope is intentionally not implemented (there's no single
+    /// coherent trigger point for a "layer-wide envelope" when 0-32 notes can be
+    /// overlapping independently -- see docs/MODULATION.md "Scope" for the full
+    /// rationale), and macros are already global by construction. LAYER and
+    /// GLOBAL currently behave identically (only Layer A is voiced, Phase 8) --
+    /// see ModMatrixExecutor.
     enum class ModScope : std::uint8_t
     {
         Voice = 0,

@@ -63,10 +63,10 @@ TEST_CASE("Renderer produces finite, non-silent audio for INIT SINE", "[render][
     patch::Patch p = patch::Patch::makeInit();
     p.layerA.operators[0].engine = algorithm::EngineType::Classic;
     p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Sine;
-    p.layerA.ampEnvelope.attackSeconds = 0.005f;
-    p.layerA.ampEnvelope.decaySeconds = 0.05f;
-    p.layerA.ampEnvelope.sustainLevel = 0.8f;
-    p.layerA.ampEnvelope.releaseSeconds = 0.1f;
+    p.layerA.envelopes[0].attackSeconds = 0.005f;
+    p.layerA.envelopes[0].decaySeconds = 0.05f;
+    p.layerA.envelopes[0].sustainLevel = 0.8f;
+    p.layerA.envelopes[0].releaseSeconds = 0.1f;
 
     auto midiSeq = singleNoteSequence(0.0, 1.0);
 
@@ -156,8 +156,8 @@ TEST_CASE("Renderer: enabling Filter 1 audibly changes a bright saw's spectrum (
 {
     patch::Patch p = patch::Patch::makeInit();
     p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Saw;
-    p.layerA.ampEnvelope.attackSeconds = 0.005f;
-    p.layerA.ampEnvelope.sustainLevel = 1.0f;
+    p.layerA.envelopes[0].attackSeconds = 0.005f;
+    p.layerA.envelopes[0].sustainLevel = 1.0f;
 
     auto midiSeq = singleNoteSequence(0.0, 1.0, 48); // low note -> saw has strong high harmonics to remove.
 
@@ -190,9 +190,9 @@ TEST_CASE("Renderer: mod matrix (LFO -> filter cutoff, velocity -> operator leve
     p.layerA.filter1.cutoffHz = 1500.0f;
     p.layerA.filter1.resonance = 0.4f;
 
-    p.layerA.lfo1.waveform = lfo::LfoWaveform::Sine;
-    p.layerA.lfo1.mode = lfo::LfoMode::Free;
-    p.layerA.lfo1.rateHz = 6.0f;
+    p.layerA.lfos[0].waveform = lfo::LfoWaveform::Sine;
+    p.layerA.lfos[0].mode = lfo::LfoMode::Free;
+    p.layerA.lfos[0].rateHz = 6.0f;
 
     p.layerA.modRoutes.push_back(
         modulation::ModRoute{modulation::ModSource::Lfo1, modulation::ModDestination::FilterCutoff, 0, 24.0f, modulation::ModScope::Voice});
@@ -223,9 +223,9 @@ TEST_CASE("Renderer: tempo-synced LFO's rate actually tracks --bpm end to end", 
     // would be identical (both silently falling back to the 120 BPM default).
     patch::Patch p = patch::Patch::makeInit();
     p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Saw;
-    p.layerA.ampEnvelope.sustainLevel = 1.0f;
-    p.layerA.lfo1.mode = lfo::LfoMode::TempoSync;
-    p.layerA.lfo1.syncDivisionIndex = 4; // 1/4 note -- rate scales directly with BPM.
+    p.layerA.envelopes[0].sustainLevel = 1.0f;
+    p.layerA.lfos[0].mode = lfo::LfoMode::TempoSync;
+    p.layerA.lfos[0].syncDivisionIndex = 4; // 1/4 note -- rate scales directly with BPM.
     p.layerA.modRoutes.push_back(modulation::ModRoute{modulation::ModSource::Lfo1, modulation::ModDestination::OperatorLevel,
                                                         0, 0.9f, modulation::ModScope::Voice});
 
@@ -256,10 +256,10 @@ TEST_CASE("Renderer: enabling the arpeggiator turns one held chord into many dis
     // "blip" rather than blending into a sustained tone.
     patch::Patch p = patch::Patch::makeInit();
     p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Sine;
-    p.layerA.ampEnvelope.attackSeconds = 0.002f;
-    p.layerA.ampEnvelope.decaySeconds = 0.04f;
-    p.layerA.ampEnvelope.sustainLevel = 0.0f;
-    p.layerA.ampEnvelope.releaseSeconds = 0.02f;
+    p.layerA.envelopes[0].attackSeconds = 0.002f;
+    p.layerA.envelopes[0].decaySeconds = 0.04f;
+    p.layerA.envelopes[0].sustainLevel = 0.0f;
+    p.layerA.envelopes[0].releaseSeconds = 0.02f;
     p.voiceSettings.polyphony = 8;
 
     auto midiSeq = heldChordSequence(0.0, 2.0, {60, 64, 67});
@@ -302,10 +302,10 @@ TEST_CASE("Renderer: a master TapeDelay slot turns one short hit into multiple d
 {
     patch::Patch p = patch::Patch::makeInit();
     p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Sine;
-    p.layerA.ampEnvelope.attackSeconds = 0.002f;
-    p.layerA.ampEnvelope.decaySeconds = 0.03f;
-    p.layerA.ampEnvelope.sustainLevel = 0.0f;
-    p.layerA.ampEnvelope.releaseSeconds = 0.02f;
+    p.layerA.envelopes[0].attackSeconds = 0.002f;
+    p.layerA.envelopes[0].decaySeconds = 0.03f;
+    p.layerA.envelopes[0].sustainLevel = 0.0f;
+    p.layerA.envelopes[0].releaseSeconds = 0.02f;
 
     auto midiSeq = singleNoteSequence(0.0, 0.05, 60);
 
@@ -346,10 +346,10 @@ TEST_CASE("Renderer: a layer insert Saturation slot audibly compresses a loud si
     patch::Patch p = patch::Patch::makeInit();
     p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Saw;
     p.layerA.operators[0].level = 1.0f;
-    p.layerA.ampEnvelope.attackSeconds = 0.005f;
-    p.layerA.ampEnvelope.decaySeconds = 0.05f;
-    p.layerA.ampEnvelope.sustainLevel = 0.9f;
-    p.layerA.ampEnvelope.releaseSeconds = 0.05f;
+    p.layerA.envelopes[0].attackSeconds = 0.005f;
+    p.layerA.envelopes[0].decaySeconds = 0.05f;
+    p.layerA.envelopes[0].sustainLevel = 0.9f;
+    p.layerA.envelopes[0].releaseSeconds = 0.05f;
     p.layerA.gain = 1.8f; // deliberately loud, so saturation has something to bite into.
 
     auto midiSeq = singleNoteSequence(0.0, 0.6, 48, 127);
@@ -376,4 +376,118 @@ TEST_CASE("Renderer: a layer insert Saturation slot audibly compresses a loud si
     // not a difference in voice rendering).
     REQUIRE(withFx.metrics.peak < withoutFx.metrics.peak);
     REQUIRE(withFx.metrics.peak <= 1.05f);
+}
+
+TEST_CASE("Renderer: a LAYER-scoped LFO route is one continuously-running shared clock, not reset per note-on",
+          "[render][regression][modulation][scope]")
+{
+    // The distinguishing claim of LAYER/GLOBAL scope (docs/MODULATION.md, ModScope's
+    // doc comment in ModMatrixTypes.hpp): the shared LFO tick keeps running from
+    // render::Engine::process()'s very first sample regardless of when any note
+    // starts, unlike a VOICE-scoped LFO, which restarts from phase 0 at every
+    // note-on. Proven by triggering the SAME patch's SAME note at two different
+    // start times and comparing each render's pan a fixed 100ms after each note's
+    // own start: if the shared clock is real, a note starting a quarter-LFO-cycle
+    // later hears a measurably different absolute LFO phase at that point. A
+    // per-voice-reset LFO would show the same phase (and pan) relative to each
+    // note's own onset regardless of when it started.
+    //
+    // Uses a slow (0.2Hz, 5s period) LFO and a full-second note-start offset so the
+    // renderer's block-quantized MIDI dispatch (events fire at the start of whichever
+    // `options.blockSize`-sized block contains their timestamp, +/- ~10ms at the
+    // default 512-sample block size, not sample-accurately) is a negligible fraction
+    // of the timing this test depends on.
+    auto buildPatch = [](modulation::ModScope scope) {
+        patch::Patch p = patch::Patch::makeInit();
+        p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Sine;
+        p.layerA.envelopes[0].attackSeconds = 0.001f;
+        p.layerA.envelopes[0].decaySeconds = 0.05f;
+        p.layerA.envelopes[0].sustainLevel = 1.0f;
+        p.layerA.envelopes[0].releaseSeconds = 0.05f;
+
+        p.layerA.lfos[0].waveform = lfo::LfoWaveform::Sine;
+        p.layerA.lfos[0].mode = lfo::LfoMode::Free;
+        p.layerA.lfos[0].rateHz = 0.2f; // 5s period -- a 1.25s note-start offset is exactly a quarter cycle.
+
+        modulation::ModRoute route;
+        route.source = modulation::ModSource::Lfo1;
+        route.destination = modulation::ModDestination::Pan;
+        route.amount = 0.9f;
+        route.scope = scope;
+        p.layerA.modRoutes.push_back(route);
+        return p;
+    };
+
+    // Windowed-RMS(R) - windowed-RMS(L) around a point in time -- positive means
+    // panned right, negative left, ~0 centered. Deliberately NOT a single
+    // instantaneous sample difference: equal-power panning scales L and R by fixed
+    // multipliers (cos/sin(panRad)) of the SAME instantaneous carrier sample, and
+    // that carrier itself is a ~261Hz sine oscillating through zero every ~2ms --
+    // an instantaneous (R-L) reading's sign flips at audio rate regardless of pan.
+    // RMS over a window many carrier cycles wide (here 40ms) is stable and reflects
+    // only the (slowly-moving) pan, not the carrier's own instantaneous phase.
+    auto panAtTime = [](const std::vector<float>& interleaved, double sampleRate, double timeSeconds) -> float {
+        const auto windowSamples = static_cast<std::size_t>(0.04 * sampleRate);
+        const auto centerIdx = static_cast<std::size_t>(timeSeconds * sampleRate);
+        const auto numFrames = interleaved.size() / 2;
+        const auto start = centerIdx > windowSamples / 2 ? centerIdx - windowSamples / 2 : 0;
+        const auto end = std::min(numFrames, start + windowSamples);
+        if (start >= end)
+            return 0.0f;
+
+        double sumSqL = 0.0, sumSqR = 0.0;
+        for (std::size_t i = start; i < end; ++i)
+        {
+            sumSqL += static_cast<double>(interleaved[i * 2]) * interleaved[i * 2];
+            sumSqR += static_cast<double>(interleaved[i * 2 + 1]) * interleaved[i * 2 + 1];
+        }
+        const auto n = static_cast<double>(end - start);
+        return static_cast<float>(std::sqrt(sumSqR / n) - std::sqrt(sumSqL / n));
+    };
+
+    constexpr double kNoteStartOffset = 1.25; // quarter cycle of the 0.2Hz LFO.
+    constexpr double kSettleTime = 0.1;       // sampled 100ms after each note's own start.
+
+    render::RenderOptions options;
+    options.sampleRate = 48000.0;
+    options.durationSecondsOverride = kNoteStartOffset + 2.0;
+
+    SECTION("Layer scope: pan (100ms after note-on) differs between an immediate note and one starting a "
+            "quarter-LFO-cycle later")
+    {
+        const patch::Patch p = buildPatch(modulation::ModScope::Layer);
+
+        const auto immediate = render::render(p, singleNoteSequence(0.0, 1.5), options);
+        const auto delayed = render::render(p, singleNoteSequence(kNoteStartOffset, kNoteStartOffset + 1.5), options);
+        REQUIRE(immediate.ok);
+        REQUIRE(delayed.ok);
+
+        // Immediate: absolute LFO phase at t=0.1s is 0.1*0.2=0.02 turns -> sin(~7deg) small -> near-centered.
+        const float panImmediate = panAtTime(immediate.interleavedStereo, options.sampleRate, kSettleTime);
+        // Delayed: absolute LFO phase at t=1.35s is 1.35*0.2=0.27 turns -> sin(~97deg) ~ +1 -> hard right.
+        const float panDelayed = panAtTime(delayed.interleavedStereo, options.sampleRate, kNoteStartOffset + kSettleTime);
+
+        REQUIRE(std::abs(panImmediate) < 0.25f); // near-centered.
+        REQUIRE(panDelayed > 0.5f);              // clearly panned right -- a different absolute phase was heard.
+    }
+
+    SECTION("Voice scope: pan (100ms after note-on) is the same regardless of note start time (each voice resets "
+            "its own LFO)")
+    {
+        const patch::Patch p = buildPatch(modulation::ModScope::Voice);
+
+        const auto immediate = render::render(p, singleNoteSequence(0.0, 1.5), options);
+        const auto delayed = render::render(p, singleNoteSequence(kNoteStartOffset, kNoteStartOffset + 1.5), options);
+        REQUIRE(immediate.ok);
+        REQUIRE(delayed.ok);
+
+        const float panImmediate = panAtTime(immediate.interleavedStereo, options.sampleRate, kSettleTime);
+        const float panDelayed = panAtTime(delayed.interleavedStereo, options.sampleRate, kNoteStartOffset + kSettleTime);
+
+        // Both start their own LFO fresh at noteOn(), so both should land at
+        // essentially the same phase/pan 100ms into their own note -- confirming the
+        // scope distinction above is real (VOICE scope does NOT show the
+        // shared-clock behavior).
+        REQUIRE(std::abs(panImmediate - panDelayed) < 0.25f);
+    }
 }

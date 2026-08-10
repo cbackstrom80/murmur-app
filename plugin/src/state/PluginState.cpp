@@ -97,6 +97,16 @@ namespace pw8::plugin
         return "op" + juce::String(static_cast<int>(opIndex)) + fieldSuffix;
     }
 
+    juce::String lfoParamId(std::size_t lfoIndex, const char* fieldSuffix)
+    {
+        return "lfo" + juce::String(static_cast<int>(lfoIndex)) + fieldSuffix;
+    }
+
+    juce::String envelopeParamId(std::size_t envIndex, const char* fieldSuffix)
+    {
+        return "env" + juce::String(static_cast<int>(envIndex)) + fieldSuffix;
+    }
+
     juce::String insertFxParamId(std::size_t slot, const char* fieldSuffix)
     {
         return "insertFx" + juce::String(static_cast<int>(slot)) + fieldSuffix;
@@ -124,8 +134,9 @@ namespace pw8::plugin
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
     {
         std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
-        params.reserve(8 + kNumFilterFields + kNumLfoFields + kNumOperators * kNumOperatorFields + kNumEnvelopeFields +
-                       3 + (kNumInsertFxSlots + kNumMasterFxSlots) * kNumEffectSlotFields + kNumArpFields);
+        params.reserve(8 + kNumFilterFields + kNumLfos * kNumLfoFields + kNumOperators * kNumOperatorFields +
+                       kNumEnvelopes * kNumEnvelopeFields + 3 +
+                       (kNumInsertFxSlots + kNumMasterFxSlots) * kNumEffectSlotFields + kNumArpFields);
 
         for (std::size_t i = 0; i < kMacroParameterIds.size(); ++i)
             params.push_back(std::make_unique<juce::AudioParameterFloat>(
@@ -135,15 +146,17 @@ namespace pw8::plugin
         for (const auto& spec : kFilterFieldSpecs)
             addParam(params, juce::String(kFilterIdPrefix) + spec.idSuffix, spec);
 
-        for (const auto& spec : kLfoFieldSpecs)
-            addParam(params, juce::String(kLfoIdPrefix) + spec.idSuffix, spec);
+        for (std::size_t lfo = 0; lfo < kNumLfos; ++lfo)
+            for (const auto& spec : kLfoFieldSpecs)
+                addParam(params, lfoParamId(lfo, spec.idSuffix), spec);
 
         for (std::size_t op = 0; op < kNumOperators; ++op)
             for (const auto& spec : kOperatorFieldSpecs)
                 addParam(params, operatorParamId(op, spec.idSuffix), spec);
 
-        for (const auto& spec : kEnvelopeFieldSpecs)
-            addParam(params, juce::String(kEnvelopeIdPrefix) + spec.idSuffix, spec);
+        for (std::size_t env = 0; env < kNumEnvelopes; ++env)
+            for (const auto& spec : kEnvelopeFieldSpecs)
+                addParam(params, envelopeParamId(env, spec.idSuffix), spec);
 
         addParam(params, kLayerGainId, ParamFieldSpec{"", "Layer Gain", 0.0f, 4.0f, 1.0f, false});
         addParam(params, kLayerPanId, ParamFieldSpec{"", "Layer Pan", -1.0f, 1.0f, 0.0f, false});

@@ -84,15 +84,27 @@ namespace pw8::patch
     {
         std::array<OperatorPatch, core::kNodesPerLayer> operators{};
         algorithm::AlgorithmGraphDefinition algorithm = algorithm::AlgorithmGraphDefinition::makeDefaultParallel8();
-        envelope::DahdsrParams ampEnvelope{};
+
+        /// 8 envelopes. `envelopes[0]` is conventionally "the" amp envelope -- the
+        /// only one wired to the VCA and to voice lifetime, see voice::Voice::isFree()
+        /// -- the rest are fully general-purpose mod matrix sources (Env1..Env8, see
+        /// docs/MODULATION.md). Schema v1's singular `ampEnvelope` field migrates to
+        /// `envelopes[0]` on load -- see PatchSerializer's v1->v2 migration.
+        std::array<envelope::DahdsrParams, core::kNumEnvelopesPerLayer> envelopes{};
         UnisonSettings unison{};
 
         /// Filter 1: clean multimode SVF, applied per-voice between the algorithm
         /// graph's output and the amplitude envelope. See docs/DSP_ENGINE.md.
         filter::FilterParams filter1{};
 
-        /// Per-voice LFO1, usable as a mod matrix source. See docs/MODULATION.md.
-        lfo::LfoParams lfo1{};
+        /// 8 LFOs, usable as mod matrix sources (Lfo1..Lfo8, see docs/MODULATION.md).
+        /// `lfos[0]` is what used to be the singular `lfo1` field (schema v1 migrates
+        /// on load, same as `envelopes` above). VOICE-scoped routes give each voice
+        /// its own independently-phased instance of a given LFO index; LAYER/GLOBAL-
+        /// scoped routes instead read one shared tick per index, computed once per
+        /// sample by render::Engine and identical across every voice in the layer --
+        /// see ModScope's doc comment in ModMatrixTypes.hpp.
+        std::array<lfo::LfoParams, core::kNumLfosPerLayer> lfos{};
 
         /// Fixed-capacity mod matrix routes (VOICE scope executed in this pass).
         core::FixedVector<modulation::ModRoute, core::kMaxModRoutes> modRoutes;

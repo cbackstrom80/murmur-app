@@ -171,10 +171,11 @@ namespace
         for (int i = 0; i < numRoutes; ++i)
         {
             modulation::ModRoute r;
-            r.source = static_cast<modulation::ModSource>(static_cast<int>(rng.nextRange(0.0f, 14.999f)));
+            r.source = static_cast<modulation::ModSource>(static_cast<int>(rng.nextRange(0.0f, 28.999f))); // 8 LFOs + 8 envelopes + 4 perf + 8 macros + None.
             r.destination = static_cast<modulation::ModDestination>(static_cast<int>(rng.nextRange(0.0f, 5.999f)));
             r.targetIndex = static_cast<std::uint8_t>(rng.nextRange(0.0f, 7.999f));
             r.amount = rng.nextRange(-48.0f, 48.0f); // deliberately extreme -- exercises the clamps.
+            r.scope = static_cast<modulation::ModScope>(static_cast<int>(rng.nextRange(0.0f, 2.999f))); // Voice/Layer/Global.
             routes.push_back(r);
         }
         return routes;
@@ -192,9 +193,11 @@ namespace
             op = randomOperator(rng);
 
         p.layerA.algorithm = randomAlgorithm(rng);
-        p.layerA.ampEnvelope = randomEnvelope(rng);
+        for (auto& e : p.layerA.envelopes)
+            e = randomEnvelope(rng);
         p.layerA.filter1 = randomFilter(rng);
-        p.layerA.lfo1 = randomLfo(rng);
+        for (auto& l : p.layerA.lfos)
+            l = randomLfo(rng);
         p.layerA.modRoutes = randomModRoutes(rng);
         p.layerA.gain = rng.nextRange(0.1f, 1.5f);
         p.layerA.pan = rng.nextRange(-1.0f, 1.0f);

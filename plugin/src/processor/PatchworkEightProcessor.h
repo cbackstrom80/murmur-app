@@ -58,7 +58,7 @@ namespace pw8::plugin
         /// new Engine off-thread and atomically publishes it for processBlock() to pick up.
         bool loadPatch(const patch::Patch& newPatch);
 
-        /// The ~270 host-automatable parameters (docs/PLUGIN_ARCHITECTURE.md
+        /// The 361 host-automatable parameters (docs/PLUGIN_ARCHITECTURE.md
         /// "Automation"). Public so createEditor()/tests can reach it; processBlock()
         /// reads it via the cached raw-value pointers below, never through this
         /// directly (getRawParameterValue() is the audio-thread-safe path).
@@ -84,7 +84,7 @@ namespace pw8::plugin
         /// current (possibly host-automated) value rather than only the patch's
         /// original defaults. Keeps `currentPatch_` as the single source of truth
         /// described in docs/PLUGIN_ARCHITECTURE.md "Host State" rather than a second,
-        /// divergent store of the same ~270 values.
+        /// divergent store of the same 361 values.
         void syncPatchFromAllParameters();
 
         /// Audio-thread only, called once per block from processBlock(): pushes every
@@ -102,9 +102,9 @@ namespace pw8::plugin
         // struct in pushLiveParametersToEngine() is a straight positional read.
         std::array<std::atomic<float>*, 8> macroParamPointers_{};
         std::array<std::atomic<float>*, kNumFilterFields> filterParamPointers_{};
-        std::array<std::atomic<float>*, kNumLfoFields> lfoParamPointers_{};
+        std::array<std::array<std::atomic<float>*, kNumLfoFields>, kNumLfos> lfoParamPointers_{};
         std::array<std::array<std::atomic<float>*, kNumOperatorFields>, kNumOperators> operatorParamPointers_{};
-        std::array<std::atomic<float>*, kNumEnvelopeFields> envelopeParamPointers_{};
+        std::array<std::array<std::atomic<float>*, kNumEnvelopeFields>, kNumEnvelopes> envelopeParamPointers_{};
         std::atomic<float>* layerGainPointer_ = nullptr;
         std::atomic<float>* layerPanPointer_ = nullptr;
         std::atomic<float>* masterGainPointer_ = nullptr;

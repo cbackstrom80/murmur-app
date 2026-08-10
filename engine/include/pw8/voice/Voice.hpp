@@ -15,17 +15,23 @@
 #include "pw8/operator/OperatorNode.hpp"
 
 // A single polyphonic voice: 8 operator nodes routed through a (shared, precompiled)
-// algorithm graph, one amplitude envelope, one LFO, a mod matrix, Filter 1, and the
-// per-note state needed for MPE and voice allocation.
+// algorithm graph, 8 envelopes, 8 LFOs, a mod matrix, Filter 1, and the per-note
+// state needed for MPE and voice allocation.
 //
-// Signal chain per sample: LFO + envelope render (mod sources) -> mod matrix ->
-// (operator-level-modulated) algorithm graph -> Filter 1 (cutoff/resonance
-// modulated) -> amplitude envelope VCA -> pan (modulated) -> stereo output.
+// Signal chain per sample: 8 LFOs + 8 envelopes render (mod sources) -> mod matrix
+// -> (operator-level-modulated) algorithm graph -> Filter 1 (cutoff/resonance
+// modulated) -> amplitude envelope (envelopes[0]) VCA -> pan (modulated) -> stereo
+// output.
 //
-// Per docs/ROADMAP.md Phase 5+, each voice will eventually own 8 envelopes / 8 LFOs
-// / LAYER+GLOBAL mod scope; this pass wires one amplitude envelope and one LFO
-// (VOICE-scoped mod matrix) and documents the rest as PLANNED so the allocation/
-// stealing/MPE contract is established now rather than retrofitted.
+// envelopes[0]/lfos[0] are conventionally "the" amp envelope / LFO1 (envelopes[0]
+// is the only one wired to the VCA and to voice lifetime -- see isFree()); all 8 of
+// each are otherwise fully general-purpose mod matrix sources (docs/MODULATION.md
+// "8 envelopes / 8 LFOs", reached in the GATE 5 pass, docs/ROADMAP.md). LAYER/GLOBAL
+// mod scope is implemented for LFO sources only (see ModScope's doc comment in
+// ModMatrixTypes.hpp) -- render::Engine ticks a separate, shared bank of 8 LFOs
+// once per sample and passes the result into every voice's renderSample() call, so
+// LAYER-scoped LFO routes read the same value on every voice this sample rather
+// than each voice's own independent phase.
 
 namespace pw8::voice
 {
@@ -49,15 +55,17 @@ namespace pw8::voice
         {
             for (auto& s : operatorStates)
                 s.prepare(sampleRate);
-            ampEnvelope.prepare(sampleRate);
+            for (auto& e : envelopes)
+                e.prepare(sampleRate);
+            for (auto& l : lfos)
+                l.prepare(sampleRate);
             filter1.prepare(sampleRate);
-            lfo1.prepare(sampleRate);
             sampleRate_ = sampleRate;
         }
 
         void noteOn(int note, int channel, float velocityUnit, float baseFreqHz,
-                    const envelope::DahdsrParams& envParams, std::uint64_t ageCounter,
-                    std::uint64_t noteGenerationId, std::uint64_t voiceSeed) noexcept
+                    const std::array<envelope::DahdsrParams, core::kNumEnvelopesPerLayer>& envParams,
+                    std::uint64_t ageCounter, std::uint64_t noteGenerationId, std::uint64_t voiceSeed) noexcept
         {
             noteNumber = note;
             midiChannel = channel;
@@ -70,44 +78,54 @@ namespace pw8::voice
 
             // Deterministic, seeded per-voice phase variation (see docs/DSP_ENGINE.md
             // "Voice Variation"): small, controlled, reproducible -- not free-running RNG.
+            // The same seeded stream that randomizes operator phase also seeds each of
+            // the 8 LFOs (consumed in order, one nextU64() per LFO) so every LFO gets a
+            // decorrelated-but-reproducible seed rather than 8 copies of the same one.
             const auto seed = dsp::DeterministicRng::deriveSeed(voiceSeed, id, voiceSeed ^ noteGenerationId);
             dsp::DeterministicRng rng(seed);
             for (auto& s : operatorStates)
                 s.reset(rng.nextFloat());
 
-            ampEnvelope.noteOn(envParams);
+            for (std::size_t i = 0; i < core::kNumEnvelopesPerLayer; ++i)
+                envelopes[i].noteOn(envParams[i]);
             filter1.reset();
-            lfo1.noteOn(lfoParams, seed);
+            for (std::size_t i = 0; i < core::kNumLfosPerLayer; ++i)
+                lfos[i].noteOn(lfoParams[i], rng.nextU64());
         }
 
         void noteOff(float releaseVelocityUnit) noexcept
         {
             releaseVelocity = dsp::clamp(releaseVelocityUnit, 0.0f, 1.0f);
             gateOn = false;
-            ampEnvelope.noteOff();
+            for (auto& e : envelopes)
+                e.noteOff();
         }
 
         /// Immediately silences the voice with no release tail -- used only when a
         /// crossfaded steal isn't available and a hard reset is unavoidable.
         void hardKill() noexcept
         {
-            ampEnvelope.reset();
+            for (auto& e : envelopes)
+                e.reset();
             noteNumber = -1;
             gateOn = false;
         }
 
-        [[nodiscard]] bool isFree() const noexcept { return noteNumber < 0 && !ampEnvelope.isActive(); }
+        [[nodiscard]] bool isFree() const noexcept { return noteNumber < 0 && !envelopes[0].isActive(); }
         [[nodiscard]] bool isReleased() const noexcept { return !gateOn; }
-        [[nodiscard]] bool isSounding() const noexcept { return ampEnvelope.isActive(); }
-        [[nodiscard]] float amplitudeEstimate() const noexcept { return ampEnvelope.getCurrentLevel() * velocity; }
+        [[nodiscard]] bool isSounding() const noexcept { return envelopes[0].isActive(); }
+        [[nodiscard]] float amplitudeEstimate() const noexcept { return envelopes[0].getCurrentLevel() * velocity; }
 
         /// Renders one stereo sample. Returns silence and frees the voice once its
-        /// envelope has fully finished its release.
+        /// amp envelope (envelopes[0]) has fully finished its release. `layerLfoValues`
+        /// is this sample's shared, layer-wide LFO tick (see class doc comment) --
+        /// computed once per sample by the caller (render::Engine), not per-voice.
         void renderSample(const algorithm::CompiledAlgorithm& compiled,
                            const std::array<const oscillator::WavetableTable*, core::kNodesPerLayer>& wavetableTables,
-                           float bpm, float& outLeft, float& outRight) noexcept
+                           float bpm, const std::array<float, core::kNumLfosPerLayer>& layerLfoValues, float& outLeft,
+                           float& outRight) noexcept
         {
-            if (noteNumber < 0 && !ampEnvelope.isActive())
+            if (noteNumber < 0 && !envelopes[0].isActive())
             {
                 outLeft = 0.0f;
                 outRight = 0.0f;
@@ -121,12 +139,13 @@ namespace pw8::voice
             // Mod sources that don't depend on this sample's algorithm-graph output are
             // rendered first, so their values can modulate the operators that ARE about
             // to run this sample (e.g. LFO -> operator level tremolo).
-            const float lfoValue = lfo1.renderSample(lfoParams, bpm);
-            const float env = ampEnvelope.renderSample();
-
             modulation::ModSourceValues sourceValues;
-            sourceValues.lfo1 = lfoValue;
-            sourceValues.ampEnvelope = env;
+            for (std::size_t i = 0; i < core::kNumLfosPerLayer; ++i)
+                sourceValues.voiceLfos[i] = lfos[i].renderSample(lfoParams[i], bpm);
+            sourceValues.layerLfos = layerLfoValues;
+            for (std::size_t i = 0; i < core::kNumEnvelopesPerLayer; ++i)
+                sourceValues.envelopes[i] = envelopes[i].renderSample();
+            const float env = sourceValues.envelopes[0]; // envelopes[0] is the amp envelope -- drives the VCA below.
             sourceValues.velocity = velocity;
             sourceValues.channelPressure = expression.channelPressure;
             sourceValues.polyAftertouch = expression.polyAftertouch;
@@ -166,7 +185,7 @@ namespace pw8::voice
             outLeft = amp * std::cos(panRad);
             outRight = amp * std::sin(panRad);
 
-            if (!ampEnvelope.isActive())
+            if (!envelopes[0].isActive())
                 noteNumber = -1; // fully released -- free for reuse next allocation pass.
         }
 
@@ -188,13 +207,13 @@ namespace pw8::voice
         std::array<op::OperatorParams, core::kNodesPerLayer> operatorParams{};
         std::array<op::OperatorState, core::kNodesPerLayer> operatorStates{};
         algorithm::AlgorithmExecutor executor{};
-        envelope::DahdsrEnvelope ampEnvelope{};
+        std::array<envelope::DahdsrEnvelope, core::kNumEnvelopesPerLayer> envelopes{};
 
         filter::FilterParams filterParams{};
         filter::StateVariableFilter filter1{};
 
-        lfo::LfoParams lfoParams{};
-        lfo::Lfo lfo1{};
+        std::array<lfo::LfoParams, core::kNumLfosPerLayer> lfoParams{};
+        std::array<lfo::Lfo, core::kNumLfosPerLayer> lfos{};
 
         core::FixedVector<modulation::ModRoute, core::kMaxModRoutes> modRoutes{};
         std::array<float, 8> macroValues{};

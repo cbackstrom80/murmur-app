@@ -20,7 +20,10 @@ namespace pw8::core
 
     /// Schema version of the native `.pw8` patch file format.
     /// Bump this whenever the on-disk JSON shape changes in a way that requires migration.
-    inline constexpr int kPatchSchemaVersion = 1;
+    /// v1 -> v2: LayerPatch's singular `ampEnvelope`/`lfo1` fields became 8-slot
+    /// `envelopes[]`/`lfos[]` arrays (docs/MODULATION.md "8 envelopes / 8 LFOs",
+    /// docs/ROADMAP.md "GATE 5") -- see PatchSerializer's migrateToCurrentSchema().
+    inline constexpr int kPatchSchemaVersion = 2;
 
     /// Schema version of `AlgorithmGraphDefinition` serialization.
     inline constexpr int kAlgorithmSchemaVersion = 1;

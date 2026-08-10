@@ -9,7 +9,7 @@ Status as of this repository's initial engineering pass. Legend: **DONE** / **PA
 | 2 | Wavetable (preprocessing, mipmapping, frame interpolation, wavetable source) | **DONE** -- oscillator, builder tool, and FFT-based mip-mapping/band-limiting all implemented and proven to reduce aliasing by a measured >2x (see DSP_ENGINE.md); a real factory table and preset (`wt-morph.pw8`) exercise the full pipeline end to end |
 | 3 | 8-node algorithm graph (nodes, edges, validation, compiler, compiled execution, audio routing) | **DONE**, and beyond AUDIO-only -- all 7 edge types implemented |
 | 4 | PM/FM/AM/RING typed modulation edges | **DONE** at the graph level (stretch goal achieved); a dedicated Engine Type 3 (FM/PM) with its own ratio/fixed-frequency modes is still PLANNED |
-| 5 | Modulation (envelopes, LFO, mod matrix, macros, performance controls) | **PARTIAL** -- amplitude envelope, one per-voice LFO (6 waveforms, 4 modes incl. tempo-sync), and a VOICE-scoped mod matrix (6 sources incl. 8 macros, 4 destinations) are all IMPLEMENTED; 8-envelope/8-LFO/LAYER+GLOBAL-scope targets PLANNED |
+| 5 | Modulation (envelopes, LFO, mod matrix, macros, performance controls) | **IMPLEMENTED** -- 8 envelopes and 8 LFOs per layer (VOICE + LAYER/GLOBAL scope for LFOs), a mod matrix with 29 sources and 5 destinations, and 8 macros, all live-automatable via the plugin. See "GATE 5" below |
 | 6 | Filters (clean multimode, first character filter) | **PARTIAL** -- Filter 1 (TPT state-variable: LP/HP/BP/notch/peak, per-voice, mod-matrix-modulatable cutoff/resonance, key tracking) is **IMPLEMENTED**; Filter 2 (nonlinear character filter) PLANNED |
 | 7 | Unison / stereo (unison, voice drift, pan, width, center gravity) | **PARTIAL** -- data model present (`UnisonSettings`, `centerGravity` on `LayerPatch`); DSP wiring PLANNED. `content/presets/wide-saw.pw8` demonstrates the *effect* today via hand-detuned operators rather than an automated unison engine |
 | 8 | Dual layer (Layer A, Layer B, stack, layer morph) | **PARTIAL** -- schema complete (`LayerMode` enum, full `layerB` data), only `SINGLE_A` is actually voiced/rendered |
@@ -352,6 +352,51 @@ primitives are of sufficient quality to build a genuinely good patch -- GATE 4
 passes. This validates proceeding to the next phase (deeper modulation)
 rather than reworking fundamentals first.
 
+## GATE 5: full modulation foundation (Phase 5, PARTIAL -> IMPLEMENTED)
+
+Per user direction following GATE 4 ("DO it"), expanded from the 1-envelope/
+1-LFO/VOICE-scope-only version to the master spec's full target: 8 envelopes, 8
+LFOs, and VOICE+LAYER/GLOBAL mod scope. Full design rationale in
+[MODULATION.md](MODULATION.md); summary:
+
+- `voice::Voice` now owns 8 independent `DahdsrEnvelope` instances and 8
+  independent `Lfo` instances (`envelopes[0]`/`lfos[0]` keep the exact behavior
+  the single-instance version had -- driving the VCA and voice lifetime -- the
+  other 7 of each are equally general-purpose mod matrix sources).
+- **LAYER/GLOBAL scope is real for LFOs**, not just recorded and ignored:
+  `render::Engine` ticks a separate, shared bank of 8 `Lfo` instances once per
+  sample (before the voice loop), so a LAYER-scoped route reads one value
+  identical across every voice that sample, regardless of when each note
+  started -- proven end-to-end by triggering the same note at two different
+  times and showing the resulting pan differs by the LFO's *absolute* elapsed
+  phase, not each voice's own note-relative phase
+  (`tests/regression/RenderSanityTests.cpp`). Envelope LAYER/GLOBAL scope is a
+  deliberate non-goal (no single coherent trigger point for a layer-wide
+  envelope with 0-32 independently overlapping notes) -- documented, not a gap.
+- `ModSource` grew from 15 to 29 values (`Lfo1`-`Lfo8`, `Env1`-`Env8`, 4
+  performance sources, `Macro1`-`Macro8`).
+- Schema bumped to **v2** with a real migration step for the first time in this
+  project (previously a documented no-op) -- see PATCH_FORMAT.md "Migration".
+  Two things needed migrating: `LayerPatch`'s singular `ampEnvelope`/`lfo1`
+  fields becoming 8-slot arrays, and (a real bug caught before shipping, not
+  hypothetical) every `modRoutes[].source` ordinal shifting when the new enum
+  values were inserted -- without remapping, a v1 preset's `AmpEnvelope`/
+  `Velocity` routes would have silently resolved to the wrong new source.
+  Caught by inspecting this project's own shipped presets (`dark-bass.pw8`,
+  `wide-saw.pw8`) before considering the pass done, not by a user report.
+- Plugin automation extended from 270 to **361 parameters**: all 8 LFOs (40)
+  and all 8 envelopes (64) replacing the single-instance versions (5 and 8).
+  `auval` confirms 361 published parameters; `pluginval --strictness-level 5`
+  re-confirmed SUCCESS on both VST3 and AU at the new count.
+- 6 new tests (2 ModMatrixExecutor scope tests, 1 LAYER-scope render regression
+  test, 2 migration tests, 1 fuzz-tool coverage extension randomizing all 8
+  envelopes/LFOs and the full 29-source/3-scope space) -- 107 total, all
+  passing. `pw8-fuzz-render` (1,500+ patches across batches) zero failures.
+- All 4 build configs (dev/benchmarks/python/plugin) rebuilt clean; Python
+  bindings' minimal envelope API repointed at `envelopes[0]` (unchanged
+  behavior, same PARTIAL API-surface scope as before -- exposing all 8
+  envelopes/LFOs to Python remains a separate future PYTHON_API.md item).
+
 ## Immediate next steps (suggested, not committed)
 
 1. A real DAW host-matrix pass (Ableton, Logic, Reaper, Bitwig, etc.) -- `auval`
@@ -361,11 +406,14 @@ rather than reworking fundamentals first.
 2. Reverb, EQ, compressor, limiter -- the FX bank has 6 real algorithms now but
    none of the master spec's "first effect set" basics; see FX_BANK.md "What's
    PLANNED, not implemented".
-3. Expand modulation to the full 8-envelope/8-LFO/LAYER+GLOBAL-scope target now that
-   the 1-of-each VOICE-scoped version has proven the data model and execution
-   pattern end to end.
+3. Unison DSP wiring -- the schema (`UnisonSettings`) and every acceptance patch
+   built so far (`wide-saw.pw8`, `gate4-massive-dark-metallic-bass.pw8`) fake it
+   via hand-detuned operators; real unison is the single biggest remaining gap
+   for the "MASSIVE CENTER" sonic philosophy a later product brief called out.
 4. Filter 2 (nonlinear character filter) -- Filter 1's TPT SVF proved the per-voice
    filter integration point; a second filter stage is now a smaller increment than
    it was before Filter 1 existed.
 5. Wavetable content-addressed resource resolution (replacing the current
    filesystem-path-as-`wavetableId` scheme) as part of the broader content pipeline.
+6. Algorithm morph and dual-layer mixing (Phase 8/9) -- Layer B's full schema
+   already round-trips; only the voicing/mixing/morph DSP is missing.

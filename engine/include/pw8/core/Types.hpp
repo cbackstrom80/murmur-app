@@ -26,6 +26,14 @@ namespace pw8::core
     inline constexpr std::size_t kMaxUnisonVoices = 16;
     inline constexpr std::size_t kMaxAlgorithmEdges = 32;
 
+    /// Envelopes and LFOs per layer/voice (docs/MODULATION.md "8 envelopes / 8
+    /// LFOs"). Index 0 of each is conventionally "the" amp envelope / LFO1 (the
+    /// only one wired to the VCA and to voice lifetime, see voice::Voice::isFree());
+    /// all 8 of each are otherwise fully general-purpose mod matrix sources. Shared
+    /// between pw8::patch (schema) and pw8::voice (runtime) so both stay in lockstep.
+    inline constexpr std::size_t kNumEnvelopesPerLayer = 8;
+    inline constexpr std::size_t kNumLfosPerLayer = 8;
+
     /// A strong, zero-cost wrapper around an integral ID so different ID kinds can't be
     /// accidentally mixed at a call site (e.g. passing a NodeId where a VoiceId is expected).
     template <typename Tag, typename Underlying = std::uint32_t>

@@ -6,10 +6,12 @@
 // audible effect on Layer A (the only voiced layer, Phase 8) or is genuinely a
 // live performance control (macros, arpeggiator's scalar fields, effect slot
 // scalar fields), and (b) is POD -- safe to read/write from the audio thread with
-// zero allocation risk. That's ~270 parameters: 8 macros, Filter1 (5), LFO1 (5),
-// 8 operators x 9 fields (72), the amp envelope (8), layer gain/pan + master gain
-// (3), 3 insert + 4 master FX slots x 23 scalar fields each (161), and the
-// arpeggiator's 8 top-level scalar fields.
+// zero allocation risk. That's 361 parameters: 8 macros, Filter1 (5), 8 LFOs x 5
+// fields (40), 8 operators x 9 fields (72), 8 envelopes x 8 fields (64), layer
+// gain/pan + master gain (3), 3 insert + 4 master FX slots x 23 scalar fields
+// each (161), and the arpeggiator's 8 top-level scalar fields -- see
+// docs/PLUGIN_ARCHITECTURE.md "Automation" for the exact count and the GATE 5
+// pass (8 envelopes/8 LFOs, docs/ROADMAP.md) that took this from 270 to 361.
 //
 // Deliberately NOT exposed as flat automation (see render::Engine's "Live
 // parameter API" doc comment for the parallel, more detailed rationale):
@@ -25,15 +27,21 @@
 //   - Unison and layer width/centerGravity -- schema-present but not yet DSP-wired
 //     (ROADMAP Phase 7/8 PARTIAL); publishing automation for a parameter with no
 //     audible effect yet would be misleading rather than useful.
-//   - Layer B's operators/filter/LFO/envelope -- Layer B isn't voiced yet
+//   - Layer B's operators/filter/LFOs/envelopes -- Layer B isn't voiced yet
 //     (Phase 8); symmetric automation lands once dual-layer mixing does.
 //   - voiceSettings.polyphony/a4Hz, and the patch seed -- structural/tuning-
 //     reference changes, not continuous performance parameters.
+//   - LFO/envelope LAYER vs. GLOBAL mod-matrix *scope* itself isn't a parameter
+//     here (it lives on each ModRoute, and the mod-route list isn't automatable,
+//     per above) -- automating an LFO's rate/waveform/etc. affects both its
+//     VOICE-scope per-voice instance and its LAYER/GLOBAL-scope shared instance
+//     simultaneously (see Engine::setLfoLive()), which is already everything a
+//     host-automated LFO parameter can meaningfully mean.
 //
 // Implementation note: enum-valued parameters (filter mode, LFO waveform, effect
 // type, etc.) are exposed as stepped `AudioParameterFloat`s (integer-valued,
 // `discrete = true` in `ParamFieldSpec`) rather than `AudioParameterChoice`, for
-// implementation uniformity across all ~270 parameters -- every one of them is
+// implementation uniformity across all these parameters -- every one of them is
 // read the same way (`getRawParameterValue()->load()`), avoiding needing several
 // different JUCE parameter subclasses and per-type read paths. The host UI will
 // show a continuous slider rather than a named dropdown for these; a real
@@ -54,6 +62,8 @@ namespace pw8::plugin
     };
 
     inline constexpr std::size_t kNumOperators = 8;
+    inline constexpr std::size_t kNumLfos = 8;
+    inline constexpr std::size_t kNumEnvelopes = 8;
     inline constexpr std::size_t kNumInsertFxSlots = 3;
     inline constexpr std::size_t kNumMasterFxSlots = 4;
     inline constexpr std::size_t kNumOperatorFields = 9;
@@ -92,19 +102,19 @@ namespace pw8::plugin
     extern const std::array<ParamFieldSpec, kNumArpFields> kArpFieldSpecs;
 
     [[nodiscard]] juce::String operatorParamId(std::size_t opIndex, const char* fieldSuffix);
+    [[nodiscard]] juce::String lfoParamId(std::size_t lfoIndex, const char* fieldSuffix);
+    [[nodiscard]] juce::String envelopeParamId(std::size_t envIndex, const char* fieldSuffix);
     [[nodiscard]] juce::String insertFxParamId(std::size_t slot, const char* fieldSuffix);
     [[nodiscard]] juce::String masterFxParamId(std::size_t slot, const char* fieldSuffix);
 
     inline constexpr const char* kFilterIdPrefix = "filter";
-    inline constexpr const char* kLfoIdPrefix = "lfo";
-    inline constexpr const char* kEnvelopeIdPrefix = "env";
     inline constexpr const char* kArpIdPrefix = "arp";
     inline constexpr const char* kLayerGainId = "layerGain";
     inline constexpr const char* kLayerPanId = "layerPan";
     inline constexpr const char* kMasterGainId = "masterGain";
 
     /// Builds the plugin's full `AudioProcessorValueTreeState` parameter layout --
-    /// all ~270 parameters described above, generated from the field-spec tables
+    /// all 361 parameters described above, generated from the field-spec tables
     /// rather than hand-written one at a time.
     [[nodiscard]] juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 

@@ -33,10 +33,10 @@ TEST_CASE("Engine::setMacroValue changes a currently-held voice's output immedia
 {
     patch::Patch p = patch::Patch::makeInit();
     p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Sine;
-    p.layerA.ampEnvelope.attackSeconds = 0.001f;
-    p.layerA.ampEnvelope.decaySeconds = 0.01f;
-    p.layerA.ampEnvelope.sustainLevel = 1.0f;
-    p.layerA.ampEnvelope.releaseSeconds = 0.05f;
+    p.layerA.envelopes[0].attackSeconds = 0.001f;
+    p.layerA.envelopes[0].decaySeconds = 0.01f;
+    p.layerA.envelopes[0].sustainLevel = 1.0f;
+    p.layerA.envelopes[0].releaseSeconds = 0.05f;
 
     // Macro1 -> OperatorLevel(0), amount=-1: level *= (1 + macro*(-1)) -- macro=0
     // keeps full level, macro=1 mutes the operator entirely. See ModMatrixExecutor.

@@ -86,8 +86,16 @@ namespace pw8::render
         void setFilterLive(const filter::FilterParams& params) noexcept;
         [[nodiscard]] const filter::FilterParams& getFilterParams() const noexcept { return patch_.layerA.filter1; }
 
-        void setLfoLive(const lfo::LfoParams& params) noexcept;
-        [[nodiscard]] const lfo::LfoParams& getLfoParams() const noexcept { return patch_.layerA.lfo1; }
+        /// `lfoIndex` in [0, kNumLfosPerLayer). Out-of-range is a no-op. Updates both
+        /// the per-voice template/active-voice copies AND (since `Engine::process()`
+        /// reads `patch_.layerA.lfos[lfoIndex]` fresh every sample for the shared
+        /// layer-scope tick) the LAYER/GLOBAL-scoped shared LFO -- one call covers
+        /// both scopes, see ModScope's doc comment in ModMatrixTypes.hpp.
+        void setLfoLive(std::size_t lfoIndex, const lfo::LfoParams& params) noexcept;
+        [[nodiscard]] lfo::LfoParams getLfoParams(std::size_t lfoIndex) const noexcept
+        {
+            return lfoIndex < core::kNumLfosPerLayer ? patch_.layerA.lfos[lfoIndex] : lfo::LfoParams{};
+        }
 
         /// `opIndex` in [0, kNodesPerLayer). Out-of-range is a no-op.
         void setOperatorLive(std::size_t opIndex, const op::OperatorParams& params) noexcept;
@@ -96,15 +104,19 @@ namespace pw8::render
             return opIndex < core::kNodesPerLayer ? operatorParamsTemplateA_[opIndex] : op::OperatorParams{};
         }
 
-        /// Takes effect on the NEXT note-on (triggerNoteOnDirect() reads
-        /// `patch_.layerA.ampEnvelope` fresh every trigger) -- an already-ringing
+        /// `envIndex` in [0, kNumEnvelopesPerLayer). Out-of-range is a no-op. Takes
+        /// effect on the NEXT note-on (triggerNoteOnDirect() reads
+        /// `patch_.layerA.envelopes` fresh every trigger) -- an already-ringing
         /// voice's envelope keeps the shape it was triggered with, since DahdsrEnvelope
         /// captures its targets/coefficients once at noteOn() and has no live
         /// mid-ramp-retarget API. Automating envelope times still works exactly as a
         /// performer would expect between notes; it just isn't a glitch-free
         /// mid-attack edit.
-        void setAmpEnvelopeLive(const envelope::DahdsrParams& params) noexcept;
-        [[nodiscard]] const envelope::DahdsrParams& getAmpEnvelopeParams() const noexcept { return patch_.layerA.ampEnvelope; }
+        void setEnvelopeLive(std::size_t envIndex, const envelope::DahdsrParams& params) noexcept;
+        [[nodiscard]] envelope::DahdsrParams getEnvelopeParams(std::size_t envIndex) const noexcept
+        {
+            return envIndex < core::kNumEnvelopesPerLayer ? patch_.layerA.envelopes[envIndex] : envelope::DahdsrParams{};
+        }
 
         void setLayerGainLive(float gain) noexcept;
         [[nodiscard]] float getLayerGain() const noexcept { return patch_.layerA.gain; }
@@ -182,6 +194,15 @@ namespace pw8::render
         voice::VoiceAllocator allocator_{};
         tuning::TuningService tuning_{};
         sequencer::Arpeggiator arpeggiator_{};
+
+        /// 8 shared, layer-wide LFOs, ticked once per sample in process() (before the
+        /// voice loop) rather than once per voice -- what LAYER/GLOBAL-scoped LFO mod
+        /// routes read (see ModScope's doc comment in ModMatrixTypes.hpp). Each is
+        /// initialized once (loadPatch()) rather than per-note, since there's no
+        /// single coherent "note-on" for a layer-wide modulator; Retrigger/OneShot
+        /// LFO modes have no distinct trigger event at this scope and behave the same
+        /// as Free (documented, not silently wrong).
+        std::array<lfo::Lfo, core::kNumLfosPerLayer> layerLfosA_{};
 
         /// Layer A's 3 insert FX slots (applied to the summed voice output) and the
         /// engine-wide 4 master FX slots (applied to the final mixed bus). See

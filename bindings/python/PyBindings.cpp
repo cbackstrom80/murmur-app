@@ -178,17 +178,17 @@ PYBIND11_MODULE(patchwork_eight, m)
         .def_property(
             "pan", [](const PyLayer& l) { return l.layer->pan; }, [](PyLayer& l, float v) { l.layer->pan = v; })
         .def_property(
-            "attack", [](const PyLayer& l) { return l.layer->ampEnvelope.attackSeconds; },
-            [](PyLayer& l, float v) { l.layer->ampEnvelope.attackSeconds = v; })
+            "attack", [](const PyLayer& l) { return l.layer->envelopes[0].attackSeconds; },
+            [](PyLayer& l, float v) { l.layer->envelopes[0].attackSeconds = v; })
         .def_property(
-            "decay", [](const PyLayer& l) { return l.layer->ampEnvelope.decaySeconds; },
-            [](PyLayer& l, float v) { l.layer->ampEnvelope.decaySeconds = v; })
+            "decay", [](const PyLayer& l) { return l.layer->envelopes[0].decaySeconds; },
+            [](PyLayer& l, float v) { l.layer->envelopes[0].decaySeconds = v; })
         .def_property(
-            "sustain", [](const PyLayer& l) { return l.layer->ampEnvelope.sustainLevel; },
-            [](PyLayer& l, float v) { l.layer->ampEnvelope.sustainLevel = v; })
+            "sustain", [](const PyLayer& l) { return l.layer->envelopes[0].sustainLevel; },
+            [](PyLayer& l, float v) { l.layer->envelopes[0].sustainLevel = v; })
         .def_property(
-            "release", [](const PyLayer& l) { return l.layer->ampEnvelope.releaseSeconds; },
-            [](PyLayer& l, float v) { l.layer->ampEnvelope.releaseSeconds = v; });
+            "release", [](const PyLayer& l) { return l.layer->envelopes[0].releaseSeconds; },
+            [](PyLayer& l, float v) { l.layer->envelopes[0].releaseSeconds = v; });
 
     py::class_<PyPatch>(m, "Patch")
         .def(py::init<>())

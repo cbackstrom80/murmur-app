@@ -10,6 +10,8 @@ namespace pw8::render
         sampleRate_ = sampleRate > 0.0 ? sampleRate : 48000.0;
         for (auto& v : voices_)
             v.prepare(sampleRate_);
+        for (auto& l : layerLfosA_)
+            l.prepare(sampleRate_);
         arpeggiator_.prepare(sampleRate_);
         layerAInsertChain_.prepare(sampleRate_);
         masterChain_.prepare(sampleRate_);
@@ -85,6 +87,14 @@ namespace pw8::render
         layerAInsertChain_.reset();
         masterChain_.reset();
 
+        // The shared, layer-wide LFO bank (LAYER/GLOBAL-scoped mod routes, see
+        // ModScope's doc comment in ModMatrixTypes.hpp): initialized once here rather
+        // than per-note, since there's no single "note-on" for a layer-wide
+        // modulator. Deterministically seeded from the patch seed + LFO index.
+        for (std::size_t i = 0; i < core::kNumLfosPerLayer; ++i)
+            layerLfosA_[i].noteOn(patch_.layerA.lfos[i],
+                                   dsp::DeterministicRng::deriveSeed(patch_.seed, static_cast<std::uint32_t>(i), patch_.seed));
+
         std::array<float, 8> macroValues{};
         for (std::size_t i = 0; i < macroValues.size(); ++i)
             macroValues[i] = patch_.macros[i].value;
@@ -93,7 +103,7 @@ namespace pw8::render
         {
             v.operatorParams = operatorParamsTemplateA_;
             v.filterParams = patch_.layerA.filter1;
-            v.lfoParams = patch_.layerA.lfo1;
+            v.lfoParams = patch_.layerA.lfos;
             v.modRoutes = patch_.layerA.modRoutes;
             v.macroValues = macroValues;
         }
@@ -142,7 +152,7 @@ namespace pw8::render
         v.id = static_cast<std::uint32_t>(idx);
         v.operatorParams = operatorParamsTemplateA_;
         v.filterParams = patch_.layerA.filter1;
-        v.lfoParams = patch_.layerA.lfo1;
+        v.lfoParams = patch_.layerA.lfos;
         v.modRoutes = patch_.layerA.modRoutes;
         for (std::size_t i = 0; i < v.macroValues.size(); ++i)
             v.macroValues[i] = patch_.macros[i].value;
@@ -150,7 +160,7 @@ namespace pw8::render
         const float freqHz = tuning_.noteToFrequency(static_cast<float>(note));
         const float velUnit = static_cast<float>(velocity7) / 127.0f;
 
-        v.noteOn(note, channel, velUnit, freqHz, patch_.layerA.ampEnvelope, allocator_.nextAge(),
+        v.noteOn(note, channel, velUnit, freqHz, patch_.layerA.envelopes, allocator_.nextAge(),
                  ++noteGenerationCounter_, patch_.seed);
         v.outputGain = patch_.layerA.gain * patch_.voiceSettings.masterGain;
         v.pan = patch_.layerA.pan;
@@ -224,11 +234,17 @@ namespace pw8::render
             v.filterParams = params;
     }
 
-    void Engine::setLfoLive(const lfo::LfoParams& params) noexcept
+    void Engine::setLfoLive(std::size_t lfoIndex, const lfo::LfoParams& params) noexcept
     {
-        patch_.layerA.lfo1 = params;
+        if (lfoIndex >= core::kNumLfosPerLayer)
+            return;
+
+        // patch_.layerA.lfos[lfoIndex] is what process() reads fresh every sample for
+        // the shared LAYER/GLOBAL-scope tick (layerLfosA_[lfoIndex].renderSample(
+        // patch_.layerA.lfos[lfoIndex], ...)), so this one write covers both scopes.
+        patch_.layerA.lfos[lfoIndex] = params;
         for (auto& v : voices_)
-            v.lfoParams = params;
+            v.lfoParams[lfoIndex] = params;
     }
 
     void Engine::setOperatorLive(std::size_t opIndex, const op::OperatorParams& params) noexcept
@@ -255,9 +271,11 @@ namespace pw8::render
         stored.level = params.level;
     }
 
-    void Engine::setAmpEnvelopeLive(const envelope::DahdsrParams& params) noexcept
+    void Engine::setEnvelopeLive(std::size_t envIndex, const envelope::DahdsrParams& params) noexcept
     {
-        patch_.layerA.ampEnvelope = params;
+        if (envIndex >= core::kNumEnvelopesPerLayer)
+            return;
+        patch_.layerA.envelopes[envIndex] = params;
     }
 
     void Engine::setLayerGainLive(float gain) noexcept
@@ -332,12 +350,19 @@ namespace pw8::render
                     triggerNoteOffDirect(ev.note, ev.channel, velocity7);
             }
 
+            // The shared, layer-wide LFO tick (LAYER/GLOBAL-scoped mod routes) --
+            // computed once per sample, identical for every voice this sample, unlike
+            // each voice's own independent per-voice LFOs.
+            std::array<float, core::kNumLfosPerLayer> layerLfoValues{};
+            for (std::size_t i = 0; i < core::kNumLfosPerLayer; ++i)
+                layerLfoValues[i] = layerLfosA_[i].renderSample(patch_.layerA.lfos[i], bpm_);
+
             float sumL = 0.0f;
             float sumR = 0.0f;
             for (std::size_t i = 0; i < allocator_.getPolyphony(); ++i)
             {
                 float vl = 0.0f, vr = 0.0f;
-                voices_[i].renderSample(compiledLayerA_, wavetableTablesA_, bpm_, vl, vr);
+                voices_[i].renderSample(compiledLayerA_, wavetableTablesA_, bpm_, layerLfoValues, vl, vr);
                 sumL += vl;
                 sumR += vr;
             }

@@ -48,9 +48,16 @@ namespace pw8::plugin
             macroParamPointers_[i] = apvts.getRawParameterValue(kMacroParameterIds[i]);
 
         cacheGroup(apvts, filterParamPointers_, kFilterIdPrefix, kFilterFieldSpecs);
-        cacheGroup(apvts, lfoParamPointers_, kLfoIdPrefix, kLfoFieldSpecs);
-        cacheGroup(apvts, envelopeParamPointers_, kEnvelopeIdPrefix, kEnvelopeFieldSpecs);
         cacheGroup(apvts, arpParamPointers_, kArpIdPrefix, kArpFieldSpecs);
+
+        for (std::size_t lfo = 0; lfo < kNumLfos; ++lfo)
+            for (std::size_t i = 0; i < kNumLfoFields; ++i)
+                lfoParamPointers_[lfo][i] = apvts.getRawParameterValue(lfoParamId(lfo, kLfoFieldSpecs[i].idSuffix));
+
+        for (std::size_t env = 0; env < kNumEnvelopes; ++env)
+            for (std::size_t i = 0; i < kNumEnvelopeFields; ++i)
+                envelopeParamPointers_[env][i] =
+                    apvts.getRawParameterValue(envelopeParamId(env, kEnvelopeFieldSpecs[i].idSuffix));
 
         for (std::size_t op = 0; op < kNumOperators; ++op)
             for (std::size_t i = 0; i < kNumOperatorFields; ++i)
@@ -149,15 +156,19 @@ namespace pw8::plugin
             engine.setFilterLive(fp);
         }
 
-        // LFO1 -- field order matches kLfoFieldSpecs / lfo::LfoParams.
+        // 8 LFOs -- field order matches kLfoFieldSpecs / lfo::LfoParams. One
+        // setLfoLive() call covers both VOICE scope (per-voice instance) and
+        // LAYER/GLOBAL scope (the shared layer-wide tick) -- see Engine::setLfoLive().
+        for (std::size_t lfo = 0; lfo < kNumLfos; ++lfo)
         {
+            const auto& ptrs = lfoParamPointers_[lfo];
             lfo::LfoParams lp;
-            lp.waveform = static_cast<lfo::LfoWaveform>(loadI(lfoParamPointers_[0]));
-            lp.mode = static_cast<lfo::LfoMode>(loadI(lfoParamPointers_[1]));
-            lp.rateHz = loadF(lfoParamPointers_[2]);
-            lp.syncDivisionIndex = loadI(lfoParamPointers_[3]);
-            lp.phaseOffset = loadF(lfoParamPointers_[4]);
-            engine.setLfoLive(lp);
+            lp.waveform = static_cast<lfo::LfoWaveform>(loadI(ptrs[0]));
+            lp.mode = static_cast<lfo::LfoMode>(loadI(ptrs[1]));
+            lp.rateHz = loadF(ptrs[2]);
+            lp.syncDivisionIndex = loadI(ptrs[3]);
+            lp.phaseOffset = loadF(ptrs[4]);
+            engine.setLfoLive(lfo, lp);
         }
 
         // 8 operators -- field order matches kOperatorFieldSpecs / op::OperatorParams.
@@ -177,18 +188,23 @@ namespace pw8::plugin
             engine.setOperatorLive(op, params);
         }
 
-        // Amp envelope -- field order matches kEnvelopeFieldSpecs / envelope::DahdsrParams.
+        // 8 envelopes -- field order matches kEnvelopeFieldSpecs / envelope::DahdsrParams.
+        // envelopes[0] is the amp envelope; envelopes[1..7] are free-standing mod
+        // sources. Each takes effect on its owner's NEXT note-on -- see
+        // Engine::setEnvelopeLive().
+        for (std::size_t env = 0; env < kNumEnvelopes; ++env)
         {
+            const auto& ptrs = envelopeParamPointers_[env];
             envelope::DahdsrParams ep;
-            ep.delaySeconds = loadF(envelopeParamPointers_[0]);
-            ep.attackSeconds = loadF(envelopeParamPointers_[1]);
-            ep.holdSeconds = loadF(envelopeParamPointers_[2]);
-            ep.decaySeconds = loadF(envelopeParamPointers_[3]);
-            ep.sustainLevel = loadF(envelopeParamPointers_[4]);
-            ep.releaseSeconds = loadF(envelopeParamPointers_[5]);
-            ep.curveShape = loadF(envelopeParamPointers_[6]);
-            ep.legato = loadB(envelopeParamPointers_[7]);
-            engine.setAmpEnvelopeLive(ep);
+            ep.delaySeconds = loadF(ptrs[0]);
+            ep.attackSeconds = loadF(ptrs[1]);
+            ep.holdSeconds = loadF(ptrs[2]);
+            ep.decaySeconds = loadF(ptrs[3]);
+            ep.sustainLevel = loadF(ptrs[4]);
+            ep.releaseSeconds = loadF(ptrs[5]);
+            ep.curveShape = loadF(ptrs[6]);
+            ep.legato = loadB(ptrs[7]);
+            engine.setEnvelopeLive(env, ep);
         }
 
         engine.setLayerGainLive(loadF(layerGainPointer_));
@@ -281,7 +297,7 @@ namespace pw8::plugin
     juce::AudioProcessorEditor* PatchworkEightProcessor::createEditor()
     {
         // Pragmatic placeholder until the real PLAY/DESIGN/LAB UI lands (Phase 17):
-        // JUCE's built-in generic parameter editor. Shows ~270 real sliders (backed by
+        // JUCE's built-in generic parameter editor. Shows 361 real sliders (backed by
         // `apvts`) rather than an empty list -- but it's still a real, consistent
         // editor either way, which is what AudioProcessor::hasEditor() promises callers.
         return new juce::GenericAudioProcessorEditor(*this);
@@ -335,13 +351,16 @@ namespace pw8::plugin
         for (std::size_t i = 0; i < kNumFilterFields; ++i)
             setParam(juce::String(kFilterIdPrefix) + kFilterFieldSpecs[i].idSuffix, filterValues[i]);
 
-        const auto& lfo = currentPatch_.layerA.lfo1;
-        const std::array<float, kNumLfoFields> lfoValues = {
-            static_cast<float>(lfo.waveform), static_cast<float>(lfo.mode), lfo.rateHz,
-            static_cast<float>(lfo.syncDivisionIndex), lfo.phaseOffset,
-        };
-        for (std::size_t i = 0; i < kNumLfoFields; ++i)
-            setParam(juce::String(kLfoIdPrefix) + kLfoFieldSpecs[i].idSuffix, lfoValues[i]);
+        for (std::size_t lfoIdx = 0; lfoIdx < kNumLfos; ++lfoIdx)
+        {
+            const auto& lfo = currentPatch_.layerA.lfos[lfoIdx];
+            const std::array<float, kNumLfoFields> lfoValues = {
+                static_cast<float>(lfo.waveform), static_cast<float>(lfo.mode), lfo.rateHz,
+                static_cast<float>(lfo.syncDivisionIndex), lfo.phaseOffset,
+            };
+            for (std::size_t i = 0; i < kNumLfoFields; ++i)
+                setParam(lfoParamId(lfoIdx, kLfoFieldSpecs[i].idSuffix), lfoValues[i]);
+        }
 
         for (std::size_t op = 0; op < kNumOperators; ++op)
         {
@@ -357,13 +376,16 @@ namespace pw8::plugin
                 setParam(operatorParamId(op, kOperatorFieldSpecs[i].idSuffix), opValues[i]);
         }
 
-        const auto& env = currentPatch_.layerA.ampEnvelope;
-        const std::array<float, kNumEnvelopeFields> envValues = {
-            env.delaySeconds, env.attackSeconds, env.holdSeconds,  env.decaySeconds,
-            env.sustainLevel, env.releaseSeconds, env.curveShape,  env.legato ? 1.0f : 0.0f,
-        };
-        for (std::size_t i = 0; i < kNumEnvelopeFields; ++i)
-            setParam(juce::String(kEnvelopeIdPrefix) + kEnvelopeFieldSpecs[i].idSuffix, envValues[i]);
+        for (std::size_t envIdx = 0; envIdx < kNumEnvelopes; ++envIdx)
+        {
+            const auto& env = currentPatch_.layerA.envelopes[envIdx];
+            const std::array<float, kNumEnvelopeFields> envValues = {
+                env.delaySeconds, env.attackSeconds, env.holdSeconds,  env.decaySeconds,
+                env.sustainLevel, env.releaseSeconds, env.curveShape,  env.legato ? 1.0f : 0.0f,
+            };
+            for (std::size_t i = 0; i < kNumEnvelopeFields; ++i)
+                setParam(envelopeParamId(envIdx, kEnvelopeFieldSpecs[i].idSuffix), envValues[i]);
+        }
 
         setParam(kLayerGainId, currentPatch_.layerA.gain);
         setParam(kLayerPanId, currentPatch_.layerA.pan);
@@ -412,12 +434,16 @@ namespace pw8::plugin
         filter.resonance = loadF(filterParamPointers_[3]);
         filter.keyTrack = loadF(filterParamPointers_[4]);
 
-        auto& lfo = currentPatch_.layerA.lfo1;
-        lfo.waveform = static_cast<pw8::lfo::LfoWaveform>(loadI(lfoParamPointers_[0]));
-        lfo.mode = static_cast<pw8::lfo::LfoMode>(loadI(lfoParamPointers_[1]));
-        lfo.rateHz = loadF(lfoParamPointers_[2]);
-        lfo.syncDivisionIndex = loadI(lfoParamPointers_[3]);
-        lfo.phaseOffset = loadF(lfoParamPointers_[4]);
+        for (std::size_t lfoIdx = 0; lfoIdx < kNumLfos; ++lfoIdx)
+        {
+            const auto& ptrs = lfoParamPointers_[lfoIdx];
+            auto& lfo = currentPatch_.layerA.lfos[lfoIdx];
+            lfo.waveform = static_cast<pw8::lfo::LfoWaveform>(loadI(ptrs[0]));
+            lfo.mode = static_cast<pw8::lfo::LfoMode>(loadI(ptrs[1]));
+            lfo.rateHz = loadF(ptrs[2]);
+            lfo.syncDivisionIndex = loadI(ptrs[3]);
+            lfo.phaseOffset = loadF(ptrs[4]);
+        }
 
         for (std::size_t op = 0; op < kNumOperators; ++op)
         {
@@ -434,15 +460,19 @@ namespace pw8::plugin
             o.level = loadF(ptrs[8]);
         }
 
-        auto& env = currentPatch_.layerA.ampEnvelope;
-        env.delaySeconds = loadF(envelopeParamPointers_[0]);
-        env.attackSeconds = loadF(envelopeParamPointers_[1]);
-        env.holdSeconds = loadF(envelopeParamPointers_[2]);
-        env.decaySeconds = loadF(envelopeParamPointers_[3]);
-        env.sustainLevel = loadF(envelopeParamPointers_[4]);
-        env.releaseSeconds = loadF(envelopeParamPointers_[5]);
-        env.curveShape = loadF(envelopeParamPointers_[6]);
-        env.legato = loadB(envelopeParamPointers_[7]);
+        for (std::size_t envIdx = 0; envIdx < kNumEnvelopes; ++envIdx)
+        {
+            const auto& ptrs = envelopeParamPointers_[envIdx];
+            auto& env = currentPatch_.layerA.envelopes[envIdx];
+            env.delaySeconds = loadF(ptrs[0]);
+            env.attackSeconds = loadF(ptrs[1]);
+            env.holdSeconds = loadF(ptrs[2]);
+            env.decaySeconds = loadF(ptrs[3]);
+            env.sustainLevel = loadF(ptrs[4]);
+            env.releaseSeconds = loadF(ptrs[5]);
+            env.curveShape = loadF(ptrs[6]);
+            env.legato = loadB(ptrs[7]);
+        }
 
         currentPatch_.layerA.gain = loadF(layerGainPointer_);
         currentPatch_.layerA.pan = loadF(layerPanPointer_);
