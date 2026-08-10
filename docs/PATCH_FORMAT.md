@@ -31,8 +31,11 @@ Top-level shape:
 A `LayerPatch` contains: 8 `operators[]` (engine, waveform, morph, pulse width,
 wavetable frame position, frequency ratio / fixed Hz / key-track, level, pan), an
 `algorithm` graph definition (see ALGORITHM_GRAPH.md), an `ampEnvelope`, `unison`
-settings (data model present, DSP wiring PLANNED -- see ROADMAP Phase 7), and
-`gain`/`pan`/`width`/`centerGravity`.
+settings (data model present, DSP wiring PLANNED -- see ROADMAP Phase 7), a
+`filter1` (Filter 1 params: enabled/mode/cutoffHz/resonance/keyTrack -- IMPLEMENTED,
+see DSP_ENGINE.md), an `lfo1` (waveform/mode/rateHz/syncDivisionIndex/phaseOffset --
+IMPLEMENTED, see MODULATION.md), a `modRoutes` array (up to 64 `ModRoute`s --
+IMPLEMENTED, see MODULATION.md), and `gain`/`pan`/`width`/`centerGravity`.
 
 See `content/presets/*.pw8` for complete, real, loadable examples, and
 `tests/serialization/PatchSerializerTests.cpp` for the roundtrip contract.

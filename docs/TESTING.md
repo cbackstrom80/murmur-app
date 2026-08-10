@@ -2,9 +2,9 @@
 
 ## Current Status
 
-**37 Catch2 test cases, 165,192 assertions, all passing** as of this pass
-(`ctest --preset dev` / `./build/tests/pw8_tests`). Framework: Catch2 v3.8.1, fetched
-via CMake `FetchContent` (see `tests/CMakeLists.txt`), registered with `ctest` via
+**56 Catch2 test cases, all passing** as of this pass (`ctest --preset dev` /
+`./build/tests/pw8_tests`). Framework: Catch2 v3.8.1, fetched via CMake
+`FetchContent` (see `tests/CMakeLists.txt`), registered with `ctest` via
 `catch_discover_tests`. (Catch2 was bumped from v3.6.0 to v3.8.1 after v3.6.0's
 `catch_discover_tests` mis-parsed the test list under this project's CMake version,
 silently collapsing 16 of 37 test cases into one bogus combined-name `ctest` entry --
@@ -15,11 +15,14 @@ individually-discovered `ctest` output was confirmed correct after the bump.)
 | `tests/dsp/ClassicOscillatorTests.cpp` | Tuning accuracy (zero-crossing measurement) across waveforms, bounded/finite output under high-frequency PolyBLEP stress, continuous morph sweep stability, deterministic phase reset |
 | `tests/dsp/DahdsrEnvelopeTests.cpp` | Sustain-level convergence, release-to-zero + idle transition, attack-duration timing accuracy, immediate reset |
 | `tests/dsp/VoiceAllocatorTests.cpp` | Free-voice-first allocation, steal-released-before-gated policy, note+channel-scoped release |
+| `tests/dsp/StateVariableFilterTests.cpp` | Lowpass/highpass/bandpass frequency-response direction, stability and bounded output at maximum resonance across the full cutoff range, clean state reset |
+| `tests/dsp/LfoTests.cpp` | Sine range/rate accuracy, square-wave exact +-1 output, Retrigger phase-reset determinism, OneShot hold-after-one-cycle, TempoSync BPM-to-rate math, SampleHold determinism-for-seed |
 | `tests/unit/AlgorithmGraphCompilerTests.cpp` | Default template compiles, feed-forward cycle rejection, FEEDBACK-typed loop acceptance, self-feedback, missing-output rejection, duplicate-ID rejection, out-of-range edge rejection, zero-edge elimination |
 | `tests/unit/DeterministicRngTests.cpp` | Same-seed reproducibility, cross-seed divergence, `[0,1)` range, `deriveSeed` stability/decorrelation |
+| `tests/unit/ModMatrixTests.cpp` | Neutral output with no routes, Velocity->FilterCutoff scaling, multiplicative OperatorLevel composition, inactive-route skipping, macro-index resolution |
 | `tests/serialization/PatchSerializerTests.cpp` | Full patch roundtrip (incl. algorithm graph), malformed-JSON rejection, non-object-root rejection, minimal-document defaulting |
 | `tests/serialization/StandardMidiFileTests.cpp` | Hand-built minimal SMF parses correctly (tempo-to-seconds math verified), too-small-buffer and bad-magic-header rejection, `MidiSequence::durationSeconds()` |
-| `tests/regression/RenderSanityTests.cpp` | Non-silent finite output for INIT SINE, correct silence with no MIDI input, 8-voice polyphonic overlap stays finite, out-of-range sample rate rejected, finite output under an aggressive self-feedback algorithm |
+| `tests/regression/RenderSanityTests.cpp` | Non-silent finite output for INIT SINE, correct silence with no MIDI input, 8-voice polyphonic overlap stays finite, out-of-range sample rate rejected, finite output under an aggressive self-feedback algorithm, Filter 1 audibly changes spectrum (RMS drop), mod matrix (LFO/velocity/pressure -> filter/level/pan) renders finite audio, tempo-synced LFO's rate actually tracks `--bpm` end to end |
 
 ## Property / Fuzz Testing
 
@@ -29,10 +32,15 @@ graph constructed so it's *guaranteed* to compile (feed-forward edges only ever
 route from a lower node index to a higher one, which is by construction acyclic;
 `FEEDBACK`-typed edges, the only kind allowed to loop, are generated freely
 including self-loops) -- renders each one, and asserts no crash, no NaN/Inf, bounded
-output, and reasonable per-patch runtime. Verified: **5,000 patches, seed 1, zero
-failures** (Debug build; a Release build would run substantially faster than the
-observed ~36 patches/sec). The master spec's overnight target of 1,000,000+ patches
-is left to whoever runs it -- `--count`/`--seed` are both exposed for exactly that.
+output, and reasonable per-patch runtime. Filter 1, LFO1, and the mod matrix are
+randomized too, deliberately including extremes (maximum resonance, mod-route
+amounts up to +-48) to stress the finite-output clamps added alongside them; BPM is
+randomized across [20, 300] to exercise `TempoSync` LFOs. Verified across two
+batches: **5,000 patches (seed 1, pre-modulation) and 5,000 more (seed 3,
+post-modulation), zero failures in either** (Debug build; a Release build would run
+substantially faster than the observed ~28-36 patches/sec). The master spec's
+overnight target of 1,000,000+ patches is left to whoever runs it --
+`--count`/`--seed` are both exposed for exactly that.
 
 ```bash
 ./build/dev/tools/pw8-fuzz-render --count 10000 --seed 1

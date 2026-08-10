@@ -67,7 +67,7 @@ TEST_CASE("VoiceAllocator steals a released voice over an actively-gated one", "
     for (int i = 0; i < 10000; ++i)
     {
         float l = 0.0f, r = 0.0f;
-        pool[idx0].renderSample(compiled, tables, l, r);
+        pool[idx0].renderSample(compiled, tables, 120.0f, l, r);
     }
 
     const auto idx2 = allocator.allocate(pool);

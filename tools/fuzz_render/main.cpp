@@ -7,7 +7,10 @@
 // which is exactly what AlgorithmGraphCompiler requires), while FEEDBACK edges (the
 // only type allowed to loop) are generated freely, including self-loops. This
 // exercises the compiler/executor's real validation and feedback-safety machinery
-// rather than only ever hitting the safe-fallback path.
+// rather than only ever hitting the safe-fallback path. Filter 1, LFO1, and the mod
+// matrix are randomized too (including deliberately extreme mod-route amounts and
+// max-resonance filter settings), exercising the finite-output clamps in
+// Voice::renderSample() and StateVariableFilter, not just the algorithm graph's.
 //
 //   pw8-fuzz-render --count 10000 --seed 1
 
@@ -139,6 +142,44 @@ namespace
         return e;
     }
 
+    filter::FilterParams randomFilter(dsp::DeterministicRng& rng)
+    {
+        filter::FilterParams f;
+        f.enabled = rng.nextFloat() < 0.6f;
+        f.mode = static_cast<filter::FilterMode>(static_cast<int>(rng.nextRange(0.0f, 4.999f)));
+        f.cutoffHz = rng.nextRange(20.0f, 19000.0f);
+        f.resonance = rng.nextRange(0.0f, 1.0f); // includes the near-self-oscillation extreme deliberately.
+        f.keyTrack = rng.nextRange(-1.0f, 1.0f);
+        return f;
+    }
+
+    lfo::LfoParams randomLfo(dsp::DeterministicRng& rng)
+    {
+        lfo::LfoParams l;
+        l.waveform = static_cast<lfo::LfoWaveform>(static_cast<int>(rng.nextRange(0.0f, 5.999f)));
+        l.mode = static_cast<lfo::LfoMode>(static_cast<int>(rng.nextRange(0.0f, 3.999f)));
+        l.rateHz = rng.nextRange(0.01f, 40.0f);
+        l.syncDivisionIndex = static_cast<int>(rng.nextRange(0.0f, 9.999f));
+        l.phaseOffset = rng.nextRange(0.0f, 1.0f);
+        return l;
+    }
+
+    core::FixedVector<modulation::ModRoute, core::kMaxModRoutes> randomModRoutes(dsp::DeterministicRng& rng)
+    {
+        core::FixedVector<modulation::ModRoute, core::kMaxModRoutes> routes;
+        const int numRoutes = static_cast<int>(rng.nextRange(0.0f, 8.999f));
+        for (int i = 0; i < numRoutes; ++i)
+        {
+            modulation::ModRoute r;
+            r.source = static_cast<modulation::ModSource>(static_cast<int>(rng.nextRange(0.0f, 14.999f)));
+            r.destination = static_cast<modulation::ModDestination>(static_cast<int>(rng.nextRange(0.0f, 4.999f)));
+            r.targetIndex = static_cast<std::uint8_t>(rng.nextRange(0.0f, 7.999f));
+            r.amount = rng.nextRange(-48.0f, 48.0f); // deliberately extreme -- exercises the clamps.
+            routes.push_back(r);
+        }
+        return routes;
+    }
+
     patch::Patch randomPatch(std::uint64_t patchIndex, std::uint64_t masterSeed)
     {
         dsp::DeterministicRng rng(dsp::DeterministicRng::deriveSeed(masterSeed, 0, patchIndex));
@@ -152,6 +193,9 @@ namespace
 
         p.layerA.algorithm = randomAlgorithm(rng);
         p.layerA.ampEnvelope = randomEnvelope(rng);
+        p.layerA.filter1 = randomFilter(rng);
+        p.layerA.lfo1 = randomLfo(rng);
+        p.layerA.modRoutes = randomModRoutes(rng);
         p.layerA.gain = rng.nextRange(0.1f, 1.5f);
         p.layerA.pan = rng.nextRange(-1.0f, 1.0f);
 
@@ -200,10 +244,13 @@ int main(int argc, char** argv)
         const auto patch = randomPatch(static_cast<std::uint64_t>(i), args.seed);
         const auto midiSeq = randomMidi(static_cast<std::uint64_t>(i), args.seed, args.durationSeconds);
 
+        dsp::DeterministicRng bpmRng(dsp::DeterministicRng::deriveSeed(args.seed, 2, static_cast<std::uint64_t>(i)));
+
         render::RenderOptions options;
         options.sampleRate = args.sampleRate;
         options.durationSecondsOverride = args.durationSeconds;
         options.seed = patch.seed;
+        options.bpm = bpmRng.nextRange(20.0f, 300.0f); // exercises TempoSync LFOs across the full range.
 
         const auto renderStart = std::chrono::steady_clock::now();
         const auto result = render::render(patch, midiSeq, options);

@@ -144,6 +144,54 @@ namespace pw8::patch
             u.blend = clampNum(j.value("blend", 1.0f), 0.0f, 1.0f);
         }
 
+        void toJson(json& j, const filter::FilterParams& f)
+        {
+            j = json{{"enabled", f.enabled},     {"mode", static_cast<int>(f.mode)},
+                     {"cutoffHz", f.cutoffHz},     {"resonance", f.resonance},
+                     {"keyTrack", f.keyTrack}};
+        }
+
+        void fromJson(const json& j, filter::FilterParams& f)
+        {
+            f.enabled = j.value("enabled", false);
+            f.mode = static_cast<filter::FilterMode>(clampNum(j.value("mode", 0), 0, 4));
+            f.cutoffHz = clampNum(j.value("cutoffHz", 8000.0f), 10.0f, 24000.0f);
+            f.resonance = clampNum(j.value("resonance", 0.2f), 0.0f, 1.0f);
+            f.keyTrack = clampNum(j.value("keyTrack", 0.0f), -1.0f, 1.0f);
+        }
+
+        void toJson(json& j, const lfo::LfoParams& l)
+        {
+            j = json{{"waveform", static_cast<int>(l.waveform)}, {"mode", static_cast<int>(l.mode)},
+                     {"rateHz", l.rateHz},                        {"syncDivisionIndex", l.syncDivisionIndex},
+                     {"phaseOffset", l.phaseOffset}};
+        }
+
+        void fromJson(const json& j, lfo::LfoParams& l)
+        {
+            l.waveform = static_cast<lfo::LfoWaveform>(clampNum(j.value("waveform", 0), 0, 5));
+            l.mode = static_cast<lfo::LfoMode>(clampNum(j.value("mode", 0), 0, 3));
+            l.rateHz = clampNum(j.value("rateHz", 2.0f), 0.001f, 50.0f);
+            l.syncDivisionIndex = clampNum(j.value("syncDivisionIndex", 4), 0, 9);
+            l.phaseOffset = clampNum(j.value("phaseOffset", 0.0f), 0.0f, 1.0f);
+        }
+
+        void toJson(json& j, const modulation::ModRoute& r)
+        {
+            j = json{{"source", static_cast<int>(r.source)}, {"destination", static_cast<int>(r.destination)},
+                     {"targetIndex", r.targetIndex},           {"amount", r.amount},
+                     {"scope", static_cast<int>(r.scope)}};
+        }
+
+        void fromJson(const json& j, modulation::ModRoute& r)
+        {
+            r.source = static_cast<modulation::ModSource>(clampNum(j.value("source", 0), 0, 14));
+            r.destination = static_cast<modulation::ModDestination>(clampNum(j.value("destination", 0), 0, 4));
+            r.targetIndex = static_cast<std::uint8_t>(clampNum(j.value("targetIndex", 0), 0, 255));
+            r.amount = clampNum(j.value("amount", 0.0f), -1000.0f, 1000.0f);
+            r.scope = static_cast<modulation::ModScope>(clampNum(j.value("scope", 0), 0, 2));
+        }
+
         void toJson(json& j, const LayerPatch& l)
         {
             json ops = json::array();
@@ -153,13 +201,24 @@ namespace pw8::patch
                 toJson(jo, o);
                 ops.push_back(jo);
             }
-            json algo, env, uni;
+            json algo, env, uni, filt, lfoJ;
             toJson(algo, l.algorithm);
             toJson(env, l.ampEnvelope);
             toJson(uni, l.unison);
+            toJson(filt, l.filter1);
+            toJson(lfoJ, l.lfo1);
+
+            json routes = json::array();
+            for (const auto& r : l.modRoutes)
+            {
+                json jr;
+                toJson(jr, r);
+                routes.push_back(jr);
+            }
 
             j = json{{"operators", ops},       {"algorithm", algo},           {"ampEnvelope", env},
-                     {"unison", uni},           {"gain", l.gain},             {"pan", l.pan},
+                     {"unison", uni},           {"filter1", filt},             {"lfo1", lfoJ},
+                     {"modRoutes", routes},     {"gain", l.gain},              {"pan", l.pan},
                      {"width", l.width},         {"centerGravity", l.centerGravity}};
         }
 
@@ -182,6 +241,23 @@ namespace pw8::patch
                 fromJson(j.at("ampEnvelope"), l.ampEnvelope);
             if (j.contains("unison"))
                 fromJson(j.at("unison"), l.unison);
+            if (j.contains("filter1"))
+                fromJson(j.at("filter1"), l.filter1);
+            if (j.contains("lfo1"))
+                fromJson(j.at("lfo1"), l.lfo1);
+
+            l.modRoutes.clear();
+            if (j.contains("modRoutes") && j.at("modRoutes").is_array())
+            {
+                for (const auto& jr : j.at("modRoutes"))
+                {
+                    if (l.modRoutes.size() >= core::kMaxModRoutes)
+                        break;
+                    modulation::ModRoute r;
+                    fromJson(jr, r);
+                    l.modRoutes.push_back(r);
+                }
+            }
 
             l.gain = clampNum(j.value("gain", 1.0f), 0.0f, 4.0f);
             l.pan = clampNum(j.value("pan", 0.0f), -1.0f, 1.0f);

@@ -39,6 +39,17 @@ namespace pw8::plugin
             return;
         }
 
+        // Tempo-synced LFOs need the host tempo; default to 120 BPM when unavailable
+        // (e.g. no playhead, or a host that doesn't report it).
+        float bpm = 120.0f;
+        if (auto* playHead = getPlayHead())
+        {
+            if (const auto position = playHead->getPosition(); position.hasValue())
+                if (const auto hostBpm = position->getBpm())
+                    bpm = static_cast<float>(*hostBpm);
+        }
+        engine->setTempo(bpm);
+
         for (const auto metadata : midiMessages)
         {
             const auto msg = metadata.getMessage();

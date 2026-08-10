@@ -4,7 +4,7 @@
     "id": "pw8-soft-pad",
     "name": "SOFT PAD",
     "author": "Patchwork Eight Engineering",
-    "description": "Four gently detuned sine/triangle carriers (OP0-3), including a quiet octave-up triangle for shimmer. Slow attack and long release for a lush, evolving pad character.",
+    "description": "Four gently detuned sine/triangle carriers (OP0-3), including a quiet octave-up triangle for shimmer. Slow attack and long release for a lush pad character. A slow free-running LFO (0.15Hz) modulates Filter 1's cutoff for the 'evolving' movement the mood tags promise, rather than that being just a description.",
     "category": "pad",
     "moods": ["lush", "dreamy", "airy", "evolving"],
     "genres": [],
@@ -36,6 +36,11 @@
     },
     "ampEnvelope": {"attackSeconds": 1.2, "decaySeconds": 1.0, "sustainLevel": 0.8, "releaseSeconds": 2.0, "curveShape": 1.5},
     "unison": {"mode": 0, "voices": 1},
+    "filter1": {"enabled": true, "mode": 0, "cutoffHz": 2200.0, "resonance": 0.15, "keyTrack": 0.2},
+    "lfo1": {"waveform": 0, "mode": 0, "rateHz": 0.15, "phaseOffset": 0.0},
+    "modRoutes": [
+      {"source": 1, "destination": 1, "targetIndex": 0, "amount": 30.0, "scope": 0}
+    ],
     "gain": 0.85, "pan": 0.0, "width": 1.0, "centerGravity": 0.3
   },
   "layerB": {

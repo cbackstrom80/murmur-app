@@ -24,7 +24,10 @@ for the full phase-by-phase breakdown against the product spec.
 | DAHDSR envelope | **IMPLEMENTED** |
 | Polyphonic voice allocation (configurable, default 16 / max 32 voices), sensible stealing policy | **IMPLEMENTED** |
 | 8-node-per-layer algorithm graph: AUDIO/PHASE_MOD/FREQUENCY_MOD/AMPLITUDE_MOD/RING_MOD/SYNC/FEEDBACK edges, validated + compiled + executed | **IMPLEMENTED** |
-| MPE-shaped per-note expression capture (pitch bend, pressure, aftertouch, slide) | **PARTIAL** (captured; only pitch bend currently audible -- mod matrix pending) |
+| MPE-shaped per-note expression capture (pitch bend, pressure, aftertouch, slide) | **IMPLEMENTED** (pitch bend affects pitch directly; pressure/aftertouch/slide are mod matrix sources) |
+| Filter 1 (TPT state-variable: LP/HP/BP/notch/peak, per-voice, key-tracked) | **IMPLEMENTED** |
+| LFO (6 waveforms, free/retrigger/one-shot/tempo-sync, per-voice) | **IMPLEMENTED** (1 of the eventual 8 per patch) |
+| Mod matrix (LFO/envelope/velocity/pressure/aftertouch/slide/8 macros -> filter cutoff/resonance, operator level, pan) | **IMPLEMENTED** (VOICE scope; LAYER/GLOBAL scope planned) |
 | `.pw8` patch format (JSON, versioned schema, untrusted-input-hardened) | **IMPLEMENTED** |
 | Native offline renderer (no plugin host / DAW required) -> WAV + JSON receipt | **IMPLEMENTED** |
 | Standard MIDI File input (hand-rolled reader, tempo map, running status) | **IMPLEMENTED** |
@@ -33,7 +36,7 @@ for the full phase-by-phase breakdown against the product spec.
 | JUCE VST3/AU/Standalone plugin | **PARTIAL, build-verified** (AU passes Apple's `auval` in full; off by default) |
 | Google Benchmark suite | **IMPLEMENTED** (oscillators, algorithm graph, voice, full-patch render, at 44.1/48/96 kHz x 1/8/16/32 voices) |
 | Fuzz-render harness (`pw8-fuzz-render`) | **IMPLEMENTED** (verified: 5,000 random valid patches, 0 failures) |
-| Filters, FX, LFO, mod matrix, macros, sequencer, dual-layer mixing, algorithm morph, additional engine types (additive/phase-shape/granular/noise/resonator) | **PLANNED** |
+| Filter 2 (character), FX, sequencer, dual-layer mixing, algorithm morph, additional engine types (additive/phase-shape/granular/noise/resonator) | **PLANNED** |
 
 ## Architecture
 
@@ -96,6 +99,7 @@ docs/ROADMAP.md Phase 19).
 - [LICENSING.md](docs/LICENSING.md) -- dependency license analysis
 - [PATCHWORK_INTEGRATION.md](docs/PATCHWORK_INTEGRATION.md) -- how this connects to Patchwork AI
 - [PRIOR_ART.md](docs/PRIOR_ART.md) -- design lineage, incl. the Mutable Instruments `eurorack` concept mapping
+- [COMPETITIVE_ANALYSIS.md](docs/COMPETITIVE_ANALYSIS.md) -- feature-parity check against Serum 2 and Phase Plant (research only, no UI/code copied)
 
 ## License
 

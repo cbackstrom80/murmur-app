@@ -4,7 +4,7 @@
     "id": "pw8-dark-bass",
     "name": "DARK BASS",
     "author": "Patchwork Eight Engineering",
-    "description": "Sine/triangle-morphed carrier (OP0, morph=0.15 -- leaning toward triangle rather than saw) plus a sub sine an octave down (OP1). Darkness comes from oscillator/morph choice, not filtering: Filter 1/Filter 2 are architected but not yet in the signal path (docs/ROADMAP.md Phase 6).",
+    "description": "Bright saw carrier (OP0) plus a sub sine an octave down (OP1), pushed through Filter 1 (lowpass, cutoff ~500Hz, moderate resonance for character). Darkness now comes from real filtering rather than oscillator choice alone. Two mod routes demonstrate classic subtractive-bass behavior: the shared envelope opens the filter briefly on attack (AmpEnvelope -> FilterCutoff), and harder hits brighten the tone (Velocity -> FilterCutoff).",
     "category": "bass",
     "moods": ["dark", "warm"],
     "genres": [],
@@ -19,7 +19,7 @@
   "layerMorph": 0.0,
   "layerA": {
     "operators": [
-      {"engine": 0, "classicWaveform": 1, "classicMorph": 0.15, "frequencyRatio": 1.0, "keyTrack": true, "level": 0.85, "pan": 0.0},
+      {"engine": 0, "classicWaveform": 2, "frequencyRatio": 1.0, "keyTrack": true, "level": 0.85, "pan": 0.0},
       {"engine": 0, "classicWaveform": 0, "frequencyRatio": 0.5, "keyTrack": true, "level": 0.5, "pan": 0.0},
       {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0},
       {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}
@@ -35,6 +35,11 @@
     },
     "ampEnvelope": {"attackSeconds": 0.006, "decaySeconds": 0.35, "sustainLevel": 0.55, "releaseSeconds": 0.35, "curveShape": 2.5},
     "unison": {"mode": 0, "voices": 1},
+    "filter1": {"enabled": true, "mode": 0, "cutoffHz": 500.0, "resonance": 0.35, "keyTrack": 0.3},
+    "modRoutes": [
+      {"source": 2, "destination": 1, "targetIndex": 0, "amount": 24.0, "scope": 0},
+      {"source": 3, "destination": 1, "targetIndex": 0, "amount": 18.0, "scope": 0}
+    ],
     "gain": 0.9, "pan": 0.0, "width": 0.4, "centerGravity": 0.85
   },
   "layerB": {

@@ -9,6 +9,9 @@
 #include "pw8/core/Types.hpp"
 #include "pw8/core/Version.hpp"
 #include "pw8/envelope/DahdsrEnvelope.hpp"
+#include "pw8/filter/StateVariableFilter.hpp"
+#include "pw8/lfo/Lfo.hpp"
+#include "pw8/modulation/ModMatrixTypes.hpp"
 #include "pw8/operator/OperatorNode.hpp"
 
 // Pure data model for the native `.pw8` patch format (schemaVersion 1).
@@ -82,14 +85,24 @@ namespace pw8::patch
         envelope::DahdsrParams ampEnvelope{};
         UnisonSettings unison{};
 
+        /// Filter 1: clean multimode SVF, applied per-voice between the algorithm
+        /// graph's output and the amplitude envelope. See docs/DSP_ENGINE.md.
+        filter::FilterParams filter1{};
+
+        /// Per-voice LFO1, usable as a mod matrix source. See docs/MODULATION.md.
+        lfo::LfoParams lfo1{};
+
+        /// Fixed-capacity mod matrix routes (VOICE scope executed in this pass).
+        core::FixedVector<modulation::ModRoute, core::kMaxModRoutes> modRoutes;
+
         float gain = 1.0f;
         float pan = 0.0f;
         float width = 1.0f; ///< stereo width, 0 (mono) .. 1 (full) .. 2 (wide), reserved (PLANNED).
         float centerGravity = 0.5f; ///< see docs/DSP_ENGINE.md "Center Gravity" (PLANNED wiring).
 
-        // Filter 1 / Filter 2 (character) and per-layer insert effects are architected
-        // as of docs/DSP_ENGINE.md but not yet part of the signal path in this pass --
-        // see docs/ROADMAP.md Phase 6 / Phase 11.
+        // Filter 2 (character) and per-layer insert effects are architected as of
+        // docs/DSP_ENGINE.md but not yet part of the signal path in this pass --
+        // see docs/ROADMAP.md Phase 6 (continued) / Phase 11.
     };
 
     /// AI-generation lock flags: control what Generate/Mutate/Breed are allowed to touch.

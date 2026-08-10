@@ -97,6 +97,8 @@ namespace pw8::render
             return result;
         }
 
+        engine.setTempo(static_cast<float>(options.bpm));
+
         double totalSeconds = options.durationSecondsOverride;
         if (totalSeconds < 0.0)
             totalSeconds = midi.durationSeconds() + options.releaseTailSeconds;

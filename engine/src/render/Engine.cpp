@@ -58,8 +58,18 @@ namespace pw8::render
         allocator_.configure(patch_.voiceSettings.polyphony);
         tuning_.setA4(patch_.voiceSettings.a4Hz);
 
+        std::array<float, 8> macroValues{};
+        for (std::size_t i = 0; i < macroValues.size(); ++i)
+            macroValues[i] = patch_.macros[i].value;
+
         for (auto& v : voices_)
+        {
             v.operatorParams = operatorParamsTemplateA_;
+            v.filterParams = patch_.layerA.filter1;
+            v.lfoParams = patch_.layerA.lfo1;
+            v.modRoutes = patch_.layerA.modRoutes;
+            v.macroValues = macroValues;
+        }
 
         return status == algorithm::CompileStatus::Ok;
     }
@@ -76,6 +86,11 @@ namespace pw8::render
         auto& v = voices_[idx];
         v.id = static_cast<std::uint32_t>(idx);
         v.operatorParams = operatorParamsTemplateA_;
+        v.filterParams = patch_.layerA.filter1;
+        v.lfoParams = patch_.layerA.lfo1;
+        v.modRoutes = patch_.layerA.modRoutes;
+        for (std::size_t i = 0; i < v.macroValues.size(); ++i)
+            v.macroValues[i] = patch_.macros[i].value;
 
         const float freqHz = tuning_.noteToFrequency(static_cast<float>(note));
         const float velUnit = static_cast<float>(velocity7) / 127.0f;
@@ -152,7 +167,7 @@ namespace pw8::render
             for (std::size_t i = 0; i < allocator_.getPolyphony(); ++i)
             {
                 float vl = 0.0f, vr = 0.0f;
-                voices_[i].renderSample(compiledLayerA_, wavetablesA_, vl, vr);
+                voices_[i].renderSample(compiledLayerA_, wavetablesA_, bpm_, vl, vr);
                 sumL += vl;
                 sumR += vr;
             }

@@ -9,20 +9,30 @@
 #include "pw8/dsp/Math.hpp"
 #include "pw8/dsp/Random.hpp"
 #include "pw8/envelope/DahdsrEnvelope.hpp"
+#include "pw8/filter/StateVariableFilter.hpp"
+#include "pw8/lfo/Lfo.hpp"
+#include "pw8/modulation/ModMatrixExecutor.hpp"
 #include "pw8/operator/OperatorNode.hpp"
 
 // A single polyphonic voice: 8 operator nodes routed through a (shared, precompiled)
-// algorithm graph, one amplitude envelope, and the per-note state needed for MPE and
-// voice allocation. Per docs/ROADMAP.md Phase 5+, each voice will eventually own 8
-// envelopes / 8 LFOs / a mod matrix instance; this pass wires the amplitude envelope
-// only and documents the rest as PLANNED so the allocation/stealing/MPE contract is
-// established now rather than retrofitted.
+// algorithm graph, one amplitude envelope, one LFO, a mod matrix, Filter 1, and the
+// per-note state needed for MPE and voice allocation.
+//
+// Signal chain per sample: LFO + envelope render (mod sources) -> mod matrix ->
+// (operator-level-modulated) algorithm graph -> Filter 1 (cutoff/resonance
+// modulated) -> amplitude envelope VCA -> pan (modulated) -> stereo output.
+//
+// Per docs/ROADMAP.md Phase 5+, each voice will eventually own 8 envelopes / 8 LFOs
+// / LAYER+GLOBAL mod scope; this pass wires one amplitude envelope and one LFO
+// (VOICE-scoped mod matrix) and documents the rest as PLANNED so the allocation/
+// stealing/MPE contract is established now rather than retrofitted.
 
 namespace pw8::voice
 {
     /// Per-note expressive state. Populated from MIDI/MPE at note-on and updated by
-    /// subsequent per-channel messages. Not yet routed through a modulation matrix
-    /// (Phase 5) -- currently only pitchBendSemitones directly affects pitch.
+    /// subsequent per-channel messages. pitchBendSemitones/mpePitch directly affect
+    /// pitch; channelPressure/polyAftertouch/mpeSlide are mod matrix sources
+    /// (ModSource::ChannelPressure/PolyAftertouch/MpeSlide).
     struct NoteExpression
     {
         float pitchBendSemitones = 0.0f;
@@ -40,6 +50,8 @@ namespace pw8::voice
             for (auto& s : operatorStates)
                 s.prepare(sampleRate);
             ampEnvelope.prepare(sampleRate);
+            filter1.prepare(sampleRate);
+            lfo1.prepare(sampleRate);
             sampleRate_ = sampleRate;
         }
 
@@ -58,11 +70,14 @@ namespace pw8::voice
 
             // Deterministic, seeded per-voice phase variation (see docs/DSP_ENGINE.md
             // "Voice Variation"): small, controlled, reproducible -- not free-running RNG.
-            dsp::DeterministicRng rng(dsp::DeterministicRng::deriveSeed(voiceSeed, id, voiceSeed ^ noteGenerationId));
+            const auto seed = dsp::DeterministicRng::deriveSeed(voiceSeed, id, voiceSeed ^ noteGenerationId);
+            dsp::DeterministicRng rng(seed);
             for (auto& s : operatorStates)
                 s.reset(rng.nextFloat());
 
             ampEnvelope.noteOn(envParams);
+            filter1.reset();
+            lfo1.noteOn(lfoParams, seed);
         }
 
         void noteOff(float releaseVelocityUnit) noexcept
@@ -90,7 +105,7 @@ namespace pw8::voice
         /// envelope has fully finished its release.
         void renderSample(const algorithm::CompiledAlgorithm& compiled,
                            const std::array<oscillator::WavetableView, core::kNodesPerLayer>& wavetables,
-                           float& outLeft, float& outRight) noexcept
+                           float bpm, float& outLeft, float& outRight) noexcept
         {
             if (noteNumber < 0 && !ampEnvelope.isActive())
             {
@@ -103,11 +118,46 @@ namespace pw8::voice
                                        (std::pow(2.0f, (expression.pitchBendSemitones + expression.mpePitch) / 12.0f) - 1.0f);
             const float effectiveFreq = baseFrequencyHz + pitchBendHz;
 
-            const float raw = executor.processSample(compiled, operatorParams, operatorStates, wavetables, effectiveFreq);
+            // Mod sources that don't depend on this sample's algorithm-graph output are
+            // rendered first, so their values can modulate the operators that ARE about
+            // to run this sample (e.g. LFO -> operator level tremolo).
+            const float lfoValue = lfo1.renderSample(lfoParams, bpm);
             const float env = ampEnvelope.renderSample();
-            const float amp = dsp::clamp(raw * env * velocity * outputGain, -16.0f, 16.0f);
 
-            const float panClamped = dsp::clamp(pan, -1.0f, 1.0f);
+            modulation::ModSourceValues sourceValues;
+            sourceValues.lfo1 = lfoValue;
+            sourceValues.ampEnvelope = env;
+            sourceValues.velocity = velocity;
+            sourceValues.channelPressure = expression.channelPressure;
+            sourceValues.polyAftertouch = expression.polyAftertouch;
+            sourceValues.mpeSlide = expression.mpeSlide;
+            sourceValues.macros = macroValues;
+
+            const auto modOut = modulation::ModMatrixExecutor::apply(modRoutes, sourceValues);
+
+            // Operator-level modulation needs a per-sample-modified params copy; the
+            // multiplier defaults to 1.0 per operator when no route targets it, so this
+            // is a correctness-preserving no-op for patches with no such routes (fixed
+            // 8-struct stack copy, no allocation).
+            std::array<op::OperatorParams, core::kNodesPerLayer> modulatedParams = operatorParams;
+            for (std::size_t i = 0; i < core::kNodesPerLayer; ++i)
+                modulatedParams[i].level *= modOut.operatorLevelMultiplier[i];
+
+            const float raw = executor.processSample(compiled, modulatedParams, operatorStates, wavetables, effectiveFreq);
+
+            float filtered = raw;
+            if (filterParams.enabled)
+            {
+                const float keyTrackFactor = std::pow(effectiveFreq / 261.6256f, filterParams.keyTrack);
+                const float cutoffHz = filterParams.cutoffHz * keyTrackFactor *
+                                        std::pow(2.0f, modOut.filterCutoffSemitones / 12.0f);
+                const float resonance = dsp::clamp(filterParams.resonance + modOut.filterResonanceOffset, 0.0f, 1.0f);
+                filtered = filter1.renderSample(raw, filterParams.mode, cutoffHz, resonance);
+            }
+
+            const float amp = dsp::clamp(filtered * env * velocity * outputGain, -16.0f, 16.0f);
+
+            const float panClamped = dsp::clamp(pan + modOut.panOffset, -1.0f, 1.0f);
             const float panRad = (panClamped * 0.5f + 0.5f) * (dsp::kPi * 0.5f);
             outLeft = amp * std::cos(panRad);
             outRight = amp * std::sin(panRad);
@@ -135,6 +185,15 @@ namespace pw8::voice
         std::array<op::OperatorState, core::kNodesPerLayer> operatorStates{};
         algorithm::AlgorithmExecutor executor{};
         envelope::DahdsrEnvelope ampEnvelope{};
+
+        filter::FilterParams filterParams{};
+        filter::StateVariableFilter filter1{};
+
+        lfo::LfoParams lfoParams{};
+        lfo::Lfo lfo1{};
+
+        core::FixedVector<modulation::ModRoute, core::kMaxModRoutes> modRoutes{};
+        std::array<float, 8> macroValues{};
 
     private:
         double sampleRate_ = 48000.0;

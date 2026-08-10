@@ -130,22 +130,48 @@ rather than an unseeded/global RNG.
 ## Parameter Smoothing
 
 **PARTIAL.** `dsp::OnePoleSmoother` and `dsp::LinearRamp` are implemented
-(`pw8/dsp/Smoother.hpp`) but are not yet wired to every continuous parameter listed
-in the master spec (gain/pan/cutoff/resonance/pitch/FM depth/mod amount/morph/drive/
-FX mix) -- filters, drive, and FX don't exist yet to smooth, and several
-already-implemented parameters (level, pan, algorithm edge amounts) are currently
-read directly rather than through a smoother, since in this pass they're set at
-note-on / patch-load time rather than modulated continuously mid-note. Wiring
-`OnePoleSmoother` onto every live-modulatable destination is tracked for Phase 5
-(mod matrix) since that's when parameters start actually changing continuously
-during a note.
+(`pw8/dsp/Smoother.hpp`) but are not yet wired onto every continuous parameter --
+Filter 1's cutoff/resonance are recomputed and reapplied fresh every sample instead
+(see "Filter System" below, which explains why that's the right call for a filter
+specifically), and drive/FX-mix don't exist yet to smooth. `OnePoleSmoother`/
+`LinearRamp` remain unused by any current code path; wiring them onto
+block-rate-only parameters (e.g. gain/pan set at note-on) is lower priority than it
+looked before Filter 1 shipped, since the highest-risk zipper-noise source (cutoff
+sweeping under mod-matrix control) turned out not to need them.
+
+## Filter System
+
+**Filter 1: IMPLEMENTED.** `filter::StateVariableFilter` (`pw8/filter/StateVariableFilter.hpp`),
+a trapezoidal-integrator ("TPT") state-variable filter -- lowpass, highpass,
+bandpass, notch, and peak modes from the same two integrator states. One instance
+per voice, sitting in the signal chain between the algorithm graph's output and the
+amplitude envelope: `Algorithm Graph -> Filter 1 -> Amp Envelope (VCA) -> Pan -> Output`.
+
+Cutoff and resonance are recomputed from scratch every sample rather than smoothed
+toward a target -- deliberately: the mod matrix can drive cutoff every sample (LFO,
+envelope, velocity, macros), and a TPT SVF's coefficients are cheap enough (one
+`tan()` plus a handful of multiplies) that recomputing them per sample is both
+simpler and more responsive than maintaining a smoother on top of an
+already-continuous per-sample source. `tests/dsp/StateVariableFilterTests.cpp`
+verifies: lowpass/highpass/bandpass frequency-response direction, stability and
+bounded output at maximum resonance across the full cutoff range, and clean state
+reset. `tests/regression/RenderSanityTests.cpp` verifies the filter has an
+audible, measurable effect through the full render pipeline (RMS drop with a
+lowpass engaged on a bright saw).
+
+Key tracking (`FilterParams::keyTrack`, -1..1) scales cutoff by the voice's
+effective (pitch-bent) frequency relative to middle C, so a patch's brightness can
+follow the keyboard the way an analog filter naturally would.
+
+**Filter 2** ("character" -- nonlinear ladder-style/OTA-style/diode-style/saturated
+cascade topologies): **PLANNED**, ROADMAP.md Phase 6 continuation.
 
 ## Voice, Envelope, Algorithm Graph, Filters, FX
 
 See dedicated docs:
 - [ALGORITHM_GRAPH.md](ALGORITHM_GRAPH.md) -- the 8-node graph, compiler, execution semantics
-- [MODULATION.md](MODULATION.md) -- envelope (implemented), LFO/mod-matrix/macros (planned)
-- Filters (`pw8/filter/`) and FX (`pw8/effects/`) are PLANNED -- see their directory READMEs and ROADMAP.md Phase 6 / 11.
+- [MODULATION.md](MODULATION.md) -- envelope, LFO, and mod matrix (all IMPLEMENTED at VOICE scope)
+- Filter 1 is IMPLEMENTED (above); Filter 2 and FX (`pw8/effects/`) are PLANNED -- see ROADMAP.md Phase 6 / 11.
 
 ## Voice Architecture
 
@@ -153,10 +179,13 @@ See dedicated docs:
 (`pw8/voice/Voice.hpp`, `pw8/voice/VoiceAllocator.hpp`). Fixed-capacity pool
 (`core::kMaxVoices` = 32, default configured polyphony 16, configurable per-patch up
 to the ceiling via `Patch::voiceSettings.polyphony`). Each voice owns independent
-operator state (8 `op::OperatorState`), one amplitude envelope, and MPE-ready
-per-note expression (`voice::NoteExpression`: pitch bend, channel pressure, poly
-aftertouch, MPE slide/pitch -- captured from MIDI today; only pitch bend is
-currently wired to actually affect the sound, the rest await the mod matrix, Phase 5).
+operator state (8 `op::OperatorState`), one amplitude envelope, one LFO, one Filter
+1 instance, a VOICE-scoped mod matrix, and MPE-ready per-note expression
+(`voice::NoteExpression`: pitch bend, channel pressure, poly aftertouch, MPE
+slide/pitch -- captured from MIDI). Pitch bend directly affects pitch; channel
+pressure, poly aftertouch, and MPE slide are mod matrix *sources*
+(`ModSource::ChannelPressure/PolyAftertouch/MpeSlide`) -- audible only if a patch's
+`modRoutes` actually routes them somewhere, same as any other source.
 
 **Voice stealing policy** (`VoiceAllocator::allocate()`): free voice first; else the
 quietest *released* voice; else the quietest voice overall, ties broken by oldest.

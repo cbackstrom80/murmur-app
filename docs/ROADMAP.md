@@ -9,8 +9,8 @@ Status as of this repository's initial engineering pass. Legend: **DONE** / **PA
 | 2 | Wavetable (preprocessing, mipmapping, frame interpolation, wavetable source) | **PARTIAL** -- oscillator + builder tool implemented; mip-mapping/band-limiting not yet done (see DSP_ENGINE.md) |
 | 3 | 8-node algorithm graph (nodes, edges, validation, compiler, compiled execution, audio routing) | **DONE**, and beyond AUDIO-only -- all 7 edge types implemented |
 | 4 | PM/FM/AM/RING typed modulation edges | **DONE** at the graph level (stretch goal achieved); a dedicated Engine Type 3 (FM/PM) with its own ratio/fixed-frequency modes is still PLANNED |
-| 5 | Modulation (envelopes, LFO, mod matrix, macros, performance controls) | **PARTIAL** -- amplitude envelope + MPE-shaped per-note expression capture done; LFO, mod matrix, macro routing PLANNED |
-| 6 | Filters (clean multimode, first character filter) | **PLANNED** |
+| 5 | Modulation (envelopes, LFO, mod matrix, macros, performance controls) | **PARTIAL** -- amplitude envelope, one per-voice LFO (6 waveforms, 4 modes incl. tempo-sync), and a VOICE-scoped mod matrix (6 sources incl. 8 macros, 4 destinations) are all IMPLEMENTED; 8-envelope/8-LFO/LAYER+GLOBAL-scope targets PLANNED |
+| 6 | Filters (clean multimode, first character filter) | **PARTIAL** -- Filter 1 (TPT state-variable: LP/HP/BP/notch/peak, per-voice, mod-matrix-modulatable cutoff/resonance, key tracking) is **IMPLEMENTED**; Filter 2 (nonlinear character filter) PLANNED |
 | 7 | Unison / stereo (unison, voice drift, pan, width, center gravity) | **PARTIAL** -- data model present (`UnisonSettings`, `centerGravity` on `LayerPatch`); DSP wiring PLANNED. `content/presets/wide-saw.pw8` demonstrates the *effect* today via hand-detuned operators rather than an automated unison engine |
 | 8 | Dual layer (Layer A, Layer B, stack, layer morph) | **PARTIAL** -- schema complete (`LayerMode` enum, full `layerB` data), only `SINGLE_A` is actually voiced/rendered |
 | 9 | Algorithm morph (same-topology, different-topology) | **PLANNED** |
@@ -47,6 +47,17 @@ goals), this pass shipped:
   working phase-modulation edges (exceeding "basic PM edge" -- full FM/PM/AM/RM/
   SYNC/FEEDBACK typed edges)
 
+## Competitive check: Serum 2 & Phase Plant
+
+See [COMPETITIVE_ANALYSIS.md](COMPETITIVE_ANALYSIS.md) for the full feature-parity
+matrix. Summary: every gap identified (modulator count, oscillator variety, effects
+breadth, UI) was already tracked under an existing PLANNED phase above -- this
+research validated the existing phase scope rather than changing it. The algorithm
+graph, deterministic rendering, and native headless rendering are genuine
+differentiators neither competitor has. Per the master spec's explicit prohibition
+on copying UI layout/visual identity from commercial products, no UI design or code
+resulted from this pass -- only a feature/gap comparison.
+
 ## Follow-up pass: what "build it all" added
 
 A second pass built and verified everything that was previously scaffolded or
@@ -68,14 +79,47 @@ merely described:
 - CI gained a macOS `plugin` job (build + `auval`, non-blocking) and a Linux+macOS
   `python-bindings` job (build + smoke test).
 
+## Follow-up pass: Filter 1, LFO, and the mod matrix
+
+A third pass implemented the two items this doc had previously called out as the
+highest-leverage next steps (items 2 and 3 below, prior to this pass):
+
+- **Filter 1** (`pw8/filter/StateVariableFilter.hpp`): TPT state-variable filter,
+  LP/HP/BP/notch/peak, per-voice, wired into the signal chain
+  (Algorithm Graph -> Filter 1 -> Amp Envelope -> Pan -> Output), with key tracking.
+- **LFO1** (`pw8/lfo/Lfo.hpp`): 6 waveforms, 4 modes (free/retrigger/one-shot/
+  tempo-sync), per-voice, deterministically seeded, tempo threaded end-to-end from
+  `RenderOptions::bpm` / the JUCE host playhead through `Engine::setTempo()`.
+- **Mod matrix** (`pw8/modulation/`): VOICE-scoped, 6 source types (LFO1, amp
+  envelope, velocity, channel pressure, poly aftertouch, MPE slide) plus all 8
+  macros, 4 destination types (filter cutoff/resonance, per-operator level, pan),
+  fixed-capacity (64 routes), no realtime allocation.
+- 19 new tests (filter stability/frequency-response, LFO rate/mode/determinism, mod
+  matrix routing/composition, plus 4 full-Engine regression tests proving the
+  filter/LFO/tempo/mod-matrix chain actually changes rendered audio end to end) --
+  56 total, all passing.
+- `pw8-fuzz-render` extended to randomize filter/LFO/mod-route parameters
+  (deliberately including max resonance and extreme mod amounts); 5,000-patch batch,
+  zero failures.
+- Three factory presets updated to use real modulation instead of only
+  oscillator-choice tricks: `dark-bass.pw8` (envelope+velocity -> filter cutoff,
+  replacing its previous "darkness via morph only" approach), `soft-pad.pw8` (slow
+  LFO -> filter cutoff for genuine movement), `wide-saw.pw8` (velocity -> filter
+  cutoff brightness).
+- A competitive-research pass (see above) confirmed the macro model already matches
+  Phase Plant's "8 routable macros" structurally, and validated that no roadmap
+  rescoping was needed.
+
 ## Immediate next steps (suggested, not committed)
 
 1. Wavetable mip-mapping (finishes Phase 2 properly).
-2. Mod matrix + LFO (Phase 5) -- unlocks meaningful use of the macro/expression data
-   already captured.
-3. Filter 1 (clean multimode) -- the single highest-leverage missing piece for
-   subjective sound quality (Phase 6).
-4. `juce::AudioProcessorValueTreeState` parameter wiring + `pluginval` + a real DAW
+2. `juce::AudioProcessorValueTreeState` parameter wiring + `pluginval` + a real DAW
    host-matrix pass -- the plugin now builds and passes `auval`, so this is the
    natural next increment toward a genuinely shippable plugin rather than a
    from-scratch effort.
+3. Expand modulation to the full 8-envelope/8-LFO/LAYER+GLOBAL-scope target now that
+   the 1-of-each VOICE-scoped version has proven the data model and execution
+   pattern end to end.
+4. Filter 2 (nonlinear character filter) -- Filter 1's TPT SVF proved the per-voice
+   filter integration point; a second filter stage is now a smaller increment than
+   it was before Filter 1 existed.

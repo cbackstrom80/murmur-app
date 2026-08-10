@@ -13,8 +13,11 @@ add_executable(pw8_tests
     dsp/ClassicOscillatorTests.cpp
     dsp/DahdsrEnvelopeTests.cpp
     dsp/VoiceAllocatorTests.cpp
+    dsp/StateVariableFilterTests.cpp
+    dsp/LfoTests.cpp
     unit/AlgorithmGraphCompilerTests.cpp
     unit/DeterministicRngTests.cpp
+    unit/ModMatrixTests.cpp
     serialization/PatchSerializerTests.cpp
     serialization/StandardMidiFileTests.cpp
     regression/RenderSanityTests.cpp

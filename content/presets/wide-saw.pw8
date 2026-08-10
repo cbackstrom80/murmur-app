@@ -4,7 +4,7 @@
     "id": "pw8-wide-saw",
     "name": "WIDE SAW",
     "author": "Patchwork Eight Engineering",
-    "description": "Six detuned saw carriers (OP0-5) spread across slightly-off frequencyRatios, plus a sub-octave doubler on OP5. Proves that a hand-detuned cluster stays level-controlled and doesn't collapse -- a preview of what the future unison engine will automate (docs/ROADMAP.md Phase 7).",
+    "description": "Six detuned saw carriers (OP0-5) spread across slightly-off frequencyRatios, plus a sub-octave doubler on OP5. Proves that a hand-detuned cluster stays level-controlled and doesn't collapse -- a preview of what the future unison engine will automate (docs/ROADMAP.md Phase 7). Filter 1 (lowpass, keyTrack=0.5) plus a Velocity -> FilterCutoff route give classic velocity-sensitive brightness.",
     "category": "lead",
     "moods": ["bright", "lush"],
     "genres": [],
@@ -39,6 +39,10 @@
     },
     "ampEnvelope": {"attackSeconds": 0.015, "decaySeconds": 0.3, "sustainLevel": 0.85, "releaseSeconds": 0.4, "curveShape": 2.0},
     "unison": {"mode": 0, "voices": 1},
+    "filter1": {"enabled": true, "mode": 0, "cutoffHz": 1200.0, "resonance": 0.25, "keyTrack": 0.5},
+    "modRoutes": [
+      {"source": 3, "destination": 1, "targetIndex": 0, "amount": 36.0, "scope": 0}
+    ],
     "gain": 0.9, "pan": 0.0, "width": 1.0, "centerGravity": 0.4
   },
   "layerB": {

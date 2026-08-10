@@ -46,6 +46,10 @@ namespace pw8::render
         void polyAftertouch(int channel, int note, int value7) noexcept;
         void allNotesOff() noexcept;
 
+        /// Sets the tempo used by tempo-synced LFOs. Audio-thread safe (a plain float
+        /// store) -- call once per block from whatever knows the host/render tempo.
+        void setTempo(float bpm) noexcept { bpm_ = bpm > 0.0f ? bpm : 120.0f; }
+
         /// Renders `output.numFrames()` samples into `output`, accumulating from all
         /// active voices. Audio-thread safe.
         void process(core::StereoBlockView output) noexcept;
@@ -71,6 +75,7 @@ namespace pw8::render
         static constexpr float kPitchBendRangeSemitones = 2.0f;
 
         double sampleRate_ = 48000.0;
+        float bpm_ = 120.0f;
         std::uint64_t noteGenerationCounter_ = 0;
     };
 
