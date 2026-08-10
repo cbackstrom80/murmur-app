@@ -11,6 +11,11 @@ VST3, AU, and Standalone artifacts:
 - The **Standalone app launches and runs cleanly** (verified: process stays alive,
   no crash, no JUCE assertion failures).
 - The **VST3** bundle builds and ad-hoc-signs successfully.
+- **8 host-automatable parameters** (macros 1-8, `juce::AudioProcessorValueTreeState`)
+  are live-wired end to end -- automating one mid-note-hold audibly changes a
+  currently-sustaining voice, not just the next one -- and **`pluginval` passes at
+  strictness level 5 (maximum)** on both the VST3 and the AU. See "Automation" and
+  "pluginval" below.
 
 None of this has been tested inside a real DAW host yet, and there is no host-matrix
 CI job beyond a single macOS build-and-`auval` check (`.github/workflows/ci.yml`'s
@@ -18,6 +23,32 @@ CI job beyond a single macOS build-and-`auval` check (`.github/workflows/ci.yml`
 the plugin is Phase 16, well after this pass's Phase 0/1(+2/3) target; what's here
 now goes beyond "compiles" to "passes Apple's own validator," which is further than
 the phase strictly requires, but was verified directly rather than assumed.
+
+## pluginval
+
+**IMPLEMENTED, `--strictness-level 5` (the maximum).** `pluginval` 1.0.4 (installed
+via `brew install --cask pluginval` for this verification pass, not vendored into
+the repo or CI yet -- see "What's still missing") was run directly against both
+built artifacts:
+
+```bash
+pluginval --strictness-level 5 --validate "Patchwork Eight.vst3"
+pluginval --strictness-level 5 --validate "Patchwork Eight.component"  # AU must be
+    # copied into ~/Library/Audio/Plug-Ins/Components/ first -- macOS's AudioComponent
+    # registry, not a direct file load, is how AU discovery works; pluginval fails
+    # with "No types found" against an AU bundle path that isn't registered, which is
+    # a discovery-mechanism quirk, not a plugin defect (confirmed by `auval`, which
+    # uses the same registry, passing against the identical bundle).
+```
+
+Both **SUCCESS** at every suite: Open plugin (cold/warm), Plugin info, Editor, Open
+editor whilst processing, Audio processing (44.1/48/96kHz x 64/128/256/512/1024
+sample block sizes), Plugin state, Automation (same sample-rate/block-size matrix,
+32-sample sub-blocks -- this is the suite that actually drives the 8 macro
+parameters through automation-style value changes mid-stream), Editor Automation,
+Automatable Parameters, and (embedded) `auval`. This is a materially stronger signal
+than `auval` alone: `auval` is AU-specific and doesn't exercise
+block-size-varying/automation-under-processing scenarios the way `pluginval` does.
 
 ## Design
 
@@ -56,12 +87,41 @@ drift apart. `auval`'s MIDI test exercises this path directly and passes.
 
 ### Automation
 
+**IMPLEMENTED** (as far as the master spec's scope for this control surface goes).
 Per the master spec, not every internal patch parameter is exposed as flat DAW
-automation. `plugin/src/state/PluginState.h` documents the intended parameter ID
-scheme (`macro1`..`macro8`, matching `Patch::macros[0..7]`) for the eventual
-`juce::AudioProcessorValueTreeState` wiring -- **not yet implemented**
-(`plugin/src/parameters/` is an empty, documented placeholder). `auval` reports zero
-published parameters today, consistent with this.
+automation -- only the 8 macros are, matching the "8 routable macros" model
+validated against Phase Plant's in the COMPETITIVE_ANALYSIS.md research pass.
+`plugin/src/state/PluginState.h`/`.cpp` build a real
+`juce::AudioProcessorValueTreeState` (`PatchworkEightProcessor::apvts`) with 8
+`AudioParameterFloat`s (`macro1`..`macro8`, 0..1, matching `Patch::macros[0..7]`).
+
+Two things had to be true for this to actually *work*, not just compile:
+
+1. **A live macro change must reach a currently-held note, not just the next
+   one.** `render::Engine::setMacroValue()` writes straight into every active
+   voice's `macroValues` array -- a plain per-sample-read array (see
+   `Voice::renderSample`), so a mod-matrix route from a macro (e.g. to filter
+   cutoff or operator level) responds immediately. `processBlock()` pushes all 8
+   parameters' current values into the running Engine every block via cached
+   `std::atomic<float>*` pointers (`getRawParameterValue()`, the standard
+   audio-thread-safe JUCE read path) -- proven, not just asserted, by
+   `tests/unit/EngineMacroLiveUpdateTests.cpp`: mid-hold, muting a macro-routed
+   operator via `setMacroValue()` measurably drops the still-playing voice's RMS,
+   and un-muting restores it.
+2. **A saved session must round-trip the macros' current values, not just a
+   preset's defaults.** `getStateInformation()` calls
+   `syncPatchMacrosFromParameters()` (APVTS -> `currentPatch_.macros`) before
+   serializing; `loadPatch()`/`setStateInformation()` call the reverse
+   (`syncMacroParametersFromPatch()`, `currentPatch_.macros` -> APVTS, via
+   `setValueNotifyingHost()` so the host's own UI/automation lane sees it). This
+   keeps `currentPatch_` the single source of truth (docs/PLUGIN_ARCHITECTURE.md
+   "Host State") rather than a second, divergent store of the same 8 floats.
+
+`auval` now reports 8 published parameters (`Checking parameter setting`/
+`Checking ramped parameter scheduling` both pass -- previously skipped entirely
+when there were zero parameters to test). `pluginval --strictness-level 5`
+(the maximum) passes on both the VST3 and the AU, including its `Automation`,
+`Plugin state`, and `Automatable Parameters` suites -- see "pluginval" below.
 
 ## Editor
 
@@ -149,12 +209,20 @@ same reason the rest of the UI does: proving the DSP first.
 
 ## What's still missing
 
-1. `pluginval` (beyond `auval`) -- PLANNED, not run in this pass.
-2. Real DAW host-matrix testing (Ableton, Logic, Reaper, Bitwig, etc.) -- not done;
-   `auval` and a bare Standalone launch are strong but not equivalent signals.
-3. `juce::AudioProcessorValueTreeState` parameter wiring (`plugin/src/parameters/`).
+1. Real DAW host-matrix testing (Ableton, Logic, Reaper, Bitwig, etc.) -- not done;
+   `auval`, `pluginval` at max strictness, and a bare Standalone launch are strong
+   but not equivalent signals to an actual DAW session.
+2. `pluginval` isn't wired into CI yet -- it was installed and run locally
+   (`brew install --cask pluginval`) for this verification pass, not vendored or
+   added as a `.github/workflows/ci.yml` job.
+3. Beyond the 8 macros, no other patch parameters are host-automatable (by
+   design, per the master spec -- see "Automation" above) -- there's no
+   automation lane for, say, filter cutoff or an effect's mix directly; that
+   requires either mapping specific fields to more APVTS parameters or a
+   generic "any patch field" automation scheme, neither of which exists yet.
 4. The real PLAY/DESIGN/LAB UI (Phase 17) -- `GenericAudioProcessorEditor` is a
-   placeholder, not a step toward it.
+   placeholder (now showing 8 real macro sliders, not an empty list, but still
+   not a step toward the signature UI).
 5. Code signing / notarization for actual distribution (the build today produces an
    ad-hoc-signed VST3, sufficient for local testing only).
 6. Spectrum analyzer / oscilloscope / wavetable preview visualization (architected

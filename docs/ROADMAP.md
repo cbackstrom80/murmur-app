@@ -20,7 +20,7 @@ Status as of this repository's initial engineering pass. Legend: **DONE** / **PA
 | 13 | Patch format productionization (schema, migrations, metadata) | **PARTIAL** -- schema v1 complete and hardened against untrusted input; migration *mechanism* exists with nothing to migrate yet (only one schema version so far) |
 | 14 | Python API productionization | **PARTIAL** -- see PYTHON_API.md coverage table |
 | 15 | Patchwork integration (Sound IR compilation boundary) | **PARTIAL** -- CLI/Python/schema boundaries exist and work; `EightPatchCompiler` (IR -> Patch) itself is PLANNED, see PATCHWORK_INTEGRATION.md |
-| 16 | Plugin (VST3, AU, Standalone) | **PARTIAL, build-verified** -- builds against real JUCE 8.0.6; AU passes `auval` in full; Standalone launches cleanly; no UI/automation/host-matrix yet. See PLUGIN_ARCHITECTURE.md |
+| 16 | Plugin (VST3, AU, Standalone) | **PARTIAL, build-verified** -- builds against real JUCE 8.0.6; AU passes `auval` in full; `pluginval` passes at strictness 5 (max) on VST3 and AU; 8 macro parameters live-automatable end to end (`juce::AudioProcessorValueTreeState`); Standalone launches cleanly; no signature UI or real-DAW host-matrix yet. See PLUGIN_ARCHITECTURE.md |
 | 17 | UI | **PLANNED** (deliberately, per spec) -- `createEditor()` returns JUCE's generic placeholder editor, not a step toward the real UI |
 | 18 | AI features (Generate, Mutate, Breed, Lock) via Patchwork | **PLANNED** -- metadata hooks (`LockFlags`, `lineage`, deterministic seeding) exist; the AI pipeline itself lives in Patchwork |
 | 19 | Factory bank (512-1024 curated presets) | **PLANNED** -- 7 engineering test patches exist (`content/presets/`), not factory-curated content |
@@ -214,6 +214,43 @@ algorithm invented specifically for this project. Full detail in
 - Full cross-build verification: dev/benchmarks/python/plugin all clean,
   `pw8-fuzz-render` (1,500 patches) zero failures, `auval` re-validated.
 
+## Follow-up pass: plugin parameter automation (Phase 16, continued)
+
+Closes the plugin's biggest gap between "builds and passes `auval`" and
+"usable in a real DAW session": nothing was host-automatable before this pass.
+
+- `PatchworkEightProcessor::apvts` (`juce::AudioProcessorValueTreeState`, built
+  from `plugin::createParameterLayout()`): 8 `AudioParameterFloat`s, one per
+  macro, matching the master spec's "8 routable macros" surface.
+- Made it actually *work*, not just publish: `render::Engine::setMacroValue()`
+  writes straight into every active voice's live per-sample-read
+  `macroValues` array, so a DAW automating a macro mid-note-hold audibly
+  changes a currently-sustaining voice rather than only affecting the next
+  one -- proven by a new Engine-level unit test
+  (`tests/unit/EngineMacroLiveUpdateTests.cpp`) that measures RMS drop/
+  recovery on a still-held voice as the macro is muted and restored.
+  `processBlock()` pushes all 8 parameters into the running Engine every
+  block via cached `std::atomic<float>*` pointers.
+- Saved sessions round-trip the macros' *current* (possibly host-automated)
+  values, not just a preset's original defaults (`getStateInformation()`/
+  `loadPatch()` sync in both directions against the single `currentPatch_`
+  source of truth) -- see docs/PLUGIN_ARCHITECTURE.md "Automation".
+- Installed and ran `pluginval` (not previously run in this repo) at
+  `--strictness-level 5`, the maximum: **SUCCESS on both the VST3 and the
+  AU**, including its Automation, Plugin state, and Automatable Parameters
+  suites -- a materially stronger signal than `auval` alone (which is
+  AU-specific and doesn't exercise `pluginval`'s block-size-varying,
+  automation-under-processing scenarios). `auval` itself now also exercises
+  real parameter tests (`Checking parameter setting`/
+  `Checking ramped parameter scheduling`) that were skipped entirely when
+  there were zero published parameters.
+- 1 new Engine-level unit test -- 97 total, all passing. All 4 build configs
+  (dev/benchmarks/python/plugin) rebuilt clean.
+- See [PLUGIN_ARCHITECTURE.md](PLUGIN_ARCHITECTURE.md) "Automation" and
+  "pluginval" for full detail, and "What's still missing" for what this pass
+  deliberately didn't cover (real DAW host-matrix testing, `pluginval` in CI,
+  automation beyond the 8 macros).
+
 ## GPU acceleration (researched, not adopted)
 
 Per user request, researched GPU Audio (the company), NVIDIA VRWorks Audio, and AMD
@@ -236,15 +273,18 @@ of the UI.
 
 ## Immediate next steps (suggested, not committed)
 
-1. `juce::AudioProcessorValueTreeState` parameter wiring + `pluginval` + a real DAW
-   host-matrix pass -- the plugin now builds and passes `auval`, so this is the
-   natural next increment toward a genuinely shippable plugin rather than a
+1. A real DAW host-matrix pass (Ableton, Logic, Reaper, Bitwig, etc.) -- `auval`
+   and `pluginval` at max strictness are both green now, so this is the natural
+   next increment toward a genuinely shippable plugin rather than a
    from-scratch effort.
-2. Expand modulation to the full 8-envelope/8-LFO/LAYER+GLOBAL-scope target now that
+2. Reverb, EQ, compressor, limiter -- the FX bank has 6 real algorithms now but
+   none of the master spec's "first effect set" basics; see FX_BANK.md "What's
+   PLANNED, not implemented".
+3. Expand modulation to the full 8-envelope/8-LFO/LAYER+GLOBAL-scope target now that
    the 1-of-each VOICE-scoped version has proven the data model and execution
    pattern end to end.
-3. Filter 2 (nonlinear character filter) -- Filter 1's TPT SVF proved the per-voice
+4. Filter 2 (nonlinear character filter) -- Filter 1's TPT SVF proved the per-voice
    filter integration point; a second filter stage is now a smaller increment than
    it was before Filter 1 existed.
-4. Wavetable content-addressed resource resolution (replacing the current
+5. Wavetable content-addressed resource resolution (replacing the current
    filesystem-path-as-`wavetableId` scheme) as part of the broader content pipeline.

@@ -53,6 +53,21 @@ namespace pw8::render
         /// store) -- call once per block from whatever knows the host/render tempo.
         void setTempo(float bpm) noexcept { bpm_ = bpm > 0.0f ? bpm : 120.0f; }
 
+        /// Live-updates macro `index` (0..7) so it takes effect immediately on every
+        /// currently-sustaining voice, not just the next note-on -- what a DAW
+        /// automating a macro parameter mid-hold needs. Audio-thread safe: writes a
+        /// plain float into `patch_.macros[index].value` (never touches the Macro's
+        /// string fields) and into every voice's `macroValues[index]` (a plain
+        /// per-voice array already read live, per-sample, by the mod matrix -- see
+        /// `Voice::renderSample`). No allocation, no locking. Out-of-range `index` is
+        /// a no-op. See docs/PLUGIN_ARCHITECTURE.md "Automation".
+        void setMacroValue(std::size_t index, float value) noexcept;
+
+        [[nodiscard]] float getMacroValue(std::size_t index) const noexcept
+        {
+            return index < patch_.macros.size() ? patch_.macros[index].value : 0.0f;
+        }
+
         /// Renders `output.numFrames()` samples into `output`, accumulating from all
         /// active voices. Audio-thread safe.
         void process(core::StereoBlockView output) noexcept;

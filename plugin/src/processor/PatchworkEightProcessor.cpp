@@ -1,4 +1,4 @@
-// STATUS: SCAFFOLD / PARTIAL -- see PatchworkEightProcessor.h.
+// STATUS: PARTIAL -- see PatchworkEightProcessor.h.
 
 #include "processor/PatchworkEightProcessor.h"
 
@@ -8,8 +8,13 @@
 namespace pw8::plugin
 {
     PatchworkEightProcessor::PatchworkEightProcessor()
-        : juce::AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true))
+        : juce::AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)),
+          apvts(*this, nullptr, "PARAMETERS", createParameterLayout())
     {
+        for (std::size_t i = 0; i < kMacroParameterIds.size(); ++i)
+            macroParamPointers_[i] = apvts.getRawParameterValue(kMacroParameterIds[i]);
+        syncMacroParametersFromPatch(); // matches makeInit()'s macro defaults, in case those ever stop being all-zero.
+
         engineStorageA_ = std::make_unique<render::Engine>();
         engineStorageA_->loadPatch(currentPatch_);
         activeEngine_.store(engineStorageA_.get(), std::memory_order_release);
@@ -50,6 +55,16 @@ namespace pw8::plugin
         }
         engine->setTempo(bpm);
 
+        // Push the host's current macro parameter values into the running Engine
+        // every block -- audio-thread-safe (a handful of atomic loads plus plain
+        // float writes into fixed-capacity voice arrays, see
+        // Engine::setMacroValue()), and cheap enough to just always do rather than
+        // diff against last block's values. This is what makes macro automation
+        // audible on a currently-held note, not just the next one.
+        for (std::size_t i = 0; i < macroParamPointers_.size(); ++i)
+            if (macroParamPointers_[i] != nullptr)
+                engine->setMacroValue(i, macroParamPointers_[i]->load(std::memory_order_relaxed));
+
         for (const auto metadata : midiMessages)
         {
             const auto msg = metadata.getMessage();
@@ -79,16 +94,19 @@ namespace pw8::plugin
     juce::AudioProcessorEditor* PatchworkEightProcessor::createEditor()
     {
         // Pragmatic placeholder until the real PLAY/DESIGN/LAB UI lands (Phase 17):
-        // JUCE's built-in generic parameter editor. It'll be an empty list today since
-        // no juce::AudioProcessorValueTreeState parameters are registered yet
-        // (plugin/src/parameters/ is still PLANNED) -- but it's a real, consistent
-        // editor rather than a null one, which is what AudioProcessor::hasEditor()
+        // JUCE's built-in generic parameter editor. Now shows 8 real sliders (Macro
+        // 1..8, backed by `apvts`) rather than an empty list -- but it's still a real,
+        // consistent editor either way, which is what AudioProcessor::hasEditor()
         // promises callers.
         return new juce::GenericAudioProcessorEditor(*this);
     }
 
     void PatchworkEightProcessor::getStateInformation(juce::MemoryBlock& destData)
     {
+        // Bake the macros' current (possibly host-automated-since-load) values back
+        // into currentPatch_ before serializing, so a saved session round-trips them
+        // exactly rather than only ever saving the preset's original defaults.
+        syncPatchMacrosFromParameters();
         const auto json = patch::savePatchToJson(currentPatch_);
         destData.replaceAll(json.data(), json.size());
     }
@@ -104,11 +122,28 @@ namespace pw8::plugin
     bool PatchworkEightProcessor::loadPatch(const patch::Patch& newPatch)
     {
         currentPatch_ = newPatch;
+        syncMacroParametersFromPatch();
         auto fresh = std::make_unique<render::Engine>();
         fresh->prepare(getSampleRate() > 0.0 ? getSampleRate() : 48000.0);
         const bool ok = fresh->loadPatch(currentPatch_);
         publishEngine(std::move(fresh));
         return ok;
+    }
+
+    void PatchworkEightProcessor::syncMacroParametersFromPatch()
+    {
+        for (std::size_t i = 0; i < kMacroParameterIds.size(); ++i)
+        {
+            if (auto* param = apvts.getParameter(kMacroParameterIds[i]))
+                param->setValueNotifyingHost(currentPatch_.macros[i].value); // range is 0..1, so value == normalized.
+        }
+    }
+
+    void PatchworkEightProcessor::syncPatchMacrosFromParameters()
+    {
+        for (std::size_t i = 0; i < macroParamPointers_.size(); ++i)
+            if (macroParamPointers_[i] != nullptr)
+                currentPatch_.macros[i].value = macroParamPointers_[i]->load(std::memory_order_relaxed);
     }
 
     void PatchworkEightProcessor::publishEngine(std::unique_ptr<render::Engine> newEngine)

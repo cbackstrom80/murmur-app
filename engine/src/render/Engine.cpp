@@ -206,6 +206,17 @@ namespace pw8::render
         allocator_.releaseAll(voices_, 0.5f);
     }
 
+    void Engine::setMacroValue(std::size_t index, float value) noexcept
+    {
+        if (index >= patch_.macros.size())
+            return;
+
+        patch_.macros[index].value = value;
+        for (auto& v : voices_)
+            if (index < v.macroValues.size())
+                v.macroValues[index] = value;
+    }
+
     void Engine::process(core::StereoBlockView output) noexcept
     {
         const dsp::ScopedDenormalGuard denormalGuard;
