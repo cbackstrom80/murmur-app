@@ -80,3 +80,17 @@ repositories.
 - **Commercial closed-source compatible:** N/A -- not a code dependency, no code
   copied. Listed here for attribution transparency per the master spec's dependency
   disclosure requirement, even though it isn't a build dependency.
+
+## VCV Rack `Befaco`
+
+- **What was referenced:** module *concept names only* (Rampage, Morphader, Chopping
+  Kinky, Muxlicer, Spring Reverb) as corroboration for already-planned features
+  (layer/algorithm morph, wavefolding, step sequencing, reverb character variety).
+  **No source code, DSP implementation detail, or circuit topology was read or
+  copied.** See `docs/PRIOR_ART.md`.
+- **License:** GPLv3 (entire repository -- unlike the Mutable reference above, there
+  is no permissively-licensed subset)
+- **Source:** https://github.com/VCVRack/Befaco
+- **Commercial closed-source compatible:** N/A -- not a code dependency, no code
+  copied, treated more strictly than the Mutable reference specifically because the
+  whole repo is GPLv3 with no MIT-licensed portion to point to.

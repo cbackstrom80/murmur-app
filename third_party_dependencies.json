@@ -68,6 +68,13 @@
       "license": "MIT (STM32F-target modules referenced only; GPLv3 AVR-target modules explicitly excluded)",
       "source": "https://github.com/pichenettes/eurorack",
       "isCodeDependency": false
+    },
+    {
+      "name": "VCV Rack Befaco",
+      "purpose": "Module-concept-name-only reference (Rampage, Morphader, Chopping Kinky, Muxlicer, Spring Reverb) corroborating already-planned features. No implementation detail, code, or circuit topology referenced. See docs/PRIOR_ART.md.",
+      "license": "GPLv3 (entire repository)",
+      "source": "https://github.com/VCVRack/Befaco",
+      "isCodeDependency": false
     }
   ]
 }
