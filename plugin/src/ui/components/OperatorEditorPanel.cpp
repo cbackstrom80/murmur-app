@@ -103,8 +103,19 @@ namespace pw8::plugin::ui
         // for it until this pass (UI GATE 5).
         wavetablePosKnob_ = std::make_unique<GlowKnob>(
             apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "WavetablePos"), "WT Pos");
+        // Engine 5 (PhaseShape) -- see the header doc comment. No UI existed for
+        // these four fields before this pass.
+        phaseBendKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "PhaseBend"), "Bend");
+        phaseFoldKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "PhaseFold"), "Fold");
+        phaseAsymmetryKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "PhaseAsymmetry"), "Asym");
+        phaseShapeKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "PhaseShape"), "Shape");
 
-        for (auto* k : {waveformKnob_.get(), levelKnob_.get(), ratioKnob_.get(), wavetablePosKnob_.get()})
+        for (auto* k : {waveformKnob_.get(), levelKnob_.get(), ratioKnob_.get(), wavetablePosKnob_.get(),
+                         phaseBendKnob_.get(), phaseFoldKnob_.get(), phaseAsymmetryKnob_.get(), phaseShapeKnob_.get()})
             panel_.addAndMakeVisible(*k);
     }
 
@@ -113,18 +124,32 @@ namespace pw8::plugin::ui
         const int engine = currentEngineOrdinal();
         lastKnownEngine_ = engine;
         const bool isWavetable = engine == static_cast<int>(algorithm::EngineType::Wavetable);
+        const bool isPhaseShape = engine == static_cast<int>(algorithm::EngineType::PhaseShape);
 
-        // Wave/Ratio aren't meaningful for a Wavetable-engine node (it reads
-        // wavetableFramePosition, not classicWaveform/frequencyRatio) -- swapped
-        // for the stack preview + WT Pos instead. Level applies to every engine.
-        // None of the four knobs' parameter IDs depend on the engine (only on
-        // selectedNode_), so an engine-only change never needs to reconstruct
-        // them -- doing so used to silently abort any in-progress mouse drag on
-        // a knob the instant a host automated the Engine parameter mid-gesture.
-        waveformKnob_->setVisible(!isWavetable);
-        ratioKnob_->setVisible(!isWavetable);
+        // Wave isn't meaningful for a Wavetable- or PhaseShape-engine node (neither
+        // reads classicWaveform) -- swapped for the stack preview+WT Pos or the
+        // 4 phase-shape knobs instead. Ratio stays visible for every engine
+        // (including PhaseShape -- carrierHz still comes from the generic
+        // keyTrack/frequencyRatio computation in render() even though PhaseShape
+        // reads its own oscillator; hiding it would repeat the same mistake the
+        // Wavetable branch used to make, see the ratioKnob_ comment below). Level
+        // applies to every engine. None of these knobs' parameter IDs depend on
+        // the engine (only on selectedNode_), so an engine-only change never needs
+        // to reconstruct them -- doing so used to silently abort any in-progress
+        // mouse drag on a knob the instant a host automated the Engine parameter
+        // mid-gesture.
+        waveformKnob_->setVisible(!isWavetable && !isPhaseShape);
+        // frequencyRatio is read generically by render() before the engine switch
+        // for every engine's carrier pitch computation -- always shown, not gated
+        // per-engine (a prior pass hid it for Wavetable, making a real working,
+        // automatable parameter unreachable from the UI; fixed to always show it).
+        ratioKnob_->setVisible(true);
         wavetablePosKnob_->setVisible(isWavetable);
         wavetableStackView_.setVisible(isWavetable);
+        phaseBendKnob_->setVisible(isPhaseShape);
+        phaseFoldKnob_->setVisible(isPhaseShape);
+        phaseAsymmetryKnob_->setVisible(isPhaseShape);
+        phaseShapeKnob_->setVisible(isPhaseShape);
         levelKnob_->setVisible(true);
 
         resized();
@@ -190,14 +215,36 @@ namespace pw8::plugin::ui
 
         if (wavetableStackView_.isVisible())
         {
-            auto stackArea = content.removeFromLeft(static_cast<int>(static_cast<float>(content.getWidth()) * 0.62f));
+            // Narrower than the other branches' full-width knob row (0.55 vs the
+            // stack getting the rest) -- ratioKnob_ joining this row (now shown for
+            // every engine, see updateEngineVisibility()) needs a 3-way split here
+            // too, not just 2.
+            auto stackArea = content.removeFromLeft(static_cast<int>(static_cast<float>(content.getWidth()) * 0.55f));
             wavetableStackView_.setBounds(stackArea.reduced(3));
 
-            const int knobWidth = content.getWidth() / 2;
+            const int knobWidth = content.getWidth() / 3;
             if (levelKnob_)
                 levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (ratioKnob_)
+                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
             if (wavetablePosKnob_)
                 wavetablePosKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+        }
+        else if (phaseBendKnob_ && phaseBendKnob_->isVisible())
+        {
+            const int knobWidth = content.getWidth() / 6;
+            if (ratioKnob_)
+                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (levelKnob_)
+                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (phaseBendKnob_)
+                phaseBendKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (phaseFoldKnob_)
+                phaseFoldKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (phaseAsymmetryKnob_)
+                phaseAsymmetryKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (phaseShapeKnob_)
+                phaseShapeKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
         }
         else
         {

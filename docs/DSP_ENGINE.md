@@ -114,8 +114,34 @@ randomization.
 
 ## Engine Type 5 — Phase / Shape
 
-**PLANNED** (Phase 10). Target: phase distortion, wavefold, bend, asymmetry, bias,
-shape, with selective oversampling around the nonlinear stages.
+**IMPLEMENTED.** `oscillator::PhaseShapeOscillator` (`pw8/oscillator/PhaseShapeOscillator.hpp`),
+same self-contained shape as `oscillator::ClassicOscillator` -- CZ-style ("DCW",
+Distance of Closest Window) phase distortion: the oscillator's normally-linear read
+phase is warped through a shaping curve before a sine-table lookup, then a
+post-generation wavefold stage is applied.
+
+- **Warp**: a smooth sinusoidal phase warp (not the CZ hardware's original
+  piecewise-linear breakpoint tables -- a sinusoidal warp has no slope
+  discontinuity to alias on its own). `phaseShape` blends between a single-cycle
+  warp curve (bright, saw-like) and a double-cycle warp curve (formant-like);
+  `phaseBend` scales the warp depth (0 == transparent, pure sine read);
+  `phaseAsymmetry` skews the warp magnitude toward one half of the cycle rather
+  than shifting it uniformly (covers "bias" too -- a separate DC-bias field would
+  cover near-identical ground, so it wasn't added).
+- **Wavefold** (`phaseFold`, 0..1): a smooth `asin(sin(x))`-style reflection
+  fold -- bounded, iteration-free, transparent at 0. Per this section's own
+  "selective oversampling around the nonlinear stages" requirement: applied at a
+  lightweight 2x oversample (linear-interpolated midpoint between this and the
+  previous pre-fold sample, folded independently, boxcar-downsampled, then a
+  light one-pole smoother) rather than a full polyphase halfband filter -- the
+  pragmatic v1 this doc originally called for; a real polyphase filter remains a
+  documented possible follow-up if the cheap version's aliasing proves audible.
+
+Measured, not assumed: `tests/dsp/PhaseShapeOscillatorTests.cpp` FFT-verifies
+both `phaseFold` and `phaseBend` measurably increase non-fundamental (harmonic)
+energy relative to a plain sine carrier, in addition to tuning accuracy,
+bounded/finite output across the full extreme-parameter matrix, and a
+reset()-reproducibility check.
 
 ## Engine Type 6 — Granular
 

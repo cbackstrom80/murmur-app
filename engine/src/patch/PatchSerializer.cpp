@@ -111,6 +111,10 @@ namespace pw8::patch
                 {"keyTrack", o.keyTrack},
                 {"level", o.level},
                 {"pan", o.pan},
+                {"phaseBend", o.phaseBend},
+                {"phaseFold", o.phaseFold},
+                {"phaseAsymmetry", o.phaseAsymmetry},
+                {"phaseShape", o.phaseShape},
             };
         }
 
@@ -127,6 +131,10 @@ namespace pw8::patch
             o.keyTrack = j.value("keyTrack", true);
             o.level = clampNum(j.value("level", 1.0f), 0.0f, 4.0f);
             o.pan = clampNum(j.value("pan", 0.0f), -1.0f, 1.0f);
+            o.phaseBend = clampNum(j.value("phaseBend", 0.0f), -1.0f, 1.0f);
+            o.phaseFold = clampNum(j.value("phaseFold", 0.0f), 0.0f, 1.0f);
+            o.phaseAsymmetry = clampNum(j.value("phaseAsymmetry", 0.0f), -1.0f, 1.0f);
+            o.phaseShape = clampNum(j.value("phaseShape", 0.0f), 0.0f, 1.0f);
         }
 
         void toJson(json& j, const UnisonSettings& u)

@@ -78,6 +78,13 @@ namespace pw8::patch
         bool keyTrack = true;
         float level = 1.0f;
         float pan = 0.0f; ///< reserved for per-operator stereo placement (PLANNED).
+
+        /// PhaseShape engine fields (only meaningful when engine == PhaseShape).
+        /// See oscillator::PhaseShapeParams for the full per-field writeup.
+        float phaseBend = 0.0f;
+        float phaseFold = 0.0f;
+        float phaseAsymmetry = 0.0f;
+        float phaseShape = 0.0f;
     };
 
     struct LayerPatch

@@ -2,6 +2,7 @@
 
 #include "pw8/algorithm/AlgorithmTypes.hpp"
 #include "pw8/oscillator/ClassicOscillator.hpp"
+#include "pw8/oscillator/PhaseShapeOscillator.hpp"
 #include "pw8/oscillator/WavetableOscillator.hpp"
 #include "pw8/oscillator/WavetableTable.hpp"
 
@@ -28,18 +29,27 @@ namespace pw8::op
         /// Output level of this node before it's summed into any output bus or consumed
         /// by AUDIO edges downstream.
         float level = 1.0f;
+
+        /// PhaseShape engine fields -- see oscillator::PhaseShapeParams for the full
+        /// per-field writeup (CZ-style phase distortion + post-gen wavefold).
+        float phaseBend = 0.0f;
+        float phaseFold = 0.0f;
+        float phaseAsymmetry = 0.0f;
+        float phaseShape = 0.0f;
     };
 
     struct OperatorState
     {
         oscillator::ClassicOscillator classicOsc;
         oscillator::WavetableOscillator waveOsc;
+        oscillator::PhaseShapeOscillator phaseShapeOsc;
         float lastOutput = 0.0f; ///< previous-sample output, used by Feedback edges.
 
         void prepare(double sampleRate) noexcept
         {
             classicOsc.prepare(sampleRate);
             waveOsc.prepare(sampleRate);
+            phaseShapeOsc.prepare(sampleRate);
             sampleRate_ = sampleRate;
         }
 
@@ -47,6 +57,7 @@ namespace pw8::op
         {
             classicOsc.reset(initialPhase);
             waveOsc.reset(initialPhase);
+            phaseShapeOsc.reset(initialPhase);
             lastOutput = 0.0f;
         }
 
@@ -82,7 +93,19 @@ namespace pw8::op
                     break;
                 }
 
-                // Engine types 3-8 (FM/PM, Additive, Phase/Shape, Granular, Noise, Resonator)
+                case algorithm::EngineType::PhaseShape:
+                {
+                    phaseShapeOsc.setFrequency(carrierHz);
+                    oscillator::PhaseShapeParams shapeParams;
+                    shapeParams.phaseBend = params.phaseBend;
+                    shapeParams.phaseFold = params.phaseFold;
+                    shapeParams.phaseAsymmetry = params.phaseAsymmetry;
+                    shapeParams.phaseShape = params.phaseShape;
+                    out = phaseShapeOsc.renderSample(shapeParams, phaseMod);
+                    break;
+                }
+
+                // Engine types 3, 4, 6, 7, 8 (FM/PM, Additive, Granular, Noise, Resonator)
                 // are architected (see algorithm::EngineType, docs/ROADMAP.md Phase 10) but not
                 // yet implemented -- they intentionally render silence rather than guess.
                 default:

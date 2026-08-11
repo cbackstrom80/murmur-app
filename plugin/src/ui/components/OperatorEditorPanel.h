@@ -52,6 +52,14 @@
 // once it did. getTooltip() below hit-tests the mouse position against the same
 // pillBounds() mouseDown() already uses, so this is a few lines rather than
 // restructuring 8 hand-painted pills into child components.
+//
+// Engine 5 (PhaseShape): when the selected node's engine is PhaseShape, the
+// Wave knob is replaced by 4 dedicated knobs (Bend/Fold/Asymmetry/Shape) --
+// same visibility-swap pattern the Wavetable engine established above, a
+// third branch alongside it rather than a generalized N-engine knob system
+// (only 2 of the 6 previously-silent engines exist yet; a bespoke per-engine
+// layout stays simpler than a generic one until more engines make the
+// pattern clear).
 namespace pw8::plugin::ui
 {
     class OperatorEditorPanel : public juce::Component, public juce::TooltipClient, private juce::Timer
@@ -113,6 +121,10 @@ namespace pw8::plugin::ui
         std::unique_ptr<GlowKnob> ratioKnob_;
         std::unique_ptr<GlowKnob> wavetablePosKnob_; // Only constructed/visible for the Wavetable engine.
         WavetableStackView wavetableStackView_;      // Same visibility rule; never rebuilt per-node (holds no APVTS attachment).
+        std::unique_ptr<GlowKnob> phaseBendKnob_;       // Only visible for the PhaseShape engine.
+        std::unique_ptr<GlowKnob> phaseFoldKnob_;       // Only visible for the PhaseShape engine.
+        std::unique_ptr<GlowKnob> phaseAsymmetryKnob_;  // Only visible for the PhaseShape engine.
+        std::unique_ptr<GlowKnob> phaseShapeKnob_;      // Only visible for the PhaseShape engine.
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OperatorEditorPanel)
     };

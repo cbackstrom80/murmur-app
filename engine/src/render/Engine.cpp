@@ -29,6 +29,10 @@ namespace pw8::render
         out.fixedFrequencyHz = p.fixedFrequencyHz;
         out.keyTrack = p.keyTrack;
         out.level = p.level;
+        out.phaseBend = p.phaseBend;
+        out.phaseFold = p.phaseFold;
+        out.phaseAsymmetry = p.phaseAsymmetry;
+        out.phaseShape = p.phaseShape;
         return out;
     }
 

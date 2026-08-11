@@ -6,7 +6,7 @@ namespace pw8::plugin
 
     // Matches op::OperatorParams: engine, classic.waveform, classic.morph,
     // classic.pulseWidth, wavetableFramePosition, frequencyRatio, fixedFrequencyHz,
-    // keyTrack, level.
+    // keyTrack, level, phaseBend, phaseFold, phaseAsymmetry, phaseShape.
     const std::array<ParamFieldSpec, kNumOperatorFields> kOperatorFieldSpecs = {{
         {"Engine",       "Engine",        0.0f,   7.0f, 0.0f,   true},
         {"Waveform",     "Waveform",      0.0f,   3.0f, 2.0f,   true},
@@ -17,6 +17,10 @@ namespace pw8::plugin
         {"FixedHz",      "Fixed Hz",      0.01f,  24000.0f, 440.0f, false},
         {"KeyTrack",     "Key Track",     0.0f,   1.0f, 1.0f,   true},
         {"Level",        "Level",         0.0f,   4.0f, 1.0f,   false},
+        {"PhaseBend",      "Phase Bend",      -1.0f, 1.0f, 0.0f, false},
+        {"PhaseFold",      "Phase Fold",       0.0f, 1.0f, 0.0f, false},
+        {"PhaseAsymmetry", "Phase Asymmetry", -1.0f, 1.0f, 0.0f, false},
+        {"PhaseShape",     "Phase Shape",      0.0f, 1.0f, 0.0f, false},
     }};
 
     // Matches filter::FilterParams: enabled, mode, cutoffHz, resonance, keyTrack.
