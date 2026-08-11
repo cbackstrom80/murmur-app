@@ -242,6 +242,20 @@ VST3 and AU after this pass (still 578 published parameters -- mod routes
 stay outside the automation surface, as above). 1 new engine-level test
 (`EngineLiveParamsTests.cpp`) -- 126 total, all passing.
 
+## UI GATE 4: FxChainStrip knob-starvation fix
+
+A code-review pass (not mockup-driven, unlike GATEs 2/3) caught a real instance
+of the exact "starved knob" failure mode UI GATE 1 fixed once already:
+`FxChainStrip` shared `MacroStrip`'s fixed 120px panel height, but unlike
+`MacroStrip` each of its 7 slots also reserves 24px above the knob for a
+type-name label. That extra tax left `GlowKnob` only ~40px to work with --
+after its own name-label/textbox subtraction, the rotary control floored out
+at `ObsidianLookAndFeel`'s 16px defensive minimum, on all 7 slots at once.
+16px is enough to not crash (the whole point of that floor), not enough to
+read or grab. Fixed the same way as UI GATE 1: grew the strip's height (120 ->
+168) and the window with it (980x1130 -> 980x1178), not squeezed anything
+else back down.
+
 ## What's PLANNED
 
 - DESIGN and LAB modes (graph editing, full modulation-bank editing,
