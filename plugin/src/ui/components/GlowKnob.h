@@ -52,6 +52,13 @@ namespace pw8::plugin::ui
         void enableModulationTarget(PatchworkEightProcessor& processor, modulation::ModDestination destination,
                                      std::uint8_t targetIndex = 0);
 
+        /// Overrides the name label set at construction -- e.g. MacroStrip calling
+        /// this with a patch-authored macro name ("Growl") once one's loaded,
+        /// instead of the generic "Macro 3" it starts with. Uppercased the same
+        /// way the constructor's `name` already is, for the same reason (see the
+        /// constructor's own label styling).
+        void setDisplayName(const juce::String& name) { nameLabel_.setText(name.toUpperCase(), juce::dontSendNotification); }
+
         // -- juce::DragAndDropTarget --
         bool isInterestedInDragSource(const SourceDetails& details) override;
         void itemDragEnter(const SourceDetails& details) override;

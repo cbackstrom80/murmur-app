@@ -45,9 +45,16 @@
 // every engine, wavetable or not. A Timer (not just showNode()) drives this
 // switch since the engine can change without a node reselection -- clicking a
 // different engine pill on the SAME node, or a host loading a new patch/preset.
+// UI GATE 5 (tooltips): implements juce::TooltipClient rather than making each
+// pill its own real juce::Component -- ObsidianLookAndFeel already themed
+// TooltipWindow's colours, but no TooltipWindow instance existed anywhere to
+// use them (see PlayModeEditor.h), and no getTooltip() existed to feed one even
+// once it did. getTooltip() below hit-tests the mouse position against the same
+// pillBounds() mouseDown() already uses, so this is a few lines rather than
+// restructuring 8 hand-painted pills into child components.
 namespace pw8::plugin::ui
 {
-    class OperatorEditorPanel : public juce::Component, private juce::Timer
+    class OperatorEditorPanel : public juce::Component, public juce::TooltipClient, private juce::Timer
     {
     public:
         explicit OperatorEditorPanel(PatchworkEightProcessor& processor);
@@ -65,6 +72,12 @@ namespace pw8::plugin::ui
         /// the panel's header. Safe to call repeatedly (e.g. once per
         /// AlgorithmGraphView::onNodeSelected firing).
         void showNode(int nodeIndex);
+
+        /// juce::TooltipClient -- only non-empty over a currently-disabled
+        /// (unimplemented) engine pill, explaining why it's dim/unclickable. Empty
+        /// string over everything else, which JUCE's TooltipWindow treats as "no
+        /// tooltip" rather than showing a blank bubble.
+        [[nodiscard]] juce::String getTooltip() override;
 
     private:
         [[nodiscard]] juce::Rectangle<int> pillRowBounds() const;

@@ -272,6 +272,57 @@ what's actually cheap vs. a real project -- full breakdown in
   codebase yet, the one place a mistake here is actually dangerous (a glitch or
   crash in a real DAW session). See `docs/VISUALIZATION_UI_GATE5.md`.
 
+A follow-up pass on the same GATE fixed several smaller, independently-found
+issues:
+
+- **Tooltips actually work now.** `ObsidianLookAndFeel` themed
+  `TooltipWindow::backgroundColourId`/`textColourId` from the start, but no
+  `juce::TooltipWindow` instance existed anywhere to use them, and no
+  `getTooltip()` existed to feed one. `PlayModeEditor` now owns a
+  `TooltipWindow`; `OperatorEditorPanel` implements `juce::TooltipClient` so a
+  disabled engine pill explains why it's dim on hover, hit-testing the same
+  `pillBounds()` `mouseDown()` already uses rather than restructuring 8
+  hand-painted pills into real child components.
+- **Macro names read from the patch, not a hardcoded list.** `patch::Macro` has
+  a real `name` field (a sound designer can call a macro "Growl" in the
+  `.pw8`); `MacroStrip` previously always showed the generic "Macro 1"..."Macro
+  8" regardless. Now polls and applies the patch-authored name once one's
+  loaded, falling back to the generic name if it's empty.
+- **`ModSourceStrip`'s instructional title now retires itself** once the player
+  has successfully created at least one mod route -- "Mod Sources -- Drag Onto
+  A Ringed Knob" switches to plain "Mod Sources" and stays there. The
+  empty-state connections-list text still re-explains the gesture if every
+  route later gets removed, so nothing's lost for a player who clears
+  everything and comes back later.
+- **`PatchBrowserBar`'s wordmark width** was a bare `280` independently
+  duplicated in `paint()` and `resized()` -- harmless while they happened to
+  agree, a real bug the first time only one got edited. Now a single named
+  constant both read from.
+- **Accessibility reviewed, not fixed** -- see the dedicated section above for
+  what's free (real `juce::Component`-based controls) vs. what still needs
+  real work (every hand-painted hit-target).
+
+## Accessibility: partially free, partially not started
+
+Every control built on a real `juce::Component` subclass gets JUCE's default
+accessibility support for free -- `GlowKnob`'s `juce::Slider`, `PatchBrowserBar`'s
+`juce::TextButton`, both already screen-reader/keyboard-navigable with no extra
+work here. What's NOT accessible today: every hand-painted hit-target that isn't
+a real child `Component` -- `OperatorEditorPanel`'s 8 engine pills,
+`ModSourceChip`'s drag chips, `ModSourceStrip`'s per-route remove buttons,
+`FxChainStrip`'s type labels. These exist only as `paint()` calls plus manual
+`mouseDown()` hit-testing (the same pattern documented above for matching
+`AlgorithmGraphView`'s style), which means zero keyboard focus and zero
+screen-reader exposure for any of them. Fixing this for real means either turning
+each into an actual child `Component` (bigger refactor, touches every hand-painted
+control in the skin) or giving each parent a custom `juce::AccessibilityHandler`
+exposing synthetic child elements (JUCE supports this, but it's real, unfamiliar-
+in-this-codebase API surface that deserves a build to verify against real
+assistive tech, not a guess). Left as PLANNED rather than attempted blind here --
+UI GATE 5 did add real `getTooltip()` support (see above), which helps sighted
+mouse users somewhat but doesn't move the needle on keyboard/screen-reader access
+at all.
+
 ## What's PLANNED
 
 - DESIGN and LAB modes (graph editing, full modulation-bank editing,

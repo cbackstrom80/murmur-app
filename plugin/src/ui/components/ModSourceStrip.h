@@ -55,6 +55,12 @@ namespace pw8::plugin::ui
         PatchworkEightProcessor& processor_;
         SectionPanel panel_{"Mod Sources -- Drag Onto A Ringed Knob"};
         std::array<std::unique_ptr<ModSourceChip>, 3> chips_;
+        // Once true, the panel title has already switched to the plain "Mod
+        // Sources" and stays there -- the instructional title did its job (the
+        // player found the gesture) and doesn't need to keep saying it forever.
+        // The empty-state text in paintOverChildren() below still explains the
+        // gesture again if every route later gets removed, so nothing's lost.
+        bool hasEverHadModRoute_ = false;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ModSourceStrip)
     };

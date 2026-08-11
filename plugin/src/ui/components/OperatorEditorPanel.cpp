@@ -130,6 +130,21 @@ namespace pw8::plugin::ui
             updateEngineDependentLayout();
     }
 
+    juce::String OperatorEditorPanel::getTooltip()
+    {
+        const auto pos = getMouseXYRelative();
+        for (int i = 0; i < kNumEngines; ++i)
+        {
+            if (!pillBounds(i).contains(pos))
+                continue;
+            const auto engine = engineForIndex(i);
+            if (algorithm::isEngineImplemented(engine))
+                return {}; // No tooltip needed over an already-usable pill.
+            return juce::String(engineShortName(engine)) + " renders silence today -- not yet implemented.";
+        }
+        return {};
+    }
+
     void OperatorEditorPanel::mouseDown(const juce::MouseEvent& event)
     {
         const auto pos = event.getPosition();

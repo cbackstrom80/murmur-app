@@ -5,6 +5,16 @@
 
 namespace pw8::plugin::ui
 {
+    namespace
+    {
+        // Was a bare `280` repeated independently in both paint() and resized() --
+        // harmless while they happened to agree, but a real bug waiting to happen
+        // the first time only one of the two got edited (e.g. a wider wordmark
+        // needing more room, changed in paint() and silently not in resized(), or
+        // vice versa).
+        constexpr int kWordmarkWidth = 280;
+    } // namespace
+
     PatchBrowserBar::PatchBrowserBar(PatchworkEightProcessor& processor) : processor_(processor)
     {
         patchNameLabel_.setJustificationType(juce::Justification::centredRight);
@@ -37,7 +47,7 @@ namespace pw8::plugin::ui
     void PatchBrowserBar::paint(juce::Graphics& g)
     {
         auto bounds = getLocalBounds();
-        auto wordmarkArea = bounds.removeFromLeft(280);
+        auto wordmarkArea = bounds.removeFromLeft(kWordmarkWidth);
 
         g.setColour(palette::kTextPrimary);
         g.setFont(fonts::title(18.0f));
@@ -50,7 +60,7 @@ namespace pw8::plugin::ui
 
     void PatchBrowserBar::resized()
     {
-        auto bounds = getLocalBounds().withTrimmedLeft(280);
+        auto bounds = getLocalBounds().withTrimmedLeft(kWordmarkWidth);
         loadButton_.setBounds(bounds.removeFromRight(80).reduced(0, 6));
         bounds.removeFromRight(8);
         patchNameLabel_.setBounds(bounds);

@@ -12,7 +12,7 @@ namespace pw8::plugin::ui
           operatorEditorPanel_(processor),
           modSourceStrip_(processor),
           filterLfoPanel_(processor),
-          macroStrip_(processor.apvts),
+          macroStrip_(processor),
           fxChainStrip_(processor.apvts)
     {
         setLookAndFeel(&lookAndFeel_);
