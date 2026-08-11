@@ -242,6 +242,21 @@ VST3 and AU after this pass (still 578 published parameters -- mod routes
 stay outside the automation surface, as above). 1 new engine-level test
 (`EngineLiveParamsTests.cpp`) -- 126 total, all passing.
 
+## UI GATE 4: FxChainStrip knob-starvation fix
+
+A code-review pass (not mockup-driven, unlike GATEs 2/3) caught a real instance
+of the exact "starved knob" failure mode UI GATE 1 fixed once already:
+`FxChainStrip` shared `MacroStrip`'s fixed 120px panel height, but unlike
+`MacroStrip` each of its 7 slots also reserves 24px above the knob for a
+type-name label. That extra tax left `GlowKnob` only ~40px to work with --
+after its own name-label/textbox subtraction, the rotary control floored out
+at `ObsidianLookAndFeel`'s 16px defensive minimum, on all 7 slots at once.
+16px is enough to not crash (the whole point of that floor), not enough to
+read or grab. Fixed the same way as UI GATE 1: grew the strip's height (120 ->
+168) and the window with it (+48, 980x1130 -> 980x1178 in isolation -- see the
+UI GATE 5 note below for the actual final number once both gates' independent
+window-height deltas are combined).
+
 ## UI GATE 5: wavetable stack view + OperatorEditorPanel knob-starvation fix
 
 Prompted by a "make the visualization stuff radder / do 3D" request. Split into
@@ -334,6 +349,11 @@ assistive tech, not a guess). Left as PLANNED rather than attempted blind here -
 UI GATE 5 did add real `getTooltip()` support (see above), which helps sighted
 mouse users somewhat but doesn't move the needle on keyboard/screen-reader access
 at all.
+
+**Combined window size, both gates landed:** UI GATE 4's `fxArea` growth (+48)
+and UI GATE 5's `opEditorArea` growth (+50) are independent deltas against
+different strips -- they simply add. Final size once both are in `main`:
+980x1228 (1130 + 48 + 50), not either gate's own in-isolation number above.
 
 ## What's PLANNED
 
