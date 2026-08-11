@@ -7,6 +7,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "GlowKnob.h"
+#include "Knob3D.h"
 #include "SectionPanel.h"
 #include "processor/PatchworkEightProcessor.h"
 #include "../theme/ObsidianPalette.h"
@@ -22,6 +23,13 @@
 // Timer polls for this rather than pushing on patch-load, matching the same
 // "no push notification exists yet" reasoning GlowKnob's own modulation-ring
 // poll already documents.
+//
+// Macro 1 specifically is rendered by Knob3D, not GlowKnob -- the live proof
+// point for the real-3D-OpenGL knob direction Curtis chose (faceted body,
+// flat blue line, no glow), wired into exactly one real, functional control
+// rather than swapped in everywhere at once. See Knob3D.h/.cpp for what's
+// unverified about that (the project's first OpenGL component). Macros 2-8
+// stay GlowKnob -- this is deliberately NOT a skin-wide swap yet.
 namespace pw8::plugin::ui
 {
     class MacroStrip : public juce::Component, private juce::Timer
@@ -37,7 +45,8 @@ namespace pw8::plugin::ui
 
         PatchworkEightProcessor& processor_;
         SectionPanel panel_{"Macros", palette::kAccentWarm};
-        std::array<std::unique_ptr<GlowKnob>, 8> knobs_;
+        std::unique_ptr<Knob3D> knob3D_; // Macro 1 only.
+        std::array<std::unique_ptr<GlowKnob>, 8> knobs_; // Index 0 unused -- see class doc comment.
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MacroStrip)
     };

@@ -1,14 +1,20 @@
 # pw8_plugin -- JUCE VST3/AU/Standalone wrapper around pw8_core.
 #
-# STATUS: PARTIAL, build-verified. Off by default (PW8_BUILD_PLUGIN=OFF) and not
-# built by the main CI job (see .github/workflows/ci.yml's separate macOS-only
-# `plugin` job) -- see docs/PLUGIN_ARCHITECTURE.md and docs/ROADMAP.md Phase 16.
-# VST3/AU/Standalone all build against real JUCE 8.0.6, and the AU target passes
-# Apple's `auval` validation tool in full (format tests, render tests at 22.05k/
-# 44.1k/48k/96k/192k Hz and multiple block sizes, MIDI test). createEditor() now
-# returns a real custom editor (plugin/src/ui/PlayModeEditor -- the OBSIDIAN skin,
-# docs/UI.md), not JUCE's generic parameter list. What's still missing: a real
-# DAW host-matrix pass, and DESIGN/LAB modes (PLAY mode is the only mode today).
+# STATUS: PARTIAL, build-verified AS OF the last commit before Knob3D was added
+# (plugin/src/ui/components/Knob3D.{h,cpp}) -- that addition (the project's
+# first real juce::OpenGLContext usage) has NOT been build- or auval-verified;
+# see Knob3D.cpp's own header comment for why and what to check first. Off by
+# default (PW8_BUILD_PLUGIN=OFF) and not built by the main CI job (see
+# .github/workflows/ci.yml's separate macOS-only `plugin` job) -- see
+# docs/PLUGIN_ARCHITECTURE.md and docs/ROADMAP.md Phase 16. VST3/AU/
+# Standalone all build against real JUCE 8.0.6; the AU target passed Apple's
+# `auval` validation tool in full as of the last verified pass (format tests,
+# render tests at 22.05k/44.1k/48k/96k/192k Hz and multiple block sizes, MIDI
+# test) -- re-run auval after the OpenGL addition, don't assume it still
+# holds. createEditor() now returns a real custom editor (plugin/src/ui/
+# PlayModeEditor -- the OBSIDIAN skin, docs/UI.md), not JUCE's generic
+# parameter list. What's still missing: a real DAW host-matrix pass, and
+# DESIGN/LAB modes (PLAY mode is the only mode today).
 #
 # To attempt a build:
 #   cmake --preset plugin && cmake --build --preset plugin
@@ -57,6 +63,7 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/ModSourceChip.cpp
     src/ui/components/ModSourceStrip.cpp
     src/ui/components/WavetableStackView.cpp
+    src/ui/components/Knob3D.cpp
 )
 
 target_include_directories(pw8_plugin PRIVATE src)
@@ -66,6 +73,12 @@ target_link_libraries(pw8_plugin
         pw8::core
         juce::juce_audio_utils
         juce::juce_dsp
+        # First real user: Knob3D (plugin/src/ui/components/Knob3D.{h,cpp}) --
+        # everything else in this skin is plain juce::Graphics 2D painting,
+        # including two earlier deliberate decisions NOT to reach for this
+        # (docs/UI.md, docs/VISUALIZATION_UI_GATE5.md). See Knob3D.cpp's own
+        # header comment for what's unverified about this being new here.
+        juce::juce_opengl
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags

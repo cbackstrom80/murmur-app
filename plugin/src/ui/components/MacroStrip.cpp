@@ -8,7 +8,11 @@ namespace pw8::plugin::ui
     MacroStrip::MacroStrip(PatchworkEightProcessor& processor) : processor_(processor)
     {
         addAndMakeVisible(panel_);
-        for (std::size_t i = 0; i < knobs_.size(); ++i)
+
+        knob3D_ = std::make_unique<Knob3D>(processor_.apvts, kMacroParameterIds[0], kMacroParameterNames[0]);
+        panel_.addAndMakeVisible(*knob3D_);
+
+        for (std::size_t i = 1; i < knobs_.size(); ++i)
         {
             // The warm half of the duotone: macros are the one surface a player's
             // hands are actually on, not a structural/signal reading (see
@@ -30,7 +34,13 @@ namespace pw8::plugin::ui
     void MacroStrip::timerCallback()
     {
         const auto& macros = processor_.getCurrentPatch().macros;
-        for (std::size_t i = 0; i < knobs_.size() && i < macros.size(); ++i)
+        if (!macros.empty())
+        {
+            const auto desiredName0 =
+                macros[0].name.empty() ? juce::String(kMacroParameterNames[0]) : juce::String(macros[0].name);
+            knob3D_->setDisplayName(desiredName0);
+        }
+        for (std::size_t i = 1; i < knobs_.size() && i < macros.size(); ++i)
         {
             // Empty patch-authored name (an init patch, or a hand-authored .pw8
             // that never set one) falls back to the generic "Macro N" rather than
@@ -51,8 +61,9 @@ namespace pw8::plugin::ui
         panel_.setBounds(getLocalBounds());
         auto bounds = panel_.getContentBounds();
         const int knobWidth = bounds.getWidth() / static_cast<int>(knobs_.size());
-        for (auto& knob : knobs_)
-            knob->setBounds(bounds.removeFromLeft(knobWidth).reduced(4));
+        knob3D_->setBounds(bounds.removeFromLeft(knobWidth).reduced(4));
+        for (std::size_t i = 1; i < knobs_.size(); ++i)
+            knobs_[i]->setBounds(bounds.removeFromLeft(knobWidth).reduced(4));
     }
 
 } // namespace pw8::plugin::ui
