@@ -206,6 +206,11 @@ namespace pw8::plugin
             params.additiveTilt = loadF(ptrs[20]);
             params.additiveOddEven = loadF(ptrs[21]);
             params.additiveStretch = loadF(ptrs[22]);
+            params.resonatorStructure = loadF(ptrs[23]);
+            params.resonatorDecay = loadF(ptrs[24]);
+            params.resonatorDamping = loadF(ptrs[25]);
+            params.resonatorBrightness = loadF(ptrs[26]);
+            params.resonatorModeCount = loadF(ptrs[27]);
             engine.setOperatorLive(op, params);
         }
 
@@ -536,6 +541,9 @@ namespace pw8::plugin
                 o.phaseAsymmetry,                     o.phaseShape,
                 o.additivePartialCount,               o.additiveTilt,
                 o.additiveOddEven,                    o.additiveStretch,
+                o.resonatorStructure,                 o.resonatorDecay,
+                o.resonatorDamping,                   o.resonatorBrightness,
+                o.resonatorModeCount,
             };
             for (std::size_t i = 0; i < kNumOperatorFields; ++i)
                 setParam(operatorParamId(op, kOperatorFieldSpecs[i].idSuffix), opValues[i]);
@@ -646,6 +654,11 @@ namespace pw8::plugin
             o.additiveTilt = loadF(ptrs[20]);
             o.additiveOddEven = loadF(ptrs[21]);
             o.additiveStretch = loadF(ptrs[22]);
+            o.resonatorStructure = loadF(ptrs[23]);
+            o.resonatorDecay = loadF(ptrs[24]);
+            o.resonatorDamping = loadF(ptrs[25]);
+            o.resonatorBrightness = loadF(ptrs[26]);
+            o.resonatorModeCount = loadF(ptrs[27]);
         }
 
         for (std::size_t envIdx = 0; envIdx < kNumEnvelopes; ++envIdx)

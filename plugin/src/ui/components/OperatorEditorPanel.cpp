@@ -161,12 +161,27 @@ namespace pw8::plugin::ui
         additiveStretchKnob_ = std::make_unique<GlowKnob>(
             apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "AdditiveStretch"), "Stretch");
 
+        // Engine 8 (Resonator) -- see the header doc comment. No UI existed for
+        // these five fields before this pass.
+        resonatorStructureKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "ResonatorStructure"), "Structure");
+        resonatorDecayKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "ResonatorDecay"), "Decay");
+        resonatorDampingKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "ResonatorDamping"), "Damping");
+        resonatorBrightnessKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "ResonatorBrightness"), "Brightness");
+        resonatorModesKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "ResonatorModeCount"), "Modes");
+
         for (auto* k : {waveformKnob_.get(), levelKnob_.get(), ratioKnob_.get(), wavetablePosKnob_.get(),
                          fmModRatioKnob_.get(), fmModIndexKnob_.get(), fmModFeedbackKnob_.get(), fmModWaveformKnob_.get(),
                          noiseVariantKnob_.get(), noiseRateKnob_.get(),
                          phaseBendKnob_.get(), phaseFoldKnob_.get(), phaseAsymmetryKnob_.get(), phaseShapeKnob_.get(),
                          additivePartialsKnob_.get(), additiveTiltKnob_.get(), additiveOddEvenKnob_.get(),
-                         additiveStretchKnob_.get()})
+                         additiveStretchKnob_.get(),
+                         resonatorStructureKnob_.get(), resonatorDecayKnob_.get(), resonatorDampingKnob_.get(),
+                         resonatorBrightnessKnob_.get(), resonatorModesKnob_.get()})
             panel_.addAndMakeVisible(*k);
     }
 
@@ -179,29 +194,32 @@ namespace pw8::plugin::ui
         const bool isNoiseChaos = engine == static_cast<int>(algorithm::EngineType::NoiseChaos);
         const bool isPhaseShape = engine == static_cast<int>(algorithm::EngineType::PhaseShape);
         const bool isAdditive = engine == static_cast<int>(algorithm::EngineType::Additive);
+        const bool isResonator = engine == static_cast<int>(algorithm::EngineType::Resonator);
 
         // Waveform (classic.waveform) only matters for engines that actually read
         // params.classic -- Classic itself, and FM/PM (it's the CARRIER's shape
-        // there). Wavetable's, NoiseChaos's, PhaseShape's, and Additive's cases
-        // never touch params.classic, so it's hidden only for those engines,
-        // swapped for the stack preview + WT Pos, the Noise/Rate pair, the 4
-        // phase-shape knobs, or the 4 additive knobs respectively.
+        // there). Wavetable's, NoiseChaos's, PhaseShape's, Additive's, and
+        // Resonator's cases never touch params.classic, so it's hidden only for
+        // those engines, swapped for the stack preview + WT Pos, the Noise/Rate
+        // pair, the 4 phase-shape knobs, the 4 additive knobs, or the 5 resonator
+        // knobs respectively.
         //
         // Ratio (frequencyRatio), by contrast, is read GENERICALLY: render()
         // computes carrierHz from it once, before the engine switch, so it
         // affects every engine's pitch (or, for NoiseChaos, its
         // phaseMod/freqModHz bookkeeping even though its own output ignores
-        // pitch) including Wavetable -- always visible. (Hiding it for
-        // Wavetable was a real GATE-5-era gap: that operator's pitch ratio was
-        // a live, working, automatable parameter with no way to reach it from
-        // the UI. Caught and fixed while touching this exact function for
-        // FM/PM, not a deliberate part of this pass.)
+        // pitch; or, for Resonator, tuning each mode) including Wavetable --
+        // always visible. (Hiding it for Wavetable was a real GATE-5-era gap:
+        // that operator's pitch ratio was a live, working, automatable
+        // parameter with no way to reach it from the UI. Caught and fixed while
+        // touching this exact function for FM/PM, not a deliberate part of that
+        // pass.)
         //
         // None of these knobs' parameter IDs depend on the engine (only on
         // selectedNode_), so an engine-only change never needs to reconstruct
         // them -- doing so used to silently abort any in-progress mouse drag on
         // a knob the instant a host automated the Engine parameter mid-gesture.
-        waveformKnob_->setVisible(!isWavetable && !isNoiseChaos && !isPhaseShape && !isAdditive);
+        waveformKnob_->setVisible(!isWavetable && !isNoiseChaos && !isPhaseShape && !isAdditive && !isResonator);
         ratioKnob_->setVisible(true);
         wavetablePosKnob_->setVisible(isWavetable);
         wavetableStackView_.setVisible(isWavetable);
@@ -215,6 +233,11 @@ namespace pw8::plugin::ui
         additiveTiltKnob_->setVisible(isAdditive);
         additiveOddEvenKnob_->setVisible(isAdditive);
         additiveStretchKnob_->setVisible(isAdditive);
+        resonatorStructureKnob_->setVisible(isResonator);
+        resonatorDecayKnob_->setVisible(isResonator);
+        resonatorDampingKnob_->setVisible(isResonator);
+        resonatorBrightnessKnob_->setVisible(isResonator);
+        resonatorModesKnob_->setVisible(isResonator);
         levelKnob_->setVisible(true);
 
         for (auto* k : {fmModRatioKnob_.get(), fmModIndexKnob_.get(), fmModFeedbackKnob_.get(), fmModWaveformKnob_.get()})
@@ -351,6 +374,24 @@ namespace pw8::plugin::ui
                 additiveOddEvenKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
             if (additiveStretchKnob_)
                 additiveStretchKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+        }
+        else if (resonatorStructureKnob_ && resonatorStructureKnob_->isVisible())
+        {
+            const int knobWidth = content.getWidth() / 7;
+            if (ratioKnob_)
+                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (levelKnob_)
+                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (resonatorStructureKnob_)
+                resonatorStructureKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (resonatorDecayKnob_)
+                resonatorDecayKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (resonatorDampingKnob_)
+                resonatorDampingKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (resonatorBrightnessKnob_)
+                resonatorBrightnessKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (resonatorModesKnob_)
+                resonatorModesKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
         }
         else
         {

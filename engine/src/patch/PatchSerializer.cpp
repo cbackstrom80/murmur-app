@@ -125,6 +125,11 @@ namespace pw8::patch
                 {"additiveTilt", o.additiveTilt},
                 {"additiveOddEven", o.additiveOddEven},
                 {"additiveStretch", o.additiveStretch},
+                {"resonatorStructure", o.resonatorStructure},
+                {"resonatorDecay", o.resonatorDecay},
+                {"resonatorDamping", o.resonatorDamping},
+                {"resonatorBrightness", o.resonatorBrightness},
+                {"resonatorModeCount", o.resonatorModeCount},
             };
         }
 
@@ -156,6 +161,11 @@ namespace pw8::patch
             o.additiveTilt = clampNum(j.value("additiveTilt", 0.0f), -1.0f, 1.0f);
             o.additiveOddEven = clampNum(j.value("additiveOddEven", 0.5f), 0.0f, 1.0f);
             o.additiveStretch = clampNum(j.value("additiveStretch", 0.0f), -1.0f, 1.0f);
+            o.resonatorStructure = clampNum(j.value("resonatorStructure", 0.3f), 0.0f, 1.0f);
+            o.resonatorDecay = clampNum(j.value("resonatorDecay", 0.5f), 0.0f, 1.0f);
+            o.resonatorDamping = clampNum(j.value("resonatorDamping", 0.5f), 0.0f, 1.0f);
+            o.resonatorBrightness = clampNum(j.value("resonatorBrightness", 0.5f), 0.0f, 1.0f);
+            o.resonatorModeCount = clampNum(j.value("resonatorModeCount", 6.0f), 2.0f, 8.0f);
         }
 
         void toJson(json& j, const UnisonSettings& u)

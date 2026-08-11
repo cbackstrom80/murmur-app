@@ -123,6 +123,30 @@ namespace pw8::dsp
             setCoefficients(b0, b1, b2, a0, a1, a2);
         }
 
+        /// RBJ Audio EQ Cookbook "BPF" (constant 0dB peak gain variant) -- unlike
+        /// setPeaking() at high gain, this actually attenuates everything outside
+        /// the passband toward zero rather than leaving it ~unattenuated (peaking
+        /// only ever boosts/cuts around a gain of 1). Needed for the Resonator
+        /// engine's modal filter bank (see op::OperatorNode.hpp's Resonator case):
+        /// summing several peaking "modes" would leave each one's output full of
+        /// unfiltered noise-floor content instead of cleanly isolating one partial,
+        /// which a true modal bank needs.
+        void setBandpass(float freqHz, float q, double sampleRate) noexcept
+        {
+            const float w0 = kTwoPi * freqHz / static_cast<float>(sampleRate);
+            const float cosW0 = std::cos(w0);
+            const float sinW0 = std::sin(w0);
+            const float alpha = sinW0 / (2.0f * std::max(q, 0.01f));
+
+            const float b0 = alpha;
+            const float b1 = 0.0f;
+            const float b2 = -alpha;
+            const float a0 = 1.0f + alpha;
+            const float a1 = -2.0f * cosW0;
+            const float a2 = 1.0f - alpha;
+            setCoefficients(b0, b1, b2, a0, a1, a2);
+        }
+
     private:
         float b0_ = 1.0f, b1_ = 0.0f, b2_ = 0.0f, a1_ = 0.0f, a2_ = 0.0f;
         float x1_ = 0.0f, x2_ = 0.0f, y1_ = 0.0f, y2_ = 0.0f;

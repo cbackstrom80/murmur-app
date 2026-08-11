@@ -9,7 +9,8 @@ namespace pw8::plugin
     // keyTrack, level, fmModulatorRatio, fmModulatorIndex, fmModulatorFeedback,
     // fmModulatorWaveform, noiseVariant, noiseRate, phaseBend, phaseFold,
     // phaseAsymmetry, phaseShape, additivePartialCount, additiveTilt,
-    // additiveOddEven, additiveStretch.
+    // additiveOddEven, additiveStretch, resonatorStructure, resonatorDecay,
+    // resonatorDamping, resonatorBrightness, resonatorModeCount.
     const std::array<ParamFieldSpec, kNumOperatorFields> kOperatorFieldSpecs = {{
         {"Engine",             "Engine",             0.0f,   7.0f, 0.0f,   true},
         {"Waveform",           "Waveform",           0.0f,   3.0f, 2.0f,   true},
@@ -34,6 +35,11 @@ namespace pw8::plugin
         {"AdditiveTilt",         "Tilt",     -1.0f,   1.0f, 0.0f,  false},
         {"AdditiveOddEven",      "Odd/Even",  0.0f,   1.0f, 0.5f,  false},
         {"AdditiveStretch",      "Stretch",  -1.0f,   1.0f, 0.0f,  false},
+        {"ResonatorStructure",  "Structure",   0.0f, 1.0f, 0.3f, false},
+        {"ResonatorDecay",      "Decay",       0.0f, 1.0f, 0.5f, false},
+        {"ResonatorDamping",    "Damping",     0.0f, 1.0f, 0.5f, false},
+        {"ResonatorBrightness", "Brightness",  0.0f, 1.0f, 0.5f, false},
+        {"ResonatorModeCount",  "Modes",       2.0f, 8.0f, 6.0f, true},
     }};
 
     // Matches filter::FilterParams: enabled, mode, cutoffHz, resonance, keyTrack.

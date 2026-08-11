@@ -43,6 +43,11 @@ namespace pw8::render
         out.additiveTilt = p.additiveTilt;
         out.additiveOddEven = p.additiveOddEven;
         out.additiveStretch = p.additiveStretch;
+        out.resonatorStructure = p.resonatorStructure;
+        out.resonatorDecay = p.resonatorDecay;
+        out.resonatorDamping = p.resonatorDamping;
+        out.resonatorBrightness = p.resonatorBrightness;
+        out.resonatorModeCount = p.resonatorModeCount;
         return out;
     }
 

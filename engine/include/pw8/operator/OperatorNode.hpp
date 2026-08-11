@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <cstdint>
 
 #include "pw8/algorithm/AlgorithmTypes.hpp"
 #include "pw8/dsp/Math.hpp"
@@ -8,6 +9,7 @@
 #include "pw8/oscillator/AdditiveOscillator.hpp"
 #include "pw8/oscillator/ClassicOscillator.hpp"
 #include "pw8/oscillator/PhaseShapeOscillator.hpp"
+#include "pw8/oscillator/ResonatorOscillator.hpp"
 #include "pw8/oscillator/WavetableOscillator.hpp"
 #include "pw8/oscillator/WavetableTable.hpp"
 
@@ -71,6 +73,16 @@ namespace pw8::op
         float additiveTilt = 0.0f;
         float additiveOddEven = 0.5f;
         float additiveStretch = 0.0f;
+
+        /// Resonator engine fields -- see oscillator::ResonatorParams for the full
+        /// per-field writeup. resonatorModeCount is stored as a float (rounded to
+        /// int at the render() call site), matching every other discrete field's
+        /// automation-friendly flat-struct convention.
+        float resonatorStructure = 0.3f;
+        float resonatorDecay = 0.5f;
+        float resonatorDamping = 0.5f;
+        float resonatorBrightness = 0.5f;
+        float resonatorModeCount = 6.0f;
     };
 
     struct OperatorState
@@ -82,6 +94,7 @@ namespace pw8::op
         noise::NoiseSource noiseSource;
         oscillator::PhaseShapeOscillator phaseShapeOsc;
         oscillator::AdditiveOscillator additiveOsc;
+        oscillator::ResonatorOscillator resonatorOsc;
         float lastOutput = 0.0f; ///< previous-sample output, used by Feedback edges.
 
         void prepare(double sampleRate) noexcept
@@ -92,6 +105,7 @@ namespace pw8::op
             noiseSource.prepare(sampleRate);
             phaseShapeOsc.prepare(sampleRate);
             additiveOsc.prepare(sampleRate);
+            resonatorOsc.prepare(sampleRate);
             sampleRate_ = sampleRate;
         }
 
@@ -103,6 +117,12 @@ namespace pw8::op
             fmModulatorLastOutput = 0.0f;
             phaseShapeOsc.reset(initialPhase);
             additiveOsc.reset(initialPhase);
+            // A fixed, non-randomized seed: this path also runs on a mid-note
+            // algorithm-graph Sync edge (see AlgorithmExecutor), where re-triggering
+            // the exciter burst is the whole point but a *new* random seed isn't --
+            // seedResonator() below is the one real per-note-random reseed, called
+            // once from Voice::noteOn().
+            resonatorOsc.reset(0);
             lastOutput = 0.0f;
         }
 
@@ -114,6 +134,13 @@ namespace pw8::op
         /// than doing anything meaningful -- so only Voice::noteOn calls this, once
         /// per note, with a dsp::DeterministicRng::deriveSeed()-derived seed.
         void seedNoise(std::uint64_t seed) noexcept { noiseSource.reset(seed); }
+
+        /// Reseeds this node's resonator exciter with a real per-voice-per-note
+        /// random seed and re-triggers its burst. Separate from reset() for the
+        /// same reason seedNoise() (NoiseChaos engine) is separate from reset() --
+        /// only Voice::noteOn() calls this, once per note, with a
+        /// dsp::DeterministicRng::deriveSeed()-derived seed.
+        void seedResonator(std::uint64_t seed) noexcept { resonatorOsc.reset(seed); }
 
         /// Renders one sample. `baseFrequencyHz` is the voice's key-tracked note
         /// frequency (before this operator's ratio/fixed override); `phaseMod` and
@@ -218,9 +245,27 @@ namespace pw8::op
                     break;
                 }
 
-                // Engine types 6, 8 (Granular, Resonator) are architected
-                // (see algorithm::EngineType, docs/ROADMAP.md Phase 10) but not
-                // yet implemented -- they intentionally render silence rather than guess.
+                case algorithm::EngineType::Resonator:
+                {
+                    // Noise-excited resonator: no pitch envelope/phase concept the
+                    // way an oscillator has -- carrierHz still sets each mode's
+                    // tuned frequency, but phaseMod is unused (there's no phase to
+                    // offset), matching NoiseChaos's own documented rationale for
+                    // ignoring inputs that don't apply to this engine's design.
+                    resonatorOsc.setFrequency(carrierHz);
+                    oscillator::ResonatorParams resonatorParams;
+                    resonatorParams.structure = params.resonatorStructure;
+                    resonatorParams.decay = params.resonatorDecay;
+                    resonatorParams.damping = params.resonatorDamping;
+                    resonatorParams.brightness = params.resonatorBrightness;
+                    resonatorParams.modeCount = static_cast<int>(params.resonatorModeCount + 0.5f);
+                    out = resonatorOsc.renderSample(resonatorParams);
+                    break;
+                }
+
+                // Engine type 6 (Granular) is architected (see algorithm::EngineType,
+                // docs/ROADMAP.md Phase 10) but not yet implemented -- it intentionally
+                // renders silence rather than guess.
                 default:
                     out = 0.0f;
                     break;

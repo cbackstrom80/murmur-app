@@ -105,6 +105,14 @@ namespace pw8::patch
         float additiveTilt = 0.0f;
         float additiveOddEven = 0.5f;
         float additiveStretch = 0.0f;
+
+        /// Resonator engine fields (only meaningful when engine == Resonator).
+        /// See oscillator::ResonatorParams for the full per-field writeup.
+        float resonatorStructure = 0.3f;
+        float resonatorDecay = 0.5f;
+        float resonatorDamping = 0.5f;
+        float resonatorBrightness = 0.5f;
+        float resonatorModeCount = 6.0f;
     };
 
     struct LayerPatch

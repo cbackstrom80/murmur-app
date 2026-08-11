@@ -78,6 +78,11 @@
 // Engine 4 (Additive): when the selected node's engine is Additive, the Wave
 // knob is replaced by 4 dedicated knobs (Partials/Tilt/Odd-Even/Stretch) --
 // same visibility-swap pattern, a further branch alongside the others.
+//
+// Engine 8 (Resonator): when the selected node's engine is Resonator, the
+// Wave knob is replaced by 5 dedicated knobs (Structure/Decay/Damping/
+// Brightness/Modes) -- same visibility-swap pattern, a further branch
+// alongside the others.
 namespace pw8::plugin::ui
 {
     class OperatorEditorPanel : public juce::Component, public juce::TooltipClient, private juce::Timer
@@ -155,6 +160,11 @@ namespace pw8::plugin::ui
         std::unique_ptr<GlowKnob> additiveTiltKnob_;     // Only visible for the Additive engine.
         std::unique_ptr<GlowKnob> additiveOddEvenKnob_;  // Only visible for the Additive engine.
         std::unique_ptr<GlowKnob> additiveStretchKnob_;  // Only visible for the Additive engine.
+        std::unique_ptr<GlowKnob> resonatorStructureKnob_;  // Only visible for the Resonator engine.
+        std::unique_ptr<GlowKnob> resonatorDecayKnob_;      // Only visible for the Resonator engine.
+        std::unique_ptr<GlowKnob> resonatorDampingKnob_;    // Only visible for the Resonator engine.
+        std::unique_ptr<GlowKnob> resonatorBrightnessKnob_; // Only visible for the Resonator engine.
+        std::unique_ptr<GlowKnob> resonatorModesKnob_;      // Only visible for the Resonator engine.
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OperatorEditorPanel)
     };

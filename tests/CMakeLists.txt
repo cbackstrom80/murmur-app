@@ -19,6 +19,8 @@ add_executable(pw8_tests
     dsp/NoiseChaosOperatorTests.cpp
     dsp/PhaseShapeOscillatorTests.cpp
     dsp/AdditiveOscillatorTests.cpp
+    dsp/BiquadBandpassTests.cpp
+    dsp/ResonatorOscillatorTests.cpp
     unit/AlgorithmGraphCompilerTests.cpp
     unit/DeterministicRngTests.cpp
     unit/ModMatrixTests.cpp

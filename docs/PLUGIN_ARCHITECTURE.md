@@ -11,7 +11,7 @@ VST3, AU, and Standalone artifacts:
 - The **Standalone app launches and runs cleanly** (verified: process stays alive,
   no crash, no JUCE assertion failures).
 - The **VST3** bundle builds and ad-hoc-signs successfully.
-- **690 host-automatable parameters** (`juce::AudioProcessorValueTreeState`) --
+- **730 host-automatable parameters** (`juce::AudioProcessorValueTreeState`) --
   macros, Filter1, all 8 LFOs, all 8 operators, all 8 envelopes, layer gain/pan,
   master gain, all 7 FX slots' scalar controls (all 10 algorithms including
   GATE 11's redesigned 15-field multiband Reverb plus Eq/Compressor/Limiter),
@@ -49,13 +49,13 @@ pluginval --strictness-level 5 --validate "Patchwork Eight.component"  # AU must
 Both **SUCCESS** at every suite: Open plugin (cold/warm), Plugin info, Editor, Open
 editor whilst processing, Audio processing (44.1/48/96kHz x 64/128/256/512/1024
 sample block sizes), Plugin state, Automation (same sample-rate/block-size matrix,
-32-sample sub-blocks -- this is the suite that actually drives all 690
+32-sample sub-blocks -- this is the suite that actually drives all 730
 parameters through automation-style value changes mid-stream), Editor Automation,
 Automatable Parameters, and (embedded) `auval`. This is a materially stronger signal
 than `auval` alone: `auval` is AU-specific and doesn't exercise
 block-size-varying/automation-under-processing scenarios the way `pluginval` does.
 Re-run and re-confirmed SUCCESS after each expansion of the parameter count
-(8 -> 270 -> 361 -> 501 -> 578 -> 610 -> 626 -> 658 -> 690) -- this is not a stale result from an earlier, smaller set.
+(8 -> 270 -> 361 -> 501 -> 578 -> 610 -> 626 -> 658 -> 690 -> 730) -- this is not a stale result from an earlier, smaller set.
 
 ## Design
 
@@ -94,7 +94,7 @@ drift apart. `auval`'s MIDI test exercises this path directly and passes.
 
 ### Automation
 
-**IMPLEMENTED, 690 parameters.** The original design here exposed only the 8
+**IMPLEMENTED, 730 parameters.** The original design here exposed only the 8
 macros to host automation (matching Phase Plant's "8 routable macros" model,
 per the COMPETITIVE_ANALYSIS.md research pass). Per explicit user direction
 ("every param should be automatable"), that scope was deliberately widened to
@@ -110,10 +110,13 @@ Type 3 (FM/PM) shipped, adding 4 fields per operator for its self-contained
 internal modulator, again when Engine Type 7 (NoiseChaos) shipped
 (`noiseVariant`/`noiseRate`, +2 fields per operator, +16 total), again when
 Engine Type 5 (PhaseShape) shipped (`phaseBend`/`phaseFold`/
-`phaseAsymmetry`/`phaseShape`, +4 fields per operator, +32 total), and again
+`phaseAsymmetry`/`phaseShape`, +4 fields per operator, +32 total), again
 when Engine Type 4 (Additive) shipped (`additivePartialCount`/
 `additiveTilt`/`additiveOddEven`/`additiveStretch`, +4 fields per operator,
-+32 total) -- the first four of the 6 previously-silent operator engines to
++32 total), and again when Engine Type 8 (Resonator) shipped
+(`resonatorStructure`/`resonatorDecay`/`resonatorDamping`/
+`resonatorBrightness`/`resonatorModeCount`, +5 fields per operator, +40
+total) -- the first five of the 6 previously-silent operator engines to
 gain real automatable parameters.
 `plugin/src/state/PluginState.h`/`.cpp` builds a real
 `juce::AudioProcessorValueTreeState` (`PatchworkEightProcessor::apvts`) with:
@@ -123,12 +126,12 @@ gain real automatable parameters.
 | Macros | 8 | `macro1`..`macro8` |
 | Filter1 | 5 | enabled, mode, cutoffHz, resonance, keyTrack |
 | 8 LFOs | 40 | waveform, mode, rateHz, syncDivisionIndex, phaseOffset (x8) |
-| 8 operators | 184 | engine, waveform, morph, pulseWidth, wavetableFramePosition, frequencyRatio, fixedFrequencyHz, keyTrack, level, fmModulatorRatio, fmModulatorIndex, fmModulatorFeedback, fmModulatorWaveform, noiseVariant, noiseRate, phaseBend, phaseFold, phaseAsymmetry, phaseShape, additivePartialCount, additiveTilt, additiveOddEven, additiveStretch (x8) |
+| 8 operators | 224 | engine, waveform, morph, pulseWidth, wavetableFramePosition, frequencyRatio, fixedFrequencyHz, keyTrack, level, fmModulatorRatio, fmModulatorIndex, fmModulatorFeedback, fmModulatorWaveform, noiseVariant, noiseRate, phaseBend, phaseFold, phaseAsymmetry, phaseShape, additivePartialCount, additiveTilt, additiveOddEven, additiveStretch, resonatorStructure, resonatorDecay, resonatorDamping, resonatorBrightness, resonatorModeCount (x8) |
 | 8 envelopes | 64 | delay, attack, hold, decay, sustain, release, curve, legato (x8) |
 | Layer gain/pan, master gain | 3 | `layerGain`, `layerPan`, `masterGain` |
 | 3 insert + 4 master FX slots | 378 | type, mix, and every scalar knob for all 10 algorithms incl. GATE 11's redesigned Reverb/Eq/Compressor/Limiter (54 fields x 7 slots) |
 | Arpeggiator | 8 | enabled, mode, rateMode, rateHz, syncDivisionIndex, octaveRange, numSteps, latch |
-| **Total** | **690** | |
+| **Total** | **730** | |
 
 Automating an LFO affects both its VOICE-scope per-voice instance and its
 LAYER/GLOBAL-scope shared instance simultaneously (`Engine::setLfoLive()`) --
@@ -198,9 +201,9 @@ just compile:
    `getInsertEffectParams()`/`getMasterEffectParams()`) and only overwrite the
    54 automated scalar fields, preserving whatever isn't exposed. This all
    keeps `currentPatch_` the single source of truth (see "Host State" above)
-   rather than a second, divergent store of the same ~690 values.
+   rather than a second, divergent store of the same ~730 values.
 
-`auval` reports exactly 690 published parameters (confirmed:
+`auval` reports exactly 730 published parameters (confirmed:
 `grep -c "Parameter ID:"` against its verbose output) and passes
 `Checking parameter setting`/`Checking ramped parameter scheduling` in full.
 `pluginval --strictness-level 5` (the maximum) passes on both the VST3 and the
@@ -209,7 +212,7 @@ and `Automatable Parameters` suites -- see "pluginval" below.
 
 Implementation note: enum-valued parameters (filter mode, effect type, etc.)
 are exposed as stepped `AudioParameterFloat`s rather than
-`AudioParameterChoice`, for implementation uniformity across all ~690
+`AudioParameterChoice`, for implementation uniformity across all ~730
 parameters (one read path, `getRawParameterValue()->load()`, for everything).
 A host's own generic automation-lane UI shows a continuous slider rather than
 a named dropdown for these regardless (that's inherent to `AudioParameterFloat`
@@ -323,8 +326,8 @@ same reason the rest of the UI does: proving the DSP first.
    DSP-wired yet), not an oversight -- but they're real gaps if a use case
    needs them.
 4. The real PLAY/DESIGN/LAB UI (Phase 17) -- `GenericAudioProcessorEditor` is a
-   placeholder (now showing all 690 real parameters as generic sliders, not an
-   empty list, but still not a step toward the signature UI -- 690 flat
+   placeholder (now showing all 730 real parameters as generic sliders, not an
+   empty list, but still not a step toward the signature UI -- 730 flat
    sliders is not how this synth should actually be played).
 5. Code signing / notarization for actual distribution (the build today produces an
    ad-hoc-signed VST3, sufficient for local testing only).
