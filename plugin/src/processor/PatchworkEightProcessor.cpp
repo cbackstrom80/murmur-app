@@ -192,6 +192,8 @@ namespace pw8::plugin
             params.fixedFrequencyHz = loadF(ptrs[6]);
             params.keyTrack = loadB(ptrs[7]);
             params.level = loadF(ptrs[8]);
+            params.noiseVariant = loadF(ptrs[9]);
+            params.noiseRate = loadF(ptrs[10]);
             engine.setOperatorLive(op, params);
         }
 
@@ -514,7 +516,8 @@ namespace pw8::plugin
                 o.classicMorph,                     o.pulseWidth,
                 o.wavetableFramePosition,           o.frequencyRatio,
                 o.fixedFrequencyHz,                 o.keyTrack ? 1.0f : 0.0f,
-                o.level,
+                o.level,                             o.noiseVariant,
+                o.noiseRate,
             };
             for (std::size_t i = 0; i < kNumOperatorFields; ++i)
                 setParam(operatorParamId(op, kOperatorFieldSpecs[i].idSuffix), opValues[i]);
@@ -611,6 +614,8 @@ namespace pw8::plugin
             o.fixedFrequencyHz = loadF(ptrs[6]);
             o.keyTrack = loadB(ptrs[7]);
             o.level = loadF(ptrs[8]);
+            o.noiseVariant = loadF(ptrs[9]);
+            o.noiseRate = loadF(ptrs[10]);
         }
 
         for (std::size_t envIdx = 0; envIdx < kNumEnvelopes; ++envIdx)

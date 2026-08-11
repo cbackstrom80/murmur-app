@@ -25,6 +25,21 @@ namespace pw8::plugin::ui
             }
         }
 
+        juce::String noiseVariantToText(float v)
+        {
+            switch (static_cast<int>(v))
+            {
+                case 0: return "WHITE";
+                case 1: return "PINK";
+                case 2: return "BROWN";
+                case 3: return "BLUE";
+                case 4: return "S&H";
+                case 5: return "SMOOTH";
+                case 6: return "DUST";
+                default: return juce::String(v);
+            }
+        }
+
         algorithm::EngineType engineForIndex(int index) noexcept
         {
             return static_cast<algorithm::EngineType>(juce::jlimit(0, kNumEngines - 1, index));
@@ -103,8 +118,16 @@ namespace pw8::plugin::ui
         // for it until this pass (UI GATE 5).
         wavetablePosKnob_ = std::make_unique<GlowKnob>(
             apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "WavetablePos"), "WT Pos");
+        // Engine 7 (NoiseChaos) -- see the header doc comment. No UI existed for
+        // these two fields before this pass.
+        noiseVariantKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "NoiseVariant"), "Noise",
+            noiseVariantToText);
+        noiseRateKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "NoiseRate"), "Rate");
 
-        for (auto* k : {waveformKnob_.get(), levelKnob_.get(), ratioKnob_.get(), wavetablePosKnob_.get()})
+        for (auto* k : {waveformKnob_.get(), levelKnob_.get(), ratioKnob_.get(), wavetablePosKnob_.get(),
+                         noiseVariantKnob_.get(), noiseRateKnob_.get()})
             panel_.addAndMakeVisible(*k);
     }
 
@@ -113,18 +136,30 @@ namespace pw8::plugin::ui
         const int engine = currentEngineOrdinal();
         lastKnownEngine_ = engine;
         const bool isWavetable = engine == static_cast<int>(algorithm::EngineType::Wavetable);
+        const bool isNoiseChaos = engine == static_cast<int>(algorithm::EngineType::NoiseChaos);
 
-        // Wave/Ratio aren't meaningful for a Wavetable-engine node (it reads
-        // wavetableFramePosition, not classicWaveform/frequencyRatio) -- swapped
-        // for the stack preview + WT Pos instead. Level applies to every engine.
-        // None of the four knobs' parameter IDs depend on the engine (only on
-        // selectedNode_), so an engine-only change never needs to reconstruct
-        // them -- doing so used to silently abort any in-progress mouse drag on
-        // a knob the instant a host automated the Engine parameter mid-gesture.
-        waveformKnob_->setVisible(!isWavetable);
-        ratioKnob_->setVisible(!isWavetable);
+        // Wave isn't meaningful for a Wavetable- or NoiseChaos-engine node (neither
+        // reads classicWaveform) -- swapped for the stack preview+WT Pos or the
+        // Noise/Rate pair instead. Ratio stays visible for every engine (including
+        // NoiseChaos -- carrierHz still feeds phaseMod/freqModHz bookkeeping in
+        // render() even though NoiseChaos's own output ignores pitch, and hiding a
+        // real automatable parameter here would be the same mistake the Wavetable
+        // branch used to make, see the ratioKnob_ comment further down). Level
+        // applies to every engine. None of these knobs' parameter IDs depend on the
+        // engine (only on selectedNode_), so an engine-only change never needs to
+        // reconstruct them -- doing so used to silently abort any in-progress mouse
+        // drag on a knob the instant a host automated the Engine parameter
+        // mid-gesture.
+        waveformKnob_->setVisible(!isWavetable && !isNoiseChaos);
+        // frequencyRatio is read generically by render() before the engine switch
+        // for every engine's carrier pitch computation -- always shown, not gated
+        // per-engine (a prior pass hid it for Wavetable, making a real working,
+        // automatable parameter unreachable from the UI; fixed to always show it).
+        ratioKnob_->setVisible(true);
         wavetablePosKnob_->setVisible(isWavetable);
         wavetableStackView_.setVisible(isWavetable);
+        noiseVariantKnob_->setVisible(isNoiseChaos);
+        noiseRateKnob_->setVisible(isNoiseChaos);
         levelKnob_->setVisible(true);
 
         resized();
@@ -190,14 +225,32 @@ namespace pw8::plugin::ui
 
         if (wavetableStackView_.isVisible())
         {
-            auto stackArea = content.removeFromLeft(static_cast<int>(static_cast<float>(content.getWidth()) * 0.62f));
+            // Narrower than the other branches' full-width knob row (0.55 vs the
+            // stack getting the rest) -- ratioKnob_ joining this row (now shown for
+            // every engine, see updateEngineVisibility()) needs a 3-way split here
+            // too, not just 2.
+            auto stackArea = content.removeFromLeft(static_cast<int>(static_cast<float>(content.getWidth()) * 0.55f));
             wavetableStackView_.setBounds(stackArea.reduced(3));
 
-            const int knobWidth = content.getWidth() / 2;
+            const int knobWidth = content.getWidth() / 3;
             if (levelKnob_)
                 levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (ratioKnob_)
+                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
             if (wavetablePosKnob_)
                 wavetablePosKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+        }
+        else if (noiseVariantKnob_ && noiseVariantKnob_->isVisible())
+        {
+            const int knobWidth = content.getWidth() / 4;
+            if (ratioKnob_)
+                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (levelKnob_)
+                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (noiseVariantKnob_)
+                noiseVariantKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (noiseRateKnob_)
+                noiseRateKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
         }
         else
         {

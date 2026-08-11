@@ -111,6 +111,8 @@ namespace pw8::patch
                 {"keyTrack", o.keyTrack},
                 {"level", o.level},
                 {"pan", o.pan},
+                {"noiseVariant", o.noiseVariant},
+                {"noiseRate", o.noiseRate},
             };
         }
 
@@ -127,6 +129,8 @@ namespace pw8::patch
             o.keyTrack = j.value("keyTrack", true);
             o.level = clampNum(j.value("level", 1.0f), 0.0f, 4.0f);
             o.pan = clampNum(j.value("pan", 0.0f), -1.0f, 1.0f);
+            o.noiseVariant = clampNum(j.value("noiseVariant", 0.0f), 0.0f, 6.0f);
+            o.noiseRate = clampNum(j.value("noiseRate", 200.0f), 0.5f, 2000.0f);
         }
 
         void toJson(json& j, const UnisonSettings& u)

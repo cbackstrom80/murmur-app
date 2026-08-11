@@ -125,10 +125,48 @@ the Clouds-style grain-pool influence on this decision).
 
 ## Engine Type 7 — Noise / Chaos
 
-**PLANNED** (Phase 10). All variants (white/pink/brown/blue/digital/sample-hold/
-smooth-random/dust/crackle/metallic/chaotic) will be seeded through
-`dsp::DeterministicRng` (already implemented, see below) so patch rendering stays
-repeatable.
+**IMPLEMENTED** (scoped to 7 of the fuller 11-variant taxonomy this section
+originally sketched -- digital/crackle/metallic/full-chaotic explicitly deferred,
+not silently dropped). `noise::NoiseSource` (`pw8/noise/NoiseSource.hpp`), a
+self-contained component of the same shape as `oscillator::ClassicOscillator`,
+implements: White, Pink, Brown/Red, Blue, Sample & Hold, Smooth Random, and Dust.
+
+Every variant is seeded through `dsp::DeterministicRng` (see "Deterministic
+Randomness" below) -- `Voice::noteOn()` calls `OperatorState::seedNoise()` once
+per note with a `DeterministicRng::deriveSeed()`-derived value, so the same note
+on the same seeded patch renders byte-identical noise every time, matching the
+requirement this section already committed to before implementation.
+
+- **White**: direct uniform samples from the seeded RNG.
+- **Pink**: Paul Kellet's refined 7-pole IIR filter (public domain, musicdsp.org)
+  approximating a -3dB/octave (1/f) spectral slope -- measured, not assumed:
+  `tests/dsp/NoiseChaosOperatorTests.cpp` FFT-verifies pink's low/high-frequency
+  energy ratio measurably exceeds white's flat response.
+- **Brown/Red**: leaky-integrated white noise (also Kellet, public domain) --
+  the leak term is what keeps a random-walk integral of white noise finite on an
+  indefinitely held note, not an afterthought clamp. Measurably steeper
+  (-6dB/octave-ish) than Pink in the same FFT-ratio test.
+- **Blue**: first difference of white noise (a single-zero highpass,
+  +3dB/octave) -- Brown's mirror-image complement. Measurably less
+  low-frequency-heavy than flat White in the same test.
+- **Sample & Hold / Smooth Random**: share one rate-driven retarget clock
+  (phase-accumulator pattern, same technique `lfo::Lfo` uses for its own
+  free-running phase); S&H snaps instantly to the new target, Smooth Random
+  linearly ramps toward it over the retarget interval. Kept as two variants
+  rather than a blend parameter -- simpler to reason about and automate.
+- **Dust**: sparse random impulses via a per-sample Bernoulli trial
+  (probability = rate/sampleRate), the standard "dust" opcode design (e.g.
+  Csound's `dust`) -- no phase accumulator needed since an impulse train has no
+  "current value" to hold between events.
+
+New `OperatorPatch`/`OperatorParams` fields: `noiseVariant` (discrete 0-6,
+default White) and `noiseRate` (0.5-2000 Hz, default 200 -- meaningful for S&H/
+Smooth Random/Dust only, ignored but still present for the continuous variants,
+matching every other engine's flat-struct convention). NoiseChaos deliberately
+ignores `carrierHz`/`phaseMod` (computed generically by `OperatorState::render()`
+for every engine, but noise has no pitch of its own to key off) -- verified by a
+dedicated test that pins the RNG seed and confirms identical output regardless of
+wildly varying `baseFrequencyHz` per sample.
 
 ## Engine Type 8 — Resonator / Spectral
 
@@ -143,8 +181,9 @@ decorrelated-but-reproducible sub-seed per voice/note without sharing one runnin
 stream (which would make voice N's output depend on how many notes preceded it --
 unacceptable for reproducible AI-generated-patch rendering). Used today for the
 small per-voice phase-offset variation in `Voice::noteOn()`
-(`pw8/voice/Voice.hpp`); every future generative feature (noise engines, humanize,
-grain position, step probability) is required to seed through this same mechanism
+(`pw8/voice/Voice.hpp`) and, as of Engine Type 7, to seed each operator's
+`noise::NoiseSource` per note; every future generative feature (humanize, grain
+position, step probability) is required to seed through this same mechanism
 rather than an unseeded/global RNG.
 
 ## Parameter Smoothing

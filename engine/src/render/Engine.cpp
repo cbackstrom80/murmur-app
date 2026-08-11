@@ -29,6 +29,8 @@ namespace pw8::render
         out.fixedFrequencyHz = p.fixedFrequencyHz;
         out.keyTrack = p.keyTrack;
         out.level = p.level;
+        out.noiseVariant = p.noiseVariant;
+        out.noiseRate = p.noiseRate;
         return out;
     }
 
