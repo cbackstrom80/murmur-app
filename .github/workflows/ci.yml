@@ -92,13 +92,25 @@ jobs:
       - name: Install pluginval
         run: brew install --cask pluginval
 
+      # `brew install --cask pluginval` only places pluginval.app under /Applications
+      # -- the cask has no `binary` stanza symlinking a CLI onto PATH (verified against
+      # the cask's own artifact list), so a bare `pluginval` call fails with "command
+      # not found". Invoke the app bundle's real executable directly instead, same
+      # fix the Pamplejuce reference JUCE CI template uses for this exact cask.
       - name: Validate VST3 + AU with pluginval (strictness 5)
         run: |
           set -e
+          PLUGINVAL="/Applications/pluginval.app/Contents/MacOS/pluginval"
           VST3="build/plugin/plugin/pw8_plugin_artefacts/Debug/VST3/Patchwork Eight.vst3"
+          # AU validation here relies on the AU bundle already being registered with
+          # the system -- the preceding "Validate AU with auval" step above does that
+          # (copies the .component into ~/Library/Audio/Plug-Ins/Components/ and
+          # force-rescans via `killall AudioComponentRegistrar`). If these steps are
+          # ever reordered or the auval step is skipped, this AU validation will start
+          # failing for that reason, not a real plugin regression.
           AU="build/plugin/plugin/pw8_plugin_artefacts/Debug/AU/Patchwork Eight.component"
-          pluginval --strictness-level 5 --validate "$VST3"
-          pluginval --strictness-level 5 --validate "$AU"
+          "$PLUGINVAL" --strictness-level 5 --validate "$VST3"
+          "$PLUGINVAL" --strictness-level 5 --validate "$AU"
 
   # VST3/Standalone-only: AU is Apple-only (JUCE skips it outside FORMATS on this
   # platform), and auval/pluginval aren't part of this job -- this is purely a

@@ -18,17 +18,16 @@ This is the single biggest gap between "verified" and "shippable":
   round-trips a saved project, and the editor doesn't misbehave on host
   resize/rescan. This is manual work no test suite substitutes for --
   `docs/PLUGIN_ARCHITECTURE.md` "What's still missing" #1 already flags it, but
-  it's not scheduled anywhere.
-- **Wire `pluginval` into CI.** It's currently a local-only step
-  (`brew install --cask pluginval`, run by hand). Add it to the `plugin` CI job
-  right next to `auval` -- same job, same artifact, no new infra. This is
-  cheap and closes a real regression gap (nothing today would catch a future
-  change that silently drops `pluginval` back below strictness 5).
-- **Add a Windows/Linux plugin CI job**, or explicitly document that Patchwork
-  Eight is macOS-only for now. Right now the `plugin` CI job is macOS-only and
-  `continue-on-error: true`; a VST3-only Windows build (skip AU/auval) would
-  catch cross-platform compile breaks cheaply, since JUCE itself is portable
-  and nothing in `plugin/src` looks OS-specific from what I read.
+  it's not scheduled anywhere. **Still outstanding** -- everything below this
+  bullet was DONE by the same PR that introduced this doc.
+- ~~Wire `pluginval` into CI~~ -- **DONE**, same PR: `.github/workflows/ci.yml`'s
+  `plugin` job now runs `pluginval --strictness-level 5` on both VST3 and AU
+  right after `auval`. (One follow-up bug this surfaced and also fixed in the
+  same PR: the cask-installed `pluginval` has no CLI on `PATH` -- the step
+  invokes `pluginval.app/Contents/MacOS/pluginval` directly.)
+- ~~Add a Windows/Linux plugin CI job~~ -- **DONE** for Windows, same PR: the new
+  `plugin-windows` job does a VST3/Standalone compile-only check (no
+  AU/auval/pluginval -- AU is Apple-only). Linux remains undone.
 
 ## P1 -- Correctness gaps that undercut what's already built
 
