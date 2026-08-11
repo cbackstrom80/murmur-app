@@ -198,6 +198,10 @@ namespace pw8::plugin
             params.fmModulatorWaveform = static_cast<oscillator::ClassicWaveform>(loadI(ptrs[12]));
             params.noiseVariant = loadF(ptrs[13]);
             params.noiseRate = loadF(ptrs[14]);
+            params.phaseBend = loadF(ptrs[15]);
+            params.phaseFold = loadF(ptrs[16]);
+            params.phaseAsymmetry = loadF(ptrs[17]);
+            params.phaseShape = loadF(ptrs[18]);
             engine.setOperatorLive(op, params);
         }
 
@@ -524,6 +528,8 @@ namespace pw8::plugin
                 o.fmModulatorRatio,                 o.fmModulatorIndex,
                 o.fmModulatorFeedback,               static_cast<float>(o.fmModulatorWaveform),
                 o.noiseVariant,                      o.noiseRate,
+                o.phaseBend,                          o.phaseFold,
+                o.phaseAsymmetry,                     o.phaseShape,
             };
             for (std::size_t i = 0; i < kNumOperatorFields; ++i)
                 setParam(operatorParamId(op, kOperatorFieldSpecs[i].idSuffix), opValues[i]);
@@ -626,6 +632,10 @@ namespace pw8::plugin
             o.fmModulatorWaveform = static_cast<oscillator::ClassicWaveform>(loadI(ptrs[12]));
             o.noiseVariant = loadF(ptrs[13]);
             o.noiseRate = loadF(ptrs[14]);
+            o.phaseBend = loadF(ptrs[15]);
+            o.phaseFold = loadF(ptrs[16]);
+            o.phaseAsymmetry = loadF(ptrs[17]);
+            o.phaseShape = loadF(ptrs[18]);
         }
 
         for (std::size_t envIdx = 0; envIdx < kNumEnvelopes; ++envIdx)

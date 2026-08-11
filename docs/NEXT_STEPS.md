@@ -42,15 +42,15 @@ This is the single biggest gap between "verified" and "shippable":
 - **Unison (Phase 7)**: same shape of gap -- `UnisonSettings` exists in the
   schema with no DSP behind it. Same recommendation: implement, or reject
   patches that set voice count > 1 until it's real.
-- **4 of 8 operator engines still render silence** (Additive, PhaseShape,
-  Granular, Resonator -- Phase 4/10; FM/PM and NoiseChaos have both shipped).
-  Being built out one engine/PR at a time, in order of how much existing
-  infrastructure each reuses (least-new-risk first: FM/PM done -> NoiseChaos
-  done -> PhaseShape -> Additive -> Resonator -> Granular). The UI is honest
-  about what's left (dashed node rings, disabled pills, the note line in
-  `OperatorEditorPanel`) -- but this remains the actual critical path if
-  "8-engine algorithmic synthesizer" is the product's core pitch, ahead of
-  more UI/FX work.
+- **3 of 8 operator engines still render silence** (Additive, Granular,
+  Resonator -- Phase 4/10; FM/PM, NoiseChaos, and PhaseShape have all
+  shipped). Being built out one engine/PR at a time, in order of how much
+  existing infrastructure each reuses (least-new-risk first: FM/PM done ->
+  NoiseChaos done -> PhaseShape done -> Additive -> Resonator -> Granular).
+  The UI is honest about what's left (dashed node rings, disabled pills, the
+  note line in `OperatorEditorPanel`) -- but this remains the actual
+  critical path if "8-engine algorithmic synthesizer" is the product's core
+  pitch, ahead of more UI/FX work.
 
 ## P2 -- Highest-leverage PLANNED items (per ROADMAP, ranked)
 

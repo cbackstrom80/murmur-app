@@ -91,6 +91,13 @@ namespace pw8::patch
         /// match every other discrete field's flat-struct convention.
         float noiseVariant = 0.0f; // noise::NoiseVariant::White
         float noiseRate = 200.0f; // Hz, retarget rate for S&H/SmoothRandom/Dust variants.
+
+        /// PhaseShape engine fields (only meaningful when engine == PhaseShape).
+        /// See oscillator::PhaseShapeParams for the full per-field writeup.
+        float phaseBend = 0.0f;
+        float phaseFold = 0.0f;
+        float phaseAsymmetry = 0.0f;
+        float phaseShape = 0.0f;
     };
 
     struct LayerPatch

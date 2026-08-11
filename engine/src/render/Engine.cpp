@@ -35,6 +35,10 @@ namespace pw8::render
         out.fmModulatorWaveform = p.fmModulatorWaveform;
         out.noiseVariant = p.noiseVariant;
         out.noiseRate = p.noiseRate;
+        out.phaseBend = p.phaseBend;
+        out.phaseFold = p.phaseFold;
+        out.phaseAsymmetry = p.phaseAsymmetry;
+        out.phaseShape = p.phaseShape;
         return out;
     }
 

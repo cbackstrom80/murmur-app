@@ -117,6 +117,10 @@ namespace pw8::patch
                 {"fmModulatorWaveform", static_cast<int>(o.fmModulatorWaveform)},
                 {"noiseVariant", o.noiseVariant},
                 {"noiseRate", o.noiseRate},
+                {"phaseBend", o.phaseBend},
+                {"phaseFold", o.phaseFold},
+                {"phaseAsymmetry", o.phaseAsymmetry},
+                {"phaseShape", o.phaseShape},
             };
         }
 
@@ -140,6 +144,10 @@ namespace pw8::patch
                 static_cast<oscillator::ClassicWaveform>(clampNum(j.value("fmModulatorWaveform", 0), 0, 3));
             o.noiseVariant = clampNum(j.value("noiseVariant", 0.0f), 0.0f, 6.0f);
             o.noiseRate = clampNum(j.value("noiseRate", 200.0f), 0.5f, 2000.0f);
+            o.phaseBend = clampNum(j.value("phaseBend", 0.0f), -1.0f, 1.0f);
+            o.phaseFold = clampNum(j.value("phaseFold", 0.0f), 0.0f, 1.0f);
+            o.phaseAsymmetry = clampNum(j.value("phaseAsymmetry", 0.0f), -1.0f, 1.0f);
+            o.phaseShape = clampNum(j.value("phaseShape", 0.0f), 0.0f, 1.0f);
         }
 
         void toJson(json& j, const UnisonSettings& u)
