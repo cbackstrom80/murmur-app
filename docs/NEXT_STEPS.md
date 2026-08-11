@@ -87,6 +87,16 @@ In order of audible/usable impact per unit of engineering effort:
 - **Code signing/notarization** -- only needed at actual distribution time,
   correctly deferred.
 
+## Ideas -- captured, not prioritized, not scoped into P0-P3 above
+
+- **MCP server + natural-language patch generation** -- see
+  `docs/MCP_AND_NL_PATCH_GENERATION.md`. An MCP server exposing patch read/
+  edit/render tools to Claude Desktop/Code and similar clients, plus a much
+  larger, separately-decided idea for an in-app "make me a laser sound" chat
+  box (bring-your-own-model or a hosted subscription service). Deliberately
+  listed here rather than in P0-P3: unlike everything above, this hasn't had
+  a real prioritization pass yet, just an initial scoping writeup.
+
 ## Not on this list on purpose
 
 `wavetableId` resource resolution, Layer B's remaining non-DSP fields, the
