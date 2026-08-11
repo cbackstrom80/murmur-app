@@ -66,6 +66,16 @@ namespace pw8::plugin
         /// metadata) so the editor doesn't need a second, divergent copy of it.
         [[nodiscard]] const patch::Patch& getCurrentPatch() const noexcept { return currentPatch_; }
 
+        /// Message-thread only. True once this player has performed the
+        /// drag-to-modulate gesture at least once via setOrReplaceModRouteLive()
+        /// in the current session -- deliberately NOT "does the current patch have
+        /// any active mod route," since a hand-authored/factory preset can arrive
+        /// with routes already wired by its author, before this player has ever
+        /// tried the gesture themselves. ModSourceStrip uses this (not
+        /// getCurrentPatch().layerA.modRoutes) to decide when its instructional
+        /// title has actually done its job.
+        [[nodiscard]] bool hasUserCreatedModRouteLive() const noexcept { return hasUserCreatedModRouteLive_; }
+
         /// Message-thread only (drag-to-modulate, docs/UI.md). Adds a Layer A mod
         /// route, or replaces the existing one if any route already targets the same
         /// (destination, targetIndex) pair -- at most one source per knob in this
@@ -186,6 +196,9 @@ namespace pw8::plugin
         std::array<core::FixedVector<modulation::ModRoute, core::kMaxModRoutes>, 2> modRoutesStorage_{};
         std::atomic<const core::FixedVector<modulation::ModRoute, core::kMaxModRoutes>*> pendingModRoutes_{nullptr};
         bool modRoutesStorageUsingA_ = true;
+        // See hasUserCreatedModRouteLive()'s doc comment above -- set once, the
+        // first time setOrReplaceModRouteLive() runs, and never cleared.
+        bool hasUserCreatedModRouteLive_ = false;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PatchworkEightProcessor)
     };

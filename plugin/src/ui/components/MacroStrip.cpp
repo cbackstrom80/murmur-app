@@ -16,7 +16,6 @@ namespace pw8::plugin::ui
             // switches it to the patch-authored one, if any, once a patch loads.
             knobs_[i] = std::make_unique<GlowKnob>(processor_.apvts, kMacroParameterIds[i], kMacroParameterNames[i],
                                                      nullptr, palette::kAccentWarm);
-            lastAppliedNames_[i] = kMacroParameterNames[i];
             panel_.addAndMakeVisible(*knobs_[i]);
         }
 
@@ -38,11 +37,12 @@ namespace pw8::plugin::ui
             // showing a blank label.
             const auto desiredName =
                 macros[i].name.empty() ? juce::String(kMacroParameterNames[i]) : juce::String(macros[i].name);
-            if (desiredName != lastAppliedNames_[i])
-            {
-                knobs_[i]->setDisplayName(desiredName);
-                lastAppliedNames_[i] = desiredName;
-            }
+            // Unconditional: GlowKnob::setDisplayName() -> Label::setText() already
+            // no-ops (no repaint, no side effects) when the text hasn't changed
+            // (juce::Label::lastTextValue check), so a second "did this change"
+            // guard here would only duplicate that with a second source of truth
+            // to keep in sync.
+            knobs_[i]->setDisplayName(desiredName);
         }
     }
 

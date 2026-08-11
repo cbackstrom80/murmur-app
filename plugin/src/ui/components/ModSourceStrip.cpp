@@ -1,7 +1,5 @@
 #include "ModSourceStrip.h"
 
-#include <algorithm>
-
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 
@@ -34,15 +32,10 @@ namespace pw8::plugin::ui
 
     void ModSourceStrip::timerCallback()
     {
-        if (!hasEverHadModRoute_)
+        if (!hasEverHadModRoute_ && processor_.hasUserCreatedModRouteLive())
         {
-            const auto& routes = processor_.getCurrentPatch().layerA.modRoutes;
-            const bool anyActive = std::any_of(routes.begin(), routes.end(), [](const auto& r) { return r.isActive(); });
-            if (anyActive)
-            {
-                hasEverHadModRoute_ = true;
-                panel_.setTitle("Mod Sources");
-            }
+            hasEverHadModRoute_ = true;
+            panel_.setTitle("Mod Sources");
         }
         repaint(); // Cheap: at most a few dozen small ModRoute structs, no allocation.
     }

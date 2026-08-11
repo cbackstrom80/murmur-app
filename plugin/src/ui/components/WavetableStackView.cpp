@@ -5,6 +5,7 @@
 
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
+#include "pw8/dsp/Math.hpp"
 #include "state/PluginState.h"
 
 namespace pw8::plugin::ui
@@ -48,13 +49,27 @@ namespace pw8::plugin::ui
     void WavetableStackView::paint(juce::Graphics& g)
     {
         const auto* table = processor_.getActiveWavetableTable(static_cast<std::size_t>(selectedNode_));
-        const auto bounds = getLocalBounds().toFloat();
+        auto bounds = getLocalBounds().toFloat();
 
         if (table == nullptr || !table->isValid())
         {
+            // Two genuinely different situations look identical from getActiveWavetableTable()
+            // alone, and telling them apart matters: wavetableId is only ever read from
+            // a file during a full Engine rebuild (Engine::loadPatch(), see that
+            // function's own comment), NOT by the live "Engine" APVTS parameter this
+            // view's sibling engine pill writes -- so picking Wavetable via the pill on
+            // an operator that had a different engine at the last patch load will always
+            // land here, and it isn't a load failure.
+            const auto& wavetableId = processor_.getCurrentPatch()
+                                           .layerA.operators[static_cast<std::size_t>(selectedNode_)]
+                                           .wavetableId;
             g.setColour(palette::kTextDim);
             g.setFont(fonts::value(11.0f));
-            g.drawText("No wavetable loaded on this operator.", bounds, juce::Justification::centred);
+            g.drawText(wavetableId.empty()
+                           ? "No wavetable file assigned to this operator."
+                           : "Wavetable file not loaded -- switching engines live doesn't load "
+                             "one; save/reload the patch to pick it up.",
+                       bounds, juce::Justification::centred);
             return;
         }
 
@@ -112,8 +127,8 @@ namespace pw8::plugin::ui
                 const int s0 = static_cast<int>(srcPos);
                 const int s1 = juce::jmin(s0 + 1, samplesPerFrame - 1);
                 const float frac = srcPos - static_cast<float>(s0);
-                const float sample = mip.samples[frameOffset + static_cast<std::size_t>(s0)] * (1.0f - frac) +
-                                      mip.samples[frameOffset + static_cast<std::size_t>(s1)] * frac;
+                const float sample = pw8::dsp::lerp(mip.samples[frameOffset + static_cast<std::size_t>(s0)],
+                                                     mip.samples[frameOffset + static_cast<std::size_t>(s1)], frac);
 
                 const float x = originX + t * ribbonWidth;
                 const float y = originY + ribbonHeight * 0.5f - sample * ribbonHeight * 0.42f;
@@ -126,8 +141,15 @@ namespace pw8::plugin::ui
             const auto shear = juce::AffineTransform::shear(kSkewFactor, 0.0f);
             ribbon.applyTransform(shear);
 
-            const float alpha = isFront ? 1.0f : juce::jmap(static_cast<float>(depth), 1.0f,
-                                                              static_cast<float>(juce::jmax(1, drawnCount - 1)), 0.55f, 0.18f);
+            // jmap() asserts/NaNs when its source range is zero-width, which happens
+            // whenever there's exactly one non-front ribbon (drawnCount == 2, so both
+            // the source min and max below would be 1.0f) -- fall back to the range's
+            // own start value rather than mapping across an empty range.
+            const int backRibbonCount = drawnCount - 1;
+            const float alpha = isFront                ? 1.0f
+                                 : (backRibbonCount <= 1) ? 0.55f
+                                                          : juce::jmap(static_cast<float>(depth), 1.0f,
+                                                                       static_cast<float>(backRibbonCount), 0.55f, 0.18f);
 
             if (isFront)
             {

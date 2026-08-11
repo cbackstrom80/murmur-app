@@ -50,6 +50,11 @@ namespace pw8::plugin::ui
         startTimerHz(4); // Matches WavetableStackView's own poll rate -- see header doc comment.
     }
 
+    OperatorEditorPanel::~OperatorEditorPanel()
+    {
+        stopTimer();
+    }
+
     juce::Rectangle<int> OperatorEditorPanel::pillRowBounds() const
     {
         auto content = panel_.getContentBounds();
@@ -77,19 +82,15 @@ namespace pw8::plugin::ui
         selectedNode_ = juce::jlimit(0, static_cast<int>(pw8::core::kNodesPerLayer) - 1, nodeIndex);
         panel_.setTitle("Operator " + juce::String(selectedNode_));
         wavetableStackView_.showNode(selectedNode_);
-        // Force a rebuild below even if the new node happens to already be on the
-        // same engine ordinal as the old one -- every knob's APVTS attachment
-        // still needs to be re-pointed at the new node's parameter IDs.
-        lastKnownEngine_ = -1;
-        updateEngineDependentLayout();
+        // Every knob's APVTS attachment needs to be re-pointed at the new node's
+        // parameter IDs, so this always rebuilds regardless of whether the new
+        // node happens to share the old one's engine ordinal.
+        rebuildKnobsForNode();
+        updateEngineVisibility();
     }
 
-    void OperatorEditorPanel::updateEngineDependentLayout()
+    void OperatorEditorPanel::rebuildKnobsForNode()
     {
-        const int engine = currentEngineOrdinal();
-        lastKnownEngine_ = engine;
-        const bool isWavetable = engine == static_cast<int>(algorithm::EngineType::Wavetable);
-
         auto& apvts = processor_.apvts;
         waveformKnob_ = std::make_unique<GlowKnob>(
             apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "Waveform"), "Wave", waveformToText);
@@ -105,10 +106,21 @@ namespace pw8::plugin::ui
 
         for (auto* k : {waveformKnob_.get(), levelKnob_.get(), ratioKnob_.get(), wavetablePosKnob_.get()})
             panel_.addAndMakeVisible(*k);
+    }
+
+    void OperatorEditorPanel::updateEngineVisibility()
+    {
+        const int engine = currentEngineOrdinal();
+        lastKnownEngine_ = engine;
+        const bool isWavetable = engine == static_cast<int>(algorithm::EngineType::Wavetable);
 
         // Wave/Ratio aren't meaningful for a Wavetable-engine node (it reads
         // wavetableFramePosition, not classicWaveform/frequencyRatio) -- swapped
         // for the stack preview + WT Pos instead. Level applies to every engine.
+        // None of the four knobs' parameter IDs depend on the engine (only on
+        // selectedNode_), so an engine-only change never needs to reconstruct
+        // them -- doing so used to silently abort any in-progress mouse drag on
+        // a knob the instant a host automated the Engine parameter mid-gesture.
         waveformKnob_->setVisible(!isWavetable);
         ratioKnob_->setVisible(!isWavetable);
         wavetablePosKnob_->setVisible(isWavetable);
@@ -127,46 +139,46 @@ namespace pw8::plugin::ui
         // a host-driven change: automation, or loading a different patch/session
         // while this node stays selected).
         if (currentEngineOrdinal() != lastKnownEngine_)
-            updateEngineDependentLayout();
+            updateEngineVisibility();
+    }
+
+    int OperatorEditorPanel::pillIndexAt(juce::Point<int> pos) const
+    {
+        for (int i = 0; i < kNumEngines; ++i)
+            if (pillBounds(i).contains(pos))
+                return i;
+        return -1;
     }
 
     juce::String OperatorEditorPanel::getTooltip()
     {
-        const auto pos = getMouseXYRelative();
-        for (int i = 0; i < kNumEngines; ++i)
-        {
-            if (!pillBounds(i).contains(pos))
-                continue;
-            const auto engine = engineForIndex(i);
-            if (algorithm::isEngineImplemented(engine))
-                return {}; // No tooltip needed over an already-usable pill.
-            return juce::String(engineShortName(engine)) + " renders silence today -- not yet implemented.";
-        }
-        return {};
+        const int i = pillIndexAt(getMouseXYRelative());
+        if (i < 0)
+            return {};
+        const auto engine = engineForIndex(i);
+        if (algorithm::isEngineImplemented(engine))
+            return {}; // No tooltip needed over an already-usable pill.
+        return juce::String(engineShortName(engine)) + " renders silence today -- not yet implemented.";
     }
 
     void OperatorEditorPanel::mouseDown(const juce::MouseEvent& event)
     {
-        const auto pos = event.getPosition();
-        for (int i = 0; i < kNumEngines; ++i)
-        {
-            if (!pillBounds(i).contains(pos))
-                continue;
-
-            const auto engine = engineForIndex(i);
-            if (!algorithm::isEngineImplemented(engine))
-                return; // Honest no-op -- see the header doc comment on why this stays disabled, not hidden.
-
-            auto& apvts = processor_.apvts;
-            const auto paramId = operatorParamId(static_cast<std::size_t>(selectedNode_), "Engine");
-            if (auto* param = apvts.getParameter(paramId))
-                param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(i)));
-            // setValueNotifyingHost() updates the underlying value synchronously
-            // before notifying listeners, so currentEngineOrdinal() below already
-            // sees the new value -- no need to wait for the next timerCallback().
-            updateEngineDependentLayout();
+        const int i = pillIndexAt(event.getPosition());
+        if (i < 0)
             return;
-        }
+
+        const auto engine = engineForIndex(i);
+        if (!algorithm::isEngineImplemented(engine))
+            return; // Honest no-op -- see the header doc comment on why this stays disabled, not hidden.
+
+        auto& apvts = processor_.apvts;
+        const auto paramId = operatorParamId(static_cast<std::size_t>(selectedNode_), "Engine");
+        if (auto* param = apvts.getParameter(paramId))
+            param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(i)));
+        // setValueNotifyingHost() updates the underlying value synchronously
+        // before notifying listeners, so currentEngineOrdinal() below already
+        // sees the new value -- no need to wait for the next timerCallback().
+        updateEngineVisibility();
     }
 
     void OperatorEditorPanel::resized()

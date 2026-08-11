@@ -38,7 +38,6 @@ namespace pw8::plugin::ui
         PatchworkEightProcessor& processor_;
         SectionPanel panel_{"Macros", palette::kAccentWarm};
         std::array<std::unique_ptr<GlowKnob>, 8> knobs_;
-        std::array<juce::String, 8> lastAppliedNames_; // So the poll only touches a label when its text actually changed.
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MacroStrip)
     };

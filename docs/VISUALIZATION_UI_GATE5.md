@@ -33,22 +33,26 @@ double-buffer lifetime scheme specifically (both the swap and this read happen o
 the message thread, so they're sequenced against each other regardless of what the
 audio thread is doing).
 
-## Integration (not wired into PlayModeEditor yet)
+## Integration (done, later in this same pass)
 
-`PlayModeEditor`'s layout is already fully budgeted at 980x1178 (UI GATE 4). Rather
-than force `WavetableStackView` into that sight-unseen, the honest options are:
+Option 1 below was implemented (see `docs/UI.md`'s "UI GATE 5" section for the
+final writeup): `WavetableStackView` is swapped in for `OperatorEditorPanel`'s
+Wave/Ratio knobs when the selected node's engine is `Wavetable`, alongside a new
+WT POS knob. `OperatorEditorPanel`'s own knob allotment turned out to have the
+same knob-starvation bug UI GATE 4 fixed in `FxChainStrip` (140px allotment, ~44px
+of actual content height); fixing that grew `PlayModeEditor`'s window by another
++50px on top of whatever height UI GATE 4 lands with -- the two PRs' `setSize()`
+changes are independent deltas against different starting points and are expected
+to need manual reconciliation whichever merges second, not a sign either is wrong.
+
+The original two options, kept for context:
 
 1. **Swap it in for `OperatorEditorPanel`'s reserved area when the selected node's
    engine is `Wavetable`** -- same footprint, conditional content (pills+knobs for
    every other engine, the frame stack for this one). Lowest layout risk, but needs
-   `OperatorEditorPanel` to own/host both and switch on `node.engine`.
+   `OperatorEditorPanel` to own/host both and switch on `node.engine`. **(Chosen.)**
 2. **A new toggle/tab within the existing graph card** -- more UI surface, more
    design work, no layout budget change elsewhere.
-
-Recommend (1). Not implemented here because it means restructuring
-`OperatorEditorPanel`'s ownership of `WavetableStackView`, which is exactly the
-kind of layout-affecting change that should go through a real build before
-landing, not be guessed at blind a second time in the same pass.
 
 ## What's still just a plan: spectrum + oscilloscope
 

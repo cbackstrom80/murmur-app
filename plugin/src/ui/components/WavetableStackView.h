@@ -23,10 +23,9 @@
 // exactly category 3 ("static, no audio tap needed") from
 // docs/PLUGIN_ARCHITECTURE.md's "Visualization" section.
 //
-// NOT wired into PlayModeEditor yet -- see docs/VISUALIZATION_UI_GATE5.md
-// "Integration" for the suggested spot and why it's left as a follow-up rather
-// than force-fit into the current layout budget sight-unseen (no compiler
-// available to verify a layout change against the real window).
+// Wired into OperatorEditorPanel: it swaps this view in for the Wave/Ratio
+// knobs when the selected node's engine is Wavetable. See
+// docs/VISUALIZATION_UI_GATE5.md "Integration" for the rationale.
 namespace pw8::plugin::ui
 {
     class WavetableStackView : public juce::Component, private juce::Timer

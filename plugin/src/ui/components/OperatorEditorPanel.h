@@ -58,6 +58,7 @@ namespace pw8::plugin::ui
     {
     public:
         explicit OperatorEditorPanel(PatchworkEightProcessor& processor);
+        ~OperatorEditorPanel() override;
 
         void resized() override;
         /// Drawn via paintOverChildren(), not paint(): `panel_` is a full-bounds
@@ -82,10 +83,22 @@ namespace pw8::plugin::ui
     private:
         [[nodiscard]] juce::Rectangle<int> pillRowBounds() const;
         [[nodiscard]] juce::Rectangle<int> pillBounds(int engineIndex) const;
-        /// Rebuilds the Wave/Ratio-vs-WavetableStackView+WTPos split for the
-        /// CURRENT engine value and calls resized() -- shared by showNode() (new
-        /// node) and timerCallback() (engine changed without a reselection).
-        void updateEngineDependentLayout();
+        /// Which engine pill (0..kNumEngines-1) contains `pos`, or -1 if none --
+        /// shared by mouseDown() and getTooltip() so the hit-test region can't
+        /// drift out of sync between click and hover behaviour.
+        [[nodiscard]] int pillIndexAt(juce::Point<int> pos) const;
+        /// Constructs all four knobs bound to selectedNode_'s parameters. Only
+        /// needed when selectedNode_ itself changes -- every knob's parameter ID
+        /// depends on the node, not the engine, so an engine-only change (see
+        /// updateEngineVisibility()) never needs to touch these.
+        void rebuildKnobsForNode();
+        /// Applies the Wave/Ratio-vs-WavetableStackView+WTPos visibility split for
+        /// the CURRENT engine value and calls resized() -- shared by showNode()
+        /// (after rebuildKnobsForNode()) and timerCallback()/mouseDown() (engine
+        /// changed without a node change). Deliberately never reconstructs a knob:
+        /// doing so used to abort any in-progress mouse drag on that knob the
+        /// moment a host automated the Engine parameter mid-gesture.
+        void updateEngineVisibility();
         [[nodiscard]] int currentEngineOrdinal() const noexcept;
 
         void timerCallback() override;

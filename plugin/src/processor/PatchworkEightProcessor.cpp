@@ -442,6 +442,7 @@ namespace pw8::plugin
         }
 
         currentPatch_.layerA.modRoutes = routes; // Keep the getStateInformation()/preset-save source of truth in sync.
+        hasUserCreatedModRouteLive_ = true;
         publishModRoutesLive(routes);
     }
 
