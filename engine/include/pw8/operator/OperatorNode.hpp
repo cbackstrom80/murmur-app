@@ -4,6 +4,7 @@
 
 #include "pw8/algorithm/AlgorithmTypes.hpp"
 #include "pw8/dsp/Math.hpp"
+#include "pw8/noise/NoiseSource.hpp"
 #include "pw8/oscillator/ClassicOscillator.hpp"
 #include "pw8/oscillator/WavetableOscillator.hpp"
 #include "pw8/oscillator/WavetableTable.hpp"
@@ -45,6 +46,13 @@ namespace pw8::op
                                               ///< of 1.0 would.
         float fmModulatorFeedback = 0.0f;   ///< 0..1, modulator self-feedback depth.
         oscillator::ClassicWaveform fmModulatorWaveform = oscillator::ClassicWaveform::Sine;
+
+        /// NoiseChaos engine fields (see noise::NoiseVariant). Stored as a float
+        /// (not the enum type), matching every other discrete field's
+        /// automation-friendly flat-struct convention -- render() rounds it back to
+        /// an enum ordinal.
+        float noiseVariant = 0.0f; // noise::NoiseVariant::White
+        float noiseRate = 200.0f;
     };
 
     struct OperatorState
@@ -53,6 +61,7 @@ namespace pw8::op
         oscillator::WavetableOscillator waveOsc;
         oscillator::ClassicOscillator fmModulatorOsc; ///< Engine Type 3 (FM/PM) only.
         float fmModulatorLastOutput = 0.0f;            ///< For the modulator's own self-feedback.
+        noise::NoiseSource noiseSource;
         float lastOutput = 0.0f; ///< previous-sample output, used by Feedback edges.
 
         void prepare(double sampleRate) noexcept
@@ -60,6 +69,7 @@ namespace pw8::op
             classicOsc.prepare(sampleRate);
             waveOsc.prepare(sampleRate);
             fmModulatorOsc.prepare(sampleRate);
+            noiseSource.prepare(sampleRate);
             sampleRate_ = sampleRate;
         }
 
@@ -71,6 +81,15 @@ namespace pw8::op
             fmModulatorLastOutput = 0.0f;
             lastOutput = 0.0f;
         }
+
+        /// Reseeds this node's noise source. Separate from reset() (which only
+        /// takes a phase) because the two are driven by different call sites:
+        /// reset() also runs on mid-note algorithm-graph Sync edges (see
+        /// AlgorithmExecutor), where noise has no "phase" to synchronize and
+        /// reseeding would just restart its stream at an arbitrary point rather
+        /// than doing anything meaningful -- so only Voice::noteOn calls this, once
+        /// per note, with a dsp::DeterministicRng::deriveSeed()-derived seed.
+        void seedNoise(std::uint64_t seed) noexcept { noiseSource.reset(seed); }
 
         /// Renders one sample. `baseFrequencyHz` is the voice's key-tracked note
         /// frequency (before this operator's ratio/fixed override); `phaseMod` and
@@ -135,7 +154,23 @@ namespace pw8::op
                     break;
                 }
 
-                // Engine types 4-8 (Additive, Phase/Shape, Granular, Noise, Resonator)
+                case algorithm::EngineType::NoiseChaos:
+                {
+                    // Noise has no pitch of its own -- carrierHz (and phaseMod) are
+                    // computed above for every engine uniformly but deliberately
+                    // unused here; freqModHz still reaches the operator (through
+                    // carrierHz's computation above) for API consistency, but noise
+                    // has nothing to key it off, matching this engine's own design
+                    // (docs/DSP_ENGINE.md "Noise/Chaos" -- rate-driven, not pitch-driven).
+                    noise::NoiseSourceParams noiseParams;
+                    noiseParams.variant = static_cast<noise::NoiseVariant>(
+                        dsp::clamp(static_cast<int>(params.noiseVariant + 0.5f), 0, 6));
+                    noiseParams.rateHz = params.noiseRate;
+                    out = noiseSource.renderSample(noiseParams);
+                    break;
+                }
+
+                // Engine types 4, 5, 6, 8 (Additive, Phase/Shape, Granular, Resonator)
                 // are architected (see algorithm::EngineType, docs/ROADMAP.md Phase 10) but not
                 // yet implemented -- they intentionally render silence rather than guess.
                 default:

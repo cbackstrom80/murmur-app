@@ -85,6 +85,12 @@ namespace pw8::patch
         float fmModulatorIndex = 0.5f;
         float fmModulatorFeedback = 0.0f;
         oscillator::ClassicWaveform fmModulatorWaveform = oscillator::ClassicWaveform::Sine;
+
+        /// NoiseChaos engine fields (only meaningful when engine == NoiseChaos).
+        /// noiseVariant is noise::NoiseVariant's ordinal (0-6), stored as a float to
+        /// match every other discrete field's flat-struct convention.
+        float noiseVariant = 0.0f; // noise::NoiseVariant::White
+        float noiseRate = 200.0f; // Hz, retarget rate for S&H/SmoothRandom/Dust variants.
     };
 
     struct LayerPatch

@@ -115,6 +115,8 @@ namespace pw8::patch
                 {"fmModulatorIndex", o.fmModulatorIndex},
                 {"fmModulatorFeedback", o.fmModulatorFeedback},
                 {"fmModulatorWaveform", static_cast<int>(o.fmModulatorWaveform)},
+                {"noiseVariant", o.noiseVariant},
+                {"noiseRate", o.noiseRate},
             };
         }
 
@@ -136,6 +138,8 @@ namespace pw8::patch
             o.fmModulatorFeedback = clampNum(j.value("fmModulatorFeedback", 0.0f), 0.0f, 1.0f);
             o.fmModulatorWaveform =
                 static_cast<oscillator::ClassicWaveform>(clampNum(j.value("fmModulatorWaveform", 0), 0, 3));
+            o.noiseVariant = clampNum(j.value("noiseVariant", 0.0f), 0.0f, 6.0f);
+            o.noiseRate = clampNum(j.value("noiseRate", 200.0f), 0.5f, 2000.0f);
         }
 
         void toJson(json& j, const UnisonSettings& u)

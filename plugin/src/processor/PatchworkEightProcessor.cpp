@@ -196,6 +196,8 @@ namespace pw8::plugin
             params.fmModulatorIndex = loadF(ptrs[10]);
             params.fmModulatorFeedback = loadF(ptrs[11]);
             params.fmModulatorWaveform = static_cast<oscillator::ClassicWaveform>(loadI(ptrs[12]));
+            params.noiseVariant = loadF(ptrs[13]);
+            params.noiseRate = loadF(ptrs[14]);
             engine.setOperatorLive(op, params);
         }
 
@@ -521,6 +523,7 @@ namespace pw8::plugin
                 o.level,
                 o.fmModulatorRatio,                 o.fmModulatorIndex,
                 o.fmModulatorFeedback,               static_cast<float>(o.fmModulatorWaveform),
+                o.noiseVariant,                      o.noiseRate,
             };
             for (std::size_t i = 0; i < kNumOperatorFields; ++i)
                 setParam(operatorParamId(op, kOperatorFieldSpecs[i].idSuffix), opValues[i]);
@@ -621,6 +624,8 @@ namespace pw8::plugin
             o.fmModulatorIndex = loadF(ptrs[10]);
             o.fmModulatorFeedback = loadF(ptrs[11]);
             o.fmModulatorWaveform = static_cast<oscillator::ClassicWaveform>(loadI(ptrs[12]));
+            o.noiseVariant = loadF(ptrs[13]);
+            o.noiseRate = loadF(ptrs[14]);
         }
 
         for (std::size_t envIdx = 0; envIdx < kNumEnvelopes; ++envIdx)

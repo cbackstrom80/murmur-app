@@ -61,6 +61,14 @@
 // shown alongside the carrier's own Wave/Level/Ratio rather than replacing
 // them -- an FM/PM node's carrier is a real, still-relevant Classic oscillator
 // under the hood (see op::OperatorState::render()'s FmPm case).
+//
+// Engine 7 (NoiseChaos): when the selected node's engine is NoiseChaos, the
+// Wave knob is replaced by Noise Variant / Noise Rate (Ratio stays -- see the
+// ratioKnob_ comment further down) -- same visibility-swap pattern the
+// Wavetable engine established above, a further branch alongside it and
+// FM/PM's rather than a generalized N-engine knob system (a bespoke
+// per-engine layout stays simpler than a generic one while the engine count
+// is still small).
 namespace pw8::plugin::ui
 {
     class OperatorEditorPanel : public juce::Component, public juce::TooltipClient, private juce::Timer
@@ -128,6 +136,8 @@ namespace pw8::plugin::ui
         std::unique_ptr<GlowKnob> fmModIndexKnob_;
         std::unique_ptr<GlowKnob> fmModFeedbackKnob_;
         std::unique_ptr<GlowKnob> fmModWaveformKnob_;
+        std::unique_ptr<GlowKnob> noiseVariantKnob_; // Only visible for the NoiseChaos engine.
+        std::unique_ptr<GlowKnob> noiseRateKnob_;    // Only visible for the NoiseChaos engine.
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OperatorEditorPanel)
     };

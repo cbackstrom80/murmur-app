@@ -25,6 +25,21 @@ namespace pw8::plugin::ui
             }
         }
 
+        juce::String noiseVariantToText(float v)
+        {
+            switch (static_cast<int>(v))
+            {
+                case 0: return "WHITE";
+                case 1: return "PINK";
+                case 2: return "BROWN";
+                case 3: return "BLUE";
+                case 4: return "S&H";
+                case 5: return "SMOOTH";
+                case 6: return "DUST";
+                default: return juce::String(v);
+            }
+        }
+
         algorithm::EngineType engineForIndex(int index) noexcept
         {
             return static_cast<algorithm::EngineType>(juce::jlimit(0, kNumEngines - 1, index));
@@ -103,6 +118,13 @@ namespace pw8::plugin::ui
         // for it until this pass (UI GATE 5).
         wavetablePosKnob_ = std::make_unique<GlowKnob>(
             apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "WavetablePos"), "WT Pos");
+        // Engine 7 (NoiseChaos) -- see the header doc comment. No UI existed for
+        // these two fields before this pass.
+        noiseVariantKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "NoiseVariant"), "Noise",
+            noiseVariantToText);
+        noiseRateKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "NoiseRate"), "Rate");
 
         // Engine Type 3 (FM/PM) only -- the self-contained internal modulator's
         // controls. Same "always constructed, visibility toggled by
@@ -118,7 +140,8 @@ namespace pw8::plugin::ui
             waveformToText);
 
         for (auto* k : {waveformKnob_.get(), levelKnob_.get(), ratioKnob_.get(), wavetablePosKnob_.get(),
-                         fmModRatioKnob_.get(), fmModIndexKnob_.get(), fmModFeedbackKnob_.get(), fmModWaveformKnob_.get()})
+                         fmModRatioKnob_.get(), fmModIndexKnob_.get(), fmModFeedbackKnob_.get(), fmModWaveformKnob_.get(),
+                         noiseVariantKnob_.get(), noiseRateKnob_.get()})
             panel_.addAndMakeVisible(*k);
     }
 
@@ -128,28 +151,34 @@ namespace pw8::plugin::ui
         lastKnownEngine_ = engine;
         const bool isWavetable = engine == static_cast<int>(algorithm::EngineType::Wavetable);
         const bool isFmPm = engine == static_cast<int>(algorithm::EngineType::FmPm);
+        const bool isNoiseChaos = engine == static_cast<int>(algorithm::EngineType::NoiseChaos);
 
         // Waveform (classic.waveform) only matters for engines that actually read
         // params.classic -- Classic itself, and FM/PM (it's the CARRIER's shape
-        // there). Wavetable's case never touches params.classic, so it's hidden
-        // only for that one engine, swapped for the stack preview + WT Pos.
+        // there). Wavetable's and NoiseChaos's cases never touch params.classic,
+        // so it's hidden only for those two engines, swapped for the stack
+        // preview + WT Pos or the Noise/Rate pair respectively.
         //
         // Ratio (frequencyRatio), by contrast, is read GENERICALLY: render()
         // computes carrierHz from it once, before the engine switch, so it
-        // affects every engine's pitch including Wavetable -- always visible.
-        // (Hiding it for Wavetable was a real GATE-5-era gap: that operator's
-        // pitch ratio was a live, working, automatable parameter with no way to
-        // reach it from the UI. Caught and fixed while touching this exact
-        // function for FM/PM, not a deliberate part of this pass.)
+        // affects every engine's pitch (or, for NoiseChaos, its
+        // phaseMod/freqModHz bookkeeping even though its own output ignores
+        // pitch) including Wavetable -- always visible. (Hiding it for
+        // Wavetable was a real GATE-5-era gap: that operator's pitch ratio was
+        // a live, working, automatable parameter with no way to reach it from
+        // the UI. Caught and fixed while touching this exact function for
+        // FM/PM, not a deliberate part of this pass.)
         //
         // None of these knobs' parameter IDs depend on the engine (only on
         // selectedNode_), so an engine-only change never needs to reconstruct
         // them -- doing so used to silently abort any in-progress mouse drag on
         // a knob the instant a host automated the Engine parameter mid-gesture.
-        waveformKnob_->setVisible(!isWavetable);
+        waveformKnob_->setVisible(!isWavetable && !isNoiseChaos);
         ratioKnob_->setVisible(true);
         wavetablePosKnob_->setVisible(isWavetable);
         wavetableStackView_.setVisible(isWavetable);
+        noiseVariantKnob_->setVisible(isNoiseChaos);
+        noiseRateKnob_->setVisible(isNoiseChaos);
         levelKnob_->setVisible(true);
 
         for (auto* k : {fmModRatioKnob_.get(), fmModIndexKnob_.get(), fmModFeedbackKnob_.get(), fmModWaveformKnob_.get()})
@@ -242,6 +271,18 @@ namespace pw8::plugin::ui
                              fmModIndexKnob_.get(), fmModFeedbackKnob_.get(), fmModWaveformKnob_.get()})
                 if (k != nullptr)
                     k->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+        }
+        else if (noiseVariantKnob_ && noiseVariantKnob_->isVisible())
+        {
+            const int knobWidth = content.getWidth() / 4;
+            if (ratioKnob_)
+                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (levelKnob_)
+                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (noiseVariantKnob_)
+                noiseVariantKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (noiseRateKnob_)
+                noiseRateKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
         }
         else
         {

@@ -33,6 +33,8 @@ namespace pw8::render
         out.fmModulatorIndex = p.fmModulatorIndex;
         out.fmModulatorFeedback = p.fmModulatorFeedback;
         out.fmModulatorWaveform = p.fmModulatorWaveform;
+        out.noiseVariant = p.noiseVariant;
+        out.noiseRate = p.noiseRate;
         return out;
     }
 
