@@ -39,6 +39,10 @@ namespace pw8::render
         out.phaseFold = p.phaseFold;
         out.phaseAsymmetry = p.phaseAsymmetry;
         out.phaseShape = p.phaseShape;
+        out.additivePartialCount = p.additivePartialCount;
+        out.additiveTilt = p.additiveTilt;
+        out.additiveOddEven = p.additiveOddEven;
+        out.additiveStretch = p.additiveStretch;
         return out;
     }
 

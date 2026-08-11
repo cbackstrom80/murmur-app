@@ -121,6 +121,10 @@ namespace pw8::patch
                 {"phaseFold", o.phaseFold},
                 {"phaseAsymmetry", o.phaseAsymmetry},
                 {"phaseShape", o.phaseShape},
+                {"additivePartialCount", o.additivePartialCount},
+                {"additiveTilt", o.additiveTilt},
+                {"additiveOddEven", o.additiveOddEven},
+                {"additiveStretch", o.additiveStretch},
             };
         }
 
@@ -148,6 +152,10 @@ namespace pw8::patch
             o.phaseFold = clampNum(j.value("phaseFold", 0.0f), 0.0f, 1.0f);
             o.phaseAsymmetry = clampNum(j.value("phaseAsymmetry", 0.0f), -1.0f, 1.0f);
             o.phaseShape = clampNum(j.value("phaseShape", 0.0f), 0.0f, 1.0f);
+            o.additivePartialCount = clampNum(j.value("additivePartialCount", 32.0f), 1.0f, 64.0f);
+            o.additiveTilt = clampNum(j.value("additiveTilt", 0.0f), -1.0f, 1.0f);
+            o.additiveOddEven = clampNum(j.value("additiveOddEven", 0.5f), 0.0f, 1.0f);
+            o.additiveStretch = clampNum(j.value("additiveStretch", 0.0f), -1.0f, 1.0f);
         }
 
         void toJson(json& j, const UnisonSettings& u)

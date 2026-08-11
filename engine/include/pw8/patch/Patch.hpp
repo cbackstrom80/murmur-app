@@ -98,6 +98,13 @@ namespace pw8::patch
         float phaseFold = 0.0f;
         float phaseAsymmetry = 0.0f;
         float phaseShape = 0.0f;
+
+        /// Additive engine fields (only meaningful when engine == Additive).
+        /// See oscillator::AdditiveParams for the full per-field writeup.
+        float additivePartialCount = 32.0f;
+        float additiveTilt = 0.0f;
+        float additiveOddEven = 0.5f;
+        float additiveStretch = 0.0f;
     };
 
     struct LayerPatch

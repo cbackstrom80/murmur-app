@@ -74,6 +74,10 @@
 // Wave knob is replaced by 4 dedicated knobs (Bend/Fold/Asymmetry/Shape) --
 // same visibility-swap pattern, a further branch alongside FM/PM's and
 // NoiseChaos's.
+//
+// Engine 4 (Additive): when the selected node's engine is Additive, the Wave
+// knob is replaced by 4 dedicated knobs (Partials/Tilt/Odd-Even/Stretch) --
+// same visibility-swap pattern, a further branch alongside the others.
 namespace pw8::plugin::ui
 {
     class OperatorEditorPanel : public juce::Component, public juce::TooltipClient, private juce::Timer
@@ -147,6 +151,10 @@ namespace pw8::plugin::ui
         std::unique_ptr<GlowKnob> phaseFoldKnob_;       // Only visible for the PhaseShape engine.
         std::unique_ptr<GlowKnob> phaseAsymmetryKnob_;  // Only visible for the PhaseShape engine.
         std::unique_ptr<GlowKnob> phaseShapeKnob_;      // Only visible for the PhaseShape engine.
+        std::unique_ptr<GlowKnob> additivePartialsKnob_; // Only visible for the Additive engine.
+        std::unique_ptr<GlowKnob> additiveTiltKnob_;     // Only visible for the Additive engine.
+        std::unique_ptr<GlowKnob> additiveOddEvenKnob_;  // Only visible for the Additive engine.
+        std::unique_ptr<GlowKnob> additiveStretchKnob_;  // Only visible for the Additive engine.
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OperatorEditorPanel)
     };

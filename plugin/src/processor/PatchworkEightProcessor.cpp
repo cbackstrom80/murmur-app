@@ -202,6 +202,10 @@ namespace pw8::plugin
             params.phaseFold = loadF(ptrs[16]);
             params.phaseAsymmetry = loadF(ptrs[17]);
             params.phaseShape = loadF(ptrs[18]);
+            params.additivePartialCount = loadF(ptrs[19]);
+            params.additiveTilt = loadF(ptrs[20]);
+            params.additiveOddEven = loadF(ptrs[21]);
+            params.additiveStretch = loadF(ptrs[22]);
             engine.setOperatorLive(op, params);
         }
 
@@ -530,6 +534,8 @@ namespace pw8::plugin
                 o.noiseVariant,                      o.noiseRate,
                 o.phaseBend,                          o.phaseFold,
                 o.phaseAsymmetry,                     o.phaseShape,
+                o.additivePartialCount,               o.additiveTilt,
+                o.additiveOddEven,                    o.additiveStretch,
             };
             for (std::size_t i = 0; i < kNumOperatorFields; ++i)
                 setParam(operatorParamId(op, kOperatorFieldSpecs[i].idSuffix), opValues[i]);
@@ -636,6 +642,10 @@ namespace pw8::plugin
             o.phaseFold = loadF(ptrs[16]);
             o.phaseAsymmetry = loadF(ptrs[17]);
             o.phaseShape = loadF(ptrs[18]);
+            o.additivePartialCount = loadF(ptrs[19]);
+            o.additiveTilt = loadF(ptrs[20]);
+            o.additiveOddEven = loadF(ptrs[21]);
+            o.additiveStretch = loadF(ptrs[22]);
         }
 
         for (std::size_t envIdx = 0; envIdx < kNumEnvelopes; ++envIdx)

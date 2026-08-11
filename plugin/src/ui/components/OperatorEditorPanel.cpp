@@ -150,10 +150,23 @@ namespace pw8::plugin::ui
         phaseShapeKnob_ = std::make_unique<GlowKnob>(
             apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "PhaseShape"), "Shape");
 
+        // Engine 4 (Additive) -- see the header doc comment. No UI existed for
+        // these four fields before this pass.
+        additivePartialsKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "AdditivePartialCount"), "Partials");
+        additiveTiltKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "AdditiveTilt"), "Tilt");
+        additiveOddEvenKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "AdditiveOddEven"), "Odd/Even");
+        additiveStretchKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "AdditiveStretch"), "Stretch");
+
         for (auto* k : {waveformKnob_.get(), levelKnob_.get(), ratioKnob_.get(), wavetablePosKnob_.get(),
                          fmModRatioKnob_.get(), fmModIndexKnob_.get(), fmModFeedbackKnob_.get(), fmModWaveformKnob_.get(),
                          noiseVariantKnob_.get(), noiseRateKnob_.get(),
-                         phaseBendKnob_.get(), phaseFoldKnob_.get(), phaseAsymmetryKnob_.get(), phaseShapeKnob_.get()})
+                         phaseBendKnob_.get(), phaseFoldKnob_.get(), phaseAsymmetryKnob_.get(), phaseShapeKnob_.get(),
+                         additivePartialsKnob_.get(), additiveTiltKnob_.get(), additiveOddEvenKnob_.get(),
+                         additiveStretchKnob_.get()})
             panel_.addAndMakeVisible(*k);
     }
 
@@ -165,13 +178,14 @@ namespace pw8::plugin::ui
         const bool isFmPm = engine == static_cast<int>(algorithm::EngineType::FmPm);
         const bool isNoiseChaos = engine == static_cast<int>(algorithm::EngineType::NoiseChaos);
         const bool isPhaseShape = engine == static_cast<int>(algorithm::EngineType::PhaseShape);
+        const bool isAdditive = engine == static_cast<int>(algorithm::EngineType::Additive);
 
         // Waveform (classic.waveform) only matters for engines that actually read
         // params.classic -- Classic itself, and FM/PM (it's the CARRIER's shape
-        // there). Wavetable's, NoiseChaos's, and PhaseShape's cases never touch
-        // params.classic, so it's hidden only for those engines, swapped for the
-        // stack preview + WT Pos, the Noise/Rate pair, or the 4 phase-shape knobs
-        // respectively.
+        // there). Wavetable's, NoiseChaos's, PhaseShape's, and Additive's cases
+        // never touch params.classic, so it's hidden only for those engines,
+        // swapped for the stack preview + WT Pos, the Noise/Rate pair, the 4
+        // phase-shape knobs, or the 4 additive knobs respectively.
         //
         // Ratio (frequencyRatio), by contrast, is read GENERICALLY: render()
         // computes carrierHz from it once, before the engine switch, so it
@@ -187,7 +201,7 @@ namespace pw8::plugin::ui
         // selectedNode_), so an engine-only change never needs to reconstruct
         // them -- doing so used to silently abort any in-progress mouse drag on
         // a knob the instant a host automated the Engine parameter mid-gesture.
-        waveformKnob_->setVisible(!isWavetable && !isNoiseChaos && !isPhaseShape);
+        waveformKnob_->setVisible(!isWavetable && !isNoiseChaos && !isPhaseShape && !isAdditive);
         ratioKnob_->setVisible(true);
         wavetablePosKnob_->setVisible(isWavetable);
         wavetableStackView_.setVisible(isWavetable);
@@ -197,6 +211,10 @@ namespace pw8::plugin::ui
         phaseFoldKnob_->setVisible(isPhaseShape);
         phaseAsymmetryKnob_->setVisible(isPhaseShape);
         phaseShapeKnob_->setVisible(isPhaseShape);
+        additivePartialsKnob_->setVisible(isAdditive);
+        additiveTiltKnob_->setVisible(isAdditive);
+        additiveOddEvenKnob_->setVisible(isAdditive);
+        additiveStretchKnob_->setVisible(isAdditive);
         levelKnob_->setVisible(true);
 
         for (auto* k : {fmModRatioKnob_.get(), fmModIndexKnob_.get(), fmModFeedbackKnob_.get(), fmModWaveformKnob_.get()})
@@ -317,6 +335,22 @@ namespace pw8::plugin::ui
                 phaseAsymmetryKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
             if (phaseShapeKnob_)
                 phaseShapeKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+        }
+        else if (additivePartialsKnob_ && additivePartialsKnob_->isVisible())
+        {
+            const int knobWidth = content.getWidth() / 6;
+            if (ratioKnob_)
+                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (levelKnob_)
+                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (additivePartialsKnob_)
+                additivePartialsKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (additiveTiltKnob_)
+                additiveTiltKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (additiveOddEvenKnob_)
+                additiveOddEvenKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (additiveStretchKnob_)
+                additiveStretchKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
         }
         else
         {
