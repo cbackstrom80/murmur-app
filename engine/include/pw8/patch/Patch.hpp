@@ -78,6 +78,13 @@ namespace pw8::patch
         bool keyTrack = true;
         float level = 1.0f;
         float pan = 0.0f; ///< reserved for per-operator stereo placement (PLANNED).
+
+        // Engine Type 3 (FM/PM) only -- see op::OperatorParams's matching fields for
+        // the full doc comment on what these mean.
+        float fmModulatorRatio = 1.0f;
+        float fmModulatorIndex = 0.5f;
+        float fmModulatorFeedback = 0.0f;
+        oscillator::ClassicWaveform fmModulatorWaveform = oscillator::ClassicWaveform::Sine;
     };
 
     struct LayerPatch

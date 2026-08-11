@@ -90,20 +90,36 @@ JSON table (schema v2: a `mips` array, each with `maxHarmonic` and `frames`).
 
 ## Engine Type 3 — FM / PM
 
-**PARTIAL (at the algorithm-graph level, not as a standalone engine).** There is no
-dedicated `FmPm` engine implementation yet (`algorithm::EngineType::FmPm` renders
-silence, matching every other unimplemented engine type -- see "Fuzz-Safe Design"
-below). However, phase modulation, frequency modulation, and one-sample-delayed
-feedback are fully implemented at the *algorithm graph* level
-(`algorithm::AlgorithmExecutor`, edge types `PHASE_MOD` / `FREQUENCY_MOD` /
-`FEEDBACK`) and work today between `Classic` oscillators -- see
-`content/presets/fm-bell.pw8` and `content/algorithms/feedback_bell.json` for a
-working example, and `ALGORITHM_GRAPH.md` for the exact semantics (including the
-feedback gain guard and soft saturation). A dedicated ratio/fixed-frequency-mode
-ready-made engine type with its own stability guarantees at frequency extremes is
-PLANNED (Phase 4/10) but the underlying modulation mechanics already exist and are
-tested (`tests/unit/AlgorithmGraphCompilerTests.cpp`,
-`tests/regression/RenderSanityTests.cpp`'s self-feedback case).
+**IMPLEMENTED.** A self-contained 2-operator FM/PM voice in one node --
+distinct from, and complementary to, the graph-level PM/FM edges below (which
+modulate BETWEEN separate nodes; this is a dedicated modulator built INTO one
+node, for when you don't want to spend 2 of the 8 nodes wiring a pair
+together). Carrier reuses the operator's own `classicWaveform`/`classicMorph`/
+`pulseWidth` fields (a real `ClassicOscillator`, same PolyBLEP band-limiting as
+Engine Type 1); the modulator is a second internal `ClassicOscillator`
+phase-modulating it, with its own ratio/index/feedback/waveform
+(`fmModulatorRatio`, `fmModulatorIndex`, `fmModulatorFeedback`,
+`fmModulatorWaveform` -- `op::OperatorParams`,
+`engine/include/pw8/operator/OperatorNode.hpp`). The modulator's self-feedback
+reuses the exact same one-sample-delayed, `tanh`-soft-saturated technique the
+graph-level `FEEDBACK` edges already use. Through-zero-safe by construction
+(`ClassicOscillator`'s plain phase accumulator handles a negative instantaneous
+frequency correctly -- it just runs backward, no special-casing needed).
+Tested in `tests/dsp/FmPmOperatorTests.cpp`: tuning accuracy when unmodulated,
+bounded/finite output under extreme parameters (max ratio/index/feedback),
+explicit through-zero stability, a measured spectral-bandwidth test (FFT-
+verified: modulator index measurably widens the sideband spread, not just
+"sounds different"), and deterministic reset.
+
+Phase modulation, frequency modulation, and one-sample-delayed feedback are
+ALSO fully implemented at the *algorithm graph* level (`algorithm::AlgorithmExecutor`,
+edge types `PHASE_MOD` / `FREQUENCY_MOD` / `FEEDBACK`) and work today between
+any two nodes, `FmPm` included -- see `content/presets/fm-bell.pw8` and
+`content/algorithms/feedback_bell.json` for a working example, and
+`ALGORITHM_GRAPH.md` for the exact semantics (including the feedback gain
+guard and soft saturation). These two FM/PM paths are complementary, not
+redundant: the graph-level edges are how nodes modulate EACH OTHER; Engine
+Type 3 is a whole 2-operator FM voice that fits in a single node.
 
 ## Engine Type 4 — Additive
 

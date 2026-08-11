@@ -52,6 +52,15 @@
 // once it did. getTooltip() below hit-tests the mouse position against the same
 // pillBounds() mouseDown() already uses, so this is a few lines rather than
 // restructuring 8 hand-painted pills into child components.
+//
+// Engine Type 3 (FM/PM), the first of the 6 previously-silent engines to ship:
+// the FM pill unblocks automatically (algorithm::isEngineImplemented() is the
+// single source of truth every gate here already reads, updated centrally in
+// AlgorithmTypes.hpp -- nothing pill/tooltip/note-specific to change). Adds 4
+// knobs for the self-contained internal modulator (Ratio/Index/Feedback/Wave),
+// shown alongside the carrier's own Wave/Level/Ratio rather than replacing
+// them -- an FM/PM node's carrier is a real, still-relevant Classic oscillator
+// under the hood (see op::OperatorState::render()'s FmPm case).
 namespace pw8::plugin::ui
 {
     class OperatorEditorPanel : public juce::Component, public juce::TooltipClient, private juce::Timer
@@ -113,6 +122,12 @@ namespace pw8::plugin::ui
         std::unique_ptr<GlowKnob> ratioKnob_;
         std::unique_ptr<GlowKnob> wavetablePosKnob_; // Only constructed/visible for the Wavetable engine.
         WavetableStackView wavetableStackView_;      // Same visibility rule; never rebuilt per-node (holds no APVTS attachment).
+        // Engine Type 3 (FM/PM) only -- same "always constructed, visibility
+        // toggled" pattern as the Wavetable-only knobs above.
+        std::unique_ptr<GlowKnob> fmModRatioKnob_;
+        std::unique_ptr<GlowKnob> fmModIndexKnob_;
+        std::unique_ptr<GlowKnob> fmModFeedbackKnob_;
+        std::unique_ptr<GlowKnob> fmModWaveformKnob_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OperatorEditorPanel)
     };

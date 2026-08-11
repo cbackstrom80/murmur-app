@@ -11,6 +11,7 @@ list(APPEND CMAKE_MODULE_PATH "${catch2_SOURCE_DIR}/extras")
 
 add_executable(pw8_tests
     dsp/ClassicOscillatorTests.cpp
+    dsp/FmPmOperatorTests.cpp
     dsp/DahdsrEnvelopeTests.cpp
     dsp/VoiceAllocatorTests.cpp
     dsp/StateVariableFilterTests.cpp

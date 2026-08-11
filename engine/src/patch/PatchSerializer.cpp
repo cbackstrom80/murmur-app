@@ -111,6 +111,10 @@ namespace pw8::patch
                 {"keyTrack", o.keyTrack},
                 {"level", o.level},
                 {"pan", o.pan},
+                {"fmModulatorRatio", o.fmModulatorRatio},
+                {"fmModulatorIndex", o.fmModulatorIndex},
+                {"fmModulatorFeedback", o.fmModulatorFeedback},
+                {"fmModulatorWaveform", static_cast<int>(o.fmModulatorWaveform)},
             };
         }
 
@@ -127,6 +131,11 @@ namespace pw8::patch
             o.keyTrack = j.value("keyTrack", true);
             o.level = clampNum(j.value("level", 1.0f), 0.0f, 4.0f);
             o.pan = clampNum(j.value("pan", 0.0f), -1.0f, 1.0f);
+            o.fmModulatorRatio = clampNum(j.value("fmModulatorRatio", 1.0f), 0.001f, 32.0f);
+            o.fmModulatorIndex = clampNum(j.value("fmModulatorIndex", 0.5f), 0.0f, 2.0f);
+            o.fmModulatorFeedback = clampNum(j.value("fmModulatorFeedback", 0.0f), 0.0f, 1.0f);
+            o.fmModulatorWaveform =
+                static_cast<oscillator::ClassicWaveform>(clampNum(j.value("fmModulatorWaveform", 0), 0, 3));
         }
 
         void toJson(json& j, const UnisonSettings& u)

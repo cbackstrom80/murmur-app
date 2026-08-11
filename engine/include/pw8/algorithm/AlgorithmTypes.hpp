@@ -10,8 +10,10 @@
 
 namespace pw8::algorithm
 {
-    /// Which synthesis engine a node runs. Only Classic (and a minimal Wavetable) are
-    /// implemented in this pass; the rest render silence and are reserved for later phases.
+    /// Which synthesis engine a node runs. Classic, Wavetable, and FM/PM are
+    /// implemented; the rest render silence and are reserved for later phases
+    /// (being built out incrementally, one engine/PR at a time -- see
+    /// docs/NEXT_STEPS.md and docs/ROADMAP.md Phase 10).
     enum class EngineType : std::uint8_t
     {
         Classic = 0,
@@ -26,7 +28,7 @@ namespace pw8::algorithm
 
     [[nodiscard]] constexpr bool isEngineImplemented(EngineType type) noexcept
     {
-        return type == EngineType::Classic || type == EngineType::Wavetable;
+        return type == EngineType::Classic || type == EngineType::Wavetable || type == EngineType::FmPm;
     }
 
     enum class EdgeType : std::uint8_t
