@@ -8,6 +8,7 @@
 
 #include "GlowKnob.h"
 #include "SectionPanel.h"
+#include "WavetableStackView.h"
 #include "processor/PatchworkEightProcessor.h"
 
 // The operator detail view for whichever algorithm-graph node is currently
@@ -35,9 +36,18 @@
 // (state/PluginState.h's field list), so a knob for it here would silently do
 // nothing -- the same reasoning PluginState.h's own "deliberately not exposed"
 // list already applies elsewhere.
+//
+// UI GATE 5: when the selected node's engine is Wavetable, the Wave/Ratio knobs
+// (meaningless for that engine -- classicWaveform/frequencyRatio aren't what a
+// wavetable operator reads) are replaced by WavetableStackView plus a WT POS
+// knob -- the latter previously had NO UI anywhere despite being a real
+// automatable parameter (PluginState.h's "WavetablePos" field). Level stays for
+// every engine, wavetable or not. A Timer (not just showNode()) drives this
+// switch since the engine can change without a node reselection -- clicking a
+// different engine pill on the SAME node, or a host loading a new patch/preset.
 namespace pw8::plugin::ui
 {
-    class OperatorEditorPanel : public juce::Component
+    class OperatorEditorPanel : public juce::Component, private juce::Timer
     {
     public:
         explicit OperatorEditorPanel(PatchworkEightProcessor& processor);
@@ -59,14 +69,24 @@ namespace pw8::plugin::ui
     private:
         [[nodiscard]] juce::Rectangle<int> pillRowBounds() const;
         [[nodiscard]] juce::Rectangle<int> pillBounds(int engineIndex) const;
+        /// Rebuilds the Wave/Ratio-vs-WavetableStackView+WTPos split for the
+        /// CURRENT engine value and calls resized() -- shared by showNode() (new
+        /// node) and timerCallback() (engine changed without a reselection).
+        void updateEngineDependentLayout();
+        [[nodiscard]] int currentEngineOrdinal() const noexcept;
+
+        void timerCallback() override;
 
         PatchworkEightProcessor& processor_;
         SectionPanel panel_{"Operator"};
         int selectedNode_ = 0;
+        int lastKnownEngine_ = -1; // -1 forces updateEngineDependentLayout() on first showNode().
 
         std::unique_ptr<GlowKnob> waveformKnob_;
         std::unique_ptr<GlowKnob> levelKnob_;
         std::unique_ptr<GlowKnob> ratioKnob_;
+        std::unique_ptr<GlowKnob> wavetablePosKnob_; // Only constructed/visible for the Wavetable engine.
+        WavetableStackView wavetableStackView_;      // Same visibility rule; never rebuilt per-node (holds no APVTS attachment).
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OperatorEditorPanel)
     };

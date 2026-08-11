@@ -30,11 +30,16 @@ namespace pw8::plugin::ui
         setResizable(false, false);
         // +160 over the original 890 for OperatorEditorPanel's fixed allotment
         // inside the graph card, +80 more for ModSourceStrip's connections list
-        // (UI GATE 3) -- both times growing the window rather than squeezing the
-        // circle layout back down toward kNodeRadius, the exact "negative/
-        // undersized geometry" failure mode UI GATE 1 already found once via lldb
-        // (docs/UI.md).
-        setSize(980, 1130);
+        // (UI GATE 3), +50 more (UI GATE 5) so OperatorEditorPanel's Wave/Level/
+        // Ratio knobs -- which were ALSO flooring out at ObsidianLookAndFeel's
+        // 16px defensive-minimum diameter, the same failure mode UI GATE 4 fixed
+        // in FxChainStrip, just not yet fixed here -- get real room, and so the
+        // new WavetableStackView (swapped in for Wave/Ratio when the selected
+        // node's engine is Wavetable) isn't a squashed sliver. Every one of these,
+        // growing the window rather than squeezing a control back down toward
+        // illegibility, the exact "negative/undersized geometry" failure mode UI
+        // GATE 1 already found once via lldb (docs/UI.md).
+        setSize(980, 1180);
     }
 
     PlayModeEditor::~PlayModeEditor()
@@ -106,7 +111,11 @@ namespace pw8::plugin::ui
 
         graphPanel_.setBounds(bounds);
         auto graphContent = graphPanel_.getContentBounds();
-        auto opEditorArea = graphContent.removeFromBottom(140);
+        // 190, not the original 140 -- see the UI GATE 5 note above `setSize()`.
+        // The +50 here is exactly offset by setSize()'s own +50, so graphView_'s
+        // height below is unchanged from before this pass (the circle doesn't
+        // shrink to make room).
+        auto opEditorArea = graphContent.removeFromBottom(190);
         graphContent.removeFromBottom(8);
         graphView_.setBounds(graphContent);
         operatorEditorPanel_.setBounds(opEditorArea);

@@ -242,6 +242,36 @@ VST3 and AU after this pass (still 578 published parameters -- mod routes
 stay outside the automation surface, as above). 1 new engine-level test
 (`EngineLiveParamsTests.cpp`) -- 126 total, all passing.
 
+## UI GATE 5: wavetable stack view + OperatorEditorPanel knob-starvation fix
+
+Prompted by a "make the visualization stuff radder / do 3D" request. Split into
+what's actually cheap vs. a real project -- full breakdown in
+`docs/VISUALIZATION_UI_GATE5.md`. What landed in PLAY mode:
+
+- **`WavetableStackView`**: a pseudo-3D "deck of cards" frame-stack preview of
+  the selected node's loaded wavetable (plain `juce::Path` + `AffineTransform`
+  shear, no OpenGL/shaders/real 3D engine -- reads as dimensional at this scale
+  for a fraction of the cost). Needs no audio-thread tap; wavetable data is
+  already in memory once `loadPatch()` runs.
+- Wired into `OperatorEditorPanel`: when the selected node's engine is
+  Wavetable, the Wave/Ratio knobs (meaningless for that engine) are replaced by
+  the stack view plus a new WT POS knob -- `WavetablePos` was a real
+  automatable parameter with no UI anywhere until now. Level stays for every
+  engine. A `Timer` (not just `showNode()`) drives the switch, since the engine
+  can change without a node reselection (a different pill on the same node, or
+  a host loading a different patch while this node stays selected).
+- **A second instance of UI GATE 4's exact bug, caught while touching this
+  file**: `OperatorEditorPanel`'s Wave/Level/Ratio knobs were ALSO flooring out
+  at `ObsidianLookAndFeel`'s 16px defensive minimum (its 140px allotment left
+  only ~44px of content height for a 3-knob row after the pill row and note
+  strip). Fixed the same way: grew the allotment (140 -> 190) and the window
+  with it (+50), with the graph card's own height held constant by that same
+  +50 -- the algorithm graph doesn't shrink to make room for this fix.
+- Spectrum analyzer and oscilloscope stay unbuilt, specced only -- both need a
+  new realtime audio-thread ring-buffer tap that doesn't exist anywhere in this
+  codebase yet, the one place a mistake here is actually dangerous (a glitch or
+  crash in a real DAW session). See `docs/VISUALIZATION_UI_GATE5.md`.
+
 ## What's PLANNED
 
 - DESIGN and LAB modes (graph editing, full modulation-bank editing,
