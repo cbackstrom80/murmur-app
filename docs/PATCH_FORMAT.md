@@ -161,6 +161,15 @@ repo root (e.g. via `pw8-render` or the Python bindings, both of which resolve
 relative paths against the caller's working directory). A proper content-addressed
 resolution system, matching the rest of the content pipeline, is PLANNED.
 
+The plugin's PLAY mode (`WavetableStackView`'s "Load..." button, UI GATE 5) can now
+set `wavetableId` on a running instance -- a native file chooser picks an existing
+`pw8-wavetable-builder` JSON table (absolute path, so the CWD caveat above doesn't
+bite there) and triggers a full patch reload to actually load it
+(`PatchworkEightProcessor::setOperatorWavetableFile()`). It picks an
+**already-built** table, not a raw `.wav` -- turning a source recording into mip
+levels is still `pw8-wavetable-builder`'s job as a separate offline tool, not
+something the plugin runs live yet.
+
 ## Metadata & Categories
 
 Category vocabulary (bass, lead, pluck, keyboard, pad, arp, drone, chord, fx, brass,

@@ -398,7 +398,25 @@ namespace pw8::plugin
         fresh->prepare(getSampleRate() > 0.0 ? getSampleRate() : 48000.0);
         const bool ok = fresh->loadPatch(currentPatch_);
         publishEngine(std::move(fresh));
+        // Discard any not-yet-consumed drag-to-modulate publish from BEFORE this
+        // reload. Without this, a mod-route drag that hasn't yet been picked up by
+        // the audio thread's next block could still be sitting in
+        // pendingModRoutes_ and get applied to the Engine we just published above,
+        // silently overwriting `newPatch`'s own (correct) mod routes with stale
+        // pre-reload ones. `fresh` was already built from newPatch's real routes,
+        // so there's nothing useful left for a stale publish to contribute.
+        pendingModRoutes_.store(nullptr, std::memory_order_release);
         return ok;
+    }
+
+    bool PatchworkEightProcessor::setOperatorWavetableFile(std::size_t opIndex, const juce::String& filePath)
+    {
+        if (opIndex >= currentPatch_.layerA.operators.size())
+            return false;
+
+        auto newPatch = currentPatch_;
+        newPatch.layerA.operators[opIndex].wavetableId = filePath.toStdString();
+        return loadPatch(newPatch);
     }
 
     void PatchworkEightProcessor::publishModRoutesLive(
@@ -442,6 +460,7 @@ namespace pw8::plugin
         }
 
         currentPatch_.layerA.modRoutes = routes; // Keep the getStateInformation()/preset-save source of truth in sync.
+        hasUserCreatedModRouteLive_ = true;
         publishModRoutesLive(routes);
     }
 

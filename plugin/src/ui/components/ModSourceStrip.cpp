@@ -32,6 +32,11 @@ namespace pw8::plugin::ui
 
     void ModSourceStrip::timerCallback()
     {
+        if (!hasEverHadModRoute_ && processor_.hasUserCreatedModRouteLive())
+        {
+            hasEverHadModRoute_ = true;
+            panel_.setTitle("Mod Sources");
+        }
         repaint(); // Cheap: at most a few dozen small ModRoute structs, no allocation.
     }
 

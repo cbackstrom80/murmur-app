@@ -12,7 +12,7 @@ namespace pw8::plugin::ui
           operatorEditorPanel_(processor),
           modSourceStrip_(processor),
           filterLfoPanel_(processor),
-          macroStrip_(processor.apvts),
+          macroStrip_(processor),
           fxChainStrip_(processor.apvts)
     {
         setLookAndFeel(&lookAndFeel_);
@@ -33,11 +33,17 @@ namespace pw8::plugin::ui
         // (UI GATE 3), +48 more (UI GATE 4) so FxChainStrip's 7 slots -- each
         // paying a 24px type-label tax on top of its knob, unlike every other
         // strip's knobs -- stop flooring out at ObsidianLookAndFeel's 16px
-        // defensive-minimum diameter. Every one of these, growing the window
-        // rather than squeezing a control back down toward illegibility, the
-        // exact "negative/undersized geometry" failure mode UI GATE 1 already
-        // found once via lldb (docs/UI.md).
-        setSize(980, 1178);
+        // defensive-minimum diameter, +50 more (UI GATE 5) for the identical
+        // failure mode in OperatorEditorPanel's Wave/Level/Ratio knobs (and so
+        // the new WavetableStackView, swapped in for Wave/Ratio on a Wavetable-
+        // engine node, isn't a squashed sliver). These two deltas are
+        // independent -- different strips, different lines in resized() below
+        // (fxArea vs. opEditorArea) -- so they simply add: 1130 + 48 + 50.
+        // Every one of these, growing the window rather than squeezing a
+        // control back down toward illegibility, the exact "negative/
+        // undersized geometry" failure mode UI GATE 1 already found once via
+        // lldb (docs/UI.md).
+        setSize(980, 1228);
     }
 
     PlayModeEditor::~PlayModeEditor()
@@ -113,7 +119,11 @@ namespace pw8::plugin::ui
 
         graphPanel_.setBounds(bounds);
         auto graphContent = graphPanel_.getContentBounds();
-        auto opEditorArea = graphContent.removeFromBottom(140);
+        // 190, not the original 140 -- see the UI GATE 5 note above `setSize()`.
+        // The +50 here is exactly offset by setSize()'s own +50, so graphView_'s
+        // height below is unchanged from before this pass (the circle doesn't
+        // shrink to make room).
+        auto opEditorArea = graphContent.removeFromBottom(190);
         graphContent.removeFromBottom(8);
         graphView_.setBounds(graphContent);
         operatorEditorPanel_.setBounds(opEditorArea);

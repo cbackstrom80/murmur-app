@@ -253,8 +253,107 @@ after its own name-label/textbox subtraction, the rotary control floored out
 at `ObsidianLookAndFeel`'s 16px defensive minimum, on all 7 slots at once.
 16px is enough to not crash (the whole point of that floor), not enough to
 read or grab. Fixed the same way as UI GATE 1: grew the strip's height (120 ->
-168) and the window with it (980x1130 -> 980x1178), not squeezed anything
-else back down.
+168) and the window with it (+48, 980x1130 -> 980x1178 in isolation -- see the
+UI GATE 5 note below for the actual final number once both gates' independent
+window-height deltas are combined).
+
+## UI GATE 5: wavetable stack view + OperatorEditorPanel knob-starvation fix
+
+Prompted by a "make the visualization stuff radder / do 3D" request. Split into
+what's actually cheap vs. a real project -- full breakdown in
+`docs/VISUALIZATION_UI_GATE5.md`. What landed in PLAY mode:
+
+- **`WavetableStackView`**: a pseudo-3D "deck of cards" frame-stack preview of
+  the selected node's loaded wavetable (plain `juce::Path` + `AffineTransform`
+  shear, no OpenGL/shaders/real 3D engine -- reads as dimensional at this scale
+  for a fraction of the cost). Needs no audio-thread tap; wavetable data is
+  already in memory once `loadPatch()` runs.
+- Wired into `OperatorEditorPanel`: when the selected node's engine is
+  Wavetable, the Wave/Ratio knobs (meaningless for that engine) are replaced by
+  the stack view plus a new WT POS knob -- `WavetablePos` was a real
+  automatable parameter with no UI anywhere until now. Level stays for every
+  engine. A `Timer` (not just `showNode()`) drives the switch, since the engine
+  can change without a node reselection (a different pill on the same node, or
+  a host loading a different patch while this node stays selected).
+- **`WavetableStackView` also owns a "Load..." button** -- the only UI anywhere
+  that can actually assign a wavetable to an operator; previously the sole way
+  in was hand-editing a `.pw8`'s `wavetableId` field, so picking the Wavetable
+  engine on any node without one already baked into the loaded patch was a
+  guaranteed dead end. Opens a native file chooser filtered to `*.json` (an
+  already-built `pw8-wavetable-builder` table, not a raw `.wav` -- see
+  `docs/PATCH_FORMAT.md`'s "Wavetable Resource Resolution"), then calls the new
+  `PatchworkEightProcessor::setOperatorWavetableFile()`, which sets
+  `wavetableId` and reloads the patch (the only way to get a newly-picked file
+  into the live `Engine`, since wavetable loading only happens inside
+  `Engine::loadPatch()`). Build-verified end-to-end against the real
+  Standalone app and the repo's own `content/wavetables/basic_harmonic.json`.
+- **A second instance of UI GATE 4's exact bug, caught while touching this
+  file**: `OperatorEditorPanel`'s Wave/Level/Ratio knobs were ALSO flooring out
+  at `ObsidianLookAndFeel`'s 16px defensive minimum (its 140px allotment left
+  only ~44px of content height for a 3-knob row after the pill row and note
+  strip). Fixed the same way: grew the allotment (140 -> 190) and the window
+  with it (+50), with the graph card's own height held constant by that same
+  +50 -- the algorithm graph doesn't shrink to make room for this fix.
+- Spectrum analyzer and oscilloscope stay unbuilt, specced only -- both need a
+  new realtime audio-thread ring-buffer tap that doesn't exist anywhere in this
+  codebase yet, the one place a mistake here is actually dangerous (a glitch or
+  crash in a real DAW session). See `docs/VISUALIZATION_UI_GATE5.md`.
+
+A follow-up pass on the same GATE fixed several smaller, independently-found
+issues:
+
+- **Tooltips actually work now.** `ObsidianLookAndFeel` themed
+  `TooltipWindow::backgroundColourId`/`textColourId` from the start, but no
+  `juce::TooltipWindow` instance existed anywhere to use them, and no
+  `getTooltip()` existed to feed one. `PlayModeEditor` now owns a
+  `TooltipWindow`; `OperatorEditorPanel` implements `juce::TooltipClient` so a
+  disabled engine pill explains why it's dim on hover, hit-testing the same
+  `pillBounds()` `mouseDown()` already uses rather than restructuring 8
+  hand-painted pills into real child components.
+- **Macro names read from the patch, not a hardcoded list.** `patch::Macro` has
+  a real `name` field (a sound designer can call a macro "Growl" in the
+  `.pw8`); `MacroStrip` previously always showed the generic "Macro 1"..."Macro
+  8" regardless. Now polls and applies the patch-authored name once one's
+  loaded, falling back to the generic name if it's empty.
+- **`ModSourceStrip`'s instructional title now retires itself** once the player
+  has successfully created at least one mod route -- "Mod Sources -- Drag Onto
+  A Ringed Knob" switches to plain "Mod Sources" and stays there. The
+  empty-state connections-list text still re-explains the gesture if every
+  route later gets removed, so nothing's lost for a player who clears
+  everything and comes back later.
+- **`PatchBrowserBar`'s wordmark width** was a bare `280` independently
+  duplicated in `paint()` and `resized()` -- harmless while they happened to
+  agree, a real bug the first time only one got edited. Now a single named
+  constant both read from.
+- **Accessibility reviewed, not fixed** -- see the dedicated section above for
+  what's free (real `juce::Component`-based controls) vs. what still needs
+  real work (every hand-painted hit-target).
+
+## Accessibility: partially free, partially not started
+
+Every control built on a real `juce::Component` subclass gets JUCE's default
+accessibility support for free -- `GlowKnob`'s `juce::Slider`, `PatchBrowserBar`'s
+`juce::TextButton`, both already screen-reader/keyboard-navigable with no extra
+work here. What's NOT accessible today: every hand-painted hit-target that isn't
+a real child `Component` -- `OperatorEditorPanel`'s 8 engine pills,
+`ModSourceChip`'s drag chips, `ModSourceStrip`'s per-route remove buttons,
+`FxChainStrip`'s type labels. These exist only as `paint()` calls plus manual
+`mouseDown()` hit-testing (the same pattern documented above for matching
+`AlgorithmGraphView`'s style), which means zero keyboard focus and zero
+screen-reader exposure for any of them. Fixing this for real means either turning
+each into an actual child `Component` (bigger refactor, touches every hand-painted
+control in the skin) or giving each parent a custom `juce::AccessibilityHandler`
+exposing synthetic child elements (JUCE supports this, but it's real, unfamiliar-
+in-this-codebase API surface that deserves a build to verify against real
+assistive tech, not a guess). Left as PLANNED rather than attempted blind here --
+UI GATE 5 did add real `getTooltip()` support (see above), which helps sighted
+mouse users somewhat but doesn't move the needle on keyboard/screen-reader access
+at all.
+
+**Combined window size, both gates landed:** UI GATE 4's `fxArea` growth (+48)
+and UI GATE 5's `opEditorArea` growth (+50) are independent deltas against
+different strips -- they simply add. Final size once both are in `main`:
+980x1228 (1130 + 48 + 50), not either gate's own in-isolation number above.
 
 ## What's PLANNED
 

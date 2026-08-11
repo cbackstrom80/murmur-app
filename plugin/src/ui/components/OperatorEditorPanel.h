@@ -8,6 +8,7 @@
 
 #include "GlowKnob.h"
 #include "SectionPanel.h"
+#include "WavetableStackView.h"
 #include "processor/PatchworkEightProcessor.h"
 
 // The operator detail view for whichever algorithm-graph node is currently
@@ -35,12 +36,29 @@
 // (state/PluginState.h's field list), so a knob for it here would silently do
 // nothing -- the same reasoning PluginState.h's own "deliberately not exposed"
 // list already applies elsewhere.
+//
+// UI GATE 5: when the selected node's engine is Wavetable, the Wave/Ratio knobs
+// (meaningless for that engine -- classicWaveform/frequencyRatio aren't what a
+// wavetable operator reads) are replaced by WavetableStackView plus a WT POS
+// knob -- the latter previously had NO UI anywhere despite being a real
+// automatable parameter (PluginState.h's "WavetablePos" field). Level stays for
+// every engine, wavetable or not. A Timer (not just showNode()) drives this
+// switch since the engine can change without a node reselection -- clicking a
+// different engine pill on the SAME node, or a host loading a new patch/preset.
+// UI GATE 5 (tooltips): implements juce::TooltipClient rather than making each
+// pill its own real juce::Component -- ObsidianLookAndFeel already themed
+// TooltipWindow's colours, but no TooltipWindow instance existed anywhere to
+// use them (see PlayModeEditor.h), and no getTooltip() existed to feed one even
+// once it did. getTooltip() below hit-tests the mouse position against the same
+// pillBounds() mouseDown() already uses, so this is a few lines rather than
+// restructuring 8 hand-painted pills into child components.
 namespace pw8::plugin::ui
 {
-    class OperatorEditorPanel : public juce::Component
+    class OperatorEditorPanel : public juce::Component, public juce::TooltipClient, private juce::Timer
     {
     public:
         explicit OperatorEditorPanel(PatchworkEightProcessor& processor);
+        ~OperatorEditorPanel() override;
 
         void resized() override;
         /// Drawn via paintOverChildren(), not paint(): `panel_` is a full-bounds
@@ -56,17 +74,45 @@ namespace pw8::plugin::ui
         /// AlgorithmGraphView::onNodeSelected firing).
         void showNode(int nodeIndex);
 
+        /// juce::TooltipClient -- only non-empty over a currently-disabled
+        /// (unimplemented) engine pill, explaining why it's dim/unclickable. Empty
+        /// string over everything else, which JUCE's TooltipWindow treats as "no
+        /// tooltip" rather than showing a blank bubble.
+        [[nodiscard]] juce::String getTooltip() override;
+
     private:
         [[nodiscard]] juce::Rectangle<int> pillRowBounds() const;
         [[nodiscard]] juce::Rectangle<int> pillBounds(int engineIndex) const;
+        /// Which engine pill (0..kNumEngines-1) contains `pos`, or -1 if none --
+        /// shared by mouseDown() and getTooltip() so the hit-test region can't
+        /// drift out of sync between click and hover behaviour.
+        [[nodiscard]] int pillIndexAt(juce::Point<int> pos) const;
+        /// Constructs all four knobs bound to selectedNode_'s parameters. Only
+        /// needed when selectedNode_ itself changes -- every knob's parameter ID
+        /// depends on the node, not the engine, so an engine-only change (see
+        /// updateEngineVisibility()) never needs to touch these.
+        void rebuildKnobsForNode();
+        /// Applies the Wave/Ratio-vs-WavetableStackView+WTPos visibility split for
+        /// the CURRENT engine value and calls resized() -- shared by showNode()
+        /// (after rebuildKnobsForNode()) and timerCallback()/mouseDown() (engine
+        /// changed without a node change). Deliberately never reconstructs a knob:
+        /// doing so used to abort any in-progress mouse drag on that knob the
+        /// moment a host automated the Engine parameter mid-gesture.
+        void updateEngineVisibility();
+        [[nodiscard]] int currentEngineOrdinal() const noexcept;
+
+        void timerCallback() override;
 
         PatchworkEightProcessor& processor_;
         SectionPanel panel_{"Operator"};
         int selectedNode_ = 0;
+        int lastKnownEngine_ = -1; // -1 forces updateEngineDependentLayout() on first showNode().
 
         std::unique_ptr<GlowKnob> waveformKnob_;
         std::unique_ptr<GlowKnob> levelKnob_;
         std::unique_ptr<GlowKnob> ratioKnob_;
+        std::unique_ptr<GlowKnob> wavetablePosKnob_; // Only constructed/visible for the Wavetable engine.
+        WavetableStackView wavetableStackView_;      // Same visibility rule; never rebuilt per-node (holds no APVTS attachment).
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OperatorEditorPanel)
     };

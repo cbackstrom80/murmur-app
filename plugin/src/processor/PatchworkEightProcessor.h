@@ -58,6 +58,22 @@ namespace pw8::plugin
         /// new Engine off-thread and atomically publishes it for processBlock() to pick up.
         bool loadPatch(const patch::Patch& newPatch);
 
+        /// Message-thread only (WavetableStackView's "Load..." button -- the only
+        /// UI anywhere that can assign a wavetable to an operator; everything else
+        /// requires hand-editing a .pw8's wavetableId field). Sets operator
+        /// `opIndex`'s wavetableId to `filePath` and reloads the current patch so
+        /// the file is actually read -- unlike setOrReplaceModRouteLive(), there's
+        /// no live-publish path for this: oscillator::loadWavetableFromFile() only
+        /// ever runs inside Engine::loadPatch() (see that function and
+        /// docs/PATCH_FORMAT.md's "Wavetable Resource Resolution"), so getting a
+        /// newly-picked file into the live engine means going through the same
+        /// full reload as opening a different patch. Returns false if `opIndex` is
+        /// out of range or the file failed to load (see Engine::loadPatch()'s
+        /// return value) -- either way, currentPatch_ still records the requested
+        /// wavetableId, matching loadPatch()'s existing "a bad reference doesn't
+        /// fail the whole patch, that operator just renders silence" contract.
+        bool setOperatorWavetableFile(std::size_t opIndex, const juce::String& filePath);
+
         /// Message-thread only (JUCE guarantees editor construction/paint/resize all
         /// run on the message thread, the same thread every currentPatch_ mutation
         /// already runs on per the class-level threading contract above) -- read-only
@@ -65,6 +81,16 @@ namespace pw8::plugin
         /// deliberately doesn't cover (the algorithm graph's nodes/edges, patch
         /// metadata) so the editor doesn't need a second, divergent copy of it.
         [[nodiscard]] const patch::Patch& getCurrentPatch() const noexcept { return currentPatch_; }
+
+        /// Message-thread only. True once this player has performed the
+        /// drag-to-modulate gesture at least once via setOrReplaceModRouteLive()
+        /// in the current session -- deliberately NOT "does the current patch have
+        /// any active mod route," since a hand-authored/factory preset can arrive
+        /// with routes already wired by its author, before this player has ever
+        /// tried the gesture themselves. ModSourceStrip uses this (not
+        /// getCurrentPatch().layerA.modRoutes) to decide when its instructional
+        /// title has actually done its job.
+        [[nodiscard]] bool hasUserCreatedModRouteLive() const noexcept { return hasUserCreatedModRouteLive_; }
 
         /// Message-thread only (drag-to-modulate, docs/UI.md). Adds a Layer A mod
         /// route, or replaces the existing one if any route already targets the same
@@ -90,6 +116,23 @@ namespace pw8::plugin
         /// than "whichever route happens to occupy that destination."
         void removeModRouteLive(modulation::ModSource source, modulation::ModDestination destination,
                                  std::uint8_t targetIndex);
+
+        /// Message-thread only (a UI-thread poll, same pattern as every other
+        /// GATE-3/UI_GATE-4 timer-driven read of live engine state). Reads node
+        /// `opIndex`'s currently-loaded wavetable table through the SAME atomic
+        /// `activeEngine_` pointer processBlock() reads -- safe for a second, non-
+        /// audio, reader here specifically because `publishEngine()`'s double-buffer
+        /// only ever destroys the *previous* Engine on the NEXT publishEngine() call,
+        /// and that call is itself message-thread-only, so it's sequenced against
+        /// this read on the same thread; the audio thread never destroys anything.
+        /// Returns nullptr if no Engine has been published yet, or per
+        /// Engine::getWavetableTable()'s own nullptr cases (no wavetable loaded for
+        /// that node). Never call this from processBlock().
+        [[nodiscard]] const oscillator::WavetableTable* getActiveWavetableTable(std::size_t opIndex) const noexcept
+        {
+            const auto* engine = activeEngine_.load(std::memory_order_acquire);
+            return engine != nullptr ? engine->getWavetableTable(opIndex) : nullptr;
+        }
 
         /// The 361 host-automatable parameters (docs/PLUGIN_ARCHITECTURE.md
         /// "Automation"). Public so createEditor()/tests can reach it; processBlock()
@@ -169,6 +212,9 @@ namespace pw8::plugin
         std::array<core::FixedVector<modulation::ModRoute, core::kMaxModRoutes>, 2> modRoutesStorage_{};
         std::atomic<const core::FixedVector<modulation::ModRoute, core::kMaxModRoutes>*> pendingModRoutes_{nullptr};
         bool modRoutesStorageUsingA_ = true;
+        // See hasUserCreatedModRouteLive()'s doc comment above -- set once, the
+        // first time setOrReplaceModRouteLive() runs, and never cleared.
+        bool hasUserCreatedModRouteLive_ = false;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PatchworkEightProcessor)
     };

@@ -43,6 +43,13 @@ namespace pw8::plugin::ui
     private:
         PatchworkEightProcessor& processor_;
         ObsidianLookAndFeel lookAndFeel_;
+        // Colours were already themed (ObsidianLookAndFeel's constructor sets
+        // TooltipWindow::backgroundColourId/textColourId) but no TooltipWindow
+        // instance existed anywhere to use them -- JUCE can't show a tooltip
+        // without one attached somewhere in the component tree. `this` as the
+        // parent keeps it inside this editor's own window rather than spawning a
+        // separate top-level window, which matters for a plugin editor.
+        juce::TooltipWindow tooltipWindow_{this};
 
         PatchBrowserBar patchBrowserBar_;
         SectionPanel graphPanel_{"Algorithm"};
