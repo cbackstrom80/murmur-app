@@ -58,6 +58,22 @@ namespace pw8::plugin
         /// new Engine off-thread and atomically publishes it for processBlock() to pick up.
         bool loadPatch(const patch::Patch& newPatch);
 
+        /// Message-thread only (WavetableStackView's "Load..." button -- the only
+        /// UI anywhere that can assign a wavetable to an operator; everything else
+        /// requires hand-editing a .pw8's wavetableId field). Sets operator
+        /// `opIndex`'s wavetableId to `filePath` and reloads the current patch so
+        /// the file is actually read -- unlike setOrReplaceModRouteLive(), there's
+        /// no live-publish path for this: oscillator::loadWavetableFromFile() only
+        /// ever runs inside Engine::loadPatch() (see that function and
+        /// docs/PATCH_FORMAT.md's "Wavetable Resource Resolution"), so getting a
+        /// newly-picked file into the live engine means going through the same
+        /// full reload as opening a different patch. Returns false if `opIndex` is
+        /// out of range or the file failed to load (see Engine::loadPatch()'s
+        /// return value) -- either way, currentPatch_ still records the requested
+        /// wavetableId, matching loadPatch()'s existing "a bad reference doesn't
+        /// fail the whole patch, that operator just renders silence" contract.
+        bool setOperatorWavetableFile(std::size_t opIndex, const juce::String& filePath);
+
         /// Message-thread only (JUCE guarantees editor construction/paint/resize all
         /// run on the message thread, the same thread every currentPatch_ mutation
         /// already runs on per the class-level threading contract above) -- read-only

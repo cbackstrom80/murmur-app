@@ -260,6 +260,18 @@ what's actually cheap vs. a real project -- full breakdown in
   engine. A `Timer` (not just `showNode()`) drives the switch, since the engine
   can change without a node reselection (a different pill on the same node, or
   a host loading a different patch while this node stays selected).
+- **`WavetableStackView` also owns a "Load..." button** -- the only UI anywhere
+  that can actually assign a wavetable to an operator; previously the sole way
+  in was hand-editing a `.pw8`'s `wavetableId` field, so picking the Wavetable
+  engine on any node without one already baked into the loaded patch was a
+  guaranteed dead end. Opens a native file chooser filtered to `*.json` (an
+  already-built `pw8-wavetable-builder` table, not a raw `.wav` -- see
+  `docs/PATCH_FORMAT.md`'s "Wavetable Resource Resolution"), then calls the new
+  `PatchworkEightProcessor::setOperatorWavetableFile()`, which sets
+  `wavetableId` and reloads the patch (the only way to get a newly-picked file
+  into the live `Engine`, since wavetable loading only happens inside
+  `Engine::loadPatch()`). Build-verified end-to-end against the real
+  Standalone app and the repo's own `content/wavetables/basic_harmonic.json`.
 - **A second instance of UI GATE 4's exact bug, caught while touching this
   file**: `OperatorEditorPanel`'s Wave/Level/Ratio knobs were ALSO flooring out
   at `ObsidianLookAndFeel`'s 16px defensive minimum (its 140px allotment left

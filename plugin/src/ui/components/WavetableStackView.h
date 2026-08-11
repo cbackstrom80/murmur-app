@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
@@ -26,6 +28,17 @@
 // Wired into OperatorEditorPanel: it swaps this view in for the Wave/Ratio
 // knobs when the selected node's engine is Wavetable. See
 // docs/VISUALIZATION_UI_GATE5.md "Integration" for the rationale.
+//
+// Also owns the only UI anywhere that can actually assign a wavetable to an
+// operator: a small "Load..." button, same FileChooser-based pattern as
+// PatchBrowserBar's patch loader. Deliberately scoped to picking an EXISTING
+// pw8-wavetable-builder JSON table (*.json), not importing a raw .wav live --
+// oscillator::loadWavetableFromFile() only ever parses the JSON table format
+// (see engine/src/oscillator/WavetableTableLoader.cpp), and the FFT/mip-
+// generation the builder does for a raw source .wav lives only in that
+// separate offline tool (tools/wavetable_builder), not as a reusable library
+// call the plugin could invoke live. Wiring the builder itself into the
+// message thread is a real follow-up, not blind-implemented here.
 namespace pw8::plugin::ui
 {
     class WavetableStackView : public juce::Component, private juce::Timer
@@ -35,6 +48,7 @@ namespace pw8::plugin::ui
         ~WavetableStackView() override;
 
         void paint(juce::Graphics& g) override;
+        void resized() override;
 
         /// Which algorithm-graph node's wavetable to display -- mirrors
         /// OperatorEditorPanel::showNode() so a caller can wire
@@ -43,9 +57,12 @@ namespace pw8::plugin::ui
 
     private:
         void timerCallback() override;
+        void loadWavetableFromFile();
 
         PatchworkEightProcessor& processor_;
         int selectedNode_ = 0;
+        juce::TextButton loadButton_{"Load..."};
+        std::unique_ptr<juce::FileChooser> fileChooser_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(WavetableStackView)
     };

@@ -27,6 +27,11 @@ namespace pw8::plugin::ui
 
     WavetableStackView::WavetableStackView(PatchworkEightProcessor& processor) : processor_(processor)
     {
+        loadButton_.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
+        loadButton_.setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
+        loadButton_.onClick = [this] { loadWavetableFromFile(); };
+        addAndMakeVisible(loadButton_);
+
         startTimerHz(4); // Table content only changes on patch load / node reselection; slow poll is plenty.
     }
 
@@ -41,9 +46,48 @@ namespace pw8::plugin::ui
         repaint();
     }
 
+    void WavetableStackView::resized()
+    {
+        constexpr int kButtonWidth = 64;
+        constexpr int kButtonHeight = 18;
+        constexpr int kMargin = 4;
+        loadButton_.setBounds(getWidth() - kButtonWidth - kMargin, kMargin, kButtonWidth, kButtonHeight);
+    }
+
     void WavetableStackView::timerCallback()
     {
         repaint(); // Cheap: paint() below reads already-loaded table data, no allocation here.
+    }
+
+    void WavetableStackView::loadWavetableFromFile()
+    {
+        fileChooser_ = std::make_unique<juce::FileChooser>(
+            "Load a wavetable JSON (pw8-wavetable-builder output)...", juce::File(), "*.json");
+        const auto flags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
+
+        // SafePointer, not a raw `this` capture: if the editor closes while this
+        // native dialog is still open (modeless, can sit open indefinitely), the
+        // completion callback would otherwise touch a destroyed component --
+        // exactly the lifetime hazard already present (uncorrected) in
+        // PatchBrowserBar's own file-chooser loader, not repeated here. Also
+        // captures which node the request was FOR, not just `this` -- if the
+        // player reselects a different node while the dialog is still open, the
+        // file they picked should still land on the operator they meant it for.
+        const juce::Component::SafePointer<WavetableStackView> safeThis(this);
+        const int nodeAtRequestTime = selectedNode_;
+        fileChooser_->launchAsync(flags, [safeThis, nodeAtRequestTime](const juce::FileChooser& chooser) {
+            auto* self = safeThis.getComponent();
+            if (self == nullptr)
+                return; // Component (and its editor) closed while the dialog was open.
+
+            const auto file = chooser.getResult();
+            if (!file.existsAsFile())
+                return; // Cancelled -- not an error.
+
+            self->processor_.setOperatorWavetableFile(static_cast<std::size_t>(nodeAtRequestTime),
+                                                        file.getFullPathName());
+            self->repaint();
+        });
     }
 
     void WavetableStackView::paint(juce::Graphics& g)
