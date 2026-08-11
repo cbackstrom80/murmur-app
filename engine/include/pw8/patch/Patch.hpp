@@ -78,6 +78,15 @@ namespace pw8::patch
         bool keyTrack = true;
         float level = 1.0f;
         float pan = 0.0f; ///< reserved for per-operator stereo placement (PLANNED).
+
+        /// Granular engine fields (only meaningful when engine == Granular).
+        /// Deliberately reuses wavetableId/wavetableFramePosition/level above
+        /// rather than duplicating them -- see oscillator::GranularParams for the
+        /// full per-field writeup.
+        float grainDensity = 20.0f;
+        float grainSizeMs = 60.0f;
+        float grainPositionJitter = 0.1f;
+        float grainPitchJitter = 0.0f;
     };
 
     struct LayerPatch

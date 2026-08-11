@@ -119,9 +119,48 @@ shape, with selective oversampling around the nonlinear stages.
 
 ## Engine Type 6 — Granular
 
-**PLANNED** (Phase 10). Architectural commitment made now: fixed-capacity grain
-pool, samples prepared off-thread, zero realtime allocation (see PRIOR_ART.md for
-the Clouds-style grain-pool influence on this decision).
+**IMPLEMENTED**, honoring the architectural commitment this section already made:
+fixed-capacity grain pool (`oscillator::GranularOscillator::kMaxGrains` = 12, a
+plain array member -- allocated once at construction, zero realtime allocation),
+samples prepared off-thread (PRIOR_ART.md's Clouds-style grain-pool influence).
+
+Grains are read from the exact same `WavetableTable` data an operator's
+`wavetableId` already loads (reusing the entire existing table-loading pipeline
+end to end -- no new sample format/loader), treated as one flat, continuous
+sample buffer (`numFrames * samplesPerFrame`) rather than the small per-cycle
+frames the Wavetable engine's phase-based synthesis reads them as. This also
+means `wavetableFramePosition` (a real automatable parameter previously
+Wavetable-engine-only) is reused verbatim as each grain's base read position --
+a deliberate, documented reuse called out in this section's original scope, not
+a duplicate field.
+
+- `grainDensity` (0.5-200 Hz, default 20): grain trigger rate, via the same
+  phase-accumulator retarget-clock technique `noise::NoiseSource`'s Sample &
+  Hold variant uses.
+- `grainSizeMs` (1-500, default 60): per-grain playback duration.
+- `grainPositionJitter` (0..1, default 0.1): random per-grain read-position
+  offset, as a fraction of the whole source buffer's length.
+- `grainPitchJitter` (0..1, default 0): random per-grain pitch (playback-rate)
+  jitter, scaled up to +-12 semitones at 1.0.
+
+Each grain is Hann-windowed and reads through the source with a playback rate
+keyed off the operator's carrier frequency against a fixed C4 "root key" (the
+standard sampler/granular convention for making a grain cloud playable as a
+pitched synth voice, not just an unpitched texture generator). New grains claim
+pool slots round-robin rather than tracking "oldest active" -- simpler
+bookkeeping, and at any sane density/grain-size combination the pool cycles
+faster than any single grain's natural lifetime overlaps meaningfully with
+reuse. Overlapping grains are summed and energy-normalized by
+`1/sqrt(activeGrainCount)` (decorrelated overlapping sources sum roughly as
+sqrt(N) in amplitude, not N), so overall loudness stays roughly independent of
+density rather than scaling up every time more grains happen to overlap.
+
+Measured, not assumed: `tests/dsp/GranularOscillatorTests.cpp` verifies grain
+onset rate tracks `grainDensity` (compared at two different density settings,
+via a threshold-crossing onset counter valid when grain size is kept well under
+the inter-grain period so successive grains don't overlap), plus bounded/finite
+output across the full extreme-parameter matrix, silence with no source table
+loaded, and determinism.
 
 ## Engine Type 7 — Noise / Chaos
 

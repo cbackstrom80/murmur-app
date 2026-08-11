@@ -103,8 +103,20 @@ namespace pw8::plugin::ui
         // for it until this pass (UI GATE 5).
         wavetablePosKnob_ = std::make_unique<GlowKnob>(
             apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "WavetablePos"), "WT Pos");
+        // Engine 6 (Granular) -- see the header doc comment. No UI existed for
+        // these four fields before this pass.
+        grainDensityKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "GrainDensity"), "Density");
+        grainSizeKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "GrainSizeMs"), "Size");
+        grainPosJitterKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "GrainPositionJitter"), "Pos Jit");
+        grainPitchJitterKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "GrainPitchJitter"), "Pitch Jit");
 
-        for (auto* k : {waveformKnob_.get(), levelKnob_.get(), ratioKnob_.get(), wavetablePosKnob_.get()})
+        for (auto* k : {waveformKnob_.get(), levelKnob_.get(), ratioKnob_.get(), wavetablePosKnob_.get(),
+                         grainDensityKnob_.get(), grainSizeKnob_.get(), grainPosJitterKnob_.get(),
+                         grainPitchJitterKnob_.get()})
             panel_.addAndMakeVisible(*k);
     }
 
@@ -113,18 +125,38 @@ namespace pw8::plugin::ui
         const int engine = currentEngineOrdinal();
         lastKnownEngine_ = engine;
         const bool isWavetable = engine == static_cast<int>(algorithm::EngineType::Wavetable);
+        const bool isGranular = engine == static_cast<int>(algorithm::EngineType::Granular);
+        // Granular grains read the same wavetableId-loaded data the Wavetable
+        // engine uses (see op::OperatorPatch's Granular fields doc comment), so
+        // it shares the stack preview + WT Pos (reused as grain base position)
+        // rather than hiding them the way every other non-Wavetable engine does.
+        const bool showsWavetableStack = isWavetable || isGranular;
 
-        // Wave/Ratio aren't meaningful for a Wavetable-engine node (it reads
-        // wavetableFramePosition, not classicWaveform/frequencyRatio) -- swapped
-        // for the stack preview + WT Pos instead. Level applies to every engine.
-        // None of the four knobs' parameter IDs depend on the engine (only on
-        // selectedNode_), so an engine-only change never needs to reconstruct
-        // them -- doing so used to silently abort any in-progress mouse drag on
-        // a knob the instant a host automated the Engine parameter mid-gesture.
-        waveformKnob_->setVisible(!isWavetable);
-        ratioKnob_->setVisible(!isWavetable);
-        wavetablePosKnob_->setVisible(isWavetable);
-        wavetableStackView_.setVisible(isWavetable);
+        // Wave isn't meaningful for a Wavetable- or Granular-engine node (neither
+        // reads classicWaveform the way Classic-family engines do) -- swapped for
+        // the stack preview + WT Pos (+ 4 grain knobs for Granular) instead.
+        // Ratio stays visible for every engine (including these two --
+        // frequencyRatio is read generically by render() before the engine
+        // switch for every engine's carrier pitch computation, including
+        // Granular's root-key-relative playback rate; hiding it would repeat the
+        // same mistake a prior pass made for Wavetable alone, see the ratioKnob_
+        // comment below). Level applies to every engine. None of these knobs'
+        // parameter IDs depend on the engine (only on selectedNode_), so an
+        // engine-only change never needs to reconstruct them -- doing so used to
+        // silently abort any in-progress mouse drag on a knob the instant a host
+        // automated the Engine parameter mid-gesture.
+        waveformKnob_->setVisible(!showsWavetableStack);
+        // frequencyRatio is read generically by render() before the engine switch
+        // for every engine's carrier pitch computation -- always shown, not gated
+        // per-engine (a prior pass hid it for Wavetable, making a real working,
+        // automatable parameter unreachable from the UI; fixed to always show it).
+        ratioKnob_->setVisible(true);
+        wavetablePosKnob_->setVisible(showsWavetableStack);
+        wavetableStackView_.setVisible(showsWavetableStack);
+        grainDensityKnob_->setVisible(isGranular);
+        grainSizeKnob_->setVisible(isGranular);
+        grainPosJitterKnob_->setVisible(isGranular);
+        grainPitchJitterKnob_->setVisible(isGranular);
         levelKnob_->setVisible(true);
 
         resized();
@@ -188,14 +220,44 @@ namespace pw8::plugin::ui
         content.removeFromTop(kPillRowHeight);
         content.removeFromBottom(kNoteHeight);
 
-        if (wavetableStackView_.isVisible())
+        if (wavetableStackView_.isVisible() && grainDensityKnob_ && grainDensityKnob_->isVisible())
         {
-            auto stackArea = content.removeFromLeft(static_cast<int>(static_cast<float>(content.getWidth()) * 0.62f));
+            // Granular: the stack shrinks further than the plain Wavetable case
+            // (0.40 vs 0.55) to make room for level/ratio/wtPos + 4 grain knobs
+            // (7-way split) in the remaining strip.
+            auto stackArea = content.removeFromLeft(static_cast<int>(static_cast<float>(content.getWidth()) * 0.40f));
             wavetableStackView_.setBounds(stackArea.reduced(3));
 
-            const int knobWidth = content.getWidth() / 2;
+            const int knobWidth = content.getWidth() / 7;
             if (levelKnob_)
                 levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (ratioKnob_)
+                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (wavetablePosKnob_)
+                wavetablePosKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (grainDensityKnob_)
+                grainDensityKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (grainSizeKnob_)
+                grainSizeKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (grainPosJitterKnob_)
+                grainPosJitterKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (grainPitchJitterKnob_)
+                grainPitchJitterKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+        }
+        else if (wavetableStackView_.isVisible())
+        {
+            // Narrower than the other branches' full-width knob row (0.55 vs the
+            // stack getting the rest) -- ratioKnob_ joining this row (now shown for
+            // every engine, see updateEngineVisibility()) needs a 3-way split here
+            // too, not just 2.
+            auto stackArea = content.removeFromLeft(static_cast<int>(static_cast<float>(content.getWidth()) * 0.55f));
+            wavetableStackView_.setBounds(stackArea.reduced(3));
+
+            const int knobWidth = content.getWidth() / 3;
+            if (levelKnob_)
+                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (ratioKnob_)
+                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
             if (wavetablePosKnob_)
                 wavetablePosKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
         }

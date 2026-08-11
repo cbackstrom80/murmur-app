@@ -84,7 +84,10 @@ namespace pw8::voice
             const auto seed = dsp::DeterministicRng::deriveSeed(voiceSeed, id, voiceSeed ^ noteGenerationId);
             dsp::DeterministicRng rng(seed);
             for (auto& s : operatorStates)
+            {
                 s.reset(rng.nextFloat());
+                s.seedGranular(rng.nextU64());
+            }
 
             for (std::size_t i = 0; i < core::kNumEnvelopesPerLayer; ++i)
                 envelopes[i].noteOn(envParams[i]);

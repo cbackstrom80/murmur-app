@@ -29,6 +29,10 @@ namespace pw8::render
         out.fixedFrequencyHz = p.fixedFrequencyHz;
         out.keyTrack = p.keyTrack;
         out.level = p.level;
+        out.grainDensity = p.grainDensity;
+        out.grainSizeMs = p.grainSizeMs;
+        out.grainPositionJitter = p.grainPositionJitter;
+        out.grainPitchJitter = p.grainPitchJitter;
         return out;
     }
 
