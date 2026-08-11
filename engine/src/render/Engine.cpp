@@ -29,6 +29,10 @@ namespace pw8::render
         out.fixedFrequencyHz = p.fixedFrequencyHz;
         out.keyTrack = p.keyTrack;
         out.level = p.level;
+        out.fmModulatorRatio = p.fmModulatorRatio;
+        out.fmModulatorIndex = p.fmModulatorIndex;
+        out.fmModulatorFeedback = p.fmModulatorFeedback;
+        out.fmModulatorWaveform = p.fmModulatorWaveform;
         return out;
     }
 

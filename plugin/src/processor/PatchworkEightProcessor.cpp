@@ -192,6 +192,10 @@ namespace pw8::plugin
             params.fixedFrequencyHz = loadF(ptrs[6]);
             params.keyTrack = loadB(ptrs[7]);
             params.level = loadF(ptrs[8]);
+            params.fmModulatorRatio = loadF(ptrs[9]);
+            params.fmModulatorIndex = loadF(ptrs[10]);
+            params.fmModulatorFeedback = loadF(ptrs[11]);
+            params.fmModulatorWaveform = static_cast<oscillator::ClassicWaveform>(loadI(ptrs[12]));
             engine.setOperatorLive(op, params);
         }
 
@@ -515,6 +519,8 @@ namespace pw8::plugin
                 o.wavetableFramePosition,           o.frequencyRatio,
                 o.fixedFrequencyHz,                 o.keyTrack ? 1.0f : 0.0f,
                 o.level,
+                o.fmModulatorRatio,                 o.fmModulatorIndex,
+                o.fmModulatorFeedback,               static_cast<float>(o.fmModulatorWaveform),
             };
             for (std::size_t i = 0; i < kNumOperatorFields; ++i)
                 setParam(operatorParamId(op, kOperatorFieldSpecs[i].idSuffix), opValues[i]);
@@ -611,6 +617,10 @@ namespace pw8::plugin
             o.fixedFrequencyHz = loadF(ptrs[6]);
             o.keyTrack = loadB(ptrs[7]);
             o.level = loadF(ptrs[8]);
+            o.fmModulatorRatio = loadF(ptrs[9]);
+            o.fmModulatorIndex = loadF(ptrs[10]);
+            o.fmModulatorFeedback = loadF(ptrs[11]);
+            o.fmModulatorWaveform = static_cast<oscillator::ClassicWaveform>(loadI(ptrs[12]));
         }
 
         for (std::size_t envIdx = 0; envIdx < kNumEnvelopes; ++envIdx)

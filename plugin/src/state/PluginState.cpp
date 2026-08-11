@@ -6,17 +6,22 @@ namespace pw8::plugin
 
     // Matches op::OperatorParams: engine, classic.waveform, classic.morph,
     // classic.pulseWidth, wavetableFramePosition, frequencyRatio, fixedFrequencyHz,
-    // keyTrack, level.
+    // keyTrack, level, fmModulatorRatio, fmModulatorIndex, fmModulatorFeedback,
+    // fmModulatorWaveform.
     const std::array<ParamFieldSpec, kNumOperatorFields> kOperatorFieldSpecs = {{
-        {"Engine",       "Engine",        0.0f,   7.0f, 0.0f,   true},
-        {"Waveform",     "Waveform",      0.0f,   3.0f, 2.0f,   true},
-        {"Morph",        "Morph",        -1.0f,   1.0f, -1.0f,  false},
-        {"PulseWidth",   "Pulse Width",   0.01f,  0.99f, 0.5f,  false},
-        {"WavetablePos", "Wavetable Pos", 0.0f,   1.0f, 0.0f,   false},
-        {"FreqRatio",    "Freq Ratio",    0.001f, 128.0f, 1.0f, false},
-        {"FixedHz",      "Fixed Hz",      0.01f,  24000.0f, 440.0f, false},
-        {"KeyTrack",     "Key Track",     0.0f,   1.0f, 1.0f,   true},
-        {"Level",        "Level",         0.0f,   4.0f, 1.0f,   false},
+        {"Engine",             "Engine",             0.0f,   7.0f, 0.0f,   true},
+        {"Waveform",           "Waveform",           0.0f,   3.0f, 2.0f,   true},
+        {"Morph",               "Morph",             -1.0f,   1.0f, -1.0f,  false},
+        {"PulseWidth",         "Pulse Width",         0.01f,  0.99f, 0.5f,  false},
+        {"WavetablePos",       "Wavetable Pos",       0.0f,   1.0f, 0.0f,   false},
+        {"FreqRatio",          "Freq Ratio",          0.001f, 128.0f, 1.0f, false},
+        {"FixedHz",            "Fixed Hz",            0.01f,  24000.0f, 440.0f, false},
+        {"KeyTrack",           "Key Track",           0.0f,   1.0f, 1.0f,   true},
+        {"Level",              "Level",               0.0f,   4.0f, 1.0f,   false},
+        {"FmModulatorRatio",   "FM Mod Ratio",        0.001f, 32.0f, 1.0f,  false},
+        {"FmModulatorIndex",   "FM Mod Index",        0.0f,   2.0f, 0.5f,   false},
+        {"FmModulatorFeedback","FM Mod Feedback",     0.0f,   1.0f, 0.0f,   false},
+        {"FmModulatorWaveform","FM Mod Waveform",     0.0f,   3.0f, 0.0f,   true},
     }};
 
     // Matches filter::FilterParams: enabled, mode, cutoffHz, resonance, keyTrack.

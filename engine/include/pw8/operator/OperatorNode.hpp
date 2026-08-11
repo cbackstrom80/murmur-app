@@ -1,6 +1,9 @@
 #pragma once
 
+#include <cmath>
+
 #include "pw8/algorithm/AlgorithmTypes.hpp"
+#include "pw8/dsp/Math.hpp"
 #include "pw8/oscillator/ClassicOscillator.hpp"
 #include "pw8/oscillator/WavetableOscillator.hpp"
 #include "pw8/oscillator/WavetableTable.hpp"
@@ -28,18 +31,35 @@ namespace pw8::op
         /// Output level of this node before it's summed into any output bus or consumed
         /// by AUDIO edges downstream.
         float level = 1.0f;
+
+        // Engine Type 3 (FM/PM) only -- a self-contained 2-operator FM voice inside
+        // this one node, distinct from the graph-level PM/FM edges (which modulate
+        // BETWEEN separate nodes). Carrier reuses `classic` above; these describe the
+        // internal modulator.
+        float fmModulatorRatio = 1.0f;      ///< Modulator frequency / carrier frequency.
+        float fmModulatorIndex = 0.5f;      ///< Modulation depth, in the same "cycles"
+                                              ///< units AlgorithmExecutor's PhaseMod edges
+                                              ///< already use (finalOut * amount) -- not
+                                              ///< radians, so an index of 1.0 here reads
+                                              ///< the same as a graph-level PM edge amount
+                                              ///< of 1.0 would.
+        float fmModulatorFeedback = 0.0f;   ///< 0..1, modulator self-feedback depth.
+        oscillator::ClassicWaveform fmModulatorWaveform = oscillator::ClassicWaveform::Sine;
     };
 
     struct OperatorState
     {
         oscillator::ClassicOscillator classicOsc;
         oscillator::WavetableOscillator waveOsc;
+        oscillator::ClassicOscillator fmModulatorOsc; ///< Engine Type 3 (FM/PM) only.
+        float fmModulatorLastOutput = 0.0f;            ///< For the modulator's own self-feedback.
         float lastOutput = 0.0f; ///< previous-sample output, used by Feedback edges.
 
         void prepare(double sampleRate) noexcept
         {
             classicOsc.prepare(sampleRate);
             waveOsc.prepare(sampleRate);
+            fmModulatorOsc.prepare(sampleRate);
             sampleRate_ = sampleRate;
         }
 
@@ -47,6 +67,8 @@ namespace pw8::op
         {
             classicOsc.reset(initialPhase);
             waveOsc.reset(initialPhase);
+            fmModulatorOsc.reset(initialPhase);
+            fmModulatorLastOutput = 0.0f;
             lastOutput = 0.0f;
         }
 
@@ -82,7 +104,38 @@ namespace pw8::op
                     break;
                 }
 
-                // Engine types 3-8 (FM/PM, Additive, Phase/Shape, Granular, Noise, Resonator)
+                case algorithm::EngineType::FmPm:
+                {
+                    // Self-contained 2-operator FM/PM voice in one node -- distinct from
+                    // the graph-level PM/FM edges (which modulate BETWEEN separate
+                    // nodes). Carrier reuses params.classic; the modulator is a second
+                    // internal oscillator phase-modulating it.
+                    const float modulatorHz = carrierHz * params.fmModulatorRatio;
+                    fmModulatorOsc.setFrequency(modulatorHz);
+
+                    // One-sample-delayed self-feedback, soft-saturated -- the exact same
+                    // technique AlgorithmExecutor.hpp's Feedback edges already use
+                    // (std::tanh(prev * amount), flushIfNotFinite), applied here to the
+                    // modulator instead of a whole graph edge.
+                    const float feedbackPhaseMod =
+                        dsp::flushIfNotFinite(std::tanh(fmModulatorLastOutput * params.fmModulatorFeedback));
+
+                    oscillator::ClassicOscillatorParams modulatorParams;
+                    modulatorParams.waveform = params.fmModulatorWaveform;
+                    const float modulatorOut = fmModulatorOsc.renderSample(modulatorParams, feedbackPhaseMod);
+                    fmModulatorLastOutput = modulatorOut;
+
+                    // Modulator output phase-modulates the carrier. Same units/convention
+                    // as a graph-level PhaseMod edge (finalOut * amount, in cycles) -- see
+                    // OperatorParams::fmModulatorIndex's doc comment.
+                    const float phaseModFromModulator = modulatorOut * params.fmModulatorIndex;
+
+                    classicOsc.setFrequency(carrierHz);
+                    out = classicOsc.renderSample(params.classic, phaseMod + phaseModFromModulator);
+                    break;
+                }
+
+                // Engine types 4-8 (Additive, Phase/Shape, Granular, Noise, Resonator)
                 // are architected (see algorithm::EngineType, docs/ROADMAP.md Phase 10) but not
                 // yet implemented -- they intentionally render silence rather than guess.
                 default:
