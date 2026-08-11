@@ -111,6 +111,10 @@ namespace pw8::patch
                 {"keyTrack", o.keyTrack},
                 {"level", o.level},
                 {"pan", o.pan},
+                {"additivePartialCount", o.additivePartialCount},
+                {"additiveTilt", o.additiveTilt},
+                {"additiveOddEven", o.additiveOddEven},
+                {"additiveStretch", o.additiveStretch},
             };
         }
 
@@ -127,6 +131,10 @@ namespace pw8::patch
             o.keyTrack = j.value("keyTrack", true);
             o.level = clampNum(j.value("level", 1.0f), 0.0f, 4.0f);
             o.pan = clampNum(j.value("pan", 0.0f), -1.0f, 1.0f);
+            o.additivePartialCount = clampNum(j.value("additivePartialCount", 32.0f), 1.0f, 64.0f);
+            o.additiveTilt = clampNum(j.value("additiveTilt", 0.0f), -1.0f, 1.0f);
+            o.additiveOddEven = clampNum(j.value("additiveOddEven", 0.5f), 0.0f, 1.0f);
+            o.additiveStretch = clampNum(j.value("additiveStretch", 0.0f), -1.0f, 1.0f);
         }
 
         void toJson(json& j, const UnisonSettings& u)

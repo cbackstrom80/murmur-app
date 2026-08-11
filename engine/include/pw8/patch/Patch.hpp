@@ -78,6 +78,13 @@ namespace pw8::patch
         bool keyTrack = true;
         float level = 1.0f;
         float pan = 0.0f; ///< reserved for per-operator stereo placement (PLANNED).
+
+        /// Additive engine fields (only meaningful when engine == Additive).
+        /// See oscillator::AdditiveParams for the full per-field writeup.
+        float additivePartialCount = 32.0f;
+        float additiveTilt = 0.0f;
+        float additiveOddEven = 0.5f;
+        float additiveStretch = 0.0f;
     };
 
     struct LayerPatch

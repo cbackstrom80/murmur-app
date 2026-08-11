@@ -107,10 +107,40 @@ tested (`tests/unit/AlgorithmGraphCompilerTests.cpp`,
 
 ## Engine Type 4 — Additive
 
-**PLANNED** (Phase 10). Target: 64-128 partials via a vectorized oscillator-bank
-design (not independent oscillator objects per partial). Controls to implement:
-harmonic tilt, odd/even, stretch, inharmonicity, formant, spectral blur, partial
-randomization.
+**IMPLEMENTED** (v1 scope: 64 partials, tilt/odd-even/stretch -- formant,
+spectral blur, and partial randomization explicitly deferred, not silently
+dropped). `oscillator::AdditiveOscillator` (`pw8/oscillator/AdditiveOscillator.hpp`)
+is the vectorized oscillator-bank design this section targeted: each of up to 64
+partials is a **coupled-form recursive oscillator** (`x[n+1] = x*cosT - y*sinT;
+y[n+1] = x*sinT + y*cosT`) -- O(1) per-sample update (4 mults, 2 adds), no
+`sin()`/`cos()` call in the inner render loop for the common "held note, no
+active pitch modulation" case. Rotation coefficients and per-partial amplitude
+weights are cached and recomputed only when the inputs that determine them
+actually change (carrier frequency/stretch for the former, tilt/odd-even/count
+for the latter) -- recomputing unconditionally every sample would mean up to
+128 transcendental calls/sample per operator and defeat the point of the
+technique.
+
+- `additivePartialCount` (1-64, default 32): how many partial slots are active.
+- `additiveTilt` (-1..1, default 0): spectral falloff -- 0 is a natural 1/n
+  (sawtooth-like) falloff, -1 is equal-amplitude (organ-like), +1 is a steeper
+  1/n^2 falloff (darker).
+- `additiveOddEven` (0..1, default 0.5): 0 = odd harmonics only (clarinet-like),
+  1 = full harmonic series; even harmonics fade in linearly with this value.
+- `additiveStretch` (-1..1, default 0): piano-string-style inharmonicity,
+  `f_n = n * f0 * sqrt(1 + B*n^2)` with B swept by this value.
+
+Coupled-form recursion accumulates floating-point error over a long held note
+(a well-known property of the technique) -- periodically renormalized (every
+512 samples, rescaling each active partial's `(x,y)` back to unit magnitude)
+to stay bounded indefinitely. Measured, not assumed:
+`tests/dsp/AdditiveOscillatorTests.cpp` runs a full 10-second hold at the
+maximum 64 partials verifying bounded/finite output throughout, FFT-verifies
+`additiveOddEven=0` measurably suppresses even-harmonic energy vs.
+`additiveOddEven=1`, that positive `additiveTilt` measurably attenuates upper
+harmonics relative to the fundamental, and that positive `additiveStretch`
+measurably shifts an upper partial's actual spectral peak away from its
+nominal harmonic frequency.
 
 ## Engine Type 5 — Phase / Shape
 

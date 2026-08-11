@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pw8/algorithm/AlgorithmTypes.hpp"
+#include "pw8/oscillator/AdditiveOscillator.hpp"
 #include "pw8/oscillator/ClassicOscillator.hpp"
 #include "pw8/oscillator/WavetableOscillator.hpp"
 #include "pw8/oscillator/WavetableTable.hpp"
@@ -28,18 +29,29 @@ namespace pw8::op
         /// Output level of this node before it's summed into any output bus or consumed
         /// by AUDIO edges downstream.
         float level = 1.0f;
+
+        /// Additive engine fields -- see oscillator::AdditiveParams for the full
+        /// per-field writeup. additivePartialCount is stored as a float (rounded to
+        /// int at the render() call site), matching every other discrete field's
+        /// automation-friendly flat-struct convention.
+        float additivePartialCount = 32.0f;
+        float additiveTilt = 0.0f;
+        float additiveOddEven = 0.5f;
+        float additiveStretch = 0.0f;
     };
 
     struct OperatorState
     {
         oscillator::ClassicOscillator classicOsc;
         oscillator::WavetableOscillator waveOsc;
+        oscillator::AdditiveOscillator additiveOsc;
         float lastOutput = 0.0f; ///< previous-sample output, used by Feedback edges.
 
         void prepare(double sampleRate) noexcept
         {
             classicOsc.prepare(sampleRate);
             waveOsc.prepare(sampleRate);
+            additiveOsc.prepare(sampleRate);
             sampleRate_ = sampleRate;
         }
 
@@ -47,6 +59,7 @@ namespace pw8::op
         {
             classicOsc.reset(initialPhase);
             waveOsc.reset(initialPhase);
+            additiveOsc.reset(initialPhase);
             lastOutput = 0.0f;
         }
 
@@ -82,8 +95,20 @@ namespace pw8::op
                     break;
                 }
 
-                // Engine types 3-8 (FM/PM, Additive, Phase/Shape, Granular, Noise, Resonator)
-                // are architected (see algorithm::EngineType, docs/ROADMAP.md Phase 10) but not
+                case algorithm::EngineType::Additive:
+                {
+                    additiveOsc.setFrequency(carrierHz);
+                    oscillator::AdditiveParams additiveParams;
+                    additiveParams.partialCount = static_cast<int>(params.additivePartialCount + 0.5f);
+                    additiveParams.tilt = params.additiveTilt;
+                    additiveParams.oddEven = params.additiveOddEven;
+                    additiveParams.stretch = params.additiveStretch;
+                    out = additiveOsc.renderSample(additiveParams, phaseMod);
+                    break;
+                }
+
+                // Engine types 3, 6, 7, 8 (FM/PM, Granular, Noise, Resonator) are
+                // architected (see algorithm::EngineType, docs/ROADMAP.md Phase 10) but not
                 // yet implemented -- they intentionally render silence rather than guess.
                 default:
                     out = 0.0f;

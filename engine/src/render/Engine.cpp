@@ -29,6 +29,10 @@ namespace pw8::render
         out.fixedFrequencyHz = p.fixedFrequencyHz;
         out.keyTrack = p.keyTrack;
         out.level = p.level;
+        out.additivePartialCount = p.additivePartialCount;
+        out.additiveTilt = p.additiveTilt;
+        out.additiveOddEven = p.additiveOddEven;
+        out.additiveStretch = p.additiveStretch;
         return out;
     }
 

@@ -103,8 +103,20 @@ namespace pw8::plugin::ui
         // for it until this pass (UI GATE 5).
         wavetablePosKnob_ = std::make_unique<GlowKnob>(
             apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "WavetablePos"), "WT Pos");
+        // Engine 4 (Additive) -- see the header doc comment. No UI existed for
+        // these four fields before this pass.
+        additivePartialsKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "AdditivePartialCount"), "Partials");
+        additiveTiltKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "AdditiveTilt"), "Tilt");
+        additiveOddEvenKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "AdditiveOddEven"), "Odd/Even");
+        additiveStretchKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "AdditiveStretch"), "Stretch");
 
-        for (auto* k : {waveformKnob_.get(), levelKnob_.get(), ratioKnob_.get(), wavetablePosKnob_.get()})
+        for (auto* k : {waveformKnob_.get(), levelKnob_.get(), ratioKnob_.get(), wavetablePosKnob_.get(),
+                         additivePartialsKnob_.get(), additiveTiltKnob_.get(), additiveOddEvenKnob_.get(),
+                         additiveStretchKnob_.get()})
             panel_.addAndMakeVisible(*k);
     }
 
@@ -113,18 +125,31 @@ namespace pw8::plugin::ui
         const int engine = currentEngineOrdinal();
         lastKnownEngine_ = engine;
         const bool isWavetable = engine == static_cast<int>(algorithm::EngineType::Wavetable);
+        const bool isAdditive = engine == static_cast<int>(algorithm::EngineType::Additive);
 
-        // Wave/Ratio aren't meaningful for a Wavetable-engine node (it reads
-        // wavetableFramePosition, not classicWaveform/frequencyRatio) -- swapped
-        // for the stack preview + WT Pos instead. Level applies to every engine.
-        // None of the four knobs' parameter IDs depend on the engine (only on
+        // Wave isn't meaningful for a Wavetable- or Additive-engine node (neither
+        // reads classicWaveform) -- swapped for the stack preview+WT Pos or the 4
+        // additive knobs instead. Ratio stays visible for every engine (including
+        // Additive -- carrierHz still comes from the generic keyTrack/frequencyRatio
+        // computation in render() even though Additive reads its own oscillator;
+        // hiding it would repeat the same mistake the Wavetable branch used to
+        // make, see the ratioKnob_ comment below). Level applies to every engine.
+        // None of these knobs' parameter IDs depend on the engine (only on
         // selectedNode_), so an engine-only change never needs to reconstruct
         // them -- doing so used to silently abort any in-progress mouse drag on
         // a knob the instant a host automated the Engine parameter mid-gesture.
-        waveformKnob_->setVisible(!isWavetable);
-        ratioKnob_->setVisible(!isWavetable);
+        waveformKnob_->setVisible(!isWavetable && !isAdditive);
+        // frequencyRatio is read generically by render() before the engine switch
+        // for every engine's carrier pitch computation -- always shown, not gated
+        // per-engine (a prior pass hid it for Wavetable, making a real working,
+        // automatable parameter unreachable from the UI; fixed to always show it).
+        ratioKnob_->setVisible(true);
         wavetablePosKnob_->setVisible(isWavetable);
         wavetableStackView_.setVisible(isWavetable);
+        additivePartialsKnob_->setVisible(isAdditive);
+        additiveTiltKnob_->setVisible(isAdditive);
+        additiveOddEvenKnob_->setVisible(isAdditive);
+        additiveStretchKnob_->setVisible(isAdditive);
         levelKnob_->setVisible(true);
 
         resized();
@@ -190,14 +215,36 @@ namespace pw8::plugin::ui
 
         if (wavetableStackView_.isVisible())
         {
-            auto stackArea = content.removeFromLeft(static_cast<int>(static_cast<float>(content.getWidth()) * 0.62f));
+            // Narrower than the other branches' full-width knob row (0.55 vs the
+            // stack getting the rest) -- ratioKnob_ joining this row (now shown for
+            // every engine, see updateEngineVisibility()) needs a 3-way split here
+            // too, not just 2.
+            auto stackArea = content.removeFromLeft(static_cast<int>(static_cast<float>(content.getWidth()) * 0.55f));
             wavetableStackView_.setBounds(stackArea.reduced(3));
 
-            const int knobWidth = content.getWidth() / 2;
+            const int knobWidth = content.getWidth() / 3;
             if (levelKnob_)
                 levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (ratioKnob_)
+                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
             if (wavetablePosKnob_)
                 wavetablePosKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+        }
+        else if (additivePartialsKnob_ && additivePartialsKnob_->isVisible())
+        {
+            const int knobWidth = content.getWidth() / 6;
+            if (ratioKnob_)
+                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (levelKnob_)
+                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (additivePartialsKnob_)
+                additivePartialsKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (additiveTiltKnob_)
+                additiveTiltKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (additiveOddEvenKnob_)
+                additiveOddEvenKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (additiveStretchKnob_)
+                additiveStretchKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
         }
         else
         {
