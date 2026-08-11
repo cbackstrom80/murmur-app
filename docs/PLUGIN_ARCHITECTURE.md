@@ -242,6 +242,12 @@ represent (structural, not literal audio-level metering).
 
 ## Visualization: spectrum, oscilloscope, waveform/wavetable previews (PLANNED)
 
+**Update:** the wavetable-preview third of this section shipped as
+`WavetableStackView` -- see `docs/VISUALIZATION_UI_GATE5.md` for what's built
+(not yet wired into `PlayModeEditor`) versus what's still a spec (spectrum,
+oscilloscope -- both need the audio-thread tap this section originally
+described, which still doesn't exist).
+
 Researched and architected at the user's request; **not implemented** -- this is
 the same documentation-only treatment as `docs/GPU_ACCELERATION_RESEARCH.md`, and
 the two documents are deliberately about two *different* uses of "GPU" that

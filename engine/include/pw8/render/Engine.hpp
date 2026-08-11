@@ -139,6 +139,20 @@ namespace pw8::render
         void setLayerGainLive(float gain) noexcept;
         [[nodiscard]] float getLayerGain() const noexcept { return patch_.layerA.gain; }
 
+        /// Read-only access to node `opIndex`'s currently-loaded wavetable content
+        /// (nullptr if that operator isn't Wavetable-engine, has no `wavetableId` set,
+        /// or the referenced file failed to load -- see loadPatch()'s wavetable-loading
+        /// comment). For UI display only (e.g. a frame-stack preview) -- never touched
+        /// by the audio thread through this accessor; `Voice`/`WavetableOscillator`
+        /// read `wavetableTablesA_` directly on the audio thread via their own path.
+        /// Same message-thread-safety tolerance as every other getter above: a plain
+        /// pointer read that can race a concurrent loadPatch() write, accepted the same
+        /// way the rest of this API already accepts it.
+        [[nodiscard]] const oscillator::WavetableTable* getWavetableTable(std::size_t opIndex) const noexcept
+        {
+            return opIndex < core::kNodesPerLayer ? wavetableTablesA_[opIndex] : nullptr;
+        }
+
         void setLayerPanLive(float pan) noexcept;
         [[nodiscard]] float getLayerPan() const noexcept { return patch_.layerA.pan; }
 

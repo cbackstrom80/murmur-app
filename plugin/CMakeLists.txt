@@ -56,6 +56,7 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/PatchBrowserBar.cpp
     src/ui/components/ModSourceChip.cpp
     src/ui/components/ModSourceStrip.cpp
+    src/ui/components/WavetableStackView.cpp
 )
 
 target_include_directories(pw8_plugin PRIVATE src)

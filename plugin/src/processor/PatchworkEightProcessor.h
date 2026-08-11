@@ -91,6 +91,23 @@ namespace pw8::plugin
         void removeModRouteLive(modulation::ModSource source, modulation::ModDestination destination,
                                  std::uint8_t targetIndex);
 
+        /// Message-thread only (a UI-thread poll, same pattern as every other
+        /// GATE-3/UI_GATE-4 timer-driven read of live engine state). Reads node
+        /// `opIndex`'s currently-loaded wavetable table through the SAME atomic
+        /// `activeEngine_` pointer processBlock() reads -- safe for a second, non-
+        /// audio, reader here specifically because `publishEngine()`'s double-buffer
+        /// only ever destroys the *previous* Engine on the NEXT publishEngine() call,
+        /// and that call is itself message-thread-only, so it's sequenced against
+        /// this read on the same thread; the audio thread never destroys anything.
+        /// Returns nullptr if no Engine has been published yet, or per
+        /// Engine::getWavetableTable()'s own nullptr cases (no wavetable loaded for
+        /// that node). Never call this from processBlock().
+        [[nodiscard]] const oscillator::WavetableTable* getActiveWavetableTable(std::size_t opIndex) const noexcept
+        {
+            const auto* engine = activeEngine_.load(std::memory_order_acquire);
+            return engine != nullptr ? engine->getWavetableTable(opIndex) : nullptr;
+        }
+
         /// The 361 host-automatable parameters (docs/PLUGIN_ARCHITECTURE.md
         /// "Automation"). Public so createEditor()/tests can reach it; processBlock()
         /// reads it via the cached raw-value pointers below, never through this
