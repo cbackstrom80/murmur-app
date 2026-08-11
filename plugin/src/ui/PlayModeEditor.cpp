@@ -30,11 +30,14 @@ namespace pw8::plugin::ui
         setResizable(false, false);
         // +160 over the original 890 for OperatorEditorPanel's fixed allotment
         // inside the graph card, +80 more for ModSourceStrip's connections list
-        // (UI GATE 3) -- both times growing the window rather than squeezing the
-        // circle layout back down toward kNodeRadius, the exact "negative/
-        // undersized geometry" failure mode UI GATE 1 already found once via lldb
-        // (docs/UI.md).
-        setSize(980, 1130);
+        // (UI GATE 3), +48 more (UI GATE 4) so FxChainStrip's 7 slots -- each
+        // paying a 24px type-label tax on top of its knob, unlike every other
+        // strip's knobs -- stop flooring out at ObsidianLookAndFeel's 16px
+        // defensive-minimum diameter. Every one of these, growing the window
+        // rather than squeezing a control back down toward illegibility, the
+        // exact "negative/undersized geometry" failure mode UI GATE 1 already
+        // found once via lldb (docs/UI.md).
+        setSize(980, 1178);
     }
 
     PlayModeEditor::~PlayModeEditor()
@@ -95,7 +98,11 @@ namespace pw8::plugin::ui
         // slider's derived radii went negative, which juce::Graphics's own debug
         // assertions caught as a malformed fillEllipse call). The algorithm graph,
         // as the centerpiece, gets whatever's left rather than a fixed share.
-        auto fxArea = bounds.removeFromBottom(120);
+        // FxChainStrip pays a 24px type-label tax per slot on top of its knob
+        // (unlike MacroStrip's plain knob row), so it needs more height than the
+        // other utility strips to land its knob at a comparable, legible size --
+        // see the UI GATE 4 note above `setSize()`.
+        auto fxArea = bounds.removeFromBottom(168);
         bounds.removeFromBottom(8);
         auto macroArea = bounds.removeFromBottom(120);
         bounds.removeFromBottom(8);

@@ -89,6 +89,33 @@ jobs:
           killall -9 AudioComponentRegistrar || true
           auval -v aumu Pwe8 Pwei
 
+      - name: Install pluginval
+        run: brew install --cask pluginval
+
+      - name: Validate VST3 + AU with pluginval (strictness 5)
+        run: |
+          set -e
+          VST3="build/plugin/plugin/pw8_plugin_artefacts/Debug/VST3/Patchwork Eight.vst3"
+          AU="build/plugin/plugin/pw8_plugin_artefacts/Debug/AU/Patchwork Eight.component"
+          pluginval --strictness-level 5 --validate "$VST3"
+          pluginval --strictness-level 5 --validate "$AU"
+
+  # VST3/Standalone-only: AU is Apple-only (JUCE skips it outside FORMATS on this
+  # platform), and auval/pluginval aren't part of this job -- this is purely a
+  # cross-platform compile check, see docs/NEXT_STEPS.md "P0".
+  plugin-windows:
+    name: Plugin build (windows-latest)
+    runs-on: windows-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake --preset plugin
+
+      - name: Build
+        run: cmake --build --preset plugin -j --config Debug
+
   python-bindings:
     name: Python bindings build + smoke test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
