@@ -30,6 +30,10 @@ __pycache__/
 *.component
 *.app
 
+# scripts/package_macos.sh output (local installer builds, not for commit)
+dist/
+*.pkg
+
 # Local scratch
 *.wav
 !content/**/*.wav
