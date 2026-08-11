@@ -36,14 +36,17 @@ namespace pw8::plugin::ui
         // defensive-minimum diameter, +50 more (UI GATE 5) for the identical
         // failure mode in OperatorEditorPanel's Wave/Level/Ratio knobs (and so
         // the new WavetableStackView, swapped in for Wave/Ratio on a Wavetable-
-        // engine node, isn't a squashed sliver). These two deltas are
-        // independent -- different strips, different lines in resized() below
-        // (fxArea vs. opEditorArea) -- so they simply add: 1130 + 48 + 50.
+        // engine node, isn't a squashed sliver), +130 more (UI GATE 6) so
+        // WavetableStackView's perspective wireframe mesh has real vertical
+        // room -- the old ~554x88 allotment was fine for flat "deck of cards"
+        // ribbons but far too short for anything reading as 3D depth. These
+        // deltas are each independent -- different strips/lines in resized()
+        // below -- so they simply add: 1130 + 48 + 50 + 130.
         // Every one of these, growing the window rather than squeezing a
         // control back down toward illegibility, the exact "negative/
         // undersized geometry" failure mode UI GATE 1 already found once via
         // lldb (docs/UI.md).
-        setSize(980, 1228);
+        setSize(980, 1358);
     }
 
     PlayModeEditor::~PlayModeEditor()
@@ -119,11 +122,11 @@ namespace pw8::plugin::ui
 
         graphPanel_.setBounds(bounds);
         auto graphContent = graphPanel_.getContentBounds();
-        // 190, not the original 140 -- see the UI GATE 5 note above `setSize()`.
-        // The +50 here is exactly offset by setSize()'s own +50, so graphView_'s
-        // height below is unchanged from before this pass (the circle doesn't
-        // shrink to make room).
-        auto opEditorArea = graphContent.removeFromBottom(190);
+        // 320, not UI GATE 5's 190 -- see the UI GATE 6 note above `setSize()`.
+        // The +130 here is exactly offset by setSize()'s own +130, so
+        // graphView_'s height below is unchanged from before this pass (the
+        // circle doesn't shrink to make room).
+        auto opEditorArea = graphContent.removeFromBottom(320);
         graphContent.removeFromBottom(8);
         graphView_.setBounds(graphContent);
         operatorEditorPanel_.setBounds(opEditorArea);

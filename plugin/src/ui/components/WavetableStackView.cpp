@@ -1,7 +1,9 @@
 #include "WavetableStackView.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <limits>
 
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
@@ -12,17 +14,41 @@ namespace pw8::plugin::ui
 {
     namespace
     {
-        // Cap how many frames get their own ribbon -- a 64-frame morph table drawn
-        // as 64 stacked cards would just be visual noise at this component's size;
-        // beyond this cap, evenly-spaced samples across the table stand in for the
-        // full set (still an honest depiction of the table's actual shape, just not
-        // literally one path per frame).
-        constexpr int kMaxDrawnFrames = 6;
-        // Points per ribbon -- enough to read the waveform's real shape without
-        // painting a path per sample (a 2048-sample frame doesn't need 2048 path
-        // points to look identical at this pixel scale).
-        constexpr int kPointsPerRibbon = 56;
-        constexpr float kSkewFactor = -0.32f; // Isometric-ish shear, matches the HTML reference mockup.
+        // Mesh density -- rows drawn regardless of the table's real frame
+        // count; extras are honest interpolation, see the header doc comment.
+        // Lower than the Python prototype's 26: that was tuned against a
+        // ~680x500 canvas, but this component's real bounds land closer to
+        // 554x176 (a much shorter aspect -- OperatorEditorPanel's Wavetable
+        // slot is wide, not tall). At the prototype's row count in this
+        // little vertical room, 26 rows land under 3px apart and visually
+        // mush together instead of reading as distinct mesh lines; fewer,
+        // more widely-separated rows read far better at this actual size.
+        constexpr int kMeshRows = 15;
+        // Points per row -- enough to read the waveform's real shape without
+        // painting a path per sample (a 2048-sample frame doesn't need 2048
+        // path points to look identical at this pixel scale).
+        constexpr int kPointsPerRow = 48;
+        // Connect every Nth sample index between a row and its farther
+        // neighbour -- this is what makes it read as one continuous mesh
+        // surface rather than a stack of independent parallel ribbons.
+        constexpr int kCrossLineStride = 6;
+
+        // Cheap pseudo-3D projection (validated against a Python prototype
+        // before porting): each row shifts right/up and shrinks as depth
+        // increases -- no real camera/projection matrix, just enough to read
+        // as perspective at this scale, same spirit as the shear the previous
+        // "deck of cards" rendering used. kRowStepYFrac raised well above the
+        // prototype's 0.34 for the same reason as kMeshRows above -- this
+        // component's real vertical budget is much smaller, so depth-rise
+        // needs a bigger share of it to stay legible.
+        constexpr float kRowStepXFrac = 0.16f;
+        constexpr float kRowStepYFrac = 0.40f;
+        constexpr float kFarShrink = 0.55f; // farthest row's scale relative to nearest.
+
+        constexpr int kButtonWidth = 64;
+        constexpr int kArrowWidth = 22;
+        constexpr int kButtonHeight = 18;
+        constexpr int kButtonMargin = 4;
     } // namespace
 
     WavetableStackView::WavetableStackView(PatchworkEightProcessor& processor) : processor_(processor)
@@ -31,6 +57,16 @@ namespace pw8::plugin::ui
         loadButton_.setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
         loadButton_.onClick = [this] { loadWavetableFromFile(); };
         addAndMakeVisible(loadButton_);
+
+        for (auto* arrow : {&prevButton_, &nextButton_})
+        {
+            arrow->setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
+            arrow->setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
+            arrow->setEnabled(false); // Nothing to browse until refreshSiblings() finds a directory.
+            addAndMakeVisible(*arrow);
+        }
+        prevButton_.onClick = [this] { goToSibling(-1); };
+        nextButton_.onClick = [this] { goToSibling(1); };
 
         startTimerHz(4); // Table content only changes on patch load / node reselection; slow poll is plenty.
     }
@@ -43,20 +79,68 @@ namespace pw8::plugin::ui
     void WavetableStackView::showNode(int nodeIndex)
     {
         selectedNode_ = juce::jlimit(0, static_cast<int>(pw8::core::kNodesPerLayer) - 1, nodeIndex);
+        // refreshSiblings() (unlike timerCallback()'s call to it) always
+        // rescans unconditionally, regardless of lastKnownWavetableId_'s
+        // prior value -- correct here even if the new node happens to share
+        // the same wavetableId string as the old one, since selectedNode_
+        // itself changed and every lookup below is keyed off it.
+        refreshSiblings();
         repaint();
     }
 
     void WavetableStackView::resized()
     {
-        constexpr int kButtonWidth = 64;
-        constexpr int kButtonHeight = 18;
-        constexpr int kMargin = 4;
-        loadButton_.setBounds(getWidth() - kButtonWidth - kMargin, kMargin, kButtonWidth, kButtonHeight);
+        auto bounds = getLocalBounds().reduced(kButtonMargin);
+        auto row = bounds.removeFromTop(kButtonHeight);
+        nextButton_.setBounds(row.removeFromRight(kArrowWidth));
+        row.removeFromRight(kButtonMargin);
+        loadButton_.setBounds(row.removeFromRight(kButtonWidth));
+        row.removeFromRight(kButtonMargin);
+        prevButton_.setBounds(row.removeFromRight(kArrowWidth));
     }
 
     void WavetableStackView::timerCallback()
     {
+        const auto& wavetableId = processor_.getCurrentPatch().layerA.operators[static_cast<std::size_t>(selectedNode_)].wavetableId;
+        if (juce::String(wavetableId) != lastKnownWavetableId_)
+            refreshSiblings(); // Picks up a change made via the "Load..." dialog, the arrows themselves, or a host-driven patch reload.
         repaint(); // Cheap: paint() below reads already-loaded table data, no allocation here.
+    }
+
+    void WavetableStackView::refreshSiblings()
+    {
+        const auto& wavetableId = processor_.getCurrentPatch().layerA.operators[static_cast<std::size_t>(selectedNode_)].wavetableId;
+        lastKnownWavetableId_ = juce::String(wavetableId);
+
+        siblings_.clear();
+        siblingIndex_ = -1;
+
+        if (!lastKnownWavetableId_.isEmpty())
+        {
+            const juce::File currentFile(lastKnownWavetableId_);
+            const auto dir = currentFile.getParentDirectory();
+            if (dir.isDirectory())
+            {
+                auto found = dir.findChildFiles(juce::File::findFiles, false, "*.json");
+                found.sort();
+                siblings_ = std::move(found);
+                siblingIndex_ = siblings_.indexOf(currentFile);
+            }
+        }
+
+        const bool canBrowse = siblings_.size() > 1 && siblingIndex_ >= 0;
+        prevButton_.setEnabled(canBrowse);
+        nextButton_.setEnabled(canBrowse);
+    }
+
+    void WavetableStackView::goToSibling(int delta)
+    {
+        if (siblings_.isEmpty() || siblingIndex_ < 0)
+            return;
+        const int newIndex = (siblingIndex_ + delta + siblings_.size()) % siblings_.size();
+        processor_.setOperatorWavetableFile(static_cast<std::size_t>(selectedNode_), siblings_[newIndex].getFullPathName());
+        refreshSiblings(); // Immediate, not waiting up to 250ms for the next timer tick.
+        repaint();
     }
 
     void WavetableStackView::loadWavetableFromFile()
@@ -86,6 +170,7 @@ namespace pw8::plugin::ui
 
             self->processor_.setOperatorWavetableFile(static_cast<std::size_t>(nodeAtRequestTime),
                                                         file.getFullPathName());
+            self->refreshSiblings();
             self->repaint();
         });
     }
@@ -94,6 +179,7 @@ namespace pw8::plugin::ui
     {
         const auto* table = processor_.getActiveWavetableTable(static_cast<std::size_t>(selectedNode_));
         auto bounds = getLocalBounds().toFloat();
+        bounds.removeFromTop(static_cast<float>(kButtonHeight + kButtonMargin * 2)); // Room for the load/prev/next row.
 
         if (table == nullptr || !table->isValid())
         {
@@ -127,98 +213,158 @@ namespace pw8::plugin::ui
             mip.samples.size() < static_cast<std::size_t>(numFrames) * static_cast<std::size_t>(samplesPerFrame))
             return; // Defensive: a malformed/truncated table shouldn't crash the editor.
 
-        const int drawnCount = juce::jmin(numFrames, kMaxDrawnFrames);
-
         // Which frame is "live" right now, if this operator's WavetablePos param is
-        // automated/APVTS-driven -- highlighted as the front, full-accent ribbon.
-        // Falls back to frame 0 if the parameter isn't found (defensive only; it's
-        // always registered for every node per PluginState.h's field spec).
+        // automated/APVTS-driven -- the mesh row nearest this position gets the full-
+        // accent highlight, wherever it happens to fall in the depth stack (not always
+        // the frontmost row, since row order is fixed table-frame order, front to back).
         const auto posParamId = operatorParamId(static_cast<std::size_t>(selectedNode_), "WavetablePos");
         float livePos = 0.0f;
         if (auto* raw = processor_.apvts.getRawParameterValue(posParamId))
             livePos = juce::jlimit(0.0f, 1.0f, raw->load());
-        const int liveFrame = juce::jlimit(0, numFrames - 1, static_cast<int>(livePos * static_cast<float>(numFrames - 1) + 0.5f));
+        const float liveFramePos = livePos * static_cast<float>(numFrames - 1);
+        const int liveFrame = juce::jlimit(0, numFrames - 1, static_cast<int>(liveFramePos + 0.5f));
 
-        // Layout: front ribbon (drawnCount-1, the one closest to `liveFrame`'s depth
-        // rank) sits at the bottom-front; each ribbon behind it shifts up-and-right
-        // and shrinks in alpha, the "deck of cards" read. Front ribbon reserves the
-        // bottom ~45% of the component so its glow/fill has room.
-        const float stepX = bounds.getWidth() * 0.09f;
-        const float stepY = bounds.getHeight() * 0.19f;
-        const float ribbonWidth = bounds.getWidth() - stepX * static_cast<float>(drawnCount - 1) - 24.0f;
-        const float ribbonHeight = bounds.getHeight() * 0.32f;
+        auto captionArea = bounds.removeFromBottom(16.0f);
 
-        for (int depth = drawnCount - 1; depth >= 0; --depth)
+        // Interpolated sample at depth t in [0,1] (0 = front/nearest = table frame 0,
+        // 1 = back/farthest = the table's last frame) and point index p -- honest
+        // interpolation between the two real frames t falls between, see the header
+        // doc comment for why this isn't fabricated data.
+        auto sampleAt = [&](float depthT, int p) -> float
         {
-            // Evenly spread the drawn subset across the real frame range, and make
-            // the LAST drawn ribbon (depth 0, frontmost) track the actual live frame
-            // rather than always being frame 0 -- so the front-most, brightest ribbon
-            // is always the one that's actually sounding.
-            const int frameIndex = (depth == 0) ? liveFrame
-                                                 : juce::jlimit(0, numFrames - 1,
-                                                                 (numFrames - 1) * depth / juce::jmax(1, drawnCount - 1));
-            const bool isFront = depth == 0;
+            const float framePos = depthT * static_cast<float>(numFrames - 1);
+            const int f0 = static_cast<int>(framePos);
+            const int f1 = juce::jmin(f0 + 1, numFrames - 1);
+            const float frameFrac = framePos - static_cast<float>(f0);
 
-            const float originX = 12.0f + stepX * static_cast<float>(drawnCount - 1 - depth);
-            const float originY = 8.0f + stepY * static_cast<float>(drawnCount - 1 - depth);
+            const float tp = static_cast<float>(p) / static_cast<float>(kPointsPerRow - 1);
+            const float srcPos = tp * static_cast<float>(samplesPerFrame - 1);
+            const int s0 = static_cast<int>(srcPos);
+            const int s1 = juce::jmin(s0 + 1, samplesPerFrame - 1);
+            const float sampleFrac = srcPos - static_cast<float>(s0);
 
-            juce::Path ribbon;
-            const std::size_t frameOffset = static_cast<std::size_t>(frameIndex) * static_cast<std::size_t>(samplesPerFrame);
-            for (int p = 0; p < kPointsPerRibbon; ++p)
+            const std::size_t off0 = static_cast<std::size_t>(f0) * static_cast<std::size_t>(samplesPerFrame);
+            const std::size_t off1 = static_cast<std::size_t>(f1) * static_cast<std::size_t>(samplesPerFrame);
+            const float v0 = pw8::dsp::lerp(mip.samples[off0 + static_cast<std::size_t>(s0)],
+                                             mip.samples[off0 + static_cast<std::size_t>(s1)], sampleFrac);
+            const float v1 = pw8::dsp::lerp(mip.samples[off1 + static_cast<std::size_t>(s0)],
+                                             mip.samples[off1 + static_cast<std::size_t>(s1)], sampleFrac);
+            return pw8::dsp::lerp(v0, v1, frameFrac);
+        };
+
+        // originY/rowHeight/stepY are chosen so every row's full amplitude
+        // swing, at every depth, stays inside `bounds` -- derived, not
+        // guessed: the nearest row (t=0, scale=1) needs
+        // originYFrac +/- rowHeightFrac/2 within [0,1], and the farthest row
+        // (t=1, scale=kFarShrink) needs (originYFrac - stepYFrac) +/-
+        // rowHeightFrac*kFarShrink/2 within [0,1]. 0.55/0.45/0.40 satisfies
+        // both with margin to spare (checked by hand before picking these).
+        const float originX = bounds.getX() + bounds.getWidth() * 0.42f;
+        const float originY = bounds.getY() + bounds.getHeight() * 0.55f;
+        const float rowWidth = bounds.getWidth() * 0.60f;
+        const float rowHeight = bounds.getHeight() * 0.45f;
+        const float stepX = bounds.getWidth() * kRowStepXFrac;
+        const float stepY = bounds.getHeight() * kRowStepYFrac;
+
+        struct RowPoints
+        {
+            std::array<juce::Point<float>, static_cast<std::size_t>(kPointsPerRow)> pts;
+        };
+        std::array<RowPoints, static_cast<std::size_t>(kMeshRows)> rows;
+
+        int liveRowIndex = 0;
+        float liveRowDist = std::numeric_limits<float>::max();
+
+        for (int r = 0; r < kMeshRows; ++r)
+        {
+            const float depthT = static_cast<float>(r) / static_cast<float>(kMeshRows - 1);
+            const float scale = 1.0f - (1.0f - kFarShrink) * depthT;
+
+            const float rowFramePos = depthT * static_cast<float>(numFrames - 1);
+            if (const float dist = std::abs(rowFramePos - liveFramePos); dist < liveRowDist)
             {
-                const float t = static_cast<float>(p) / static_cast<float>(kPointsPerRibbon - 1);
-                const float srcPos = t * static_cast<float>(samplesPerFrame - 1);
-                const int s0 = static_cast<int>(srcPos);
-                const int s1 = juce::jmin(s0 + 1, samplesPerFrame - 1);
-                const float frac = srcPos - static_cast<float>(s0);
-                const float sample = pw8::dsp::lerp(mip.samples[frameOffset + static_cast<std::size_t>(s0)],
-                                                     mip.samples[frameOffset + static_cast<std::size_t>(s1)], frac);
+                liveRowDist = dist;
+                liveRowIndex = r;
+            }
 
-                const float x = originX + t * ribbonWidth;
-                const float y = originY + ribbonHeight * 0.5f - sample * ribbonHeight * 0.42f;
+            for (int p = 0; p < kPointsPerRow; ++p)
+            {
+                const float sampleValue = sampleAt(depthT, p);
+                const float tp = static_cast<float>(p) / static_cast<float>(kPointsPerRow - 1);
+                const float x = originX - rowWidth * 0.5f * scale + tp * rowWidth * scale + stepX * depthT;
+                const float y = originY - stepY * depthT - sampleValue * rowHeight * 0.5f * scale;
+                rows[static_cast<std::size_t>(r)].pts[static_cast<std::size_t>(p)] = {x, y};
+            }
+        }
+
+        // Painter's algorithm, farthest row first: each nearer row's silhouette
+        // (its own line, filled down to a baseline below it, in the panel's own
+        // background colour) erases whatever farther content was already drawn
+        // in that footprint -- the classic hidden-line wireframe-landscape trick,
+        // validated in a Python prototype against this exact projection before
+        // porting here.
+        for (int r = kMeshRows - 1; r >= 0; --r)
+        {
+            const auto& row = rows[static_cast<std::size_t>(r)];
+            const float depthT = static_cast<float>(r) / static_cast<float>(kMeshRows - 1);
+
+            juce::Path linePath;
+            float maxY = row.pts.front().y;
+            for (int p = 0; p < kPointsPerRow; ++p)
+            {
+                const auto& pt = row.pts[static_cast<std::size_t>(p)];
                 if (p == 0)
-                    ribbon.startNewSubPath(x, y);
+                    linePath.startNewSubPath(pt);
                 else
-                    ribbon.lineTo(x, y);
+                    linePath.lineTo(pt);
+                maxY = juce::jmax(maxY, pt.y);
             }
 
-            const auto shear = juce::AffineTransform::shear(kSkewFactor, 0.0f);
-            ribbon.applyTransform(shear);
+            juce::Path silhouette(linePath);
+            const float baselineY = maxY + 24.0f;
+            silhouette.lineTo(row.pts.back().x, baselineY);
+            silhouette.lineTo(row.pts.front().x, baselineY);
+            silhouette.closeSubPath();
+            g.setColour(palette::kPanel);
+            g.fillPath(silhouette);
 
-            // jmap() asserts/NaNs when its source range is zero-width, which happens
-            // whenever there's exactly one non-front ribbon (drawnCount == 2, so both
-            // the source min and max below would be 1.0f) -- fall back to the range's
-            // own start value rather than mapping across an empty range.
-            const int backRibbonCount = drawnCount - 1;
-            const float alpha = isFront                ? 1.0f
-                                 : (backRibbonCount <= 1) ? 0.55f
-                                                          : juce::jmap(static_cast<float>(depth), 1.0f,
-                                                                       static_cast<float>(backRibbonCount), 0.55f, 0.18f);
+            const bool isLive = r == liveRowIndex;
+            const float alpha = isLive ? 1.0f : juce::jmap(depthT, 0.0f, 1.0f, 0.75f, 0.15f);
+            const float strokeWidth = isLive ? 2.0f : juce::jmap(depthT, 0.0f, 1.0f, 1.4f, 0.6f);
 
-            if (isFront)
+            // Cheap glow: a wide, dim pass under the crisp line -- the same
+            // "reads as lit, not just coloured" trick ObsidianLookAndFeel's
+            // knob value-arc already uses, no image blur/convolution needed.
+            g.setColour(palette::kAccent.withAlpha(alpha * 0.25f));
+            g.strokePath(linePath, juce::PathStrokeType(strokeWidth * 2.2f, juce::PathStrokeType::curved,
+                                                          juce::PathStrokeType::rounded));
+            g.setColour((isLive ? palette::kAccent : palette::kBorderBright).withAlpha(alpha));
+            g.strokePath(linePath, juce::PathStrokeType(strokeWidth, juce::PathStrokeType::curved,
+                                                          juce::PathStrokeType::rounded));
+
+            // Cross-lines to the FARTHER neighbour (r+1, already drawn this
+            // pass) -- connecting to the nearer one instead would draw them
+            // before that row's own occluding silhouette exists yet, so a
+            // nearer row could never occlude a crossline the way it should.
+            if (r < kMeshRows - 1)
             {
-                // Soft under-glow, the same "reads as lit, not just colored" trick
-                // ObsidianLookAndFeel's knob value-arc already uses.
-                g.setColour(palette::kAccent.withAlpha(0.18f));
-                g.strokePath(ribbon, juce::PathStrokeType(4.5f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+                const auto& fartherRow = rows[static_cast<std::size_t>(r + 1)];
+                juce::Path crossPath;
+                for (int p = 0; p < kPointsPerRow; p += kCrossLineStride)
+                {
+                    crossPath.startNewSubPath(row.pts[static_cast<std::size_t>(p)]);
+                    crossPath.lineTo(fartherRow.pts[static_cast<std::size_t>(p)]);
+                }
+                g.setColour(palette::kBorderBright.withAlpha(alpha * 0.5f));
+                g.strokePath(crossPath, juce::PathStrokeType(0.8f, juce::PathStrokeType::curved, juce::PathStrokeType::butt));
             }
-
-            g.setColour((isFront ? palette::kAccent : palette::kBorderBright).withAlpha(alpha));
-            g.strokePath(ribbon, juce::PathStrokeType(isFront ? 1.8f : 1.2f, juce::PathStrokeType::curved,
-                                                        juce::PathStrokeType::rounded));
-
-            g.setColour(palette::kTextDim.withAlpha(alpha));
-            g.setFont(fonts::value(8.5f));
-            g.drawText(juce::String(frameIndex), juce::Rectangle<float>(originX - 16.0f, originY + ribbonHeight * 0.5f - 6.0f, 14.0f, 12.0f)
-                           .transformedBy(shear),
-                       juce::Justification::centredRight);
         }
 
         g.setColour(palette::kTextSecondary);
         g.setFont(fonts::value(10.0f));
         g.drawText(juce::String(numFrames) + " frames, mip 0 (" + juce::String(mip.maxHarmonic) + " harmonics) -- frame " +
                        juce::String(liveFrame) + " live",
-                   bounds.removeFromBottom(16.0f), juce::Justification::centredLeft);
+                   captionArea, juce::Justification::centredLeft);
     }
 
 } // namespace pw8::plugin::ui
