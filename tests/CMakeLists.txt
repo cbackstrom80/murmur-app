@@ -15,6 +15,8 @@ add_executable(pw8_tests
     dsp/VoiceAllocatorTests.cpp
     dsp/StateVariableFilterTests.cpp
     dsp/LfoTests.cpp
+    dsp/BiquadBandpassTests.cpp
+    dsp/ResonatorOscillatorTests.cpp
     unit/AlgorithmGraphCompilerTests.cpp
     unit/DeterministicRngTests.cpp
     unit/ModMatrixTests.cpp

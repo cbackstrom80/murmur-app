@@ -29,6 +29,11 @@ namespace pw8::render
         out.fixedFrequencyHz = p.fixedFrequencyHz;
         out.keyTrack = p.keyTrack;
         out.level = p.level;
+        out.resonatorStructure = p.resonatorStructure;
+        out.resonatorDecay = p.resonatorDecay;
+        out.resonatorDamping = p.resonatorDamping;
+        out.resonatorBrightness = p.resonatorBrightness;
+        out.resonatorModeCount = p.resonatorModeCount;
         return out;
     }
 

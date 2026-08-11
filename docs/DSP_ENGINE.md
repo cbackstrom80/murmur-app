@@ -132,8 +132,57 @@ repeatable.
 
 ## Engine Type 8 — Resonator / Spectral
 
-**PLANNED** (Phase 10). `content/algorithms/spectral_exciter.json` is a
-forward-looking algorithm template for this engine (see PRIOR_ART.md).
+**IMPLEMENTED.** `oscillator::ResonatorOscillator` (`pw8/oscillator/ResonatorOscillator.hpp`)
+-- a Karplus-Strong-adjacent, modal-synthesis design (docs/PRIOR_ART.md's Rings
+reference, docs/COMPETITIVE_ANALYSIS.md's Zebra-3 "modal resonators + comb
+filters, detailed feedback/damping control" comparison, and
+`content/algorithms/spectral_exciter.json`'s forward-looking exciter/resonator
+routing shape). An internal noise-burst exciter feeds a bank of up to 8 parallel
+bandpass filters; feeding a short burst into a resonant (high-Q) bandpass filter
+and letting it ring naturally **is** the modal-synthesis technique -- no separate
+"ring" stage is needed once the filter itself is resonant enough.
+
+Needed one new, well-justified DSP primitive: **`dsp::Biquad::setBandpass()`**
+(RBJ "constant 0dB peak gain BPF" formula, same citation style the file's other
+`set*` methods already use). A `setPeaking()` at high gain isn't a substitute:
+peaking leaves other frequencies ~unattenuated, so summing several "peaking
+modes" would leave each mode's output full of unfiltered noise-floor content
+instead of cleanly isolating its partial -- a real modal bank needs true
+bandpass isolation per mode (`tests/dsp/BiquadBandpassTests.cpp` verifies this
+directly: a tone several octaves from center is attenuated to under 10% of the
+center-frequency response, not merely "not boosted").
+
+- `resonatorStructure` (0..1, default 0.3): inharmonicity/detune of upper
+  modes, the same piano-string-style `sqrt(1 + B*n^2)` shape Engine Type 4's
+  `additiveStretch` uses, but one-sided (a struck real-world object's modes
+  only ever detune sharp).
+- `resonatorDecay` (0..1, default 0.5): overall mode ring time, mapped
+  exponentially onto each mode's filter Q.
+- `resonatorDamping` (0..1, default 0.5): tilts upper modes to decay faster
+  than the fundamental (matching real modal physics -- a struck bell's upper
+  partials always die out before its hum tone) by scaling Q down more
+  aggressively as harmonic number increases, while leaving the fundamental's
+  own Q -- and so its own decay time -- completely untouched by this control.
+- `resonatorBrightness` (0..1, default 0.5): the exciter noise burst's
+  spectral tilt (blend between a smoothed/dark burst and full-spectrum white).
+- `resonatorModeCount` (discrete 2-8, default 6): how many mode slots are active.
+
+Excited once per note (`OperatorState::seedResonator()`, called from
+`Voice::noteOn()` with a `dsp::DeterministicRng::deriveSeed()`-derived seed --
+the mandatory seeding path, see "Deterministic Randomness" below) via a ~6ms
+decaying noise burst; a Sync edge landing on a Resonator node re-triggers the
+burst (through the same `OperatorState::reset()` every engine's Sync handling
+already goes through) but deliberately with a fixed, non-randomized seed --
+re-triggering the excitation is the point of a Sync edge here, a fresh random
+seed isn't.
+
+Measured, not assumed: `tests/dsp/ResonatorOscillatorTests.cpp` FFT-verifies
+the output measurably rings out (decays) after the exciter burst ends, and
+that `resonatorDamping` measurably shortens an upper mode's decay relative to
+the fundamental's (compared via each configuration's own late/early spectral
+energy ratio, since a mode's steady-state gain in response to a burst is
+itself Q-dependent -- comparing raw ratios across configurations directly
+would conflate "started louder" with "decayed slower").
 
 ## Deterministic Randomness
 

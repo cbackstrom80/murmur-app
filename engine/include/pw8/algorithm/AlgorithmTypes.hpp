@@ -26,7 +26,7 @@ namespace pw8::algorithm
 
     [[nodiscard]] constexpr bool isEngineImplemented(EngineType type) noexcept
     {
-        return type == EngineType::Classic || type == EngineType::Wavetable;
+        return type == EngineType::Classic || type == EngineType::Wavetable || type == EngineType::Resonator;
     }
 
     enum class EdgeType : std::uint8_t

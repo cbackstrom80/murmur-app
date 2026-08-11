@@ -78,6 +78,14 @@ namespace pw8::patch
         bool keyTrack = true;
         float level = 1.0f;
         float pan = 0.0f; ///< reserved for per-operator stereo placement (PLANNED).
+
+        /// Resonator engine fields (only meaningful when engine == Resonator).
+        /// See oscillator::ResonatorParams for the full per-field writeup.
+        float resonatorStructure = 0.3f;
+        float resonatorDecay = 0.5f;
+        float resonatorDamping = 0.5f;
+        float resonatorBrightness = 0.5f;
+        float resonatorModeCount = 6.0f;
     };
 
     struct LayerPatch

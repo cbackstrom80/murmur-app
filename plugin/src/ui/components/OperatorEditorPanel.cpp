@@ -103,8 +103,22 @@ namespace pw8::plugin::ui
         // for it until this pass (UI GATE 5).
         wavetablePosKnob_ = std::make_unique<GlowKnob>(
             apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "WavetablePos"), "WT Pos");
+        // Engine 8 (Resonator) -- see the header doc comment. No UI existed for
+        // these five fields before this pass.
+        resonatorStructureKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "ResonatorStructure"), "Structure");
+        resonatorDecayKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "ResonatorDecay"), "Decay");
+        resonatorDampingKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "ResonatorDamping"), "Damping");
+        resonatorBrightnessKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "ResonatorBrightness"), "Brightness");
+        resonatorModesKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "ResonatorModeCount"), "Modes");
 
-        for (auto* k : {waveformKnob_.get(), levelKnob_.get(), ratioKnob_.get(), wavetablePosKnob_.get()})
+        for (auto* k : {waveformKnob_.get(), levelKnob_.get(), ratioKnob_.get(), wavetablePosKnob_.get(),
+                         resonatorStructureKnob_.get(), resonatorDecayKnob_.get(), resonatorDampingKnob_.get(),
+                         resonatorBrightnessKnob_.get(), resonatorModesKnob_.get()})
             panel_.addAndMakeVisible(*k);
     }
 
@@ -113,18 +127,32 @@ namespace pw8::plugin::ui
         const int engine = currentEngineOrdinal();
         lastKnownEngine_ = engine;
         const bool isWavetable = engine == static_cast<int>(algorithm::EngineType::Wavetable);
+        const bool isResonator = engine == static_cast<int>(algorithm::EngineType::Resonator);
 
-        // Wave/Ratio aren't meaningful for a Wavetable-engine node (it reads
-        // wavetableFramePosition, not classicWaveform/frequencyRatio) -- swapped
-        // for the stack preview + WT Pos instead. Level applies to every engine.
-        // None of the four knobs' parameter IDs depend on the engine (only on
-        // selectedNode_), so an engine-only change never needs to reconstruct
-        // them -- doing so used to silently abort any in-progress mouse drag on
-        // a knob the instant a host automated the Engine parameter mid-gesture.
-        waveformKnob_->setVisible(!isWavetable);
-        ratioKnob_->setVisible(!isWavetable);
+        // Wave isn't meaningful for a Wavetable- or Resonator-engine node (neither
+        // reads classicWaveform) -- swapped for the stack preview+WT Pos or the 5
+        // resonator knobs instead. Ratio stays visible for every engine (including
+        // Resonator -- carrierHz still tunes each mode via the generic keyTrack/
+        // frequencyRatio computation in render(); hiding it would repeat the same
+        // mistake the Wavetable branch used to make, see the ratioKnob_ comment
+        // below). Level applies to every engine. None of these knobs' parameter
+        // IDs depend on the engine (only on selectedNode_), so an engine-only
+        // change never needs to reconstruct them -- doing so used to silently
+        // abort any in-progress mouse drag on a knob the instant a host automated
+        // the Engine parameter mid-gesture.
+        waveformKnob_->setVisible(!isWavetable && !isResonator);
+        // frequencyRatio is read generically by render() before the engine switch
+        // for every engine's carrier pitch computation -- always shown, not gated
+        // per-engine (a prior pass hid it for Wavetable, making a real working,
+        // automatable parameter unreachable from the UI; fixed to always show it).
+        ratioKnob_->setVisible(true);
         wavetablePosKnob_->setVisible(isWavetable);
         wavetableStackView_.setVisible(isWavetable);
+        resonatorStructureKnob_->setVisible(isResonator);
+        resonatorDecayKnob_->setVisible(isResonator);
+        resonatorDampingKnob_->setVisible(isResonator);
+        resonatorBrightnessKnob_->setVisible(isResonator);
+        resonatorModesKnob_->setVisible(isResonator);
         levelKnob_->setVisible(true);
 
         resized();
@@ -190,14 +218,38 @@ namespace pw8::plugin::ui
 
         if (wavetableStackView_.isVisible())
         {
-            auto stackArea = content.removeFromLeft(static_cast<int>(static_cast<float>(content.getWidth()) * 0.62f));
+            // Narrower than the other branches' full-width knob row (0.55 vs the
+            // stack getting the rest) -- ratioKnob_ joining this row (now shown for
+            // every engine, see updateEngineVisibility()) needs a 3-way split here
+            // too, not just 2.
+            auto stackArea = content.removeFromLeft(static_cast<int>(static_cast<float>(content.getWidth()) * 0.55f));
             wavetableStackView_.setBounds(stackArea.reduced(3));
 
-            const int knobWidth = content.getWidth() / 2;
+            const int knobWidth = content.getWidth() / 3;
             if (levelKnob_)
                 levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (ratioKnob_)
+                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
             if (wavetablePosKnob_)
                 wavetablePosKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+        }
+        else if (resonatorStructureKnob_ && resonatorStructureKnob_->isVisible())
+        {
+            const int knobWidth = content.getWidth() / 7;
+            if (ratioKnob_)
+                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (levelKnob_)
+                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (resonatorStructureKnob_)
+                resonatorStructureKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (resonatorDecayKnob_)
+                resonatorDecayKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (resonatorDampingKnob_)
+                resonatorDampingKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (resonatorBrightnessKnob_)
+                resonatorBrightnessKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (resonatorModesKnob_)
+                resonatorModesKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
         }
         else
         {

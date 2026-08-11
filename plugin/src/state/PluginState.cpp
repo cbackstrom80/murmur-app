@@ -6,7 +6,8 @@ namespace pw8::plugin
 
     // Matches op::OperatorParams: engine, classic.waveform, classic.morph,
     // classic.pulseWidth, wavetableFramePosition, frequencyRatio, fixedFrequencyHz,
-    // keyTrack, level.
+    // keyTrack, level, resonatorStructure, resonatorDecay, resonatorDamping,
+    // resonatorBrightness, resonatorModeCount.
     const std::array<ParamFieldSpec, kNumOperatorFields> kOperatorFieldSpecs = {{
         {"Engine",       "Engine",        0.0f,   7.0f, 0.0f,   true},
         {"Waveform",     "Waveform",      0.0f,   3.0f, 2.0f,   true},
@@ -17,6 +18,11 @@ namespace pw8::plugin
         {"FixedHz",      "Fixed Hz",      0.01f,  24000.0f, 440.0f, false},
         {"KeyTrack",     "Key Track",     0.0f,   1.0f, 1.0f,   true},
         {"Level",        "Level",         0.0f,   4.0f, 1.0f,   false},
+        {"ResonatorStructure",  "Structure",   0.0f, 1.0f, 0.3f, false},
+        {"ResonatorDecay",      "Decay",       0.0f, 1.0f, 0.5f, false},
+        {"ResonatorDamping",    "Damping",     0.0f, 1.0f, 0.5f, false},
+        {"ResonatorBrightness", "Brightness",  0.0f, 1.0f, 0.5f, false},
+        {"ResonatorModeCount",  "Modes",       2.0f, 8.0f, 6.0f, true},
     }};
 
     // Matches filter::FilterParams: enabled, mode, cutoffHz, resonance, keyTrack.

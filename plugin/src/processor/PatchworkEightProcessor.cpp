@@ -192,6 +192,11 @@ namespace pw8::plugin
             params.fixedFrequencyHz = loadF(ptrs[6]);
             params.keyTrack = loadB(ptrs[7]);
             params.level = loadF(ptrs[8]);
+            params.resonatorStructure = loadF(ptrs[9]);
+            params.resonatorDecay = loadF(ptrs[10]);
+            params.resonatorDamping = loadF(ptrs[11]);
+            params.resonatorBrightness = loadF(ptrs[12]);
+            params.resonatorModeCount = loadF(ptrs[13]);
             engine.setOperatorLive(op, params);
         }
 
@@ -514,7 +519,9 @@ namespace pw8::plugin
                 o.classicMorph,                     o.pulseWidth,
                 o.wavetableFramePosition,           o.frequencyRatio,
                 o.fixedFrequencyHz,                 o.keyTrack ? 1.0f : 0.0f,
-                o.level,
+                o.level,                             o.resonatorStructure,
+                o.resonatorDecay,                    o.resonatorDamping,
+                o.resonatorBrightness,               o.resonatorModeCount,
             };
             for (std::size_t i = 0; i < kNumOperatorFields; ++i)
                 setParam(operatorParamId(op, kOperatorFieldSpecs[i].idSuffix), opValues[i]);
@@ -611,6 +618,11 @@ namespace pw8::plugin
             o.fixedFrequencyHz = loadF(ptrs[6]);
             o.keyTrack = loadB(ptrs[7]);
             o.level = loadF(ptrs[8]);
+            o.resonatorStructure = loadF(ptrs[9]);
+            o.resonatorDecay = loadF(ptrs[10]);
+            o.resonatorDamping = loadF(ptrs[11]);
+            o.resonatorBrightness = loadF(ptrs[12]);
+            o.resonatorModeCount = loadF(ptrs[13]);
         }
 
         for (std::size_t envIdx = 0; envIdx < kNumEnvelopes; ++envIdx)
