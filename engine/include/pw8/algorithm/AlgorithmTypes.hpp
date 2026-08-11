@@ -10,11 +10,10 @@
 
 namespace pw8::algorithm
 {
-    /// Which synthesis engine a node runs. Classic, Wavetable, FM/PM,
-    /// NoiseChaos, PhaseShape, Additive, and Resonator are implemented; the
-    /// rest render silence and are reserved for later phases (being built out
-    /// incrementally, one engine/PR at a time -- see docs/NEXT_STEPS.md and
-    /// docs/ROADMAP.md Phase 10).
+    /// Which synthesis engine a node runs. All 8 engines are now implemented
+    /// (Classic, Wavetable, FM/PM, Additive, PhaseShape, Granular, NoiseChaos,
+    /// Resonator) -- built out incrementally, one engine/PR at a time, see
+    /// docs/NEXT_STEPS.md and docs/ROADMAP.md Phase 10.
     enum class EngineType : std::uint8_t
     {
         Classic = 0,
@@ -31,7 +30,7 @@ namespace pw8::algorithm
     {
         return type == EngineType::Classic || type == EngineType::Wavetable || type == EngineType::FmPm ||
                type == EngineType::NoiseChaos || type == EngineType::PhaseShape || type == EngineType::Additive ||
-               type == EngineType::Resonator;
+               type == EngineType::Resonator || type == EngineType::Granular;
     }
 
     enum class EdgeType : std::uint8_t

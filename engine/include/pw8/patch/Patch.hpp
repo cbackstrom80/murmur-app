@@ -113,6 +113,15 @@ namespace pw8::patch
         float resonatorDamping = 0.5f;
         float resonatorBrightness = 0.5f;
         float resonatorModeCount = 6.0f;
+
+        /// Granular engine fields (only meaningful when engine == Granular).
+        /// Deliberately reuses wavetableId/wavetableFramePosition/level above
+        /// rather than duplicating them -- see oscillator::GranularParams for the
+        /// full per-field writeup.
+        float grainDensity = 20.0f;
+        float grainSizeMs = 60.0f;
+        float grainPositionJitter = 0.1f;
+        float grainPitchJitter = 0.0f;
     };
 
     struct LayerPatch

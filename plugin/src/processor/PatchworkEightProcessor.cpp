@@ -211,6 +211,10 @@ namespace pw8::plugin
             params.resonatorDamping = loadF(ptrs[25]);
             params.resonatorBrightness = loadF(ptrs[26]);
             params.resonatorModeCount = loadF(ptrs[27]);
+            params.grainDensity = loadF(ptrs[28]);
+            params.grainSizeMs = loadF(ptrs[29]);
+            params.grainPositionJitter = loadF(ptrs[30]);
+            params.grainPitchJitter = loadF(ptrs[31]);
             engine.setOperatorLive(op, params);
         }
 
@@ -544,6 +548,8 @@ namespace pw8::plugin
                 o.resonatorStructure,                 o.resonatorDecay,
                 o.resonatorDamping,                   o.resonatorBrightness,
                 o.resonatorModeCount,
+                o.grainDensity,                       o.grainSizeMs,
+                o.grainPositionJitter,                o.grainPitchJitter,
             };
             for (std::size_t i = 0; i < kNumOperatorFields; ++i)
                 setParam(operatorParamId(op, kOperatorFieldSpecs[i].idSuffix), opValues[i]);
@@ -659,6 +665,10 @@ namespace pw8::plugin
             o.resonatorDamping = loadF(ptrs[25]);
             o.resonatorBrightness = loadF(ptrs[26]);
             o.resonatorModeCount = loadF(ptrs[27]);
+            o.grainDensity = loadF(ptrs[28]);
+            o.grainSizeMs = loadF(ptrs[29]);
+            o.grainPositionJitter = loadF(ptrs[30]);
+            o.grainPitchJitter = loadF(ptrs[31]);
         }
 
         for (std::size_t envIdx = 0; envIdx < kNumEnvelopes; ++envIdx)

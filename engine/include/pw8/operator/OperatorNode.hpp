@@ -8,6 +8,7 @@
 #include "pw8/noise/NoiseSource.hpp"
 #include "pw8/oscillator/AdditiveOscillator.hpp"
 #include "pw8/oscillator/ClassicOscillator.hpp"
+#include "pw8/oscillator/GranularOscillator.hpp"
 #include "pw8/oscillator/PhaseShapeOscillator.hpp"
 #include "pw8/oscillator/ResonatorOscillator.hpp"
 #include "pw8/oscillator/WavetableOscillator.hpp"
@@ -25,7 +26,10 @@ namespace pw8::op
     {
         algorithm::EngineType engine = algorithm::EngineType::Classic;
         oscillator::ClassicOscillatorParams classic{};
-        /// Wavetable frame position, 0..1 (only used when engine == Wavetable).
+        /// Wavetable frame position, 0..1 (used by the Wavetable engine, and
+        /// reused by the Granular engine as its grain read-position control --
+        /// same semantic shape, and it's what ModDestination::OperatorWavetablePosition
+        /// already targets).
         float wavetableFramePosition = 0.0f;
         /// Frequency ratio relative to the voice's base (note) frequency, for ratio-mode
         /// operators. Fixed-Hz mode is expressed by setting keyTrack = false and using
@@ -83,6 +87,15 @@ namespace pw8::op
         float resonatorDamping = 0.5f;
         float resonatorBrightness = 0.5f;
         float resonatorModeCount = 6.0f;
+
+        /// Granular engine fields -- see oscillator::GranularParams for the full
+        /// per-field writeup. Deliberately reuses wavetableFramePosition/level
+        /// above rather than duplicating them (grains read from the same
+        /// wavetableId-loaded data the Wavetable engine uses).
+        float grainDensity = 20.0f;
+        float grainSizeMs = 60.0f;
+        float grainPositionJitter = 0.1f;
+        float grainPitchJitter = 0.0f;
     };
 
     struct OperatorState
@@ -95,6 +108,7 @@ namespace pw8::op
         oscillator::PhaseShapeOscillator phaseShapeOsc;
         oscillator::AdditiveOscillator additiveOsc;
         oscillator::ResonatorOscillator resonatorOsc;
+        oscillator::GranularOscillator granularOsc;
         float lastOutput = 0.0f; ///< previous-sample output, used by Feedback edges.
 
         void prepare(double sampleRate) noexcept
@@ -106,6 +120,7 @@ namespace pw8::op
             phaseShapeOsc.prepare(sampleRate);
             additiveOsc.prepare(sampleRate);
             resonatorOsc.prepare(sampleRate);
+            granularOsc.prepare(sampleRate);
             sampleRate_ = sampleRate;
         }
 
@@ -123,6 +138,10 @@ namespace pw8::op
             // seedResonator() below is the one real per-note-random reseed, called
             // once from Voice::noteOn().
             resonatorOsc.reset(0);
+            // Same reasoning as resonatorOsc above -- a Sync edge restarts the grain
+            // clock/pool deterministically but isn't meant to draw a *new* random
+            // seed; seedGranular() below is the real per-note-random reseed.
+            granularOsc.reset(0);
             lastOutput = 0.0f;
         }
 
@@ -141,6 +160,12 @@ namespace pw8::op
         /// only Voice::noteOn() calls this, once per note, with a
         /// dsp::DeterministicRng::deriveSeed()-derived seed.
         void seedResonator(std::uint64_t seed) noexcept { resonatorOsc.reset(seed); }
+
+        /// Reseeds this node's grain RNG with a real per-voice-per-note random
+        /// seed. Separate from reset() for the same reason seedNoise()/
+        /// seedResonator() are -- only Voice::noteOn() calls this, once per note,
+        /// with a dsp::DeterministicRng::deriveSeed()-derived seed.
+        void seedGranular(std::uint64_t seed) noexcept { granularOsc.reset(seed); }
 
         /// Renders one sample. `baseFrequencyHz` is the voice's key-tracked note
         /// frequency (before this operator's ratio/fixed override); `phaseMod` and
@@ -263,9 +288,29 @@ namespace pw8::op
                     break;
                 }
 
-                // Engine type 6 (Granular) is architected (see algorithm::EngineType,
-                // docs/ROADMAP.md Phase 10) but not yet implemented -- it intentionally
-                // renders silence rather than guess.
+                case algorithm::EngineType::Granular:
+                {
+                    granularOsc.setFrequency(carrierHz);
+                    oscillator::GranularParams granularParams;
+                    granularParams.framePosition01 = params.wavetableFramePosition;
+                    granularParams.densityHz = params.grainDensity;
+                    granularParams.grainSizeMs = params.grainSizeMs;
+                    granularParams.positionJitter = params.grainPositionJitter;
+                    granularParams.pitchJitter = params.grainPitchJitter;
+                    // Grains read the full-bandwidth mip directly (mips[0], ordered
+                    // highest-fidelity first) rather than viewForFrequency()'s
+                    // pitch-dependent mip selection -- that selection exists to
+                    // band-limit a *cycle-looping* oscillator against a target
+                    // pitch, which doesn't apply to one-shot grain playback.
+                    const oscillator::WavetableView sourceView =
+                        (wavetableTable != nullptr && !wavetableTable->mips.empty())
+                            ? oscillator::WavetableView{wavetableTable->mips.front().samples.data(),
+                                                         wavetableTable->numFrames, wavetableTable->samplesPerFrame}
+                            : oscillator::WavetableView{};
+                    out = granularOsc.renderSample(granularParams, sourceView);
+                    break;
+                }
+
                 default:
                     out = 0.0f;
                     break;

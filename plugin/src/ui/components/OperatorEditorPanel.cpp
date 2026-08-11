@@ -174,6 +174,17 @@ namespace pw8::plugin::ui
         resonatorModesKnob_ = std::make_unique<GlowKnob>(
             apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "ResonatorModeCount"), "Modes");
 
+        // Engine 6 (Granular) -- see the header doc comment. No UI existed for
+        // these four fields before this pass.
+        grainDensityKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "GrainDensity"), "Density");
+        grainSizeKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "GrainSizeMs"), "Size");
+        grainPosJitterKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "GrainPositionJitter"), "Pos Jit");
+        grainPitchJitterKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "GrainPitchJitter"), "Pitch Jit");
+
         for (auto* k : {waveformKnob_.get(), levelKnob_.get(), ratioKnob_.get(), wavetablePosKnob_.get(),
                          fmModRatioKnob_.get(), fmModIndexKnob_.get(), fmModFeedbackKnob_.get(), fmModWaveformKnob_.get(),
                          noiseVariantKnob_.get(), noiseRateKnob_.get(),
@@ -181,7 +192,9 @@ namespace pw8::plugin::ui
                          additivePartialsKnob_.get(), additiveTiltKnob_.get(), additiveOddEvenKnob_.get(),
                          additiveStretchKnob_.get(),
                          resonatorStructureKnob_.get(), resonatorDecayKnob_.get(), resonatorDampingKnob_.get(),
-                         resonatorBrightnessKnob_.get(), resonatorModesKnob_.get()})
+                         resonatorBrightnessKnob_.get(), resonatorModesKnob_.get(),
+                         grainDensityKnob_.get(), grainSizeKnob_.get(), grainPosJitterKnob_.get(),
+                         grainPitchJitterKnob_.get()})
             panel_.addAndMakeVisible(*k);
     }
 
@@ -195,34 +208,40 @@ namespace pw8::plugin::ui
         const bool isPhaseShape = engine == static_cast<int>(algorithm::EngineType::PhaseShape);
         const bool isAdditive = engine == static_cast<int>(algorithm::EngineType::Additive);
         const bool isResonator = engine == static_cast<int>(algorithm::EngineType::Resonator);
+        const bool isGranular = engine == static_cast<int>(algorithm::EngineType::Granular);
+        // Granular grains read the same wavetableId-loaded data the Wavetable
+        // engine uses (see op::OperatorPatch's Granular fields doc comment), so
+        // it shares the stack preview + WT Pos (reused as grain base position)
+        // rather than hiding them the way every other non-Wavetable engine does.
+        const bool showsWavetableStack = isWavetable || isGranular;
 
         // Waveform (classic.waveform) only matters for engines that actually read
         // params.classic -- Classic itself, and FM/PM (it's the CARRIER's shape
-        // there). Wavetable's, NoiseChaos's, PhaseShape's, Additive's, and
-        // Resonator's cases never touch params.classic, so it's hidden only for
-        // those engines, swapped for the stack preview + WT Pos, the Noise/Rate
-        // pair, the 4 phase-shape knobs, the 4 additive knobs, or the 5 resonator
-        // knobs respectively.
+        // there). Wavetable's, NoiseChaos's, PhaseShape's, Additive's,
+        // Resonator's, and Granular's cases never touch params.classic, so it's
+        // hidden only for those engines, swapped for the stack preview + WT Pos
+        // (+ 4 grain knobs for Granular), the Noise/Rate pair, the 4 phase-shape
+        // knobs, the 4 additive knobs, or the 5 resonator knobs respectively.
         //
         // Ratio (frequencyRatio), by contrast, is read GENERICALLY: render()
         // computes carrierHz from it once, before the engine switch, so it
         // affects every engine's pitch (or, for NoiseChaos, its
         // phaseMod/freqModHz bookkeeping even though its own output ignores
-        // pitch; or, for Resonator, tuning each mode) including Wavetable --
-        // always visible. (Hiding it for Wavetable was a real GATE-5-era gap:
-        // that operator's pitch ratio was a live, working, automatable
-        // parameter with no way to reach it from the UI. Caught and fixed while
-        // touching this exact function for FM/PM, not a deliberate part of that
-        // pass.)
+        // pitch; or, for Resonator, tuning each mode; or, for Granular, its
+        // root-key-relative playback rate) including Wavetable -- always
+        // visible. (Hiding it for Wavetable was a real GATE-5-era gap: that
+        // operator's pitch ratio was a live, working, automatable parameter
+        // with no way to reach it from the UI. Caught and fixed while touching
+        // this exact function for FM/PM, not a deliberate part of that pass.)
         //
         // None of these knobs' parameter IDs depend on the engine (only on
         // selectedNode_), so an engine-only change never needs to reconstruct
         // them -- doing so used to silently abort any in-progress mouse drag on
         // a knob the instant a host automated the Engine parameter mid-gesture.
-        waveformKnob_->setVisible(!isWavetable && !isNoiseChaos && !isPhaseShape && !isAdditive && !isResonator);
+        waveformKnob_->setVisible(!showsWavetableStack && !isNoiseChaos && !isPhaseShape && !isAdditive && !isResonator);
         ratioKnob_->setVisible(true);
-        wavetablePosKnob_->setVisible(isWavetable);
-        wavetableStackView_.setVisible(isWavetable);
+        wavetablePosKnob_->setVisible(showsWavetableStack);
+        wavetableStackView_.setVisible(showsWavetableStack);
         noiseVariantKnob_->setVisible(isNoiseChaos);
         noiseRateKnob_->setVisible(isNoiseChaos);
         phaseBendKnob_->setVisible(isPhaseShape);
@@ -238,6 +257,10 @@ namespace pw8::plugin::ui
         resonatorDampingKnob_->setVisible(isResonator);
         resonatorBrightnessKnob_->setVisible(isResonator);
         resonatorModesKnob_->setVisible(isResonator);
+        grainDensityKnob_->setVisible(isGranular);
+        grainSizeKnob_->setVisible(isGranular);
+        grainPosJitterKnob_->setVisible(isGranular);
+        grainPitchJitterKnob_->setVisible(isGranular);
         levelKnob_->setVisible(true);
 
         for (auto* k : {fmModRatioKnob_.get(), fmModIndexKnob_.get(), fmModFeedbackKnob_.get(), fmModWaveformKnob_.get()})
@@ -304,7 +327,31 @@ namespace pw8::plugin::ui
         content.removeFromTop(kPillRowHeight);
         content.removeFromBottom(kNoteHeight);
 
-        if (wavetableStackView_.isVisible())
+        if (wavetableStackView_.isVisible() && grainDensityKnob_ && grainDensityKnob_->isVisible())
+        {
+            // Granular: the stack shrinks further than the plain Wavetable case
+            // (0.40 vs 0.55) to make room for level/ratio/wtPos + 4 grain knobs
+            // (7-way split) in the remaining strip.
+            auto stackArea = content.removeFromLeft(static_cast<int>(static_cast<float>(content.getWidth()) * 0.40f));
+            wavetableStackView_.setBounds(stackArea.reduced(3));
+
+            const int knobWidth = content.getWidth() / 7;
+            if (levelKnob_)
+                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (ratioKnob_)
+                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (wavetablePosKnob_)
+                wavetablePosKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (grainDensityKnob_)
+                grainDensityKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (grainSizeKnob_)
+                grainSizeKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (grainPosJitterKnob_)
+                grainPosJitterKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            if (grainPitchJitterKnob_)
+                grainPitchJitterKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+        }
+        else if (wavetableStackView_.isVisible())
         {
             // 0.55, not GATE 5's original 0.62 -- ratioKnob_ joining this row
             // (see updateEngineVisibility()'s doc comment on why it's always

@@ -10,7 +10,8 @@ namespace pw8::plugin
     // fmModulatorWaveform, noiseVariant, noiseRate, phaseBend, phaseFold,
     // phaseAsymmetry, phaseShape, additivePartialCount, additiveTilt,
     // additiveOddEven, additiveStretch, resonatorStructure, resonatorDecay,
-    // resonatorDamping, resonatorBrightness, resonatorModeCount.
+    // resonatorDamping, resonatorBrightness, resonatorModeCount, grainDensity,
+    // grainSizeMs, grainPositionJitter, grainPitchJitter.
     const std::array<ParamFieldSpec, kNumOperatorFields> kOperatorFieldSpecs = {{
         {"Engine",             "Engine",             0.0f,   7.0f, 0.0f,   true},
         {"Waveform",           "Waveform",           0.0f,   3.0f, 2.0f,   true},
@@ -40,6 +41,10 @@ namespace pw8::plugin
         {"ResonatorDamping",    "Damping",     0.0f, 1.0f, 0.5f, false},
         {"ResonatorBrightness", "Brightness",  0.0f, 1.0f, 0.5f, false},
         {"ResonatorModeCount",  "Modes",       2.0f, 8.0f, 6.0f, true},
+        {"GrainDensity",         "Density",   0.5f, 200.0f, 20.0f, false},
+        {"GrainSizeMs",          "Size Ms",   1.0f, 500.0f, 60.0f, false},
+        {"GrainPositionJitter",  "Pos Jit",   0.0f,   1.0f, 0.1f,  false},
+        {"GrainPitchJitter",     "Pitch Jit", 0.0f,   1.0f, 0.0f,  false},
     }};
 
     // Matches filter::FilterParams: enabled, mode, cutoffHz, resonance, keyTrack.

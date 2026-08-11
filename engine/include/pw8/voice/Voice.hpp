@@ -88,6 +88,7 @@ namespace pw8::voice
                 s.reset(rng.nextFloat());
                 s.seedNoise(rng.nextU64());
                 s.seedResonator(rng.nextU64());
+                s.seedGranular(rng.nextU64());
             }
 
             for (std::size_t i = 0; i < core::kNumEnvelopesPerLayer; ++i)

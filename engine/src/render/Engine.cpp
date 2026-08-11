@@ -48,6 +48,10 @@ namespace pw8::render
         out.resonatorDamping = p.resonatorDamping;
         out.resonatorBrightness = p.resonatorBrightness;
         out.resonatorModeCount = p.resonatorModeCount;
+        out.grainDensity = p.grainDensity;
+        out.grainSizeMs = p.grainSizeMs;
+        out.grainPositionJitter = p.grainPositionJitter;
+        out.grainPitchJitter = p.grainPitchJitter;
         return out;
     }
 

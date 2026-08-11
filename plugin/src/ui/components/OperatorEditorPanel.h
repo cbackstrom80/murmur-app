@@ -83,6 +83,14 @@
 // Wave knob is replaced by 5 dedicated knobs (Structure/Decay/Damping/
 // Brightness/Modes) -- same visibility-swap pattern, a further branch
 // alongside the others.
+//
+// Engine 6 (Granular), the last of the 6 previously-silent engines to ship:
+// grains are read from the same wavetableId-loaded data the Wavetable engine
+// uses (see op::OperatorPatch's Granular fields doc comment), so Granular
+// ALSO shows WavetableStackView + WT Pos (reused verbatim as each grain's
+// base read position) rather than hiding them -- plus 4 dedicated grain
+// knobs (Density/Size/Pos Jit/Pitch Jit) alongside. The stack area shrinks
+// further than the plain Wavetable case to make room for the extra knob row.
 namespace pw8::plugin::ui
 {
     class OperatorEditorPanel : public juce::Component, public juce::TooltipClient, private juce::Timer
@@ -142,7 +150,7 @@ namespace pw8::plugin::ui
         std::unique_ptr<GlowKnob> waveformKnob_;
         std::unique_ptr<GlowKnob> levelKnob_;
         std::unique_ptr<GlowKnob> ratioKnob_;
-        std::unique_ptr<GlowKnob> wavetablePosKnob_; // Only constructed/visible for the Wavetable engine.
+        std::unique_ptr<GlowKnob> wavetablePosKnob_; // Visible for the Wavetable AND Granular engines.
         WavetableStackView wavetableStackView_;      // Same visibility rule; never rebuilt per-node (holds no APVTS attachment).
         // Engine Type 3 (FM/PM) only -- same "always constructed, visibility
         // toggled" pattern as the Wavetable-only knobs above.
@@ -165,6 +173,10 @@ namespace pw8::plugin::ui
         std::unique_ptr<GlowKnob> resonatorDampingKnob_;    // Only visible for the Resonator engine.
         std::unique_ptr<GlowKnob> resonatorBrightnessKnob_; // Only visible for the Resonator engine.
         std::unique_ptr<GlowKnob> resonatorModesKnob_;      // Only visible for the Resonator engine.
+        std::unique_ptr<GlowKnob> grainDensityKnob_;   // Only visible for the Granular engine.
+        std::unique_ptr<GlowKnob> grainSizeKnob_;      // Only visible for the Granular engine.
+        std::unique_ptr<GlowKnob> grainPosJitterKnob_; // Only visible for the Granular engine.
+        std::unique_ptr<GlowKnob> grainPitchJitterKnob_; // Only visible for the Granular engine.
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OperatorEditorPanel)
     };

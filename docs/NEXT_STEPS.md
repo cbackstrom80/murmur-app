@@ -42,12 +42,15 @@ This is the single biggest gap between "verified" and "shippable":
 - **Unison (Phase 7)**: same shape of gap -- `UnisonSettings` exists in the
   schema with no DSP behind it. Same recommendation: implement, or reject
   patches that set voice count > 1 until it's real.
-- **1 of 8 operator engines still renders silence** (Granular -- Phase
-  4/10; FM/PM, NoiseChaos, PhaseShape, Additive, and Resonator have all
-  shipped). The UI is honest about what's left (dashed node rings, disabled
-  pills, the note line in `OperatorEditorPanel`) -- but this remains the
-  actual critical path if "8-engine algorithmic synthesizer" is the
-  product's core pitch, ahead of more UI/FX work.
+- ~~1 of 8 operator engines still renders silence~~ -- **DONE**. All 6
+  originally-silent operator engines (FM/PM, NoiseChaos, PhaseShape,
+  Additive, Resonator, Granular -- Phase 4/10) now have real DSP, each
+  shipped as its own separate, independently-verified PR and merged into
+  `main` one at a time (with real conflict resolution across the shared
+  files each PR touched additively: `OperatorNode.hpp`, `PluginState.h/.cpp`,
+  `PatchworkEightProcessor.cpp`, `OperatorEditorPanel.h/.cpp`). All 8 of the
+  headline "8-engine algorithmic synthesizer" engines now actually exist on
+  `main`.
 
 ## P2 -- Highest-leverage PLANNED items (per ROADMAP, ranked)
 

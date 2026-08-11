@@ -130,6 +130,10 @@ namespace pw8::patch
                 {"resonatorDamping", o.resonatorDamping},
                 {"resonatorBrightness", o.resonatorBrightness},
                 {"resonatorModeCount", o.resonatorModeCount},
+                {"grainDensity", o.grainDensity},
+                {"grainSizeMs", o.grainSizeMs},
+                {"grainPositionJitter", o.grainPositionJitter},
+                {"grainPitchJitter", o.grainPitchJitter},
             };
         }
 
@@ -166,6 +170,10 @@ namespace pw8::patch
             o.resonatorDamping = clampNum(j.value("resonatorDamping", 0.5f), 0.0f, 1.0f);
             o.resonatorBrightness = clampNum(j.value("resonatorBrightness", 0.5f), 0.0f, 1.0f);
             o.resonatorModeCount = clampNum(j.value("resonatorModeCount", 6.0f), 2.0f, 8.0f);
+            o.grainDensity = clampNum(j.value("grainDensity", 20.0f), 0.5f, 200.0f);
+            o.grainSizeMs = clampNum(j.value("grainSizeMs", 60.0f), 1.0f, 500.0f);
+            o.grainPositionJitter = clampNum(j.value("grainPositionJitter", 0.1f), 0.0f, 1.0f);
+            o.grainPitchJitter = clampNum(j.value("grainPitchJitter", 0.0f), 0.0f, 1.0f);
         }
 
         void toJson(json& j, const UnisonSettings& u)
