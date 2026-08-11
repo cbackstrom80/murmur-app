@@ -77,10 +77,15 @@ namespace pw8::render
         // *sustaining* voice (filter/LFO/operators/gain/pan; see Voice::renderSample),
         // pushes the new value into every active voice too, exactly like
         // setMacroValue() above. Fields NOT covered here (per-operator wavetableId,
-        // algorithm graph topology, mod-route list, arpeggiator per-step array, effect
-        // delay-tree node arrays/seeds, AI lock flags, patch metadata) are structural
-        // or string-typed data, not continuous performance parameters -- see
+        // algorithm graph topology, arpeggiator per-step array, effect delay-tree
+        // node arrays/seeds, AI lock flags, patch metadata) are structural or
+        // string-typed data, not continuous performance parameters -- see
         // docs/PLUGIN_ARCHITECTURE.md "Automation" for the full scope rationale.
+        // The mod-route list gets its own setModRoutesLive() below rather than a flat
+        // per-field APVTS parameter: adding/removing/retargeting a route is a
+        // discrete structural edit (docs/UI.md "drag-to-modulate"), not a continuous
+        // knob value -- still not part of the automation surface, but no longer
+        // frozen to patch-load-only either.
         // Layer B is not voiced yet (Phase 8), so only Layer A has a live API.
 
         void setFilterLive(const filter::FilterParams& params) noexcept;
@@ -116,6 +121,19 @@ namespace pw8::render
         [[nodiscard]] envelope::DahdsrParams getEnvelopeParams(std::size_t envIndex) const noexcept
         {
             return envIndex < core::kNumEnvelopesPerLayer ? patch_.layerA.envelopes[envIndex] : envelope::DahdsrParams{};
+        }
+
+        /// Replaces the entire Layer A mod-route list. Unlike every setter above,
+        /// there is no per-voice copy to also update -- `Voice::renderSample` already
+        /// reads `patch_.layerA.modRoutes` fresh every sample (the `liveModRoutes`
+        /// parameter), so this takes effect on already-sustaining voices immediately,
+        /// not just the next note-on. Message-thread-safe the same way every other
+        /// live setter is (a plain POD write racing an audio-thread read of the same
+        /// struct, tolerated the same way the rest of this API already does).
+        void setModRoutesLive(const core::FixedVector<modulation::ModRoute, core::kMaxModRoutes>& routes) noexcept;
+        [[nodiscard]] const core::FixedVector<modulation::ModRoute, core::kMaxModRoutes>& getModRoutes() const noexcept
+        {
+            return patch_.layerA.modRoutes;
         }
 
         void setLayerGainLive(float gain) noexcept;

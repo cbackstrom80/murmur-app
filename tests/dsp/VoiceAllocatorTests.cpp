@@ -67,10 +67,11 @@ TEST_CASE("VoiceAllocator steals a released voice over an actively-gated one", "
         pw8::algorithm::AlgorithmGraphDefinition::makeDefaultParallel8(), compiled);
     std::array<const pw8::oscillator::WavetableTable*, pw8::core::kNodesPerLayer> tables{};
     std::array<float, pw8::core::kNumLfosPerLayer> layerLfoValues{};
+    pw8::core::FixedVector<pw8::modulation::ModRoute, pw8::core::kMaxModRoutes> modRoutes{};
     for (int i = 0; i < 10000; ++i)
     {
         float l = 0.0f, r = 0.0f;
-        pool[idx0].renderSample(compiled, tables, 120.0f, layerLfoValues, l, r);
+        pool[idx0].renderSample(compiled, tables, 120.0f, layerLfoValues, modRoutes, l, r);
     }
 
     const auto idx2 = allocator.allocate(pool);

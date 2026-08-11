@@ -11,6 +11,13 @@ namespace pw8::plugin::ui
         patchNameLabel_.setColour(juce::Label::textColourId, palette::kTextPrimary);
         patchNameLabel_.setFont(fonts::title(16.0f));
         addAndMakeVisible(patchNameLabel_);
+
+        loadButton_.onClick = [this] { loadPatchFromFile(); };
+        loadButton_.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
+        loadButton_.setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
+        loadButton_.setColour(juce::ComboBox::outlineColourId, palette::kBorderBright);
+        addAndMakeVisible(loadButton_);
+
         startTimerHz(2);
         timerCallback();
     }
@@ -43,7 +50,26 @@ namespace pw8::plugin::ui
 
     void PatchBrowserBar::resized()
     {
-        patchNameLabel_.setBounds(getLocalBounds().withTrimmedLeft(280));
+        auto bounds = getLocalBounds().withTrimmedLeft(280);
+        loadButton_.setBounds(bounds.removeFromRight(80).reduced(0, 6));
+        bounds.removeFromRight(8);
+        patchNameLabel_.setBounds(bounds);
+    }
+
+    void PatchBrowserBar::loadPatchFromFile()
+    {
+        fileChooser_ = std::make_unique<juce::FileChooser>("Load a Patchwork Eight patch...", juce::File(),
+                                                             "*.pw8");
+        const auto flags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
+        fileChooser_->launchAsync(flags, [this](const juce::FileChooser& chooser) {
+            const auto file = chooser.getResult();
+            if (!file.existsAsFile())
+                return; // Cancelled -- not an error.
+
+            const auto json = file.loadFileAsString();
+            processor_.setStateInformation(json.toRawUTF8(), static_cast<int>(json.getNumBytesAsUTF8()));
+            timerCallback(); // Refresh the displayed name immediately rather than waiting for the next timer tick.
+        });
     }
 
 } // namespace pw8::plugin::ui

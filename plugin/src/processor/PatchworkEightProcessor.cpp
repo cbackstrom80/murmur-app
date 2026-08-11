@@ -142,6 +142,12 @@ namespace pw8::plugin
 
     void PatchworkEightProcessor::pushLiveParametersToEngine(render::Engine& engine) noexcept
     {
+        // Drag-to-modulate (docs/UI.md): consume a pending mod-route publish, if the
+        // message thread has posted one since the last block -- see
+        // publishModRoutesLive()'s doc comment for the double-buffering scheme.
+        if (const auto* pendingRoutes = pendingModRoutes_.exchange(nullptr, std::memory_order_acquire))
+            engine.setModRoutesLive(*pendingRoutes);
+
         // Macros -- unchanged from before this pass, see Engine::setMacroValue().
         for (std::size_t i = 0; i < macroParamPointers_.size(); ++i)
             engine.setMacroValue(i, loadF(macroParamPointers_[i]));
@@ -393,6 +399,63 @@ namespace pw8::plugin
         const bool ok = fresh->loadPatch(currentPatch_);
         publishEngine(std::move(fresh));
         return ok;
+    }
+
+    void PatchworkEightProcessor::publishModRoutesLive(
+        const core::FixedVector<modulation::ModRoute, core::kMaxModRoutes>& routes)
+    {
+        // Write into whichever slot wasn't published last -- see the member's doc
+        // comment in the header for the full "why this is safe" reasoning.
+        modRoutesStorageUsingA_ = !modRoutesStorageUsingA_;
+        auto& slot = modRoutesStorage_[modRoutesStorageUsingA_ ? 0 : 1];
+        slot = routes;
+        pendingModRoutes_.store(&slot, std::memory_order_release);
+    }
+
+    void PatchworkEightProcessor::setOrReplaceModRouteLive(modulation::ModSource source,
+                                                             modulation::ModDestination destination,
+                                                             std::uint8_t targetIndex, float amount,
+                                                             modulation::ModScope scope)
+    {
+        auto routes = currentPatch_.layerA.modRoutes;
+        bool replaced = false;
+        for (auto& route : routes)
+        {
+            if (route.destination == destination && route.targetIndex == targetIndex)
+            {
+                route.source = source;
+                route.amount = amount;
+                route.scope = scope;
+                replaced = true;
+                break;
+            }
+        }
+        if (!replaced)
+        {
+            modulation::ModRoute route;
+            route.source = source;
+            route.destination = destination;
+            route.targetIndex = targetIndex;
+            route.amount = amount;
+            route.scope = scope;
+            routes.push_back(route); // A silent no-op past kMaxModRoutes (64) capacity, same as every other FixedVector use in this codebase.
+        }
+
+        currentPatch_.layerA.modRoutes = routes; // Keep the getStateInformation()/preset-save source of truth in sync.
+        publishModRoutesLive(routes);
+    }
+
+    void PatchworkEightProcessor::removeModRouteLive(modulation::ModSource source,
+                                                       modulation::ModDestination destination,
+                                                       std::uint8_t targetIndex)
+    {
+        core::FixedVector<modulation::ModRoute, core::kMaxModRoutes> routes;
+        for (const auto& route : currentPatch_.layerA.modRoutes)
+            if (!(route.source == source && route.destination == destination && route.targetIndex == targetIndex))
+                routes.push_back(route);
+
+        currentPatch_.layerA.modRoutes = routes;
+        publishModRoutesLive(routes);
     }
 
     void PatchworkEightProcessor::syncAllParametersFromPatch()

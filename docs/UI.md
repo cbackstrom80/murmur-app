@@ -50,6 +50,11 @@ with a thin indicator + glow arc, not skeuomorphic chrome).
 - `components/SectionPanel.{h,cpp}` -- the titled, recessed-panel container
   every PLAY-mode section sits inside.
 - `components/AlgorithmGraphView.{h,cpp}` -- the centerpiece; see below.
+- `components/OperatorEditorPanel.{h,cpp}` -- the detail view for whichever
+  node is currently selected in the graph (UI GATE 3): engine-select pills,
+  Waveform/Level/Ratio knobs.
+- `components/ModSourceChip.{h,cpp}` / `components/ModSourceStrip.{h,cpp}` --
+  the drag-to-modulate source palette and connections list (UI GATE 3).
 - `components/MacroStrip.{h,cpp}` -- the 8 macros, Patchwork Eight's actual
   performance surface.
 - `components/FilterLfoPanel.{h,cpp}` -- Filter 1 + LFO 1's main controls,
@@ -98,8 +103,10 @@ NoiseChaos/Resonator) gets a dashed ring instead of a solid one: an honest
 visual cue that it renders silence today, not hidden behind a control that
 looks fully live.
 
-Editing the graph (moving nodes, adding/removing edges) is explicitly out of
-scope for PLAY mode -- DESIGN mode's job, PLANNED.
+Editing the graph itself (moving nodes, adding/removing edges) is explicitly
+out of scope for PLAY mode -- DESIGN mode's job, PLANNED. *Selecting* a node
+is in scope as of UI GATE 3 below: clicking a node opens its controls in
+`OperatorEditorPanel` without changing the graph's shape.
 
 ## UI GATE 2: visual overhaul
 
@@ -168,6 +175,73 @@ fixed share, so it can never starve them), *and* `drawRotarySlider` now
 floors its diameter/body-radius math defensively, so a future layout mistake
 or an unexpected host resize can't reproduce the same failure mode.
 
+## UI GATE 3: click a node, drag a source -- graph legibility + drag-to-modulate
+
+Built off direct feedback on the HTML mockup UI GATE 2 was prototyped in --
+"why can't I click on other oscillators" and "I dont understand the graph" --
+plus one piece of real friction found using the plugin inside an actual DAW
+(REAPER) rather than the Standalone app for the first time. Three additions,
+all in one pass:
+
+- **Node selection**: `AlgorithmGraphView` gained a `mouseDown` hit-test over
+  its 8 circle positions and an `onNodeSelected` callback; clicking a node
+  opens that operator's controls in the new `OperatorEditorPanel` below the
+  circle -- engine-select pills (mirroring the dashed-ring "not yet
+  implemented" honesty the circle itself already commits to, dim/no-hover/
+  tooltip rather than a control that looks live but silently no-ops) plus
+  Waveform/Level/Ratio knobs, rebuilt (`showNode()`) against the newly
+  selected node's parameter IDs rather than keeping 8 parallel hidden panels.
+  One panel, one node's worth of live `GlowKnob` attachments at a time --
+  there's only ever one selection.
+- **Graph legibility**: the circle gained a reserved strip underneath for a
+  plain-language caption (translating the current edge list into a sentence)
+  and a legend mapping each `EdgeType` color actually present in *this* patch
+  to its name -- both read off the same polled patch state the circle itself
+  already has, not a separate data path.
+- **Drag-to-modulate**: `ModSourceStrip` offers 3 colored, draggable
+  `ModSourceChip`s (LFO 1, the amp envelope, Velocity) against the two real
+  PLAY-mode mod-matrix destinations, Filter Cutoff/Resonance
+  (`GlowKnob::enableModulationTarget`, a `juce::DragAndDropTarget` opt-in --
+  not every knob accepts modulation, so this stays explicit rather than
+  implicit on every `GlowKnob`). Dropping a chip calls
+  `PatchworkEightProcessor::setOrReplaceModRouteLive()`; right-clicking a
+  modulated knob calls `removeModRouteLive()`. Both are message-thread APIs
+  that publish into the live `Engine` via a double-buffered atomic-pointer
+  handoff (`publishModRoutesLive()`/`pendingModRoutes_`, the same "prepare
+  off-thread, swap a pointer" pattern the engine hot-swap already uses,
+  applied to this one smaller piece of state) rather than a full
+  `loadPatch()` rebuild -- so a drag never re-triggers or silences a
+  currently-sustaining voice. `Engine::setModRoutesLive()` writes straight
+  into `patch_.layerA.modRoutes`, which `Voice::renderSample` already reads
+  fresh every sample (the same "no frozen per-voice copy" pattern
+  `layerLfoValues` established) rather than a value frozen at `noteOn()`, so
+  a route change reaches an already-held note the very next sample --
+  proved directly in `tests/unit/EngineLiveParamsTests.cpp` (a mid-hold
+  Velocity -> Filter Cutoff route measurably darkens the same still-ringing
+  voice, and removing it measurably re-opens it). `ModSourceStrip`'s
+  connections list reads every real route in the patch honestly (via
+  `modSourceLabel`/`modDestinationLabel`), including ones this UI has no drag
+  gesture for yet (e.g. an `OperatorLevel` route from a hand-authored .pw8),
+  not just the two destinations reachable by dragging.
+  The mod-route list itself remains outside the 578-parameter host-automation
+  surface -- unchanged from `docs/PLUGIN_ARCHITECTURE.md`'s "Automation"
+  section: adding/removing/retargeting a route is a discrete structural edit
+  (like the graph topology it modulates), not a continuous knob value, so
+  this is a new live-editing path alongside automation, not an addition to it.
+- **`PatchBrowserBar` gained a real "Load..." button**: the first time this
+  plugin was actually used inside REAPER rather than the Standalone app,
+  there was no way to get a saved `.pw8` into a running instance short of a
+  debug env-var hack. Opens a native `juce::FileChooser`, reads the chosen
+  file's raw bytes, and calls `setStateInformation()` directly -- the exact
+  same path a host already uses to restore a saved session, so "load a patch
+  by hand" and "reopen a saved project" are provably the same code, not a
+  second parallel loader to keep in sync.
+
+`auval` and `pluginval --strictness-level 5` both re-confirmed SUCCESS on
+VST3 and AU after this pass (still 578 published parameters -- mod routes
+stay outside the automation surface, as above). 1 new engine-level test
+(`EngineLiveParamsTests.cpp`) -- 126 total, all passing.
+
 ## What's PLANNED
 
 - DESIGN and LAB modes (graph editing, full modulation-bank editing,
@@ -178,8 +252,14 @@ or an unexpected host resize can't reproduce the same failure mode.
   deliberately not reached for in this pass; v1 uses plain `juce::Graphics`
   painting (already hardware-backed on macOS via CoreGraphics), profiled and
   found comfortably smooth, so there was nothing yet to accelerate.
-- Real prev/next/save preset browsing (see `PatchBrowserBar` above).
+- Real prev/next preset browsing (a content-scanning index over
+  `content/presets/*.pw8`) -- `PatchBrowserBar` can now load any single file
+  you pick (UI GATE 3), but still can't step through a library.
 - Per-algorithm FX detail editing beyond `mix` (see `FxChainStrip` above).
+- A full mod-matrix UI (all sources/destinations, multi-route-per-destination
+  authoring) -- UI GATE 3's drag-to-modulate deliberately covers only 3
+  sources x 2 destinations; everything else stays reachable only via a
+  hand-authored `.pw8`.
 
 ## Considered and deliberately not adopted
 

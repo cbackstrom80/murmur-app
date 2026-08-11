@@ -132,7 +132,10 @@ LAYER/GLOBAL scope actually does.
 consistently, documented in full in `plugin/src/state/PluginState.h`):
 std::string fields (wavetableId, all patch/macro metadata) -- not a
 continuous-automation-shaped data type; algorithm graph topology and the
-mod-route list -- structural patch-editing data, not a performance knob;
+mod-route list -- structural patch-editing data, not a performance knob (the
+mod-route list did gain its own non-automation live-editing path in UI GATE 3,
+`Engine::setModRoutesLive()`/drag-to-modulate -- see [UI.md](UI.md) -- but
+still isn't a host-automatable parameter, for the same reason);
 the arpeggiator's 64-step array and NodeDelay/FractalEcho's node-tree
 arrays/seeds -- same reasoning, and already fully covered by the native `.pw8`
 JSON round-trip regardless; unison and layer width/centerGravity -- schema-
@@ -225,15 +228,17 @@ and a real geometry bug caught and fixed while building it: see
 ## Signature UI: Graph
 
 **IMPLEMENTED** as `ui::AlgorithmGraphView`, PLAY mode's centerpiece -- a
-read-only rendering of exactly the same structure `AlgorithmGraphCompiler`
-already produces and `pw8-graph inspect` already prints in text form, with the
+rendering of exactly the same structure `AlgorithmGraphCompiler` already
+produces and `pw8-graph inspect` already prints in text form, with the
 8 nodes at fixed positions on a circle (not a draggable modular patcher --
 the master spec's "no visible patch-cable spaghetti" constraint, satisfied
 architecturally rather than just cosmetically) and edges rendered as curved,
-`EdgeType`-colored lines with an animated traveling pulse. See
-[UI.md](UI.md) "The algorithm graph view" for the full detail, including what
-the pulse does and doesn't represent (structural, not literal audio-level
-metering) and why editing the graph itself stays DESIGN-mode/PLANNED.
+`EdgeType`-colored lines with an animated traveling pulse. The graph's
+*shape* stays read-only (editing it is DESIGN-mode/PLANNED), but as of UI
+GATE 3, clicking a node is interactive: it opens that operator's controls in
+`OperatorEditorPanel`. See [UI.md](UI.md) "The algorithm graph view" and "UI
+GATE 3" for the full detail, including what the pulse does and doesn't
+represent (structural, not literal audio-level metering).
 
 ## Visualization: spectrum, oscilloscope, waveform/wavetable previews (PLANNED)
 

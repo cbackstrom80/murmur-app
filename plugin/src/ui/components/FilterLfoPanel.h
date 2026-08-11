@@ -7,18 +7,21 @@
 
 #include "GlowKnob.h"
 #include "SectionPanel.h"
+#include "processor/PatchworkEightProcessor.h"
 
 // Filter 1 and LFO 1's main controls, compact -- the "quick sound-shaping" surface
 // PLAY mode offers. The full 8-LFO/8-envelope modulation bank and Filter 2 (once
 // it exists) are DESIGN-mode territory (docs/ROADMAP.md GATE 6/Phase 17),
 // deliberately out of scope here: PLAY mode is meant to be playable at a glance,
-// not a second copy of the flat 578-parameter list.
+// not a second copy of the flat 578-parameter list. Cutoff and Resonance are also
+// this pass's two real drag-to-modulate destinations (docs/UI.md) -- the only two
+// ModDestination values PLAY mode currently surfaces a knob for.
 namespace pw8::plugin::ui
 {
     class FilterLfoPanel : public juce::Component
     {
     public:
-        explicit FilterLfoPanel(juce::AudioProcessorValueTreeState& apvts);
+        explicit FilterLfoPanel(PatchworkEightProcessor& processor);
 
         void resized() override;
 

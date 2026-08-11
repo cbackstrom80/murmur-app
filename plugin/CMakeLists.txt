@@ -49,10 +49,13 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/GlowKnob.cpp
     src/ui/components/SectionPanel.cpp
     src/ui/components/AlgorithmGraphView.cpp
+    src/ui/components/OperatorEditorPanel.cpp
     src/ui/components/MacroStrip.cpp
     src/ui/components/FilterLfoPanel.cpp
     src/ui/components/FxChainStrip.cpp
     src/ui/components/PatchBrowserBar.cpp
+    src/ui/components/ModSourceChip.cpp
+    src/ui/components/ModSourceStrip.cpp
 )
 
 target_include_directories(pw8_plugin PRIVATE src)

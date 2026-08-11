@@ -22,6 +22,12 @@ namespace pw8::plugin::ui
         /// The area inside the panel a caller should lay its own content into.
         [[nodiscard]] juce::Rectangle<int> getContentBounds() const;
 
+        /// Changes the header text after construction (repaints immediately) --
+        /// used by panels whose title reflects live selection state, e.g. the
+        /// operator editor's "OPERATOR 3" header tracking the algorithm graph's
+        /// currently-selected node.
+        void setTitle(const juce::String& title);
+
     private:
         juce::String title_;
         juce::Colour accentColour_;

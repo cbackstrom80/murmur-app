@@ -66,6 +66,31 @@ namespace pw8::plugin
         /// metadata) so the editor doesn't need a second, divergent copy of it.
         [[nodiscard]] const patch::Patch& getCurrentPatch() const noexcept { return currentPatch_; }
 
+        /// Message-thread only (drag-to-modulate, docs/UI.md). Adds a Layer A mod
+        /// route, or replaces the existing one if any route already targets the same
+        /// (destination, targetIndex) pair -- at most one source per knob in this
+        /// UI's model; the full mod matrix's multi-route-per-destination summing is
+        /// still reachable via the native .pw8 format, just not this convenience API.
+        /// Publishes the change to the live engine WITHOUT rebuilding it (unlike
+        /// loadPatch()), so an already-sustaining voice picks it up the very next
+        /// block -- see Engine::setModRoutesLive().
+        void setOrReplaceModRouteLive(modulation::ModSource source, modulation::ModDestination destination,
+                                       std::uint8_t targetIndex, float amount,
+                                       modulation::ModScope scope = modulation::ModScope::Voice);
+
+        /// Message-thread only. Removes the Layer A route matching (source,
+        /// destination, targetIndex) exactly, if one exists. A no-op otherwise.
+        /// Takes `source` too (not just destination/targetIndex) so it can
+        /// identify one specific route even when more than one source targets
+        /// the same destination -- reachable only via a hand-authored .pw8 (this
+        /// UI's own drag-to-modulate gesture keeps the "at most one source per
+        /// knob" model setOrReplaceModRouteLive() documents above), but the
+        /// connections list (ModSourceStrip) shows and lets you remove every real
+        /// route in the patch, including those, so removal has to be exact rather
+        /// than "whichever route happens to occupy that destination."
+        void removeModRouteLive(modulation::ModSource source, modulation::ModDestination destination,
+                                 std::uint8_t targetIndex);
+
         /// The 361 host-automatable parameters (docs/PLUGIN_ARCHITECTURE.md
         /// "Automation"). Public so createEditor()/tests can reach it; processBlock()
         /// reads it via the cached raw-value pointers below, never through this
@@ -102,6 +127,16 @@ namespace pw8::plugin
         /// currently-sustaining voice, not just the next note-on.
         void pushLiveParametersToEngine(render::Engine& engine) noexcept;
 
+        /// Message-thread only: writes `routes` into whichever of the two
+        /// `modRoutesStorage_` slots wasn't published last, then atomically publishes
+        /// a pointer to it -- the same "prepare off-thread, atomic pointer swap"
+        /// pattern already used for `activeEngine_` above, just applied to this one
+        /// smaller piece of state instead of the whole Engine, so a mod-route change
+        /// never has to rebuild (and thereby silence) the currently-playing Engine
+        /// the way loadPatch() would. `pushLiveParametersToEngine()` (audio thread)
+        /// consumes it via `pendingModRoutes_.exchange(nullptr, ...)`.
+        void publishModRoutesLive(const core::FixedVector<modulation::ModRoute, core::kMaxModRoutes>& routes);
+
         patch::Patch currentPatch_ = patch::Patch::makeInit();
 
         // Cached once in the constructor: audio-thread-safe raw pointers into the
@@ -127,6 +162,13 @@ namespace pw8::plugin
         std::unique_ptr<render::Engine> engineStorageA_;
         std::unique_ptr<render::Engine> engineStorageB_;
         bool usingStorageA_ = true;
+
+        // Double-buffered mod-route publishing (see publishModRoutesLive() above).
+        // modRoutesStorageUsingA_ is message-thread-only bookkeeping (which slot was
+        // written last); pendingModRoutes_ is the cross-thread handoff.
+        std::array<core::FixedVector<modulation::ModRoute, core::kMaxModRoutes>, 2> modRoutesStorage_{};
+        std::atomic<const core::FixedVector<modulation::ModRoute, core::kMaxModRoutes>*> pendingModRoutes_{nullptr};
+        bool modRoutesStorageUsingA_ = true;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PatchworkEightProcessor)
     };

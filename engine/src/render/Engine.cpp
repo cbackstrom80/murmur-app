@@ -104,7 +104,6 @@ namespace pw8::render
             v.operatorParams = operatorParamsTemplateA_;
             v.filterParams = patch_.layerA.filter1;
             v.lfoParams = patch_.layerA.lfos;
-            v.modRoutes = patch_.layerA.modRoutes;
             v.macroValues = macroValues;
         }
 
@@ -153,7 +152,6 @@ namespace pw8::render
         v.operatorParams = operatorParamsTemplateA_;
         v.filterParams = patch_.layerA.filter1;
         v.lfoParams = patch_.layerA.lfos;
-        v.modRoutes = patch_.layerA.modRoutes;
         for (std::size_t i = 0; i < v.macroValues.size(); ++i)
             v.macroValues[i] = patch_.macros[i].value;
 
@@ -278,6 +276,16 @@ namespace pw8::render
         patch_.layerA.envelopes[envIndex] = params;
     }
 
+    void Engine::setModRoutesLive(const core::FixedVector<modulation::ModRoute, core::kMaxModRoutes>& routes) noexcept
+    {
+        // Unlike every other Live Parameter API setter above, there is no per-voice
+        // copy to also update: process() already reads patch_.layerA.modRoutes fresh
+        // every sample (see Voice::renderSample's liveModRoutes parameter), so this
+        // one write is the entire update -- and it reaches already-sustaining voices
+        // immediately, not just the next note-on.
+        patch_.layerA.modRoutes = routes;
+    }
+
     void Engine::setLayerGainLive(float gain) noexcept
     {
         patch_.layerA.gain = gain;
@@ -362,7 +370,8 @@ namespace pw8::render
             for (std::size_t i = 0; i < allocator_.getPolyphony(); ++i)
             {
                 float vl = 0.0f, vr = 0.0f;
-                voices_[i].renderSample(compiledLayerA_, wavetableTablesA_, bpm_, layerLfoValues, vl, vr);
+                voices_[i].renderSample(compiledLayerA_, wavetableTablesA_, bpm_, layerLfoValues,
+                                         patch_.layerA.modRoutes, vl, vr);
                 sumL += vl;
                 sumR += vr;
             }

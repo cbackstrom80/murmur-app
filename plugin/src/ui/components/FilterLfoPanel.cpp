@@ -47,8 +47,9 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    FilterLfoPanel::FilterLfoPanel(juce::AudioProcessorValueTreeState& apvts)
+    FilterLfoPanel::FilterLfoPanel(PatchworkEightProcessor& processor)
     {
+        auto& apvts = processor.apvts;
         addAndMakeVisible(filterPanel_);
         addAndMakeVisible(lfoPanel_);
 
@@ -62,6 +63,11 @@ namespace pw8::plugin::ui
         filterResonance_ =
             std::make_unique<GlowKnob>(apvts, juce::String(kFilterIdPrefix) + "Resonance", "Resonance");
         filterKeyTrack_ = std::make_unique<GlowKnob>(apvts, juce::String(kFilterIdPrefix) + "KeyTrack", "Key Trk");
+        // The two real drag-to-modulate destinations this pass surfaces (docs/UI.md)
+        // -- Mode and Key Track aren't ModMatrixExecutor destinations at all, so they
+        // deliberately stay plain knobs, not drop targets.
+        filterCutoff_->enableModulationTarget(processor, modulation::ModDestination::FilterCutoff);
+        filterResonance_->enableModulationTarget(processor, modulation::ModDestination::FilterResonance);
         for (auto* k : {filterMode_.get(), filterCutoff_.get(), filterResonance_.get(), filterKeyTrack_.get()})
             filterPanel_.addAndMakeVisible(*k);
 

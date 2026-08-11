@@ -78,6 +78,12 @@ namespace pw8::plugin::ui
 
     void SectionPanel::resized() {}
 
+    void SectionPanel::setTitle(const juce::String& title)
+    {
+        title_ = title.toUpperCase();
+        repaint();
+    }
+
     juce::Rectangle<int> SectionPanel::getContentBounds() const
     {
         auto bounds = getLocalBounds().reduced(kShadowMargin);

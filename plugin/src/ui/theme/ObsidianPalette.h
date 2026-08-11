@@ -68,4 +68,27 @@ namespace pw8::plugin::ui::palette
         }
     }
 
+    // -- Drag-to-modulate (docs/UI.md): one distinct color per mod source chip,
+    // reused as the ring painted around any knob that source is currently assigned
+    // to -- the "trace what's modulating what at a glance" property Serum/Vital's
+    // own modulation UI is built around. Deliberately distinct from both the cool
+    // structural accent and the warm macro accent, so a modulation ring never reads
+    // as "just another knob's own value arc."
+    inline const juce::Colour kModLfo{0xffb08fe8};
+    inline const juce::Colour kModEnv{0xff8fd4e8};
+    inline const juce::Colour kModVelocity{0xffe88f9e};
+
+    /// `source` is a raw `modulation::ModSource` ordinal (kept as `int` here so this
+    /// header doesn't need to include ModMatrixTypes.hpp just for one enum). Shared
+    /// by ModSourceChip (assigns the color to the chip itself) and GlowKnob (assigns
+    /// the color to a knob's modulation ring) so both always agree without either
+    /// one hand-copying the mapping.
+    [[nodiscard]] inline juce::Colour modSourceColour(int source) noexcept
+    {
+        if (source >= 1 && source <= 8) return kModLfo;   // Lfo1..Lfo8
+        if (source >= 9 && source <= 16) return kModEnv;  // Env1..Env8
+        if (source == 17) return kModVelocity;            // Velocity
+        return kTextDim; // None, or a performance/macro source this UI doesn't offer as a drag chip yet.
+    }
+
 } // namespace pw8::plugin::ui::palette

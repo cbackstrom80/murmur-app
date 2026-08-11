@@ -535,12 +535,43 @@ see [UI.md](UI.md). Summary:
 DESIGN and LAB modes, the other 9 named skins, and GPU-accelerated visuals
 (spectrum/scope) all remain PLANNED -- see UI.md "What's PLANNED".
 
+## UI GATE 2 & 3: visual overhaul, then graph interactivity + drag-to-modulate
+
+Two more PLAY-mode passes, both driven by direct user/mockup feedback rather
+than committed scope; full writeups (including "A real bug" for GATE 2, none
+for GATE 3) live in [UI.md](UI.md), not duplicated here:
+
+- **GATE 2** ("make it way radder", against a denser reference mockup):
+  typography (`ObsidianFonts.h`), a deliberate cyan/amber duotone, real card
+  drop-shadow depth, a subtle background texture/vignette, ambient
+  breathing-glow "life" on the graph's output node, and a proper wordmark
+  header -- visual language only, no new feature surface.
+- **GATE 3** ("why can't I click on other oscillators" / "I dont understand
+  the graph"): the algorithm graph became clickable (`OperatorEditorPanel`
+  shows whichever node is selected), gained a plain-language caption + edge
+  color legend, and PLAY mode gained real drag-to-modulate (3 `ModSourceChip`s
+  -- LFO 1/amp envelope/Velocity -- onto Filter Cutoff/Resonance, backed by a
+  new lock-free live mod-route path, `Engine::setModRoutesLive()`, that
+  reaches an already-sustaining voice the next sample rather than needing a
+  re-trigger). Also fixed real DAW-usage friction found along the way: a
+  `PatchBrowserBar` "Load..." button, since there was previously no way to get
+  a saved `.pw8` into a running plugin instance inside an actual host.
+
+`auval` and `pluginval --strictness-level 5` re-confirmed SUCCESS on VST3 and
+AU after both passes (578 published parameters unchanged throughout -- GATE 2
+was paint-only, and GATE 3's mod-route live-editing path deliberately stays
+outside the host-automation surface, same as the mod-route list always has
+been). 126 tests total, all passing (+1 from GATE 3's
+`Engine::setModRoutesLive` coverage).
+
 ## Immediate next steps (suggested, not committed)
 
 1. A real DAW host-matrix pass (Ableton, Logic, Reaper, Bitwig, etc.) -- `auval`
-   and `pluginval` at max strictness are both green now, so this is the natural
-   next increment toward a genuinely shippable plugin rather than a
-   from-scratch effort.
+   and `pluginval` at max strictness are both green now, and UI GATE 3's
+   `PatchBrowserBar` "Load..." button already closed one piece of real friction
+   found using REAPER for the first time; a fuller pass across the rest of the
+   matrix is still the natural next increment toward a genuinely shippable
+   plugin rather than a from-scratch effort.
 2. Unison DSP wiring -- the schema (`UnisonSettings`) and every acceptance patch
    built so far (`wide-saw.pw8`, `gate4-massive-dark-metallic-bass.pw8`) fake it
    via hand-detuned operators; real unison is the single biggest remaining gap
@@ -555,3 +586,9 @@ DESIGN and LAB modes, the other 9 named skins, and GPU-accelerated visuals
    filesystem-path-as-`wavetableId` scheme) as part of the broader content pipeline.
 6. Algorithm morph and dual-layer mixing (Phase 8/9) -- Layer B's full schema
    already round-trips; only the voicing/mixing/morph DSP is missing.
+7. A full mod-matrix UI (all 29 sources, all 5 destinations, multi-route-per-
+   destination authoring) -- UI GATE 3's drag-to-modulate deliberately covers
+   only 3 sources x 2 destinations as PLAY mode's "quick assign" surface;
+   everything else in a loaded patch is still visible (`ModSourceStrip`'s
+   connections list reads every real route honestly) but only editable via a
+   hand-authored `.pw8` today.

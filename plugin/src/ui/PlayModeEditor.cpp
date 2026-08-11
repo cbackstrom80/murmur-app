@@ -9,7 +9,9 @@ namespace pw8::plugin::ui
           processor_(processor),
           patchBrowserBar_(processor),
           graphView_(processor),
-          filterLfoPanel_(processor.apvts),
+          operatorEditorPanel_(processor),
+          modSourceStrip_(processor),
+          filterLfoPanel_(processor),
           macroStrip_(processor.apvts),
           fxChainStrip_(processor.apvts)
     {
@@ -18,12 +20,21 @@ namespace pw8::plugin::ui
         addAndMakeVisible(patchBrowserBar_);
         addAndMakeVisible(graphPanel_);
         graphPanel_.addAndMakeVisible(graphView_);
+        graphPanel_.addAndMakeVisible(operatorEditorPanel_);
+        graphView_.onNodeSelected = [this](int node) { operatorEditorPanel_.showNode(node); };
+        addAndMakeVisible(modSourceStrip_);
         addAndMakeVisible(filterLfoPanel_);
         addAndMakeVisible(macroStrip_);
         addAndMakeVisible(fxChainStrip_);
 
         setResizable(false, false);
-        setSize(980, 820);
+        // +160 over the original 890 for OperatorEditorPanel's fixed allotment
+        // inside the graph card, +80 more for ModSourceStrip's connections list
+        // (UI GATE 3) -- both times growing the window rather than squeezing the
+        // circle layout back down toward kNodeRadius, the exact "negative/
+        // undersized geometry" failure mode UI GATE 1 already found once via lldb
+        // (docs/UI.md).
+        setSize(980, 1130);
     }
 
     PlayModeEditor::~PlayModeEditor()
@@ -90,10 +101,17 @@ namespace pw8::plugin::ui
         bounds.removeFromBottom(8);
         auto filterLfoArea = bounds.removeFromBottom(130);
         bounds.removeFromBottom(8);
+        auto modSourceArea = bounds.removeFromBottom(140); // Chip row + connections list (UI GATE 3).
+        bounds.removeFromBottom(8);
 
         graphPanel_.setBounds(bounds);
-        graphView_.setBounds(graphPanel_.getContentBounds());
+        auto graphContent = graphPanel_.getContentBounds();
+        auto opEditorArea = graphContent.removeFromBottom(140);
+        graphContent.removeFromBottom(8);
+        graphView_.setBounds(graphContent);
+        operatorEditorPanel_.setBounds(opEditorArea);
 
+        modSourceStrip_.setBounds(modSourceArea);
         filterLfoPanel_.setBounds(filterLfoArea);
         macroStrip_.setBounds(macroArea);
         fxChainStrip_.setBounds(fxArea);

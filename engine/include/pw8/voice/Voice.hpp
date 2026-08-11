@@ -120,10 +120,18 @@ namespace pw8::voice
         /// amp envelope (envelopes[0]) has fully finished its release. `layerLfoValues`
         /// is this sample's shared, layer-wide LFO tick (see class doc comment) --
         /// computed once per sample by the caller (render::Engine), not per-voice.
+        /// `liveModRoutes` is read fresh every sample from the caller (render::Engine's
+        /// patch_.layerA.modRoutes), the same "no per-voice frozen copy" pattern
+        /// `layerLfoValues` already uses -- unlike the envelope live-update exception
+        /// documented on Engine::setEnvelopeLive(), a mod-route change (add/remove/
+        /// retarget/reamount) takes effect on an already-sustaining voice the very
+        /// next sample, not just the next note-on. This is what makes drag-to-modulate
+        /// (docs/UI.md) feel immediate rather than needing a fresh keypress.
         void renderSample(const algorithm::CompiledAlgorithm& compiled,
                            const std::array<const oscillator::WavetableTable*, core::kNodesPerLayer>& wavetableTables,
-                           float bpm, const std::array<float, core::kNumLfosPerLayer>& layerLfoValues, float& outLeft,
-                           float& outRight) noexcept
+                           float bpm, const std::array<float, core::kNumLfosPerLayer>& layerLfoValues,
+                           const core::FixedVector<modulation::ModRoute, core::kMaxModRoutes>& liveModRoutes,
+                           float& outLeft, float& outRight) noexcept
         {
             if (noteNumber < 0 && !envelopes[0].isActive())
             {
@@ -152,7 +160,7 @@ namespace pw8::voice
             sourceValues.mpeSlide = expression.mpeSlide;
             sourceValues.macros = macroValues;
 
-            const auto modOut = modulation::ModMatrixExecutor::apply(modRoutes, sourceValues);
+            const auto modOut = modulation::ModMatrixExecutor::apply(liveModRoutes, sourceValues);
 
             // Operator-level modulation needs a per-sample-modified params copy; the
             // multiplier defaults to 1.0 per operator when no route targets it, so this
@@ -215,7 +223,6 @@ namespace pw8::voice
         std::array<lfo::LfoParams, core::kNumLfosPerLayer> lfoParams{};
         std::array<lfo::Lfo, core::kNumLfosPerLayer> lfos{};
 
-        core::FixedVector<modulation::ModRoute, core::kMaxModRoutes> modRoutes{};
         std::array<float, 8> macroValues{};
 
     private:

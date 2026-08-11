@@ -89,6 +89,56 @@ TEST_CASE("Engine::setOperatorLive changes a currently-held voice's level", "[en
     REQUIRE(rmsMuted < 0.01f);
 }
 
+TEST_CASE("Engine::setModRoutesLive audibly changes a currently-held voice, not just the next note-on",
+          "[engine][liveparams]")
+{
+    // The property drag-to-modulate (docs/UI.md) depends on directly: unlike
+    // setEnvelopeLive() (documented next-note-on-only), a mod route added mid-hold
+    // must reach an already-sustaining voice the very next sample.
+    patch::Patch p = patch::Patch::makeInit();
+    p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Saw; // harmonically rich.
+    p.layerA.envelopes[0].attackSeconds = 0.001f;
+    p.layerA.envelopes[0].decaySeconds = 0.01f;
+    p.layerA.envelopes[0].sustainLevel = 1.0f;
+    p.layerA.filter1.enabled = true;
+    p.layerA.filter1.mode = filter::FilterMode::Lowpass;
+    p.layerA.filter1.cutoffHz = 12000.0f; // wide open -- no route yet.
+    p.layerA.filter1.resonance = 0.1f;
+
+    render::Engine engine;
+    engine.prepare(kSampleRate);
+    REQUIRE(engine.loadPatch(p));
+    engine.noteOn(60, 0, 100); // velocity7=100 -> unit velocity ~0.787.
+
+    std::vector<float> settleL(500), settleR(500);
+    core::StereoBlockView settleView(settleL.data(), settleR.data(), settleL.size());
+    engine.process(settleView);
+
+    const float rmsBeforeRoute = renderRms(engine, 1000);
+
+    // Velocity -> FilterCutoff, a large negative semitone offset per unit velocity:
+    // at ~0.787 unit velocity (-100 * 0.787 =~ -78.7 semitones, a ~6.6-octave drop)
+    // this pulls the 12kHz cutoff down to ~127Hz -- comfortably below note 60's
+    // ~261.6Hz fundamental, so the reduction is dramatic and unambiguous rather than
+    // just "fewer high harmonics" (an earlier, gentler amount left the fundamental
+    // and first few harmonics passing, which didn't move RMS nearly as much).
+    core::FixedVector<modulation::ModRoute, core::kMaxModRoutes> routes;
+    modulation::ModRoute route;
+    route.source = modulation::ModSource::Velocity;
+    route.destination = modulation::ModDestination::FilterCutoff;
+    route.amount = -100.0f;
+    routes.push_back(route);
+    engine.setModRoutesLive(routes); // mid-hold, no re-trigger.
+
+    const float rmsAfterRoute = renderRms(engine, 1000);
+    REQUIRE(rmsAfterRoute < rmsBeforeRoute * 0.5f); // the SAME still-held voice audibly darkened.
+
+    // And removing the route (an empty list) brings it back open on the same voice.
+    engine.setModRoutesLive({});
+    const float rmsAfterRemoval = renderRms(engine, 1000);
+    REQUIRE(rmsAfterRemoval > rmsAfterRoute * 1.5f);
+}
+
 TEST_CASE("Engine::setInsertEffectLive changes a currently-held voice's output", "[engine][liveparams]")
 {
     patch::Patch p = patch::Patch::makeInit();
