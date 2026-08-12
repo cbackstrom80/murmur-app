@@ -1,0 +1,303 @@
+"""Plain-Python .pw8 patch construction/editing -- the actual business logic
+behind the MCP tools in server.py, kept separate and undecorated so it's
+directly unit-testable without an MCP transport in the loop (see
+smoke_test.py). No juce/pw8_core dependency: this builds the same JSON shape
+PatchSerializer.cpp reads, matching the structure every hand-authored patch
+in content/presets/ already uses.
+"""
+from __future__ import annotations
+
+import json
+import time
+from pathlib import Path
+
+from patch_schema import (
+    BASE_OPERATOR_FIELDS, ENGINE_EXTRA_FIELDS, ENGINE_NAMES,
+    EFFECT_FIELDS, EFFECT_TYPE_IDS, EFFECT_TYPE_NAMES,
+    FILTER_MODE_IDS, FILTER_MODE_NAMES, MOD_DEST_IDS, MOD_DEST_NEEDS_TARGET,
+    MOD_SCOPE_IDS, MOD_SOURCE_IDS, clamp, resolve_engine, resolve_from_map,
+)
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+SCRATCH_DIR = Path(__file__).resolve().parent / "scratch"
+SCRATCH_DIR.mkdir(exist_ok=True)
+
+
+def _blank_operator() -> dict:
+    return {
+        "engine": 0, "classicWaveform": 2, "classicMorph": -1.0, "pulseWidth": 0.5,
+        "wavetableFramePosition": 0.0, "wavetableId": "", "frequencyRatio": 1.0,
+        "fixedFrequencyHz": 440.0, "keyTrack": True, "level": 1.0, "pan": 0.0,
+        # Every engine's extra fields, all at their defaults -- present on every
+        # operator regardless of engine, same flat-struct convention OperatorPatch
+        # itself uses (see engine/include/pw8/patch/Patch.hpp).
+        "fmModulatorRatio": 1.0, "fmModulatorIndex": 0.5, "fmModulatorFeedback": 0.0,
+        "fmModulatorWaveform": 0,
+        "noiseVariant": 0, "noiseRate": 200.0,
+        "phaseBend": 0.0, "phaseFold": 0.0, "phaseAsymmetry": 0.0, "phaseShape": 0.0,
+        "additivePartialCount": 32, "additiveTilt": 0.0, "additiveOddEven": 0.5,
+        "additiveStretch": 0.0,
+        "resonatorStructure": 0.3, "resonatorDecay": 0.5, "resonatorDamping": 0.5,
+        "resonatorBrightness": 0.5, "resonatorModeCount": 6,
+        "grainDensity": 20.0, "grainSizeMs": 60.0, "grainPositionJitter": 0.1,
+        "grainPitchJitter": 0.0,
+    }
+
+
+def _silent_operator() -> dict:
+    op = _blank_operator()
+    op["level"] = 0.0
+    return op
+
+
+def _layer_b() -> dict:
+    return {
+        "operators": [_silent_operator() for _ in range(8)],
+        "algorithm": {
+            "nodes": [{"id": i, "engine": 0, "isOutput": (i == 0)} for i in range(8)],
+            "edges": [],
+        },
+        "ampEnvelope": {"attackSeconds": 0.002, "decaySeconds": 0.15, "sustainLevel": 0.0, "releaseSeconds": 0.05},
+        "gain": 1.0, "pan": 0.0, "width": 1.0, "centerGravity": 0.5,
+    }
+
+
+def default_patch(name: str, description: str = "") -> dict:
+    """A fresh, valid, playable patch: 8 silent Classic operators except
+    operator 0 (a plain sine at unity level), parallel algorithm (no custom
+    routing), a gentle default envelope/filter, no FX, all 8 macros unrouted.
+    Every field an MCP tool call doesn't touch keeps this default."""
+    ops = [_silent_operator() for _ in range(8)]
+    ops[0] = _blank_operator()
+    ops[0]["classicWaveform"] = 0  # sine
+    return {
+        "schemaVersion": 1,
+        "metadata": {
+            "id": f"pw8-mcp-{int(time.time())}",
+            "name": name,
+            "author": "Patchwork Eight MCP server",
+            "description": description,
+            "category": "",
+            "moods": [],
+            "genres": [],
+            "tags": ["mcp-generated"],
+            "createdAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "engineVersion": "0.1.0",
+            "schemaVersion": 1,
+            "seed": int(time.time()) % 1_000_000,
+            "lineage": [],
+        },
+        "layerMode": 0,
+        "layerMorph": 0.0,
+        "layerA": {
+            "operators": ops,
+            "algorithm": {
+                "nodes": [{"id": i, "engine": 0, "isOutput": True} for i in range(8)],
+                "edges": [],
+            },
+            "ampEnvelope": {"attackSeconds": 0.01, "decaySeconds": 0.2, "sustainLevel": 0.7,
+                             "releaseSeconds": 0.3, "curveShape": 2.0},
+            "unison": {"mode": 0, "voices": 1},
+            "filter1": {"enabled": False, "mode": 0, "cutoffHz": 4000.0, "resonance": 0.1, "keyTrack": 0.0},
+            "lfo1": {"waveform": 0, "mode": 0, "rateHz": 1.0, "syncDivisionIndex": 4, "phaseOffset": 0.0},
+            "lfo2": {"waveform": 0, "mode": 0, "rateHz": 1.0, "syncDivisionIndex": 4, "phaseOffset": 0.0},
+            "modRoutes": [],
+            "gain": 1.0, "pan": 0.0, "width": 1.0, "centerGravity": 0.5,
+            "insertEffects": [],
+        },
+        "layerB": _layer_b(),
+        "voiceSettings": {"polyphony": 8, "masterGain": 1.0, "a4Hz": 440.0},
+        "locks": {},
+        "macros": [{"id": f"m{i+1}", "name": f"Macro {i+1}", "description": "Reserved -- not yet routed.", "value": 0.0}
+                    for i in range(8)],
+        "arpeggiator": {"enabled": False},
+        "masterEffects": [],
+    }
+
+
+def scratch_path(patch_id: str) -> Path:
+    """Resolves patch_id to a file under SCRATCH_DIR, guarding against path
+    traversal since patch_id can come from an LLM-controlled tool call."""
+    if "/" in patch_id or "\\" in patch_id or ".." in patch_id:
+        raise ValueError(f"invalid patch_id '{patch_id}' -- must be a bare filename with no path separators")
+    if not patch_id.endswith(".pw8"):
+        patch_id += ".pw8"
+    return SCRATCH_DIR / patch_id
+
+
+def load_scratch(patch_id: str) -> dict:
+    path = scratch_path(patch_id)
+    if not path.exists():
+        raise FileNotFoundError(f"no scratch patch '{patch_id}' -- call create_patch first")
+    return json.loads(path.read_text())
+
+
+def write_scratch(patch_id: str, patch: dict) -> Path:
+    path = scratch_path(patch_id)
+    path.write_text(json.dumps(patch, indent=2))
+    return path
+
+
+def create_patch(name: str, description: str = "") -> tuple[str, dict]:
+    patch = default_patch(name, description)
+    slug = "".join(c if c.isalnum() else "-" for c in name.lower()).strip("-") or "patch"
+    patch_id = f"{slug}-{int(time.time() * 1000) % 100000}.pw8"
+    write_scratch(patch_id, patch)
+    return patch_id, patch
+
+
+def set_operator(patch_id: str, index: int, engine, params: dict | None) -> list[str]:
+    if not 0 <= index <= 7:
+        raise ValueError("index must be 0-7 (8 operators per layer)")
+    patch = load_scratch(patch_id)
+    engine_id = resolve_engine(engine)
+    engine_name = ENGINE_NAMES[engine_id]
+    op = patch["layerA"]["operators"][index]
+    op["engine"] = engine_id
+
+    warnings: list[str] = []
+    field_specs = dict(BASE_OPERATOR_FIELDS)
+    field_specs.update(ENGINE_EXTRA_FIELDS.get(engine_name, {}))
+    for key, value in (params or {}).items():
+        if key not in field_specs:
+            warnings.append(f"ignored unknown field '{key}' for engine {engine_name}")
+            continue
+        clamped, warn = clamp(value, field_specs[key])
+        if warn:
+            warnings.append(f"{key}: {warn}")
+        op[key] = clamped
+
+    write_scratch(patch_id, patch)
+    return warnings
+
+
+def add_mod_route(patch_id: str, source, destination, target_index: int = 0,
+                   amount: float = 1.0, scope="voice") -> list[str]:
+    patch = load_scratch(patch_id)
+    warnings: list[str] = []
+    source_id = resolve_from_map(source, MOD_SOURCE_IDS, "mod source")
+    dest_id = resolve_from_map(destination, MOD_DEST_IDS, "mod destination")
+    scope_id = resolve_from_map(scope, MOD_SCOPE_IDS, "mod scope")
+    if dest_id in MOD_DEST_NEEDS_TARGET and not 0 <= target_index <= 7:
+        raise ValueError(f"destination requires target_index 0-7, got {target_index}")
+    route = {"source": source_id, "destination": dest_id, "targetIndex": target_index,
+             "amount": amount, "scope": scope_id}
+    patch["layerA"]["modRoutes"].append(route)
+    write_scratch(patch_id, patch)
+    return warnings
+
+
+def set_effect(patch_id: str, layer: str, slot: int, effect_type, params: dict | None) -> list[str]:
+    patch = load_scratch(patch_id)
+    warnings: list[str] = []
+    type_id = resolve_from_map(effect_type, EFFECT_TYPE_IDS, "effect type")
+    type_name = EFFECT_TYPE_NAMES[type_id]
+
+    if layer == "insert":
+        key, max_slots = "insertEffects", 3
+    elif layer == "master":
+        key, max_slots = "masterEffects", 4
+        patch.setdefault("masterEffects", [])
+    else:
+        raise ValueError("layer must be 'insert' or 'master'")
+    if not 0 <= slot < max_slots:
+        raise ValueError(f"{layer} slot must be 0-{max_slots - 1}")
+
+    slots = patch["layerA"][key] if key == "insertEffects" else patch[key]
+    while len(slots) <= slot:
+        slots.append({"type": 0, "mix": 1.0})
+
+    entry = {"type": type_id, "mix": 1.0}
+    field_specs = EFFECT_FIELDS.get(type_name, {})
+    for key2, value in (params or {}).items():
+        if key2 == "mix":
+            clamped, warn = clamp(value, {"range": [0.0, 1.0]})
+            if warn:
+                warnings.append(f"mix: {warn}")
+            entry["mix"] = clamped
+            continue
+        if key2 not in field_specs:
+            warnings.append(f"ignored unknown field '{key2}' for effect {type_name}")
+            continue
+        clamped, warn = clamp(value, field_specs[key2])
+        if warn:
+            warnings.append(f"{key2}: {warn}")
+        entry[key2] = clamped
+
+    slots[slot] = entry
+    write_scratch(patch_id, patch)
+    return warnings
+
+
+def set_envelope(patch_id: str, attack: float, decay: float, sustain: float,
+                  release: float, curve: float = 2.0) -> list[str]:
+    patch = load_scratch(patch_id)
+    warnings: list[str] = []
+    specs = {
+        "attackSeconds": {"range": [0.0, 30.0]}, "decaySeconds": {"range": [0.0, 30.0]},
+        "sustainLevel": {"range": [0.0, 1.0]}, "releaseSeconds": {"range": [0.0, 30.0]},
+        "curveShape": {"range": [0.1, 8.0]},
+    }
+    values = {"attackSeconds": attack, "decaySeconds": decay, "sustainLevel": sustain,
+              "releaseSeconds": release, "curveShape": curve}
+    for key, value in values.items():
+        clamped, warn = clamp(value, specs[key])
+        if warn:
+            warnings.append(f"{key}: {warn}")
+        patch["layerA"]["ampEnvelope"][key] = clamped
+    write_scratch(patch_id, patch)
+    return warnings
+
+
+def set_filter(patch_id: str, enabled: bool = True, mode="lowpass",
+                cutoff_hz: float = 2000.0, resonance: float = 0.2, key_track: float = 0.2) -> list[str]:
+    patch = load_scratch(patch_id)
+    warnings: list[str] = []
+    mode_id = resolve_from_map(mode, FILTER_MODE_IDS, "filter mode")
+    cutoff_clamped, w1 = clamp(cutoff_hz, {"range": [20.0, 20000.0]})
+    res_clamped, w2 = clamp(resonance, {"range": [0.0, 1.0]})
+    kt_clamped, w3 = clamp(key_track, {"range": [0.0, 1.0]})
+    for w in (w1, w2, w3):
+        if w:
+            warnings.append(w)
+    patch["layerA"]["filter1"] = {
+        "enabled": bool(enabled), "mode": mode_id, "cutoffHz": cutoff_clamped,
+        "resonance": res_clamped, "keyTrack": kt_clamped,
+    }
+    write_scratch(patch_id, patch)
+    return warnings
+
+
+def explain_patch(patch: dict) -> str:
+    """A human/LLM-readable summary -- the same information MCP callers would
+    otherwise have to reconstruct by reading raw JSON field-by-field."""
+    lines = []
+    meta = patch.get("metadata", {})
+    lines.append(f"{meta.get('name', '(unnamed)')} -- {meta.get('description', '')}".rstrip(" -"))
+    ops = patch["layerA"]["operators"]
+    for i, op in enumerate(ops):
+        if op.get("level", 0.0) <= 0.0:
+            continue
+        engine_name = ENGINE_NAMES.get(op.get("engine", 0), "?")
+        lines.append(f"  Op {i}: {engine_name}, level={op.get('level'):.2f}, ratio={op.get('frequencyRatio'):.3f}")
+    env = patch["layerA"]["ampEnvelope"]
+    lines.append(f"  Envelope: A={env['attackSeconds']:.3f}s D={env['decaySeconds']:.3f}s "
+                 f"S={env['sustainLevel']:.2f} R={env['releaseSeconds']:.3f}s")
+    f1 = patch["layerA"]["filter1"]
+    if f1.get("enabled"):
+        lines.append(f"  Filter1: {FILTER_MODE_NAMES.get(f1['mode'], '?')} @ {f1['cutoffHz']:.0f}Hz, "
+                     f"res={f1['resonance']:.2f}")
+    routes = patch["layerA"].get("modRoutes", [])
+    for r in routes:
+        src = next((k for k, v in MOD_SOURCE_IDS.items() if v == r["source"]), r["source"])
+        dst = next((k for k, v in MOD_DEST_IDS.items() if v == r["destination"]), r["destination"])
+        lines.append(f"  Mod: {src} -> {dst} (amount={r['amount']})")
+    for slot in patch["layerA"].get("insertEffects", []):
+        name = EFFECT_TYPE_NAMES.get(slot.get("type", 0), "?")
+        if name != "bypass":
+            lines.append(f"  Insert FX: {name} (mix={slot.get('mix', 1.0):.2f})")
+    for slot in patch.get("masterEffects", []):
+        name = EFFECT_TYPE_NAMES.get(slot.get("type", 0), "?")
+        if name != "bypass":
+            lines.append(f"  Master FX: {name} (mix={slot.get('mix', 1.0):.2f})")
+    return "\n".join(lines)

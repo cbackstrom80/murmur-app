@@ -90,12 +90,14 @@ In order of audible/usable impact per unit of engineering effort:
 ## Ideas -- captured, not prioritized, not scoped into P0-P3 above
 
 - **MCP server + natural-language patch generation** -- see
-  `docs/MCP_AND_NL_PATCH_GENERATION.md`. An MCP server exposing patch read/
-  edit/render tools to Claude Desktop/Code and similar clients, plus a much
-  larger, separately-decided idea for an in-app "make me a laser sound" chat
-  box (bring-your-own-model or a hosted subscription service). Deliberately
-  listed here rather than in P0-P3: unlike everything above, this hasn't had
-  a real prioritization pass yet, just an initial scoping writeup.
+  `docs/MCP_AND_NL_PATCH_GENERATION.md`. The MCP server half (patch read/
+  edit/render tools for Claude Desktop/Code and similar clients) is now a
+  working prototype, `mcp_server/` -- but real usage, not just this repo's
+  own smoke tests, hasn't happened yet, and the much larger, separately-
+  decided idea for an in-app "make me a laser sound" chat box
+  (bring-your-own-model or a hosted subscription service) hasn't been
+  started at all. Deliberately listed here rather than in P0-P3: unlike
+  everything above, neither half has had a real prioritization pass yet.
 
 ## Not on this list on purpose
 

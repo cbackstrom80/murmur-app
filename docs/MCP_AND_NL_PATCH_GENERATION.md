@@ -1,13 +1,18 @@
 # MCP Server + Natural-Language Patch Generation
 
-**IDEA -- captured for future scoping, not committed, no timeline.** This doc
-exists so the idea has a real home with real constraints attached, the same
-way every other PLANNED item in this project gets a documented rationale
-instead of living only in someone's head. See `docs/ROADMAP.md` Phase 18 and
-`docs/PATCHWORK_INTEGRATION.md`'s "Generate / Mutate / Breed / Lock" section,
-which this doc extends rather than replaces -- the core rule there
-(**AI inference never runs inside `pw8_core`'s audio thread, and doesn't run
-inside this repository at all**) still holds for everything below.
+**Part A: PROTOTYPE EXISTS** (`mcp_server/`, see its README) -- a real,
+working MCP server with 18 tools, smoke-tested end to end including through
+the actual MCP stdio protocol (not just its underlying Python functions).
+**Part B: still IDEA -- captured for future scoping, not committed, no
+timeline.** This doc exists so the idea has a real home with real
+constraints attached, the same way every other PLANNED item in this project
+gets a documented rationale instead of living only in someone's head. See
+`docs/ROADMAP.md` Phase 18 and `docs/PATCHWORK_INTEGRATION.md`'s "Generate /
+Mutate / Breed / Lock" section, which this doc extends rather than replaces
+-- the core rule there (**AI inference never runs inside `pw8_core`'s audio
+thread, and doesn't run inside this repository at all**) still holds for
+everything below; the MCP server is a tool-calling surface an LLM client
+uses from *outside* this repository, not inference running inside it.
 
 Two distinct features got proposed together; they're architecturally very
 different problems and are split out on purpose so neither accidentally
@@ -21,6 +26,17 @@ and a growing list of others. A Patchwork Eight MCP server would let any of
 those clients read, build, and audition `.pw8` patches conversationally,
 without a plugin host or DESIGN-mode UI in the loop at all. This is
 low-risk, mostly-engineering, and buildable independent of Part B.
+
+**Status: built.** `mcp_server/` has a real `FastMCP`-based server (18
+tools: introspection, scratch-patch construction/editing, rendering/
+validation) verified three ways -- direct unit-style calls
+(`smoke_test.py`), a real client session over the actual MCP stdio
+transport, and a real `pw8-render` pass on the resulting patch (no NaN/Inf,
+audible, passes the same low/mid/high-note validation the factory preset
+bank was checked against). See `mcp_server/README.md` for setup, the tool
+list, and a real gotcha it hit (`from __future__ import annotations`
+breaks FastMCP's tool registration). What's below is the original design
+rationale; it held up building the real thing.
 
 ### Why this is buildable today, cheaply
 
@@ -85,13 +101,18 @@ repository, integrates through structured boundaries" philosophy
 
 ### Rough phasing
 
-1. Read-only tools first (list engines/wavetables/presets, explain a loaded
-   patch back in words) -- zero risk, pure introspection, immediately useful
-   on its own even before any generation tool exists.
-2. Patch construction/editing tools, writing to a scratch `.pw8`, always
-   behind an explicit `save_patch` call.
-3. `render_preview` once returning binary audio over MCP's resource
-   mechanism is sorted out.
+1. ~~Read-only tools first (list engines/wavetables/presets, explain a
+   loaded patch back in words) -- zero risk, pure introspection, immediately
+   useful on its own even before any generation tool exists.~~ **DONE.**
+2. ~~Patch construction/editing tools, writing to a scratch `.pw8`, always
+   behind an explicit `save_patch` call.~~ **DONE.**
+3. `render_preview` returns metrics + a WAV file path today; still open:
+   streaming the audio itself back over MCP's resource mechanism so a
+   client doesn't need filesystem access to hear the result.
+4. Not started: wiring this server into an actual client's default config,
+   real usage beyond this repo's own smoke tests, and revisiting whether a
+   live in-process `Engine` (instead of shelling out to `pw8-render` per
+   call) matters once real usage patterns exist.
 
 ## Part B: an in-app chat box ("make me a laser sound")
 

@@ -71,14 +71,15 @@ specifically so a future semantic-crossover Breed implementation (e.g. "child =
 parent A's algorithm + parent B's modulation") has clean seams to cut along, rather
 than needing to invent that structure retroactively.
 
-**IDEA, not committed:** [MCP_AND_NL_PATCH_GENERATION.md](MCP_AND_NL_PATCH_GENERATION.md)
-sketches two possible uses of this same boundary -- an MCP server exposing
-patch read/edit/render tools to any MCP-capable client (Claude Desktop, Claude
-Code, etc.), and a much larger, separately-decided idea for an in-app
-natural-language "make me a laser sound" prompt box (either bring-your-own-model
-or a hosted subscription service). Both stay consistent with this section's
-rule: AI inference never runs inside `pw8_core`'s audio thread or this
-repository.
+[MCP_AND_NL_PATCH_GENERATION.md](MCP_AND_NL_PATCH_GENERATION.md) covers two
+uses of this same boundary. Its Part A, an MCP server exposing patch read/
+edit/render tools to any MCP-capable client (Claude Desktop, Claude Code,
+etc.), is **built** -- see `mcp_server/`. Its Part B, a much larger,
+separately-decided idea for an in-app natural-language "make me a laser
+sound" prompt box (either bring-your-own-model or a hosted subscription
+service), is still **IDEA, not committed**. Both stay consistent with this
+section's rule: AI inference never runs inside `pw8_core`'s audio thread or
+this repository.
 
 ## Program Change
 
