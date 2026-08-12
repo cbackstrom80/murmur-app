@@ -57,20 +57,33 @@ target_sources(pw8_plugin PRIVATE
     src/ui/theme/ObsidianLookAndFeel.cpp
     src/ui/theme/BrandingAssets.cpp
     src/ui/components/GlowKnob.cpp
+    src/ui/components/GlowRingButton.cpp
     src/ui/components/SectionPanel.cpp
     src/ui/components/AlgorithmGraphView.cpp
     src/ui/components/NodeSelectorRow.cpp
     src/ui/components/ContextStrip.cpp
     src/ui/components/OperatorEditorPanel.cpp
     src/ui/components/MacroStrip.cpp
+    src/ui/components/EngineSummingStrip.cpp
     src/ui/components/FilterLfoPanel.cpp
     src/ui/components/FxChainStrip.cpp
     src/ui/components/PatchBrowserBar.cpp
+    src/ui/components/MetadataFacetRow.cpp
     src/ui/components/PresetBrowserOverlay.cpp
     src/ui/components/AmpEnvelopePanel.cpp
     src/ui/components/ModSourceChip.cpp
     src/ui/components/ModSourceStrip.cpp
     src/ui/components/WavetableStackView.cpp
+    src/ui/components/wireframe/WireframeCanvas.cpp
+    src/ui/components/wireframe/OscPreviewSampler.cpp
+    src/ui/components/wireframe/EngineWireframeViews.cpp
+    src/ui/components/wireframe/OscWireframeHost.cpp
+    src/ui/components/wireframe/EnvelopeCurveView.cpp
+    src/ui/components/wireframe/FxWireframeView.cpp
+    src/ui/components/wireframe/FxChainFlowView.cpp
+    src/ui/components/wireframe/LfoWireframeView.cpp
+    src/ui/components/wireframe/FilterWireframeView.cpp
+    src/ui/components/wireframe/ModRoutingWireframeView.cpp
 )
 
 target_include_directories(pw8_plugin PRIVATE src)

@@ -11,6 +11,8 @@
 #include "pw8/content/ContentPaths.hpp"
 #include "ui/PlayModeEditor.h"
 
+#include <juce_core/juce_core.h>
+
 namespace pw8::plugin
 {
     namespace
@@ -53,6 +55,11 @@ namespace pw8::plugin
             if (envRoot[0] != '\0')
                 pw8::content::addSearchRoot(envRoot);
         }
+
+        // Standalone/VST launched from Finder often have cwd=/; walk from the
+        // binary to find the dev repo's content/wavetables/ tree.
+        const auto exeFile = juce::File::getSpecialLocation(juce::File::currentExecutableFile);
+        pw8::content::addSearchRootsFromAncestorWalk(exeFile.getFullPathName().toStdString());
     }
 
     PatchworkEightProcessor::~PatchworkEightProcessor() = default;
@@ -329,9 +336,12 @@ namespace pw8::plugin
             p.compReleaseMs = loadF(ptrs[48]);
             p.compKneeDb = loadF(ptrs[49]);
             p.compMakeupDb = loadF(ptrs[50]);
-            p.limiterCeilingDb = loadF(ptrs[51]);
-            p.limiterLookaheadMs = loadF(ptrs[52]);
-            p.limiterReleaseMs = loadF(ptrs[53]);
+            p.compTransformerCore = loadF(ptrs[51]);
+            p.compTransformerBrand = loadF(ptrs[52]);
+            p.compTransformerAmount = loadF(ptrs[53]);
+            p.limiterCeilingDb = loadF(ptrs[54]);
+            p.limiterLookaheadMs = loadF(ptrs[55]);
+            p.limiterReleaseMs = loadF(ptrs[56]);
             engine.setInsertEffectLive(slot, p);
         }
 
@@ -390,9 +400,12 @@ namespace pw8::plugin
             p.compReleaseMs = loadF(ptrs[48]);
             p.compKneeDb = loadF(ptrs[49]);
             p.compMakeupDb = loadF(ptrs[50]);
-            p.limiterCeilingDb = loadF(ptrs[51]);
-            p.limiterLookaheadMs = loadF(ptrs[52]);
-            p.limiterReleaseMs = loadF(ptrs[53]);
+            p.compTransformerCore = loadF(ptrs[51]);
+            p.compTransformerBrand = loadF(ptrs[52]);
+            p.compTransformerAmount = loadF(ptrs[53]);
+            p.limiterCeilingDb = loadF(ptrs[54]);
+            p.limiterLookaheadMs = loadF(ptrs[55]);
+            p.limiterReleaseMs = loadF(ptrs[56]);
             engine.setMasterEffectLive(slot, p);
         }
 
@@ -475,13 +488,39 @@ namespace pw8::plugin
         return loadPatch(result.patch);
     }
 
+    void PatchworkEightProcessor::syncCurrentPatchFromApvts() noexcept
+    {
+        syncPatchFromAllParameters();
+    }
+
+    bool PatchworkEightProcessor::swapEffectSlots(bool masterChain, std::size_t indexA, std::size_t indexB)
+    {
+        syncCurrentPatchFromApvts();
+        if (masterChain)
+        {
+            if (indexA >= kNumMasterFxSlots || indexB >= kNumMasterFxSlots)
+                return false;
+            std::swap(currentPatch_.masterEffects[indexA], currentPatch_.masterEffects[indexB]);
+        }
+        else
+        {
+            if (indexA >= kNumInsertFxSlots || indexB >= kNumInsertFxSlots)
+                return false;
+            std::swap(currentPatch_.layerA.insertEffects[indexA], currentPatch_.layerA.insertEffects[indexB]);
+        }
+        return loadPatch(currentPatch_);
+    }
+
     bool PatchworkEightProcessor::setOperatorWavetableFile(std::size_t opIndex, const juce::String& filePath)
     {
         if (opIndex >= currentPatch_.layerA.operators.size())
             return false;
 
+        syncCurrentPatchFromApvts();
         auto newPatch = currentPatch_;
-        newPatch.layerA.operators[opIndex].wavetableId = filePath.toStdString();
+        juce::File file(filePath);
+        const juce::String storedPath = file.existsAsFile() ? file.getFullPathName() : filePath;
+        newPatch.layerA.operators[opIndex].wavetableId = storedPath.toStdString();
         return loadPatch(newPatch);
     }
 
@@ -635,6 +674,7 @@ namespace pw8::plugin
                 p.eqHighFreqHz,             p.eqHighGainDb,
                 p.compThresholdDb,          p.compRatio,    p.compAttackMs,      p.compReleaseMs,  p.compKneeDb,
                 p.compMakeupDb,
+                p.compTransformerCore,      p.compTransformerBrand, p.compTransformerAmount,
                 p.limiterCeilingDb,         p.limiterLookaheadMs, p.limiterReleaseMs,
             };
             for (std::size_t i = 0; i < kNumEffectSlotFields; ++i)
@@ -800,9 +840,12 @@ namespace pw8::plugin
             p.compReleaseMs = loadF(ptrs[48]);
             p.compKneeDb = loadF(ptrs[49]);
             p.compMakeupDb = loadF(ptrs[50]);
-            p.limiterCeilingDb = loadF(ptrs[51]);
-            p.limiterLookaheadMs = loadF(ptrs[52]);
-            p.limiterReleaseMs = loadF(ptrs[53]);
+            p.compTransformerCore = loadF(ptrs[51]);
+            p.compTransformerBrand = loadF(ptrs[52]);
+            p.compTransformerAmount = loadF(ptrs[53]);
+            p.limiterCeilingDb = loadF(ptrs[54]);
+            p.limiterLookaheadMs = loadF(ptrs[55]);
+            p.limiterReleaseMs = loadF(ptrs[56]);
         };
         for (std::size_t slot = 0; slot < kNumInsertFxSlots; ++slot)
             readFxSlot(insertFxParamPointers_[slot], currentPatch_.layerA.insertEffects[slot]);

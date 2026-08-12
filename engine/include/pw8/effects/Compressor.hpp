@@ -5,6 +5,7 @@
 
 #include "pw8/dsp/Math.hpp"
 #include "pw8/effects/EffectTypes.hpp"
+#include "pw8/effects/OutputTransformerStage.hpp"
 
 // A feedforward peak compressor with a soft knee -- the master spec's "first
 // effect set" basic compressor (docs/ROADMAP.md "GATE 10"). Standard, openly
@@ -15,7 +16,8 @@
 // reduction curve is a parabola blending smoothly from "no reduction" to "full
 // ratio," rather than snapping at the threshold) -> asymmetric attack/release
 // smoothing of the gain-reduction envelope itself (in dB, not linear, so the
-// perceived speed is consistent across levels) -> makeup gain.
+// perceived speed is consistent across levels) -> optional post-GR output
+// transformer colour -> makeup gain.
 namespace pw8::effects
 {
     class CompressorProcessor
@@ -24,10 +26,15 @@ namespace pw8::effects
         void prepare(double sampleRate) noexcept
         {
             sampleRate_ = sampleRate;
+            transformer_.prepare(sampleRate);
             reset();
         }
 
-        void reset() noexcept { gainReductionDb_ = 0.0f; }
+        void reset() noexcept
+        {
+            gainReductionDb_ = 0.0f;
+            transformer_.reset();
+        }
 
         void processStereo(float inL, float inR, const EffectSlotParams& p, float& outL, float& outR) noexcept
         {
@@ -63,17 +70,25 @@ namespace pw8::effects
             const float coeff = 1.0f - std::exp(-1.0f / (0.001f * timeMs * sr));
             gainReductionDb_ += (targetReductionDb - gainReductionDb_) * coeff;
 
-            const float totalGainDb = gainReductionDb_ + p.compMakeupDb;
-            const float gainLinear = dsp::dbToGain(totalGainDb);
+            const float grGain = dsp::dbToGain(gainReductionDb_);
+            float wetL = inL * grGain;
+            float wetR = inR * grGain;
+
+            transformer_.processStereo(wetL, wetR, p, gainReductionDb_);
+
+            const float makeupGain = dsp::dbToGain(p.compMakeupDb);
+            wetL *= makeupGain;
+            wetR *= makeupGain;
 
             const float mix = dsp::clamp(p.mix, 0.0f, 1.0f);
-            outL = dsp::lerp(inL, inL * gainLinear, mix);
-            outR = dsp::lerp(inR, inR * gainLinear, mix);
+            outL = dsp::lerp(inL, wetL, mix);
+            outR = dsp::lerp(inR, wetR, mix);
         }
 
     private:
         double sampleRate_ = 48000.0;
         float gainReductionDb_ = 0.0f; // always <= 0 -- a running dB offset, smoothed toward the target each sample.
+        OutputTransformerStage transformer_{};
     };
 
 } // namespace pw8::effects

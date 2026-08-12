@@ -7,6 +7,7 @@
 
 #include "components/AmpEnvelopePanel.h"
 #include "components/ContextStrip.h"
+#include "components/EngineSummingStrip.h"
 #include "components/FilterLfoPanel.h"
 #include "components/FxChainStrip.h"
 #include "components/MacroStrip.h"
@@ -75,6 +76,7 @@ namespace pw8::plugin::ui
         SectionPanel oscPanel_{"Operator"};
         OperatorEditorPanel operatorEditorPanel_;
         FilterLfoPanel filterLfoPanel_;
+        EngineSummingStrip engineSummingStrip_;
         AmpEnvelopePanel ampEnvelopePanel_;
         ModSourceStrip modSourceStrip_;
         FxChainStrip fxChainStrip_;

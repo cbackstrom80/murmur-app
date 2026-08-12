@@ -29,3 +29,21 @@ TEST_CASE("resolveWavetablePath finds tables under a registered root", "[content
     fs::remove_all(tempRoot);
     pw8::content::resetSearchRootsForTests();
 }
+
+TEST_CASE("addSearchRootsFromAncestorWalk registers repo-style content tree", "[content][paths]")
+{
+    pw8::content::resetSearchRootsForTests();
+
+    const auto tempRoot = fs::temp_directory_path() / "pw8_content_ancestor_test";
+    fs::remove_all(tempRoot);
+    fs::create_directories(tempRoot / "content/wavetables");
+    fs::create_directories(tempRoot / "build/app/Contents/MacOS");
+
+    pw8::content::addSearchRootsFromAncestorWalk((tempRoot / "build/app/Contents/MacOS/fake-binary").string());
+
+    const auto resolved = pw8::content::resolveWavetablePath("content/wavetables/anything.json");
+    REQUIRE_FALSE(pw8::content::wavetableSearchRoots().empty());
+
+    fs::remove_all(tempRoot);
+    pw8::content::resetSearchRootsForTests();
+}

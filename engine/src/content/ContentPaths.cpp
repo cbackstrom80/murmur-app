@@ -96,6 +96,30 @@ namespace pw8::content
         extraRoots.insert(extraRoots.begin(), fs::path(rootPath));
     }
 
+    void addSearchRootsFromAncestorWalk(const std::string& startPath, int maxDepth) noexcept
+    {
+        if (startPath.empty() || maxDepth <= 0)
+            return;
+
+        std::error_code ec;
+        auto cursor = fs::path(startPath);
+        if (fs::is_regular_file(cursor, ec))
+            cursor = cursor.parent_path();
+
+        for (int depth = 0; depth < maxDepth && !cursor.empty(); ++depth)
+        {
+            if (fileExists(cursor / "content/wavetables"))
+            {
+                addSearchRoot(cursor.string());
+                return;
+            }
+            const auto parent = cursor.parent_path();
+            if (parent == cursor)
+                break;
+            cursor = parent;
+        }
+    }
+
     std::optional<std::string> resolveWavetablePath(const std::string& wavetableId) noexcept
     {
         if (wavetableId.empty())

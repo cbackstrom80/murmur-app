@@ -14,8 +14,17 @@ namespace pw8::plugin::content
             if (asFile.existsAsFile())
                 return asFile.getFullPathName();
             if (const auto resolved = pw8::content::resolveWavetablePath(pathOrId.toStdString()))
-                return juce::String(*resolved);
+            {
+                const juce::File resolvedFile(*resolved);
+                if (resolvedFile.existsAsFile())
+                    return resolvedFile.getFullPathName();
+            }
             return pathOrId;
+        }
+
+        [[nodiscard]] juce::String canonicalPathKey(const juce::String& pathOrId)
+        {
+            return resolveToAbsolute(pathOrId);
         }
     } // namespace
 
@@ -60,10 +69,10 @@ namespace pw8::plugin::content
 
     std::optional<WavetableEntry> WavetableIndex::entryForPathOrId(const juce::String& pathOrId) const
     {
-        const auto abs = resolveToAbsolute(pathOrId);
+        const auto abs = canonicalPathKey(pathOrId);
         for (const auto& e : entries_)
         {
-            if (e.absolutePath == abs || e.absolutePath == pathOrId)
+            if (e.absolutePath == abs || canonicalPathKey(e.absolutePath) == abs)
                 return e;
         }
         return std::nullopt;
@@ -71,10 +80,10 @@ namespace pw8::plugin::content
 
     int WavetableIndex::indexOf(const juce::String& currentPathOrId) const
     {
-        const auto abs = resolveToAbsolute(currentPathOrId);
+        const auto abs = canonicalPathKey(currentPathOrId);
         for (int i = 0; i < entries_.size(); ++i)
         {
-            if (entries_[i].absolutePath == abs || entries_[i].absolutePath == currentPathOrId)
+            if (entries_[i].absolutePath == abs || canonicalPathKey(entries_[i].absolutePath) == abs)
                 return i;
         }
         return -1;

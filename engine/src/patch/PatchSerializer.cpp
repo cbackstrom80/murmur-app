@@ -315,6 +315,8 @@ namespace pw8::patch
                 {"compThresholdDb", e.compThresholdDb},             {"compRatio", e.compRatio},
                 {"compAttackMs", e.compAttackMs},                   {"compReleaseMs", e.compReleaseMs},
                 {"compKneeDb", e.compKneeDb},                       {"compMakeupDb", e.compMakeupDb},
+                {"compTransformerCore", e.compTransformerCore},   {"compTransformerBrand", e.compTransformerBrand},
+                {"compTransformerAmount", e.compTransformerAmount},
                 {"limiterCeilingDb", e.limiterCeilingDb},           {"limiterLookaheadMs", e.limiterLookaheadMs},
                 {"limiterReleaseMs", e.limiterReleaseMs},
             };
@@ -412,6 +414,9 @@ namespace pw8::patch
             e.compReleaseMs = clampNum(j.value("compReleaseMs", 120.0f), 1.0f, 2000.0f);
             e.compKneeDb = clampNum(j.value("compKneeDb", 6.0f), 0.0f, 24.0f);
             e.compMakeupDb = clampNum(j.value("compMakeupDb", 0.0f), 0.0f, 24.0f);
+            e.compTransformerCore = clampNum(j.value("compTransformerCore", 0.0f), 0.0f, 3.0f);
+            e.compTransformerBrand = clampNum(j.value("compTransformerBrand", 0.0f), 0.0f, 3.0f);
+            e.compTransformerAmount = clampNum(j.value("compTransformerAmount", 1.0f), 0.0f, 1.0f);
 
             e.limiterCeilingDb = clampNum(j.value("limiterCeilingDb", -0.3f), -12.0f, 0.0f);
             e.limiterLookaheadMs = clampNum(j.value("limiterLookaheadMs", 5.0f),

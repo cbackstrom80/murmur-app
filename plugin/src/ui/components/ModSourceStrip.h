@@ -9,22 +9,8 @@
 #include "ModSourceChip.h"
 #include "SectionPanel.h"
 #include "processor/PatchworkEightProcessor.h"
+#include "wireframe/ModRoutingWireframeView.h"
 
-// The drag-to-modulate source palette (docs/UI.md): a small row of colored,
-// draggable chips. Deliberately just the sources meaningful against today's two
-// real PLAY-mode destinations (Filter Cutoff/Resonance, see FilterLfoPanel) --
-// LFO1, the amp envelope, and Velocity -- not the full 29-source mod matrix,
-// which stays PLANNED alongside a real matrix UI.
-//
-// Also owns the connections list (UI GATE 3, following the HTML mockup this was
-// validated in): a plain-text readout of every currently-active mod route --
-// "LFO 1 -> FILTER CUTOFF", one per line, each with a small remove button --
-// living below the chip row in the same card. GlowKnob's colored ring already
-// shows *that* a knob is modulated at a glance; this list is the same
-// information in words, and (unlike the ring, which only covers the two
-// drag-enabled destinations) reads every route in the patch honestly, including
-// ones a hand-authored .pw8 preset created that this UI has no drag gesture
-// for yet (e.g. an OperatorLevel route).
 namespace pw8::plugin::ui
 {
     class ModSourceStrip : public juce::Component, private juce::Timer
@@ -34,9 +20,6 @@ namespace pw8::plugin::ui
         ~ModSourceStrip() override;
 
         void resized() override;
-        /// Drawn after children paint, same reasoning as OperatorEditorPanel:
-        /// `panel_` is a full-bounds child that owns the card background, so
-        /// anything this component paints itself would otherwise be painted over.
         void paintOverChildren(juce::Graphics& g) override;
         void mouseDown(const juce::MouseEvent& event) override;
 
@@ -53,13 +36,10 @@ namespace pw8::plugin::ui
         [[nodiscard]] juce::Rectangle<int> connectionsAreaBounds() const;
 
         PatchworkEightProcessor& processor_;
-        SectionPanel panel_{"Mod Sources -- Drag Onto A Ringed Knob"};
+        SectionPanel panel_{"Mod Matrix"};
+        wireframe::ModRoutingWireframeView routingWireframe_;
+        juce::Label helpLabel_;
         std::array<std::unique_ptr<ModSourceChip>, 3> chips_;
-        // Once true, the panel title has already switched to the plain "Mod
-        // Sources" and stays there -- the instructional title did its job (the
-        // player found the gesture) and doesn't need to keep saying it forever.
-        // The empty-state text in paintOverChildren() below still explains the
-        // gesture again if every route later gets removed, so nothing's lost.
         bool hasEverHadModRoute_ = false;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ModSourceStrip)

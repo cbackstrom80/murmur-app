@@ -105,6 +105,14 @@ In order of audible/usable impact per unit of engineering effort:
 
 ## Ideas -- captured, not prioritized, not scoped into P0-P3 above
 
+- **Patch browser: multi-level metadata facet filters** -- see
+  `docs/PATCH_BROWSER.md` Phase 4. Today only **category** is a selectable
+  filter; `moods`, `genres`, and `tags` already exist in every `.pw8` but
+  `PresetIndex` ignores `genres` and the overlay can't narrow by *Cinematic*,
+  *Score*, *Dark*, etc. Plan: extend `PresetMetadataFilter` (AND across
+  type/mood/context/tag), faceted chip rows in `PresetBrowserOverlay`, wire
+  prev/next to the same filter set, then a factory-bank metadata cleanup so
+  facets aren't empty. **No schema change** -- vocabulary + indexing + UI.
 - **MCP server + natural-language patch generation** -- see
   `docs/MCP_AND_NL_PATCH_GENERATION.md`. The MCP server half (patch read/
   edit/render tools for Claude Desktop/Code and similar clients) is now a

@@ -1,8 +1,6 @@
 #pragma once
 
 #include <optional>
-#include <string>
-#include <vector>
 
 #include <juce_core/juce_core.h>
 
@@ -15,7 +13,27 @@ namespace pw8::plugin::content
         juce::String category;
         juce::String description;
         juce::StringArray moods;
+        juce::StringArray genres;
         juce::StringArray tags;
+    };
+
+    /// Multi-facet preset browser filter — AND across dimensions (docs/PATCH_BROWSER.md Phase 4).
+    struct PresetMetadataFilter
+    {
+        juce::String query;
+        juce::String category;
+        juce::String mood;
+        juce::String genre; ///< Context / use-case; also matches legacy values stored in moods[].
+        juce::String tag;
+        bool favoritesOnly = false;
+    };
+
+    enum class PresetFacet : std::uint8_t
+    {
+        Category = 0,
+        Mood,
+        Genre,
+        Tag
     };
 
     /// Scans preset directories once; metadata-only parse (no full PatchSerializer).
@@ -26,26 +44,42 @@ namespace pw8::plugin::content
 
         [[nodiscard]] const juce::Array<PresetEntry>& allEntries() const noexcept { return entries_; }
 
-        [[nodiscard]] juce::Array<PresetEntry> filtered(const juce::String& query,
-                                                         const juce::String& category,
+        [[nodiscard]] juce::Array<PresetEntry> filtered(const PresetMetadataFilter& filter,
                                                          const juce::StringArray* favoritePathsOnly = nullptr) const;
 
         [[nodiscard]] std::optional<PresetEntry> nextAfter(const juce::String& currentPath,
-                                                            const juce::String& query = {},
-                                                            const juce::String& category = {},
+                                                            const PresetMetadataFilter& filter = {},
                                                             const juce::StringArray* favoritePathsOnly = nullptr) const;
         [[nodiscard]] std::optional<PresetEntry> prevBefore(const juce::String& currentPath,
-                                                             const juce::String& query = {},
-                                                             const juce::String& category = {},
+                                                             const PresetMetadataFilter& filter = {},
                                                              const juce::StringArray* favoritePathsOnly = nullptr) const;
+
+        /// Values still available for one facet given the other active filters (faceted search).
+        [[nodiscard]] juce::StringArray uniqueFacetValues(PresetFacet facet,
+                                                           const PresetMetadataFilter& filter,
+                                                           const juce::StringArray* favoritePathsOnly = nullptr) const;
 
         [[nodiscard]] juce::StringArray uniqueCategories() const;
 
+        // Legacy convenience — maps to PresetMetadataFilter with category only.
+        [[nodiscard]] juce::Array<PresetEntry> filtered(const juce::String& query, const juce::String& category,
+                                                         const juce::StringArray* favoritePathsOnly = nullptr) const;
+        [[nodiscard]] std::optional<PresetEntry> nextAfter(const juce::String& currentPath, const juce::String& query,
+                                                            const juce::String& category,
+                                                            const juce::StringArray* favoritePathsOnly = nullptr) const;
+        [[nodiscard]] std::optional<PresetEntry> prevBefore(const juce::String& currentPath, const juce::String& query,
+                                                             const juce::String& category,
+                                                             const juce::StringArray* favoritePathsOnly = nullptr) const;
+
     private:
         [[nodiscard]] static PresetEntry parsePresetFile(const juce::File& file);
-        [[nodiscard]] juce::Array<PresetEntry> filteredCopy(const juce::String& query,
-                                                             const juce::String& category,
-                                                             const juce::StringArray* favoritePathsOnly) const;
+        [[nodiscard]] static bool entryMatchesFilter(const PresetEntry& entry, const PresetMetadataFilter& filter,
+                                                      const juce::StringArray* favoritePathsOnly);
+        [[nodiscard]] static PresetMetadataFilter filterWithFacetCleared(PresetMetadataFilter filter,
+                                                                          PresetFacet facet);
+        static void collectFacetValue(PresetFacet facet, const PresetEntry& entry,
+                                                     juce::StringArray& out);
+        [[nodiscard]] static bool arrayContainsIgnoreCase(const juce::StringArray& arr, const juce::String& value);
 
         juce::Array<PresetEntry> entries_;
     };

@@ -42,12 +42,8 @@
 // docs/VISUALIZATION_UI_GATE5.md "Integration" for the rationale.
 //
 // Owns every way to change which wavetable an operator points at:
-// - "Load..." -- a native FileChooser, scoped to an EXISTING pw8-wavetable-
-//   builder JSON table (*.json), not a raw .wav -- oscillator::loadWavetableFromFile()
-//   only ever parses that JSON format (see engine/src/oscillator/WavetableTableLoader.cpp);
-//   turning a raw .wav into mip levels stays tools/wavetable_builder's job, not
-//   wired into the plugin's message thread here.
-// - "<"/">" -- cycle through the full factory wavetable library (WavetableIndex).
+// - "<"/">" -- cycle the factory wavetable library (WavetableIndex).
+//   Custom JSON import exists but is hidden until explicitly needed.
 namespace pw8::plugin::ui
 {
     class WavetableStackView : public juce::Component, private juce::Timer
@@ -67,6 +63,9 @@ namespace pw8::plugin::ui
         /// Loads the first indexed wavetable when this operator has none assigned.
         void ensureDefaultWavetableLoaded();
 
+        /// When true, draws example grain windows over the wavetable mesh (Granular engine).
+        void setGranularOverlay(bool enabled) { granularOverlay_ = enabled; repaint(); }
+
     private:
         void timerCallback() override;
         void loadWavetableFromFile();
@@ -82,12 +81,14 @@ namespace pw8::plugin::ui
         PatchworkEightProcessor& processor_;
         content::WavetableIndex wavetableIndex_;
         int selectedNode_ = 0;
+        juce::Label tableNameLabel_;
         juce::TextButton loadButton_{"Load..."};
         juce::TextButton prevButton_{"<"};
         juce::TextButton nextButton_{">"};
         std::unique_ptr<juce::FileChooser> fileChooser_;
 
         juce::String lastKnownWavetableId_;
+        bool granularOverlay_ = false;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(WavetableStackView)
     };

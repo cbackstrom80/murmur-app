@@ -12,9 +12,20 @@ PRESETS_DIR = REPO_ROOT / "content" / "presets"
 WAVETABLES_DIR = REPO_ROOT / "content" / "wavetables"
 
 
-def list_presets(category: str | None = None) -> list[dict]:
-    """Every .pw8 under content/presets/ (including content/presets/factory/'s
-    250-patch bank), each summarized rather than dumped whole."""
+def _array_contains(values: list, needle: str) -> bool:
+    n = needle.strip().lower()
+    return any(str(v).strip().lower() == n for v in values)
+
+
+def list_presets(
+    category: str | None = None,
+    mood: str | None = None,
+    genre: str | None = None,
+    tag: str | None = None,
+) -> list[dict]:
+    """Every .pw8 under content/presets/, summarized. Filters combine with AND
+    (same semantics as the plugin PresetMetadataFilter). Context/genre also
+    matches legacy values stored in moods[] (e.g. cinematic)."""
     out = []
     for path in sorted(PRESETS_DIR.rglob("*.pw8")):
         try:
@@ -23,8 +34,19 @@ def list_presets(category: str | None = None) -> list[dict]:
             continue
         meta = data.get("metadata", {})
         cat = meta.get("category") or path.parent.name
-        if category and category.lower() not in cat.lower():
+        moods = meta.get("moods", [])
+        genres = meta.get("genres", [])
+        tags = meta.get("tags", [])
+
+        if category and category.lower() not in str(cat).lower():
             continue
+        if mood and not _array_contains(moods, mood):
+            continue
+        if genre and not _array_contains(genres, genre) and not _array_contains(moods, genre):
+            continue
+        if tag and not _array_contains(tags, tag):
+            continue
+
         engines = sorted({ENGINE_NAMES.get(op.get("engine", 0), "?")
                           for op in data.get("layerA", {}).get("operators", [])
                           if op.get("level", 0.0) > 0.0})
@@ -32,7 +54,9 @@ def list_presets(category: str | None = None) -> list[dict]:
             "path": str(path.relative_to(REPO_ROOT)),
             "name": meta.get("name", path.stem),
             "category": cat,
-            "moods": meta.get("moods", []),
+            "moods": moods,
+            "genres": genres,
+            "tags": tags,
             "description": meta.get("description", ""),
             "engines": engines,
         })

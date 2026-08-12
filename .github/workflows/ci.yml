@@ -27,7 +27,10 @@ jobs:
       - name: Test
         run: ctest --preset dev --output-on-failure
 
-  build-and-test-windows:
+      - name: MVP content + MCP smoke
+        run: |
+          python3 scripts/validate_content_refs.py
+          python3 mcp_server/smoke_test.py
     name: Build core + run tests (windows-latest)
     runs-on: windows-latest
     steps:

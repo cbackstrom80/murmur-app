@@ -41,7 +41,8 @@ namespace pw8::plugin::ui
         const auto bounds = juce::Rectangle<float>(static_cast<float>(x), static_cast<float>(y),
                                                      static_cast<float>(width), static_cast<float>(height))
                                  .reduced(4.0f);
-        const float diameter = juce::jmax(16.0f, juce::jmin(bounds.getWidth(), bounds.getHeight()));
+        const float diameter =
+            juce::jmin(88.0f, juce::jmax(16.0f, juce::jmin(bounds.getWidth(), bounds.getHeight())));
         const auto knobBounds = bounds.withSizeKeepingCentre(diameter, diameter);
         const float radius = diameter * 0.5f;
         const auto centre = knobBounds.getCentre();

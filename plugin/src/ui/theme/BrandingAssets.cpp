@@ -42,7 +42,8 @@ namespace pw8::plugin::ui::branding
             if (!mark.isValid())
                 return {};
 
-            const int cropHeight = juce::jmax(1, static_cast<int>(static_cast<float>(mark.getHeight()) * 0.56f));
+            // Hero logo is widescreen: ship + HUD ring in top ~48%, wordmark below.
+            const int cropHeight = juce::jmax(1, static_cast<int>(static_cast<float>(mark.getHeight()) * 0.48f));
             mark = mark.getClippedImage({0, 0, mark.getWidth(), cropHeight});
             return keyBlackTransparent(mark);
         }

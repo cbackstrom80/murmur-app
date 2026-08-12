@@ -79,6 +79,15 @@ namespace pw8::plugin
         /// fail the whole patch, that operator just renders silence" contract.
         bool setOperatorWavetableFile(std::size_t opIndex, const juce::String& filePath);
 
+        /// Message-thread only: pull every automatable APVTS field into `currentPatch_`
+        /// so UI edits (engine pills, knobs) and patch-only fields (wavetableId) stay
+        /// aligned before a reload or save.
+        void syncCurrentPatchFromApvts() noexcept;
+
+        /// Swap two adjacent effect slots within the layer insert chain (0..2) or
+        /// master chain (0..3). Message-thread only; reloads the engine.
+        bool swapEffectSlots(bool masterChain, std::size_t indexA, std::size_t indexB);
+
         /// Message-thread only (JUCE guarantees editor construction/paint/resize all
         /// run on the message thread, the same thread every currentPatch_ mutation
         /// already runs on per the class-level threading contract above) -- read-only

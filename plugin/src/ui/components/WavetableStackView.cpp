@@ -7,6 +7,7 @@
 
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
+#include "wireframe/WireframeProjection.h"
 #include "pw8/algorithm/AlgorithmTypes.hpp"
 #include "pw8/dsp/Math.hpp"
 #include "state/PluginState.h"
@@ -46,30 +47,39 @@ namespace pw8::plugin::ui
         constexpr float kRowStepYFrac = 0.40f;
         constexpr float kFarShrink = 0.55f; // farthest row's scale relative to nearest.
 
-        constexpr int kButtonWidth = 64;
-        constexpr int kArrowWidth = 22;
-        constexpr int kButtonHeight = 18;
+        constexpr int kArrowWidth = 34;
+        constexpr int kButtonHeight = 28;
         constexpr int kButtonMargin = 4;
+        constexpr int kCaptionHeight = 18;
     } // namespace
 
     WavetableStackView::WavetableStackView(PatchworkEightProcessor& processor) : processor_(processor)
     {
         wavetableIndex_.rescan();
+        loadButton_.setVisible(false); // Custom import is secondary; factory ← → nav is primary.
         loadButton_.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
         loadButton_.setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
         loadButton_.onClick = [this] { loadWavetableFromFile(); };
-        addAndMakeVisible(loadButton_);
+        addChildComponent(loadButton_);
+
+        tableNameLabel_.setJustificationType(juce::Justification::centred);
+        tableNameLabel_.setColour(juce::Label::textColourId, palette::kTextPrimary);
+        tableNameLabel_.setFont(fonts::label(11.0f));
+        addAndMakeVisible(tableNameLabel_);
 
         for (auto* arrow : {&prevButton_, &nextButton_})
         {
             arrow->setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
-            arrow->setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
-            arrow->setEnabled(false); // Nothing to browse until refreshSiblings() finds a directory.
+            arrow->setColour(juce::TextButton::buttonOnColourId, palette::kAccentDim);
+            arrow->setColour(juce::TextButton::textColourOffId, palette::kAccent);
             addAndMakeVisible(*arrow);
         }
+        prevButton_.setTooltip("Previous wavetable in the factory library");
+        nextButton_.setTooltip("Next wavetable in the factory library");
         prevButton_.onClick = [this] { goToSibling(-1); };
         nextButton_.onClick = [this] { goToSibling(1); };
 
+        refreshSiblings();
         startTimerHz(4); // Table content only changes on patch load / node reselection; slow poll is plenty.
     }
 
@@ -95,8 +105,14 @@ namespace pw8::plugin::ui
 
     void WavetableStackView::ensureDefaultWavetableLoaded()
     {
+        const auto engineParamId = operatorParamId(static_cast<std::size_t>(selectedNode_), "Engine");
+        int engineOrdinal = 0;
+        if (auto* raw = processor_.apvts.getRawParameterValue(engineParamId))
+            engineOrdinal = static_cast<int>(raw->load() + 0.5f);
+        const bool needsTable = engineOrdinal == static_cast<int>(algorithm::EngineType::Wavetable)
+                                || engineOrdinal == static_cast<int>(algorithm::EngineType::Granular);
+
         const auto& op = processor_.getCurrentPatch().layerA.operators[static_cast<std::size_t>(selectedNode_)];
-        const bool needsTable = op.engine == algorithm::EngineType::Wavetable || op.engine == algorithm::EngineType::Granular;
         if (!needsTable || !op.wavetableId.empty())
             return;
 
@@ -107,17 +123,20 @@ namespace pw8::plugin::ui
 
         processor_.setOperatorWavetableFile(static_cast<std::size_t>(selectedNode_),
                                             wavetableIndex_.allEntries().getFirst().absolutePath);
+        refreshSiblings();
     }
 
     void WavetableStackView::resized()
     {
         auto bounds = getLocalBounds().reduced(kButtonMargin);
-        auto row = bounds.removeFromTop(kButtonHeight);
-        nextButton_.setBounds(row.removeFromRight(kArrowWidth));
-        row.removeFromRight(kButtonMargin);
-        loadButton_.setBounds(row.removeFromRight(kButtonWidth));
-        row.removeFromRight(kButtonMargin);
-        prevButton_.setBounds(row.removeFromRight(kArrowWidth));
+
+        auto captionRow = bounds.removeFromBottom(kCaptionHeight);
+        tableNameLabel_.setBounds(captionRow);
+
+        auto meshArea = bounds;
+        const int arrowColumn = kArrowWidth + 4;
+        prevButton_.setBounds(meshArea.removeFromLeft(arrowColumn).withSizeKeepingCentre(kArrowWidth, kButtonHeight));
+        nextButton_.setBounds(meshArea.removeFromRight(arrowColumn).withSizeKeepingCentre(kArrowWidth, kButtonHeight));
     }
 
     void WavetableStackView::timerCallback()
@@ -136,23 +155,43 @@ namespace pw8::plugin::ui
         lastKnownWavetableId_ = currentWavetablePath();
 
         const int total = wavetableIndex_.allEntries().size();
-        prevButton_.setEnabled(total > 1);
-        nextButton_.setEnabled(total > 1);
+        const bool canCycle = total > 0;
+        prevButton_.setEnabled(canCycle);
+        nextButton_.setEnabled(canCycle);
+
+        if (total > 0)
+        {
+            const int idx = wavetableIndex_.indexOf(lastKnownWavetableId_);
+            const auto& entry = idx >= 0 ? wavetableIndex_.allEntries()[idx] : wavetableIndex_.allEntries().getFirst();
+            juce::String caption = entry.name;
+            if (idx >= 0)
+                caption += "  ·  " + juce::String(idx + 1) + " / " + juce::String(total);
+            tableNameLabel_.setText(caption, juce::dontSendNotification);
+        }
+        else
+        {
+            tableNameLabel_.setText("No factory wavetables found", juce::dontSendNotification);
+        }
     }
 
     void WavetableStackView::goToSibling(int delta)
     {
         if (wavetableIndex_.allEntries().isEmpty())
+            wavetableIndex_.rescan();
+        if (wavetableIndex_.allEntries().isEmpty())
             return;
 
+        processor_.syncCurrentPatchFromApvts();
         const auto current = currentWavetablePath();
         const auto next = delta > 0 ? wavetableIndex_.nextAfter(current) : wavetableIndex_.prevBefore(current);
         if (!next.has_value())
             return;
 
-        processor_.setOperatorWavetableFile(static_cast<std::size_t>(selectedNode_), next->absolutePath);
-        refreshSiblings();
-        repaint();
+        if (processor_.setOperatorWavetableFile(static_cast<std::size_t>(selectedNode_), next->absolutePath))
+        {
+            refreshSiblings();
+            repaint();
+        }
     }
 
     void WavetableStackView::loadWavetableFromFile()
@@ -192,7 +231,9 @@ namespace pw8::plugin::ui
     {
         const auto* table = processor_.getActiveWavetableTable(static_cast<std::size_t>(selectedNode_));
         auto bounds = getLocalBounds().toFloat();
-        bounds.removeFromTop(static_cast<float>(kButtonHeight + kButtonMargin * 2)); // Room for the load/prev/next row.
+        bounds.removeFromBottom(static_cast<float>(kCaptionHeight + kButtonMargin)); // Caption + table name row.
+        bounds.removeFromLeft(static_cast<float>(kArrowWidth + kButtonMargin + 4)); // Prev arrow column.
+        bounds.removeFromRight(static_cast<float>(kArrowWidth + kButtonMargin + 4)); // Next arrow column.
 
         if (table == nullptr || !table->isValid())
         {
@@ -237,7 +278,9 @@ namespace pw8::plugin::ui
         const float liveFramePos = livePos * static_cast<float>(numFrames - 1);
         const int liveFrame = juce::jlimit(0, numFrames - 1, static_cast<int>(liveFramePos + 0.5f));
 
-        auto captionArea = bounds.removeFromBottom(16.0f);
+        auto captionArea = bounds.removeFromBottom(14.0f);
+
+        // Table name is shown in tableNameLabel_; keep technical frame readout here.
 
         // Interpolated sample at depth t in [0,1] (0 = front/nearest = table frame 0,
         // 1 = back/farthest = the table's last frame) and point index p -- honest
@@ -376,13 +419,37 @@ namespace pw8::plugin::ui
         g.setColour(palette::kTextSecondary);
         g.setFont(fonts::value(10.0f));
         const int libIndex = wavetableIndex_.indexOf(currentWavetablePath());
-        const int libTotal = wavetableIndex_.allEntries().size();
         juce::String libPos;
-        if (libIndex >= 0 && libTotal > 0)
-            libPos = " -- " + juce::String(libIndex + 1) + " / " + juce::String(libTotal);
-        g.drawText(juce::String(numFrames) + " frames, mip 0 (" + juce::String(mip.maxHarmonic) + " harmonics) -- frame " +
+        if (libIndex >= 0)
+            libPos = " · lib " + juce::String(libIndex + 1) + "/" + juce::String(wavetableIndex_.allEntries().size());
+        g.drawText(juce::String(numFrames) + " frames, mip 0 (" + juce::String(mip.maxHarmonic) + " harmonics) · frame " +
                        juce::String(liveFrame) + " live" + libPos,
                    captionArea, juce::Justification::centredLeft);
+
+        if (granularOverlay_)
+        {
+            const auto posParam = operatorParamId(static_cast<std::size_t>(selectedNode_), "WavetablePos");
+            const auto sizeParam = operatorParamId(static_cast<std::size_t>(selectedNode_), "GrainSizeMs");
+            float pos = 0.35f;
+            float sizeMs = 60.0f;
+            if (auto* raw = processor_.apvts.getRawParameterValue(posParam))
+                pos = juce::jlimit(0.0f, 1.0f, raw->load());
+            if (auto* raw = processor_.apvts.getRawParameterValue(sizeParam))
+                sizeMs = raw->load();
+
+            const float grainW = juce::jmap(sizeMs, 1.0f, 500.0f, bounds.getWidth() * 0.06f, bounds.getWidth() * 0.22f);
+            for (int gIdx = 0; gIdx < 3; ++gIdx)
+            {
+                const float cx = bounds.getX() + bounds.getWidth() * juce::jlimit(0.05f, 0.95f, pos + static_cast<float>(gIdx - 1) * 0.12f);
+                const float top = bounds.getY() + bounds.getHeight() * 0.15f;
+                const float h = bounds.getHeight() * 0.55f;
+                juce::Rectangle<float> grain(cx - grainW * 0.5f, top, grainW, h);
+                g.setColour(palette::kAccentWarm.withAlpha(0.12f));
+                g.fillRect(grain);
+                g.setColour(palette::kAccentWarm.withAlpha(0.75f));
+                g.drawRect(grain, 1.2f);
+            }
+        }
     }
 
 } // namespace pw8::plugin::ui

@@ -180,6 +180,12 @@ distorted, ambient, punchy, soft, evolving, airy) are plain strings, not hardwir
 DSP enums, per the master spec -- `PatchMetadata::category`/`moods`/`tags` are
 `std::string`/`std::vector<std::string>`.
 
+**Use-case / context** lives in `genres[]` (e.g. `cinematic`, `score`, `sleep`,
+`worship`) — same string rules. The plugin patch browser today filters on
+`category` only; multi-facet filtering (type + mood + genre + tag) is planned
+in `docs/PATCH_BROWSER.md` Phase 4, including a canonical vocabulary for
+authoring and a factory-bank retag pass.
+
 ## AI-Generation Metadata
 
 `LockFlags` (`lockSources`/`lockAlgorithm`/`lockFilters`/`lockModulation`/
