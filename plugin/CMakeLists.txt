@@ -56,6 +56,8 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/FilterLfoPanel.cpp
     src/ui/components/FxChainStrip.cpp
     src/ui/components/PatchBrowserBar.cpp
+    src/ui/components/PresetBrowserOverlay.cpp
+    src/ui/components/AmpEnvelopePanel.cpp
     src/ui/components/ModSourceChip.cpp
     src/ui/components/ModSourceStrip.cpp
     src/ui/components/WavetableStackView.cpp

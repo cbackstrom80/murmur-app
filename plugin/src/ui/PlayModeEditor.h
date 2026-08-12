@@ -5,6 +5,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "components/AmpEnvelopePanel.h"
 #include "components/FilterLfoPanel.h"
 #include "components/FxChainStrip.h"
 #include "components/MacroStrip.h"
@@ -12,6 +13,7 @@
 #include "components/NodeSelectorRow.h"
 #include "components/OperatorEditorPanel.h"
 #include "components/PatchBrowserBar.h"
+#include "components/PresetBrowserOverlay.h"
 #include "components/SectionPanel.h"
 #include "processor/PatchworkEightProcessor.h"
 #include "theme/ObsidianLookAndFeel.h"
@@ -35,6 +37,7 @@ namespace pw8::plugin::ui
             Basic = 0,
             Osc,
             Filter,
+            Env,
             Mod,
             Fx,
         };
@@ -47,10 +50,11 @@ namespace pw8::plugin::ui
 
         PatchBrowserBar patchBrowserBar_;
         NodeSelectorRow nodeSelectorRow_;
-        std::array<juce::TextButton, 5> tabButtons_{
+        std::array<juce::TextButton, 6> tabButtons_{
             juce::TextButton{"BASIC"},
             juce::TextButton{"OSC"},
             juce::TextButton{"FILTER"},
+            juce::TextButton{"ENV"},
             juce::TextButton{"MOD"},
             juce::TextButton{"FX"},
         };
@@ -59,6 +63,7 @@ namespace pw8::plugin::ui
         juce::Component basicPage_;
         juce::Component oscPage_;
         juce::Component filterPage_;
+        juce::Component envPage_;
         juce::Component modPage_;
         juce::Component fxPage_;
 
@@ -67,8 +72,10 @@ namespace pw8::plugin::ui
         SectionPanel oscPanel_{"Operator"};
         OperatorEditorPanel operatorEditorPanel_;
         FilterLfoPanel filterLfoPanel_;
+        AmpEnvelopePanel ampEnvelopePanel_;
         ModSourceStrip modSourceStrip_;
         FxChainStrip fxChainStrip_;
+        PresetBrowserOverlay presetBrowserOverlay_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlayModeEditor)
     };
