@@ -15,11 +15,12 @@ namespace pw8::plugin::ui
           ampEnvelopePanel_(processor),
           modSourceStrip_(processor),
           fxChainStrip_(processor.apvts),
-          presetBrowserOverlay_(processor, patchBrowserBar_.getPresetIndex())
+          presetBrowserOverlay_(processor, patchBrowserBar_.getPresetIndex(), favoritesStore_)
     {
         setLookAndFeel(&lookAndFeel_);
 
         addAndMakeVisible(patchBrowserBar_);
+        patchBrowserBar_.setFavoritesStore(&favoritesStore_);
         patchBrowserBar_.onBrowseClicked = [this] {
             addAndMakeVisible(presetBrowserOverlay_);
             presetBrowserOverlay_.setBounds(getLocalBounds());
@@ -27,7 +28,8 @@ namespace pw8::plugin::ui
         };
         presetBrowserOverlay_.onClosed = [this] {
             patchBrowserBar_.setBrowseFilters(presetBrowserOverlay_.browseQuery(),
-                                              presetBrowserOverlay_.browseCategory());
+                                              presetBrowserOverlay_.browseCategory(),
+                                              presetBrowserOverlay_.browseFavoritesOnly());
             removeChildComponent(&presetBrowserOverlay_);
         };
         addAndMakeVisible(nodeSelectorRow_);

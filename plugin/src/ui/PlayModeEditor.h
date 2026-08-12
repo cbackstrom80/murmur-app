@@ -15,6 +15,7 @@
 #include "components/PatchBrowserBar.h"
 #include "components/PresetBrowserOverlay.h"
 #include "components/SectionPanel.h"
+#include "content/FavoritesStore.h"
 #include "processor/PatchworkEightProcessor.h"
 #include "theme/ObsidianLookAndFeel.h"
 
@@ -75,6 +76,7 @@ namespace pw8::plugin::ui
         AmpEnvelopePanel ampEnvelopePanel_;
         ModSourceStrip modSourceStrip_;
         FxChainStrip fxChainStrip_;
+        content::FavoritesStore favoritesStore_;
         PresetBrowserOverlay presetBrowserOverlay_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlayModeEditor)

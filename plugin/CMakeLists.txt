@@ -45,6 +45,7 @@ target_sources(pw8_plugin PRIVATE
     src/processor/PatchworkEightProcessor.cpp
     src/state/PluginState.cpp
     src/content/PresetIndex.cpp
+    src/content/FavoritesStore.cpp
     src/ui/PlayModeEditor.cpp
     src/ui/theme/ObsidianLookAndFeel.cpp
     src/ui/components/GlowKnob.cpp

@@ -2,19 +2,63 @@
 
 #include "pw8/content/ContentPaths.hpp"
 #include "pw8/dsp/Denormal.hpp"
+#include "pw8/dsp/Math.hpp"
 #include "pw8/oscillator/WavetableTableLoader.hpp"
+
+#include <cmath>
 
 namespace pw8::render
 {
+    namespace
+    {
+        int effectiveUnisonVoices(const patch::UnisonSettings& uni) noexcept
+        {
+            int voices = uni.voices;
+            if (voices < 1)
+                voices = 1;
+            if (voices > static_cast<int>(core::kMaxUnisonVoices))
+                voices = static_cast<int>(core::kMaxUnisonVoices);
+            if (uni.mode == patch::UnisonMode::Off && voices <= 1)
+                return 1;
+            return voices;
+        }
+
+        float centsToRatio(float cents) noexcept
+        {
+            return std::pow(2.0f, cents / 1200.0f);
+        }
+
+        void unisonSpread(const patch::UnisonSettings& uni, int index, int count, float& detuneCentsOut,
+                          float& panOut) noexcept
+        {
+            if (count <= 1)
+            {
+                detuneCentsOut = 0.0f;
+                panOut = 0.0f;
+                return;
+            }
+
+            const float center = static_cast<float>(count - 1) * 0.5f;
+            const float norm = (static_cast<float>(index) - center) / (center > 0.0f ? center : 1.0f);
+            detuneCentsOut = norm * uni.detuneCents * uni.spread;
+            panOut = norm * uni.spread;
+        }
+    } // namespace
+
     void Engine::prepare(double sampleRate) noexcept
     {
         sampleRate_ = sampleRate > 0.0 ? sampleRate : 48000.0;
         for (auto& v : voices_)
             v.prepare(sampleRate_);
+        for (auto& v : voicesB_)
+            v.prepare(sampleRate_);
         for (auto& l : layerLfosA_)
+            l.prepare(sampleRate_);
+        for (auto& l : layerLfosB_)
             l.prepare(sampleRate_);
         arpeggiator_.prepare(sampleRate_);
         layerAInsertChain_.prepare(sampleRate_);
+        layerBInsertChain_.prepare(sampleRate_);
         masterChain_.prepare(sampleRate_);
     }
 
@@ -56,53 +100,32 @@ namespace pw8::render
         return out;
     }
 
-    bool Engine::loadPatch(const patch::Patch& patchToLoad) noexcept
+    void Engine::loadLayerResources(const patch::LayerPatch& layer, algorithm::CompiledAlgorithm& compiledOut,
+                                       std::array<op::OperatorParams, core::kNodesPerLayer>& templatesOut,
+                                       std::array<std::optional<oscillator::WavetableTable>, core::kNodesPerLayer>& storageOut,
+                                       std::array<const oscillator::WavetableTable*, core::kNodesPerLayer>& tablesOut,
+                                       std::array<lfo::Lfo, core::kNumLfosPerLayer>& lfosOut, voice::VoicePool& voices,
+                                       algorithm::CompileStatus& statusOut) noexcept
     {
-        patch_ = patchToLoad;
-
-        // Layer B / dual-layer and unison DSP are not wired yet -- clamp to what
-        // actually renders rather than silently ignoring authored values.
-        if (patch_.layerMode != patch::LayerMode::SingleA)
-            patch_.layerMode = patch::LayerMode::SingleA;
-        if (patch_.layerA.unison.voices > 1)
-            patch_.layerA.unison.voices = 1;
-
         algorithm::CompiledAlgorithm compiled;
-        const auto status = algorithm::AlgorithmGraphCompiler::compile(patch_.layerA.algorithm, compiled);
-        lastCompileStatus_ = status;
-
-        if (status == algorithm::CompileStatus::Ok)
-        {
-            compiledLayerA_ = compiled;
-        }
+        statusOut = algorithm::AlgorithmGraphCompiler::compile(layer.algorithm, compiled);
+        if (statusOut == algorithm::CompileStatus::Ok)
+            compiledOut = compiled;
         else
         {
-            // Never leave the audio thread without a valid compiled algorithm: fall back
-            // to a known-safe default (single sine carrier) rather than propagating an
-            // invalid graph. See docs/ALGORITHM_GRAPH.md "Graph Validation".
             algorithm::CompiledAlgorithm fallback;
             [[maybe_unused]] const auto fallbackStatus =
                 algorithm::AlgorithmGraphCompiler::compile(algorithm::AlgorithmGraphDefinition::makeDefaultParallel8(), fallback);
-            compiledLayerA_ = fallback;
+            compiledOut = fallback;
         }
 
         for (std::size_t i = 0; i < core::kNodesPerLayer; ++i)
-            operatorParamsTemplateA_[i] = toOperatorParams(patch_.layerA.operators[i]);
+            templatesOut[i] = toOperatorParams(layer.operators[i]);
 
-        // Load referenced wavetable content. `wavetableId` is currently treated as a
-        // filesystem path (relative to the process's working directory, or absolute) --
-        // see docs/PATCH_FORMAT.md "Wavetable Resource Resolution" for why this is
-        // PARTIAL rather than a full content-addressed resolution system. A missing or
-        // malformed file just leaves that operator silent (documented WavetableOscillator
-        // behavior for an invalid view), not a load failure for the whole patch.
         for (std::size_t i = 0; i < core::kNodesPerLayer; ++i)
         {
-            wavetableStorageA_[i].reset();
-            const auto& op = patch_.layerA.operators[i];
-            // Granular reuses wavetableId for its grain source data (see
-            // OperatorPatch's doc comment and OperatorNode::render()'s Granular
-            // case) -- it needs this load exactly like the Wavetable engine does,
-            // not just Wavetable itself.
+            storageOut[i].reset();
+            const auto& op = layer.operators[i];
             if ((op.engine == algorithm::EngineType::Wavetable || op.engine == algorithm::EngineType::Granular) &&
                 !op.wavetableId.empty())
             {
@@ -110,42 +133,99 @@ namespace pw8::render
                 const auto& pathToLoad = resolved.has_value() ? *resolved : op.wavetableId;
                 auto loadResult = oscillator::loadWavetableFromFile(pathToLoad);
                 if (loadResult.ok)
-                    wavetableStorageA_[i] = std::move(loadResult.table);
+                    storageOut[i] = std::move(loadResult.table);
             }
-            wavetableTablesA_[i] = wavetableStorageA_[i].has_value() ? &*wavetableStorageA_[i] : nullptr;
+            tablesOut[i] = storageOut[i].has_value() ? &*storageOut[i] : nullptr;
         }
 
-        allocator_.configure(patch_.voiceSettings.polyphony);
-        tuning_.setA4(patch_.voiceSettings.a4Hz);
-        arpeggiator_.configure(patch_.arpeggiator, patch_.seed);
-
-        // Clear delay/chorus tails on patch load rather than letting a previous
-        // patch's effect state bleed into the newly loaded one -- keeps rendering
-        // deterministic from a fresh loadPatch() regardless of what was loaded before.
-        layerAInsertChain_.reset();
-        masterChain_.reset();
-
-        // The shared, layer-wide LFO bank (LAYER/GLOBAL-scoped mod routes, see
-        // ModScope's doc comment in ModMatrixTypes.hpp): initialized once here rather
-        // than per-note, since there's no single "note-on" for a layer-wide
-        // modulator. Deterministically seeded from the patch seed + LFO index.
         for (std::size_t i = 0; i < core::kNumLfosPerLayer; ++i)
-            layerLfosA_[i].noteOn(patch_.layerA.lfos[i],
-                                   dsp::DeterministicRng::deriveSeed(patch_.seed, static_cast<std::uint32_t>(i), patch_.seed));
+            lfosOut[i].noteOn(layer.lfos[i],
+                               dsp::DeterministicRng::deriveSeed(patch_.seed, static_cast<std::uint32_t>(i), patch_.seed));
 
         std::array<float, 8> macroValues{};
         for (std::size_t i = 0; i < macroValues.size(); ++i)
             macroValues[i] = patch_.macros[i].value;
 
-        for (auto& v : voices_)
+        for (auto& v : voices)
         {
-            v.operatorParams = operatorParamsTemplateA_;
-            v.filterParams = patch_.layerA.filter1;
-            v.lfoParams = patch_.layerA.lfos;
+            v.operatorParams = templatesOut;
+            v.filterParams = layer.filter1;
+            v.lfoParams = layer.lfos;
             v.macroValues = macroValues;
         }
+    }
 
-        return status == algorithm::CompileStatus::Ok;
+    bool Engine::loadPatch(const patch::Patch& patchToLoad) noexcept
+    {
+        patch_ = patchToLoad;
+
+        // Only SingleA and Stack are rendered today; other layer modes stay clamped.
+        if (patch_.layerMode != patch::LayerMode::SingleA && patch_.layerMode != patch::LayerMode::Stack)
+            patch_.layerMode = patch::LayerMode::SingleA;
+
+        const bool stackActive = patch_.layerMode == patch::LayerMode::Stack;
+
+        algorithm::CompileStatus statusA = algorithm::CompileStatus::Ok;
+        loadLayerResources(patch_.layerA, compiledLayerA_, operatorParamsTemplateA_, wavetableStorageA_,
+                           wavetableTablesA_, layerLfosA_, voices_, statusA);
+
+        algorithm::CompileStatus statusB = algorithm::CompileStatus::Ok;
+        if (stackActive)
+        {
+            loadLayerResources(patch_.layerB, compiledLayerB_, operatorParamsTemplateB_, wavetableStorageB_,
+                               wavetableTablesB_, layerLfosB_, voicesB_, statusB);
+        }
+
+        lastCompileStatus_ = statusA;
+        if (stackActive && statusB != algorithm::CompileStatus::Ok)
+            lastCompileStatus_ = statusB;
+
+        const std::size_t totalPoly = patch_.voiceSettings.polyphony < 1 ? 1 : patch_.voiceSettings.polyphony;
+        const std::size_t layerPoly = stackActive ? std::max<std::size_t>(1, totalPoly / 2) : totalPoly;
+        allocator_.configure(layerPoly);
+        allocatorB_.configure(stackActive ? layerPoly : 1);
+
+        tuning_.setA4(patch_.voiceSettings.a4Hz);
+        arpeggiator_.configure(patch_.arpeggiator, patch_.seed);
+
+        layerAInsertChain_.reset();
+        layerBInsertChain_.reset();
+        masterChain_.reset();
+
+        return lastCompileStatus_ == algorithm::CompileStatus::Ok;
+    }
+
+    void Engine::triggerLayerNoteOn(const patch::LayerPatch& layer, const patch::UnisonSettings& unison,
+                                     const std::array<op::OperatorParams, core::kNodesPerLayer>& templates,
+                                     voice::VoicePool& voices, voice::VoiceAllocator& allocator, int note, int channel,
+                                     int velocity7) noexcept
+    {
+        const int unisonVoices = effectiveUnisonVoices(unison);
+        const float baseFreqHz = tuning_.noteToFrequency(static_cast<float>(note));
+        const float velUnit = static_cast<float>(velocity7) / 127.0f;
+        const float gainScale = unison.blend / static_cast<float>(unisonVoices);
+
+        for (int u = 0; u < unisonVoices; ++u)
+        {
+            const auto idx = allocator.allocate(voices);
+            auto& v = voices[idx];
+            v.id = static_cast<std::uint32_t>(idx);
+            v.operatorParams = templates;
+            v.filterParams = layer.filter1;
+            v.lfoParams = layer.lfos;
+            for (std::size_t i = 0; i < v.macroValues.size(); ++i)
+                v.macroValues[i] = patch_.macros[i].value;
+
+            float detuneCents = 0.0f;
+            float unisonPan = 0.0f;
+            unisonSpread(unison, u, unisonVoices, detuneCents, unisonPan);
+
+            const float detunedHz = baseFreqHz * centsToRatio(detuneCents);
+            v.noteOn(note, channel, velUnit, detunedHz, layer.envelopes, allocator.nextAge(), ++noteGenerationCounter_,
+                     patch_.seed ^ static_cast<std::uint64_t>(u + 1));
+            v.outputGain = layer.gain * patch_.voiceSettings.masterGain * gainScale;
+            v.pan = dsp::clamp(layer.pan + unisonPan, -1.0f, 1.0f);
+        }
     }
 
     void Engine::noteOn(int note, int channel, int velocity7) noexcept
@@ -184,28 +264,20 @@ namespace pw8::render
             return;
         }
 
-        const auto idx = allocator_.allocate(voices_);
-        auto& v = voices_[idx];
-        v.id = static_cast<std::uint32_t>(idx);
-        v.operatorParams = operatorParamsTemplateA_;
-        v.filterParams = patch_.layerA.filter1;
-        v.lfoParams = patch_.layerA.lfos;
-        for (std::size_t i = 0; i < v.macroValues.size(); ++i)
-            v.macroValues[i] = patch_.macros[i].value;
+        triggerLayerNoteOn(patch_.layerA, patch_.layerA.unison, operatorParamsTemplateA_, voices_, allocator_, note,
+                           channel, velocity7);
 
-        const float freqHz = tuning_.noteToFrequency(static_cast<float>(note));
-        const float velUnit = static_cast<float>(velocity7) / 127.0f;
-
-        v.noteOn(note, channel, velUnit, freqHz, patch_.layerA.envelopes, allocator_.nextAge(),
-                 ++noteGenerationCounter_, patch_.seed);
-        v.outputGain = patch_.layerA.gain * patch_.voiceSettings.masterGain;
-        v.pan = patch_.layerA.pan;
+        if (isStackModeActive())
+            triggerLayerNoteOn(patch_.layerB, patch_.layerB.unison, operatorParamsTemplateB_, voicesB_, allocatorB_,
+                               note, channel, velocity7);
     }
 
     void Engine::triggerNoteOffDirect(int note, int channel, int velocity7) noexcept
     {
         const float relVel = static_cast<float>(velocity7) / 127.0f;
         allocator_.release(voices_, note, channel, relVel);
+        if (isStackModeActive())
+            allocatorB_.release(voicesB_, note, channel, relVel);
     }
 
     void Engine::pitchBend(int channel, int value14) noexcept
@@ -215,6 +287,12 @@ namespace pw8::render
         for (std::size_t i = 0; i < allocator_.getPolyphony(); ++i)
             if (voices_[i].gateOn && voices_[i].midiChannel == channel)
                 voices_[i].expression.pitchBendSemitones = semitones;
+        if (isStackModeActive())
+        {
+            for (std::size_t i = 0; i < allocatorB_.getPolyphony(); ++i)
+                if (voicesB_[i].gateOn && voicesB_[i].midiChannel == channel)
+                    voicesB_[i].expression.pitchBendSemitones = semitones;
+        }
     }
 
     void Engine::controlChange(int channel, int controller, int value7) noexcept
@@ -228,6 +306,12 @@ namespace pw8::render
             for (std::size_t i = 0; i < allocator_.getPolyphony(); ++i)
                 if (voices_[i].gateOn && voices_[i].midiChannel == channel)
                     voices_[i].expression.mpeSlide = v;
+            if (isStackModeActive())
+            {
+                for (std::size_t i = 0; i < allocatorB_.getPolyphony(); ++i)
+                    if (voicesB_[i].gateOn && voicesB_[i].midiChannel == channel)
+                        voicesB_[i].expression.mpeSlide = v;
+            }
         }
     }
 
@@ -237,6 +321,12 @@ namespace pw8::render
         for (std::size_t i = 0; i < allocator_.getPolyphony(); ++i)
             if (voices_[i].gateOn && voices_[i].midiChannel == channel)
                 voices_[i].expression.channelPressure = v;
+        if (isStackModeActive())
+        {
+            for (std::size_t i = 0; i < allocatorB_.getPolyphony(); ++i)
+                if (voicesB_[i].gateOn && voicesB_[i].midiChannel == channel)
+                    voicesB_[i].expression.channelPressure = v;
+        }
     }
 
     void Engine::polyAftertouch(int channel, int note, int value7) noexcept
@@ -245,11 +335,19 @@ namespace pw8::render
         for (std::size_t i = 0; i < allocator_.getPolyphony(); ++i)
             if (voices_[i].gateOn && voices_[i].midiChannel == channel && voices_[i].noteNumber == note)
                 voices_[i].expression.polyAftertouch = v;
+        if (isStackModeActive())
+        {
+            for (std::size_t i = 0; i < allocatorB_.getPolyphony(); ++i)
+                if (voicesB_[i].gateOn && voicesB_[i].midiChannel == channel && voicesB_[i].noteNumber == note)
+                    voicesB_[i].expression.polyAftertouch = v;
+        }
     }
 
     void Engine::allNotesOff() noexcept
     {
         allocator_.releaseAll(voices_, 0.5f);
+        if (isStackModeActive())
+            allocatorB_.releaseAll(voicesB_, 0.5f);
     }
 
     void Engine::setMacroValue(std::size_t index, float value) noexcept
@@ -259,6 +357,9 @@ namespace pw8::render
 
         patch_.macros[index].value = value;
         for (auto& v : voices_)
+            if (index < v.macroValues.size())
+                v.macroValues[index] = value;
+        for (auto& v : voicesB_)
             if (index < v.macroValues.size())
                 v.macroValues[index] = value;
     }
@@ -414,10 +515,30 @@ namespace pw8::render
                 sumR += vr;
             }
 
-            // Layer A's 3 insert slots, then the engine-wide 4 master slots (see
-            // docs/FX_BANK.md). Layer B isn't voiced yet (Phase 8), so there is
-            // nothing to sum in or run its own insert chain on in this pass.
             layerAInsertChain_.process(patch_.layerA.insertEffects, sumL, sumR);
+
+            if (isStackModeActive())
+            {
+                std::array<float, core::kNumLfosPerLayer> layerLfoValuesB{};
+                for (std::size_t i = 0; i < core::kNumLfosPerLayer; ++i)
+                    layerLfoValuesB[i] = layerLfosB_[i].renderSample(patch_.layerB.lfos[i], bpm_);
+
+                float sumBL = 0.0f;
+                float sumBR = 0.0f;
+                for (std::size_t i = 0; i < allocatorB_.getPolyphony(); ++i)
+                {
+                    float vl = 0.0f, vr = 0.0f;
+                    voicesB_[i].renderSample(compiledLayerB_, wavetableTablesB_, bpm_, layerLfoValuesB,
+                                              patch_.layerB.modRoutes, vl, vr);
+                    sumBL += vl;
+                    sumBR += vr;
+                }
+
+                layerBInsertChain_.process(patch_.layerB.insertEffects, sumBL, sumBR);
+                sumL += sumBL;
+                sumR += sumBR;
+            }
+
             masterChain_.process(patch_.masterEffects, sumL, sumR);
 
             left[s] = sumL;

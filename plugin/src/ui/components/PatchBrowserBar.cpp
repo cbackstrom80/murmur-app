@@ -46,10 +46,11 @@ namespace pw8::plugin::ui
         stopTimer();
     }
 
-    void PatchBrowserBar::setBrowseFilters(const juce::String& query, const juce::String& category)
+    void PatchBrowserBar::setBrowseFilters(const juce::String& query, const juce::String& category, bool favoritesOnly)
     {
         browseQuery_ = query;
         browseCategory_ = category;
+        browseFavoritesOnly_ = favoritesOnly;
     }
 
     void PatchBrowserBar::refreshPresetIndex()
@@ -96,11 +97,13 @@ namespace pw8::plugin::ui
     void PatchBrowserBar::stepPreset(int direction)
     {
         const auto current = processor_.getCurrentPresetPath();
+        const juce::StringArray* favoritesOnly =
+            browseFavoritesOnly_ && favoritesStore_ != nullptr ? &favoritesStore_->paths() : nullptr;
         std::optional<content::PresetEntry> entry;
         if (direction > 0)
-            entry = presetIndex_.nextAfter(current, browseQuery_, browseCategory_);
+            entry = presetIndex_.nextAfter(current, browseQuery_, browseCategory_, favoritesOnly);
         else
-            entry = presetIndex_.prevBefore(current, browseQuery_, browseCategory_);
+            entry = presetIndex_.prevBefore(current, browseQuery_, browseCategory_, favoritesOnly);
 
         if (!entry.has_value())
             return;

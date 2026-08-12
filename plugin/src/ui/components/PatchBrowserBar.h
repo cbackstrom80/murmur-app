@@ -4,6 +4,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "content/FavoritesStore.h"
 #include "content/PresetIndex.h"
 #include "processor/PatchworkEightProcessor.h"
 
@@ -23,7 +24,11 @@ namespace pw8::plugin::ui
         [[nodiscard]] content::PresetIndex& getPresetIndex() { return presetIndex_; }
         [[nodiscard]] const content::PresetIndex& getPresetIndex() const { return presetIndex_; }
 
-        void setBrowseFilters(const juce::String& query, const juce::String& category);
+        void setBrowseFilters(const juce::String& query, const juce::String& category, bool favoritesOnly = false);
+
+        void setFavoritesStore(content::FavoritesStore* favoritesStore) { favoritesStore_ = favoritesStore; }
+
+        [[nodiscard]] bool browseFavoritesOnly() const { return browseFavoritesOnly_; }
 
         std::function<void()> onBrowseClicked;
 
@@ -41,6 +46,8 @@ namespace pw8::plugin::ui
         juce::TextButton loadButton_{"LOAD..."};
         juce::String browseQuery_;
         juce::String browseCategory_;
+        bool browseFavoritesOnly_ = false;
+        content::FavoritesStore* favoritesStore_ = nullptr;
         std::unique_ptr<juce::FileChooser> fileChooser_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PatchBrowserBar)

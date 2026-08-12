@@ -5,8 +5,9 @@
 
 namespace pw8::plugin::ui
 {
-    PresetBrowserOverlay::PresetBrowserOverlay(PatchworkEightProcessor& processor, content::PresetIndex& presetIndex)
-        : processor_(processor), presetIndex_(presetIndex)
+    PresetBrowserOverlay::PresetBrowserOverlay(PatchworkEightProcessor& processor, content::PresetIndex& presetIndex,
+                                               content::FavoritesStore& favoritesStore)
+        : processor_(processor), presetIndex_(presetIndex), favoritesStore_(favoritesStore)
     {
         setVisible(false);
         addAndMakeVisible(panel_);
@@ -44,7 +45,8 @@ namespace pw8::plugin::ui
         presetIndex_.rescan();
         categoryBox_.clear(juce::dontSendNotification);
         categoryBox_.addItem("All categories", 1);
-        int id = 2;
+        categoryBox_.addItem("Favorites", 2);
+        int id = 3;
         for (const auto& cat : presetIndex_.uniqueCategories())
             categoryBox_.addItem(cat, id++);
         categoryBox_.setSelectedId(1, juce::dontSendNotification);
@@ -67,7 +69,7 @@ namespace pw8::plugin::ui
 
     juce::String PresetBrowserOverlay::browseCategory() const
     {
-        if (categoryBox_.getSelectedId() <= 1)
+        if (categoryBox_.getSelectedId() <= 1 || browseFavoritesOnly())
             return {};
         return categoryBox_.getText();
     }
@@ -126,7 +128,8 @@ namespace pw8::plugin::ui
 
     void PresetBrowserOverlay::rebuildList()
     {
-        visibleEntries_ = presetIndex_.filtered(searchField_.getText(), browseCategory());
+        const juce::StringArray* favoritesOnly = browseFavoritesOnly() ? &favoritesStore_.paths() : nullptr;
+        visibleEntries_ = presetIndex_.filtered(searchField_.getText(), browseCategory(), favoritesOnly);
         listBox_.updateContent();
         listBox_.repaint();
     }
@@ -154,11 +157,29 @@ namespace pw8::plugin::ui
         g.setFont(fonts::label(10.0f));
         const auto meta = entry.category + (entry.moods.isEmpty() ? juce::String() : " · " + entry.moods.joinIntoString(", "));
         g.drawText(meta, bounds, juce::Justification::centredLeft, true);
+
+        const bool starred = favoritesStore_.isFavorite(entry.absolutePath);
+        g.setColour(starred ? palette::kAccent : palette::kTextDim);
+        g.setFont(fonts::title(14.0f));
+        g.drawText(starred ? "*" : "o", width - 24, 0, 20, height, juce::Justification::centred, false);
     }
 
-    void PresetBrowserOverlay::listBoxItemClicked(int row, const juce::MouseEvent&)
+    void PresetBrowserOverlay::listBoxItemClicked(int row, const juce::MouseEvent& event)
     {
+        if (event.x >= listBox_.getWidth() - 28)
+        {
+            toggleFavoriteRow(row);
+            return;
+        }
         loadRow(row);
+    }
+
+    void PresetBrowserOverlay::toggleFavoriteRow(int row)
+    {
+        if (!juce::isPositiveAndBelow(row, visibleEntries_.size()))
+            return;
+        favoritesStore_.toggleFavorite(visibleEntries_.getReference(row).absolutePath);
+        rebuildList();
     }
 
     void PresetBrowserOverlay::loadRow(int row)
