@@ -18,6 +18,7 @@ FetchContent_MakeAvailable(nlohmann_json)
 
 add_library(pw8_core STATIC
     src/algorithm/AlgorithmGraphCompiler.cpp
+    src/content/ContentPaths.cpp
     src/patch/PatchSerializer.cpp
     src/midi/StandardMidiFile.cpp
     src/oscillator/WavetableTableLoader.cpp

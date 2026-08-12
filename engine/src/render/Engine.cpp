@@ -1,5 +1,6 @@
 #include "pw8/render/Engine.hpp"
 
+#include "pw8/content/ContentPaths.hpp"
 #include "pw8/dsp/Denormal.hpp"
 #include "pw8/oscillator/WavetableTableLoader.hpp"
 
@@ -59,6 +60,13 @@ namespace pw8::render
     {
         patch_ = patchToLoad;
 
+        // Layer B / dual-layer and unison DSP are not wired yet -- clamp to what
+        // actually renders rather than silently ignoring authored values.
+        if (patch_.layerMode != patch::LayerMode::SingleA)
+            patch_.layerMode = patch::LayerMode::SingleA;
+        if (patch_.layerA.unison.voices > 1)
+            patch_.layerA.unison.voices = 1;
+
         algorithm::CompiledAlgorithm compiled;
         const auto status = algorithm::AlgorithmGraphCompiler::compile(patch_.layerA.algorithm, compiled);
         lastCompileStatus_ = status;
@@ -98,7 +106,9 @@ namespace pw8::render
             if ((op.engine == algorithm::EngineType::Wavetable || op.engine == algorithm::EngineType::Granular) &&
                 !op.wavetableId.empty())
             {
-                auto loadResult = oscillator::loadWavetableFromFile(op.wavetableId);
+                const auto resolved = content::resolveWavetablePath(op.wavetableId);
+                const auto& pathToLoad = resolved.has_value() ? *resolved : op.wavetableId;
+                auto loadResult = oscillator::loadWavetableFromFile(pathToLoad);
                 if (loadResult.ok)
                     wavetableStorageA_[i] = std::move(loadResult.table);
             }

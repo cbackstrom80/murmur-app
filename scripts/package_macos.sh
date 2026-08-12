@@ -39,8 +39,8 @@ set -euo pipefail
 #   2. Ad-hoc code-signs each of the three bundles.
 #   3. Packages VST3/AU/Standalone, plus the 250-patch factory preset bank
 #      (content/presets/factory/ -- see scripts/generate_factory_presets.py)
-#      into /Library/Application Support/Patchwork Eight/Presets/factory,
-#      into one distribution .pkg under dist/.
+#      and the wavetable library (content/wavetables/*.json) into
+#      /Library/Application Support/Patchwork Eight/, into one distribution .pkg
 #
 # Usage:
 #   scripts/package_macos.sh [version]
@@ -65,6 +65,8 @@ VST3_SRC="$ARTEFACT_DIR/VST3/Patchwork Eight.vst3"
 AU_SRC="$ARTEFACT_DIR/AU/Patchwork Eight.component"
 APP_SRC="$ARTEFACT_DIR/Standalone/Patchwork Eight.app"
 PRESETS_SRC="content/presets/factory"
+SHOWCASE_PRESETS_SRC="content/presets"
+WAVETABLES_SRC="content/wavetables"
 
 echo "==> Patchwork Eight macOS installer builder -- version ${VERSION}"
 
@@ -88,6 +90,13 @@ fi
 PRESET_COUNT=$(find "$PRESETS_SRC" -name '*.pw8' | wc -l | tr -d ' ')
 echo "==> Bundling $PRESET_COUNT factory presets."
 
+if [[ ! -d "$WAVETABLES_SRC" ]] || [[ -z "$(find "$WAVETABLES_SRC" -name '*.json' -print -quit 2>/dev/null)" ]]; then
+    echo "ERROR: wavetable library missing under $WAVETABLES_SRC -- run scripts/generate_wavetable_library.py" >&2
+    exit 1
+fi
+WAVETABLE_COUNT=$(find "$WAVETABLES_SRC" -maxdepth 1 -name '*.json' | wc -l | tr -d ' ')
+echo "==> Bundling $WAVETABLE_COUNT wavetable JSON files."
+
 echo "==> Ad-hoc code-signing (no paid Developer ID cert in this environment)..."
 codesign --force --deep --sign - --timestamp=none "$VST3_SRC"
 codesign --force --deep --sign - --timestamp=none "$AU_SRC"
@@ -103,11 +112,18 @@ mkdir -p "$STAGE_DIR/vst3-root/Library/Audio/Plug-Ins/VST3"
 mkdir -p "$STAGE_DIR/au-root/Library/Audio/Plug-Ins/Components"
 mkdir -p "$STAGE_DIR/app-root/Applications"
 mkdir -p "$STAGE_DIR/presets-root/Library/Application Support/Patchwork Eight/Presets"
+mkdir -p "$STAGE_DIR/presets-root/Library/Application Support/Patchwork Eight/Presets/showcase"
+mkdir -p "$STAGE_DIR/wavetables-root/Library/Application Support/Patchwork Eight/Wavetables"
 
 cp -R "$VST3_SRC" "$STAGE_DIR/vst3-root/Library/Audio/Plug-Ins/VST3/"
 cp -R "$AU_SRC" "$STAGE_DIR/au-root/Library/Audio/Plug-Ins/Components/"
 cp -R "$APP_SRC" "$STAGE_DIR/app-root/Applications/"
+
 cp -R "$PRESETS_SRC" "$STAGE_DIR/presets-root/Library/Application Support/Patchwork Eight/Presets/factory"
+# Root-level engineering/showcase presets (exclude the factory tree itself).
+find "$SHOWCASE_PRESETS_SRC" -maxdepth 1 -name '*.pw8' -exec cp {} \
+    "$STAGE_DIR/presets-root/Library/Application Support/Patchwork Eight/Presets/showcase/" \;
+cp "$WAVETABLES_SRC"/*.json "$STAGE_DIR/wavetables-root/Library/Application Support/Patchwork Eight/Wavetables/"
 
 echo "==> Building component packages..."
 mkdir -p "$STAGE_DIR/components"
@@ -135,6 +151,12 @@ pkgbuild --root "$STAGE_DIR/presets-root" \
     --version "$VERSION" \
     --install-location "/" \
     "$STAGE_DIR/components/presets.pkg" >/dev/null
+
+pkgbuild --root "$STAGE_DIR/wavetables-root" \
+    --identifier com.patchwork.patchworkeight.wavetables \
+    --version "$VERSION" \
+    --install-location "/" \
+    "$STAGE_DIR/components/wavetables.pkg" >/dev/null
 
 echo "==> Writing installer resources (welcome/conclusion text, distribution.xml)..."
 RES_DIR="$STAGE_DIR/resources"
@@ -194,6 +216,7 @@ cat > "$STAGE_DIR/distribution.xml" << DIST_EOF
         <line choice="au"/>
         <line choice="app"/>
         <line choice="presets"/>
+        <line choice="wavetables"/>
     </choices-outline>
     <choice id="vst3" title="VST3 Plug-in" description="Installs to /Library/Audio/Plug-Ins/VST3">
         <pkg-ref id="com.patchwork.patchworkeight.vst3"/>
@@ -204,13 +227,17 @@ cat > "$STAGE_DIR/distribution.xml" << DIST_EOF
     <choice id="app" title="Standalone App" description="Installs to /Applications">
         <pkg-ref id="com.patchwork.patchworkeight.app"/>
     </choice>
-    <choice id="presets" title="${PRESET_COUNT} Factory Presets" description="Installs to /Library/Application Support/Patchwork Eight/Presets/factory">
+    <choice id="presets" title="Factory + Showcase Presets" description="Installs to /Library/Application Support/Patchwork Eight/Presets/">
         <pkg-ref id="com.patchwork.patchworkeight.presets"/>
+    </choice>
+    <choice id="wavetables" title="${WAVETABLE_COUNT} Wavetables" description="Installs to /Library/Application Support/Patchwork Eight/Wavetables/">
+        <pkg-ref id="com.patchwork.patchworkeight.wavetables"/>
     </choice>
     <pkg-ref id="com.patchwork.patchworkeight.vst3" version="${VERSION}" onConclusion="none">vst3.pkg</pkg-ref>
     <pkg-ref id="com.patchwork.patchworkeight.au" version="${VERSION}" onConclusion="none">au.pkg</pkg-ref>
     <pkg-ref id="com.patchwork.patchworkeight.app" version="${VERSION}" onConclusion="none">app.pkg</pkg-ref>
     <pkg-ref id="com.patchwork.patchworkeight.presets" version="${VERSION}" onConclusion="none">presets.pkg</pkg-ref>
+    <pkg-ref id="com.patchwork.patchworkeight.wavetables" version="${VERSION}" onConclusion="none">wavetables.pkg</pkg-ref>
 </installer-gui-script>
 DIST_EOF
 

@@ -23,6 +23,7 @@ add_executable(pw8_tests
     dsp/ResonatorOscillatorTests.cpp
     dsp/GranularOscillatorTests.cpp
     unit/AlgorithmGraphCompilerTests.cpp
+    unit/ContentPathsTests.cpp
     unit/DeterministicRngTests.cpp
     unit/ModMatrixTests.cpp
     unit/FftTests.cpp
