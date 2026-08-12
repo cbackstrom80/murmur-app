@@ -66,7 +66,7 @@ scripts/mvp_check.sh
 
 ### Commerce (Patchforge — separate repo)
 
-Running storefront at `patchforge` (Vite/React): catalog, previews, cart,
+Running storefront at `../patchforge` (Vite/React): catalog, previews, cart,
 Patchforge+ pricing. **Real Starfighter catalog** via `scripts/patchforge_ingest.py`
 → `public/catalog.generated.json` + engine-rendered WAV previews (see
 `docs/PATCHFORGE_INGEST.md`). Storefront IA: `/plus`, `/starfighter`, `/patches`

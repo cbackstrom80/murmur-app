@@ -28,7 +28,7 @@ This must produce `build/dev/tools/pw8-render`.
 ```bash
 python3 scripts/patchforge_ingest.py \
   --manifest scripts/patchforge/manifests/mvp.json \
-  --out /path/to/patchforge/public
+  --out ../patchforge/public
 ```
 
 ### Flags
