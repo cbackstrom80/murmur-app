@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 2,
+  "metadata": {
+    "id": "pw8-deep-bass",
+    "name": "DEEP BASS",
+    "author": "Patchwork Eight Engineering",
+    "description": "A clean, simple, warm sub-anchored bass part -- built to hold down the root under a pad and an arp without competing with either. Deliberately plain: a sine fundamental, an exact-unison (not detuned) triangle for a little harmonic body, and a sine sub an octave down for real low-end weight -- no detune beating, since beating that's pleasant in a pad reads as mud at bass frequencies. A dark, low-resonance filter (900Hz) keeps it controlled. Only a light Saturation for analog warmth; no chorus or delay, and only a short, light Reverb (mix 0.12, decay 1.2s) -- a washy bass smears the low end for everything mixed on top of it, so this stays comparatively dry and short. No modulation routes -- the bass is the one part in these arrangements deliberately left completely static so the ear has one fixed point of reference while the pad and arp move.",
+    "category": "bass",
+    "moods": ["warm", "clean", "grounded"],
+    "genres": ["ambient", "score"],
+    "tags": ["bass", "sub", "arrangement-part"],
+    "createdAt": "2026-08-10T00:00:00Z",
+    "engineVersion": "0.1.0",
+    "schemaVersion": 2,
+    "seed": 4502,
+    "lineage": []
+  },
+  "layerMode": 0,
+  "layerMorph": 0.0,
+  "layerA": {
+    "operators": [
+      {"engine": 0, "classicWaveform": 0, "frequencyRatio": 1.000, "keyTrack": true, "level": 0.80, "pan": 0.0},
+      {"engine": 0, "classicWaveform": 1, "frequencyRatio": 1.000, "keyTrack": true, "level": 0.30, "pan": 0.0},
+      {"engine": 0, "classicWaveform": 0, "frequencyRatio": 0.500, "keyTrack": true, "level": 0.40, "pan": 0.0},
+      {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}
+    ],
+    "algorithm": {
+      "nodes": [
+        {"id": 0, "engine": 0, "isOutput": true}, {"id": 1, "engine": 0, "isOutput": true},
+        {"id": 2, "engine": 0, "isOutput": true}, {"id": 3, "engine": 0, "isOutput": true},
+        {"id": 4, "engine": 0, "isOutput": true}, {"id": 5, "engine": 0, "isOutput": true},
+        {"id": 6, "engine": 0, "isOutput": true}, {"id": 7, "engine": 0, "isOutput": true}
+      ],
+      "edges": []
+    },
+    "envelopes": [
+      {"attackSeconds": 0.02, "decaySeconds": 0.4, "sustainLevel": 0.85, "releaseSeconds": 1.2, "curveShape": 2.0}
+    ],
+    "unison": {"mode": 0, "voices": 1},
+    "filter1": {"enabled": true, "mode": 0, "cutoffHz": 900.0, "resonance": 0.15, "keyTrack": 0.3},
+    "lfos": [
+      {"waveform": 0, "mode": 0, "rateHz": 2.0, "syncDivisionIndex": 4, "phaseOffset": 0.0}
+    ],
+    "modRoutes": [],
+    "gain": 1.0, "pan": 0.0, "width": 1.0, "centerGravity": 0.5,
+    "insertEffects": [
+      {"type": 1, "mix": 0.20, "saturationDriveDb": 3.0}
+    ]
+  },
+  "layerB": {
+    "operators": [
+      {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}
+    ],
+    "algorithm": {
+      "nodes": [
+        {"id": 0, "engine": 0, "isOutput": true}, {"id": 1, "engine": 0, "isOutput": false},
+        {"id": 2, "engine": 0, "isOutput": false}, {"id": 3, "engine": 0, "isOutput": false},
+        {"id": 4, "engine": 0, "isOutput": false}, {"id": 5, "engine": 0, "isOutput": false},
+        {"id": 6, "engine": 0, "isOutput": false}, {"id": 7, "engine": 0, "isOutput": false}
+      ],
+      "edges": []
+    },
+    "envelopes": [
+      {"attackSeconds": 0.002, "decaySeconds": 0.15, "sustainLevel": 0.0, "releaseSeconds": 0.05}
+    ],
+    "gain": 1.0, "pan": 0.0, "width": 1.0, "centerGravity": 0.5
+  },
+  "voiceSettings": {"polyphony": 8, "masterGain": 1.0, "a4Hz": 440.0},
+  "locks": {},
+  "macros": [
+    {"id": "m1", "name": "DARKNESS", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m2", "name": "IMPACT", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m3", "name": "MOTION", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m4", "name": "SPACE", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m5", "name": "BODY", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m6", "name": "METAL", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m7", "name": "CHAOS", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m8", "name": "MORPH", "description": "Reserved -- not yet routed.", "value": 0.0}
+  ],
+  "arpeggiator": {"enabled": false},
+  "masterEffects": [
+    {"type": 8, "mix": 1.0, "eqLowFreqHz": 60.0, "eqLowGainDb": 2.0, "eqMidFreqHz": 400.0, "eqMidGainDb": -1.5,
+     "eqMidQ": 0.7, "eqHighFreqHz": 4000.0, "eqHighGainDb": -1.0},
+    {"type": 7, "mix": 0.12, "reverbSizeParam": 0.8, "reverbDecaySeconds": 1.2, "reverbPreDelayMs": 10.0,
+     "reverbHighRatio": 0.6, "reverbHighCrossoverHz": 3000.0, "reverbLowRatio": 0.8, "reverbLowCrossoverHz": 250.0,
+     "reverbDiffusion": 0.6, "reverbDensity": 0.7, "reverbModDepth": 0.15, "reverbModRateHz": 0.2,
+     "reverbEarlyLevel": 0.4, "reverbLateLevel": 0.6, "reverbRollOffHz": 8000.0, "reverbVlfCutDb": -3.0},
+    {"type": 9, "mix": 1.0, "compThresholdDb": -20.0, "compRatio": 2.5, "compAttackMs": 20.0,
+     "compReleaseMs": 200.0, "compKneeDb": 6.0, "compMakeupDb": 2.0},
+    {"type": 10, "mix": 1.0, "limiterCeilingDb": -0.8, "limiterLookaheadMs": 5.0, "limiterReleaseMs": 100.0}
+  ],
+  "seed": 4502
+}
