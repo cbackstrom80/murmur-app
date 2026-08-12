@@ -329,6 +329,74 @@ issues:
   what's free (real `juce::Component`-based controls) vs. what still needs
   real work (every hand-painted hit-target).
 
+## UI GATE 6: WavetableStackView becomes a real 3D wireframe mesh
+
+Prompted by a reference image (classic oscilloscope/wavetable-editor look:
+perspective wireframe mesh, phosphor glow, real occlusion between rows) --
+an explicit pivot away from an AI-image-generation approach tried first for
+this same "make it cooler" ask (see below) and abandoned once it became
+clear a diffusion model can't draw *this table's actual sample data*, only
+a generic image that looks vaguely like a wireframe -- strictly less honest
+than the view it would have sat behind.
+
+What shipped instead is real, literal, procedural rendering, still just
+`juce::Path` + hand-rolled projection math (no OpenGL, no AI, no network) --
+the same constraint the original "deck of cards" ribbons committed to,
+just a properly-projected mesh instead of a flat shear:
+
+- **Visual density via honest interpolation**: draws more rows than the
+  table's real frame count (as few as 1 in the factory library), each
+  extra row's samples linearly interpolated between its two real
+  neighbouring frames -- exactly what `WavetableOscillator` itself computes
+  scanning `WavetablePos` between two frames, so the mesh changes exactly
+  the way the audio does, not just decoratively.
+- **Real occlusion**: drawn back-to-front; before a row's line is stroked,
+  a silhouette (that row's own path, filled down to a baseline, in the
+  panel's own background colour) erases whatever farther rows already
+  drew in that footprint -- the classic painter's-algorithm hidden-line
+  trick, validated against a Python prototype before porting to JUCE.
+- **Cross-lines** tie each row to its farther neighbour at regular sample
+  intervals -- what actually makes it read as one continuous mesh surface
+  rather than a stack of independent parallel ribbons (the previous
+  rendering's real shortfall against the reference).
+- **Glow** without any image blur/convolution: each line strokes twice
+  (wide+dim, then crisp+full-alpha), the same trick `ObsidianLookAndFeel`'s
+  knob value-arc already uses.
+- Colour stays OBSIDIAN's own `palette::kAccent` cyan, not the reference's
+  literal green phosphor, so this reads as part of the existing skin.
+- The row nearest the current `WavetablePos` gets the full-accent highlight,
+  wherever it falls in the depth stack -- keeps the "always shows what's
+  actually sounding" honesty property the original ribbons had.
+- Panel/window grown again (opEditorArea 190 -> 320, window 980x1228 ->
+  980x1358) -- a proper mesh needs real vertical room the previous
+  allotment, sized for flat ribbons, didn't have. Same "grow the window,
+  don't squeeze a control into illegibility" pattern every prior GATE used.
+
+Also added, independent of the visual rework: **"<"/">" browse arrows**,
+letting a player step through the other `*.json` tables sitting in the same
+directory as the one currently assigned, without opening the file dialog
+each time. Disabled until some `wavetableId` is already set (nothing to
+browse siblings of otherwise). The "Load..." file-chooser button is
+untouched -- both paths to assign a wavetable coexist.
+
+**The abandoned AI-art detour**, for the record: tried generating background
+art per table via a local FLUX model before landing on the mesh approach.
+Two real, concrete things came out of trying it, beyond the aesthetic
+conclusion above:
+- A `diffusers`-based local FLUX server someone had built on this dev
+  machine turned out not to fit in 24GB of unified memory unquantized --
+  ballooned to 35GB resident and drove swap to nearly full before being
+  killed. `mflux` (MLX-native, quantized) worked fine (8.58GB peak,
+  reproducible via a real `--seed` flag) -- worth knowing for any future
+  local-generation work on Apple Silicon: quantize, don't reach for the
+  first Python package that runs the model.
+- A prompt combining this project's own "dark"/"ambient" mood vocabulary
+  (`docs/PATCH_FORMAT.md`) with FLUX.1-schnell produced images that were
+  functionally pure black -- schnell's low/no-CFG 4-step generation didn't
+  respond meaningfully to reworded exposure-floor instructions or even a
+  different seed, a real limitation worth remembering if image generation
+  comes up again for this project.
+
 ## Accessibility: partially free, partially not started
 
 Every control built on a real `juce::Component` subclass gets JUCE's default

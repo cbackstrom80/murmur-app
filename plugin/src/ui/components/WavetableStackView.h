@@ -7,16 +7,27 @@
 
 #include "processor/PatchworkEightProcessor.h"
 
-// A pseudo-3D "deck of cards" view of the currently-selected node's loaded
-// wavetable: each frame painted as a waveform ribbon, offset and skewed so the
-// stack reads as receding into the screen, decreasing in opacity with depth.
-// Deliberately NOT real 3D -- no juce::OpenGLContext, no shaders, no mesh/camera:
-// every frame is a flat juce::Path drawn with an AffineTransform shear+translate,
-// which is enough to read as dimensional at this scale and costs nothing beyond
-// what every other OBSIDIAN component already pays for (plain juce::Graphics
-// painting). See docs/VISUALIZATION_UI_GATE5.md for why this stays 2D-tricks
-// rather than a real 3D engine, and for the two views (spectrum, oscilloscope)
-// that DO need new plumbing (a realtime audio-thread tap) this view doesn't.
+// A real perspective wireframe mesh of the currently-selected node's loaded
+// wavetable -- classic oscilloscope/wavetable-editor look (phosphor-glow rows
+// receding into depth, real occlusion where nearer rows cover farther ones,
+// cross-lines tying adjacent rows into one continuous surface). Replaces the
+// original flat "deck of cards" shear-based ribbons (UI GATE 5) with the same
+// no-OpenGL, no-shader, no-mesh-API constraint: every row is a plain
+// juce::Path, projected by hand (cheap pseudo-3D: shift + shrink per row,
+// no real camera/projection matrix), and occlusion is the classic
+// painter's-algorithm trick -- fill a background-colour silhouette under a
+// farther row before a nearer row's line is drawn on top of it. Colour is
+// OBSIDIAN's own palette::kAccent cyan, not the reference image's literal
+// green phosphor, so this reads as part of the existing skin.
+//
+// Visual density vs. honesty: the table's real frame count (as few as 1, as
+// many as several dozen in the factory library) rarely matches how many rows
+// a continuous-looking mesh surface wants, so more rows than the table
+// actually has are drawn, each extra row's samples linearly interpolated
+// between its two real neighbouring frames. This isn't fabricated data --
+// it's exactly what WavetableOscillator itself computes when WavetablePos
+// scans between two frames, so the mesh changes exactly the way the audio
+// does, not just decoratively.
 //
 // Needs no audio-thread tap at all: PatchworkEightProcessor::getActiveWavetableTable()
 // reads table data that's already sitting in memory once loadPatch() has run (see
@@ -29,16 +40,16 @@
 // knobs when the selected node's engine is Wavetable. See
 // docs/VISUALIZATION_UI_GATE5.md "Integration" for the rationale.
 //
-// Also owns the only UI anywhere that can actually assign a wavetable to an
-// operator: a small "Load..." button, same FileChooser-based pattern as
-// PatchBrowserBar's patch loader. Deliberately scoped to picking an EXISTING
-// pw8-wavetable-builder JSON table (*.json), not importing a raw .wav live --
-// oscillator::loadWavetableFromFile() only ever parses the JSON table format
-// (see engine/src/oscillator/WavetableTableLoader.cpp), and the FFT/mip-
-// generation the builder does for a raw source .wav lives only in that
-// separate offline tool (tools/wavetable_builder), not as a reusable library
-// call the plugin could invoke live. Wiring the builder itself into the
-// message thread is a real follow-up, not blind-implemented here.
+// Owns every way to change which wavetable an operator points at:
+// - "Load..." -- a native FileChooser, scoped to an EXISTING pw8-wavetable-
+//   builder JSON table (*.json), not a raw .wav -- oscillator::loadWavetableFromFile()
+//   only ever parses that JSON format (see engine/src/oscillator/WavetableTableLoader.cpp);
+//   turning a raw .wav into mip levels stays tools/wavetable_builder's job, not
+//   wired into the plugin's message thread here.
+// - "<"/">" -- browse the OTHER *.json files sitting next to the currently
+//   assigned one (same directory), without opening a file dialog each time.
+//   Only meaningful once some wavetableId is already set (nothing to browse
+//   siblings of otherwise), so both arrows disable themselves until then.
 namespace pw8::plugin::ui
 {
     class WavetableStackView : public juce::Component, private juce::Timer
@@ -59,10 +70,32 @@ namespace pw8::plugin::ui
         void timerCallback() override;
         void loadWavetableFromFile();
 
+        /// Rescans the current wavetableId's parent directory for sibling
+        /// *.json tables (for the "<"/">" arrows) and locates the current
+        /// file's index. Always safe to call (empty wavetableId / no parent
+        /// directory just clears the sibling list, disabling both arrows).
+        void refreshSiblings();
+        /// Moves +1/-1 through refreshSiblings()' list, wrapping at the ends,
+        /// and assigns the new file via the same
+        /// PatchworkEightProcessor::setOperatorWavetableFile() path "Load..."
+        /// already uses.
+        void goToSibling(int delta);
+
         PatchworkEightProcessor& processor_;
         int selectedNode_ = 0;
         juce::TextButton loadButton_{"Load..."};
+        juce::TextButton prevButton_{"<"};
+        juce::TextButton nextButton_{">"};
         std::unique_ptr<juce::FileChooser> fileChooser_;
+
+        juce::Array<juce::File> siblings_;
+        int siblingIndex_ = -1;
+        // Message-thread-only cache of the last wavetableId refreshSiblings()
+        // was computed against -- lets timerCallback() skip the (real disk IO)
+        // sibling rescan on ticks where nothing changed, matching the same
+        // "diff before acting" idiom GlowKnob/MacroStrip already use for their
+        // own polls.
+        juce::String lastKnownWavetableId_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(WavetableStackView)
     };
