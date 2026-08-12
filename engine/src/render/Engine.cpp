@@ -150,6 +150,8 @@ namespace pw8::render
         {
             v.operatorParams = templatesOut;
             v.filterParams = layer.filter1;
+            for (std::size_t i = 0; i < core::kNodesPerLayer; ++i)
+                v.operatorFilterParams_[i] = layer.operators[i].filter1;
             v.lfoParams = layer.lfos;
             v.macroValues = macroValues;
         }
@@ -212,6 +214,8 @@ namespace pw8::render
             v.id = static_cast<std::uint32_t>(idx);
             v.operatorParams = templates;
             v.filterParams = layer.filter1;
+            for (std::size_t i = 0; i < core::kNodesPerLayer; ++i)
+                v.operatorFilterParams_[i] = layer.operators[i].filter1;
             v.lfoParams = layer.lfos;
             for (std::size_t i = 0; i < v.macroValues.size(); ++i)
                 v.macroValues[i] = patch_.macros[i].value;
@@ -369,6 +373,16 @@ namespace pw8::render
         patch_.layerA.filter1 = params;
         for (auto& v : voices_)
             v.filterParams = params;
+    }
+
+    void Engine::setOperatorFilterLive(std::size_t opIndex, const filter::FilterParams& params) noexcept
+    {
+        if (opIndex >= core::kNodesPerLayer)
+            return;
+
+        patch_.layerA.operators[opIndex].filter1 = params;
+        for (auto& v : voices_)
+            v.operatorFilterParams_[opIndex] = params;
     }
 
     void Engine::setLfoLive(std::size_t lfoIndex, const lfo::LfoParams& params) noexcept

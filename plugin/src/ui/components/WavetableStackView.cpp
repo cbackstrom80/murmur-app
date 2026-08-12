@@ -7,6 +7,7 @@
 
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
+#include "pw8/algorithm/AlgorithmTypes.hpp"
 #include "pw8/dsp/Math.hpp"
 #include "state/PluginState.h"
 
@@ -53,6 +54,7 @@ namespace pw8::plugin::ui
 
     WavetableStackView::WavetableStackView(PatchworkEightProcessor& processor) : processor_(processor)
     {
+        wavetableIndex_.rescan();
         loadButton_.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
         loadButton_.setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
         loadButton_.onClick = [this] { loadWavetableFromFile(); };
@@ -79,13 +81,32 @@ namespace pw8::plugin::ui
     void WavetableStackView::showNode(int nodeIndex)
     {
         selectedNode_ = juce::jlimit(0, static_cast<int>(pw8::core::kNodesPerLayer) - 1, nodeIndex);
-        // refreshSiblings() (unlike timerCallback()'s call to it) always
-        // rescans unconditionally, regardless of lastKnownWavetableId_'s
-        // prior value -- correct here even if the new node happens to share
-        // the same wavetableId string as the old one, since selectedNode_
-        // itself changed and every lookup below is keyed off it.
+        ensureDefaultWavetableLoaded();
         refreshSiblings();
         repaint();
+    }
+
+    juce::String WavetableStackView::currentWavetablePath() const
+    {
+        return juce::String(processor_.getCurrentPatch()
+                                .layerA.operators[static_cast<std::size_t>(selectedNode_)]
+                                .wavetableId);
+    }
+
+    void WavetableStackView::ensureDefaultWavetableLoaded()
+    {
+        const auto& op = processor_.getCurrentPatch().layerA.operators[static_cast<std::size_t>(selectedNode_)];
+        const bool needsTable = op.engine == algorithm::EngineType::Wavetable || op.engine == algorithm::EngineType::Granular;
+        if (!needsTable || !op.wavetableId.empty())
+            return;
+
+        if (wavetableIndex_.allEntries().isEmpty())
+            wavetableIndex_.rescan();
+        if (wavetableIndex_.allEntries().isEmpty())
+            return;
+
+        processor_.setOperatorWavetableFile(static_cast<std::size_t>(selectedNode_),
+                                            wavetableIndex_.allEntries().getFirst().absolutePath);
     }
 
     void WavetableStackView::resized()
@@ -109,37 +130,28 @@ namespace pw8::plugin::ui
 
     void WavetableStackView::refreshSiblings()
     {
-        const auto& wavetableId = processor_.getCurrentPatch().layerA.operators[static_cast<std::size_t>(selectedNode_)].wavetableId;
-        lastKnownWavetableId_ = juce::String(wavetableId);
+        if (wavetableIndex_.allEntries().isEmpty())
+            wavetableIndex_.rescan();
 
-        siblings_.clear();
-        siblingIndex_ = -1;
+        lastKnownWavetableId_ = currentWavetablePath();
 
-        if (!lastKnownWavetableId_.isEmpty())
-        {
-            const juce::File currentFile(lastKnownWavetableId_);
-            const auto dir = currentFile.getParentDirectory();
-            if (dir.isDirectory())
-            {
-                auto found = dir.findChildFiles(juce::File::findFiles, false, "*.json");
-                found.sort();
-                siblings_ = std::move(found);
-                siblingIndex_ = siblings_.indexOf(currentFile);
-            }
-        }
-
-        const bool canBrowse = siblings_.size() > 1 && siblingIndex_ >= 0;
-        prevButton_.setEnabled(canBrowse);
-        nextButton_.setEnabled(canBrowse);
+        const int total = wavetableIndex_.allEntries().size();
+        prevButton_.setEnabled(total > 1);
+        nextButton_.setEnabled(total > 1);
     }
 
     void WavetableStackView::goToSibling(int delta)
     {
-        if (siblings_.isEmpty() || siblingIndex_ < 0)
+        if (wavetableIndex_.allEntries().isEmpty())
             return;
-        const int newIndex = (siblingIndex_ + delta + siblings_.size()) % siblings_.size();
-        processor_.setOperatorWavetableFile(static_cast<std::size_t>(selectedNode_), siblings_[newIndex].getFullPathName());
-        refreshSiblings(); // Immediate, not waiting up to 250ms for the next timer tick.
+
+        const auto current = currentWavetablePath();
+        const auto next = delta > 0 ? wavetableIndex_.nextAfter(current) : wavetableIndex_.prevBefore(current);
+        if (!next.has_value())
+            return;
+
+        processor_.setOperatorWavetableFile(static_cast<std::size_t>(selectedNode_), next->absolutePath);
+        refreshSiblings();
         repaint();
     }
 
@@ -170,6 +182,7 @@ namespace pw8::plugin::ui
 
             self->processor_.setOperatorWavetableFile(static_cast<std::size_t>(nodeAtRequestTime),
                                                         file.getFullPathName());
+            self->wavetableIndex_.rescan();
             self->refreshSiblings();
             self->repaint();
         });
@@ -362,8 +375,13 @@ namespace pw8::plugin::ui
 
         g.setColour(palette::kTextSecondary);
         g.setFont(fonts::value(10.0f));
+        const int libIndex = wavetableIndex_.indexOf(currentWavetablePath());
+        const int libTotal = wavetableIndex_.allEntries().size();
+        juce::String libPos;
+        if (libIndex >= 0 && libTotal > 0)
+            libPos = " -- " + juce::String(libIndex + 1) + " / " + juce::String(libTotal);
         g.drawText(juce::String(numFrames) + " frames, mip 0 (" + juce::String(mip.maxHarmonic) + " harmonics) -- frame " +
-                       juce::String(liveFrame) + " live",
+                       juce::String(liveFrame) + " live" + libPos,
                    captionArea, juce::Justification::centredLeft);
     }
 

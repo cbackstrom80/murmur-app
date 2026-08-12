@@ -6,6 +6,19 @@
 
 using namespace pw8::modulation;
 
+TEST_CASE("ModMatrixExecutor routes Velocity to OperatorFilterCutoff with targetIndex", "[modulation]")
+{
+    pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;
+    routes.push_back(ModRoute{ModSource::Velocity, ModDestination::OperatorFilterCutoff, 3, 12.0f, ModScope::Voice});
+
+    ModSourceValues sources;
+    sources.velocity = 0.5f;
+
+    const auto out = ModMatrixExecutor::apply(routes, sources);
+    REQUIRE(out.operatorFilterCutoffSemitones[3] == Catch::Approx(6.0f));
+    REQUIRE(out.operatorFilterCutoffSemitones[0] == 0.0f);
+}
+
 TEST_CASE("ModMatrixExecutor with no routes produces neutral output", "[modulation]")
 {
     pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;

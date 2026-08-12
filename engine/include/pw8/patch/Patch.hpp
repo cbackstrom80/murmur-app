@@ -122,6 +122,10 @@ namespace pw8::patch
         float grainSizeMs = 60.0f;
         float grainPositionJitter = 0.1f;
         float grainPitchJitter = 0.0f;
+
+        /// Optional per-engine multimode SVF on this operator's own generated output
+        /// (before routed graph audio is mixed in). Off by default.
+        filter::FilterParams filter1{};
     };
 
     struct LayerPatch
@@ -137,8 +141,9 @@ namespace pw8::patch
         std::array<envelope::DahdsrParams, core::kNumEnvelopesPerLayer> envelopes{};
         UnisonSettings unison{};
 
-        /// Filter 1: clean multimode SVF, applied per-voice between the algorithm
-        /// graph's output and the amplitude envelope. See docs/DSP_ENGINE.md.
+        /// Global filter: clean multimode SVF, applied per-voice to the full algorithm
+        /// graph output (after all engine filters), before the amplitude envelope.
+        /// Optional -- disabled by default on new operators/patches. See docs/DSP_ENGINE.md.
         filter::FilterParams filter1{};
 
         /// 8 LFOs, usable as mod matrix sources (Lfo1..Lfo8, see docs/MODULATION.md).

@@ -6,6 +6,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "components/AmpEnvelopePanel.h"
+#include "components/ContextStrip.h"
 #include "components/FilterLfoPanel.h"
 #include "components/FxChainStrip.h"
 #include "components/MacroStrip.h"
@@ -19,8 +20,6 @@
 #include "processor/PatchworkEightProcessor.h"
 #include "theme/ObsidianLookAndFeel.h"
 
-// PLAY mode editor with a paged layout (docs/UI_PAGED_LAYOUT.md): persistent
-// patch bar + compact node selector, then tabbed Basic/OSC/Filter/Mod/FX pages.
 namespace pw8::plugin::ui
 {
     class PlayModeEditor : public juce::AudioProcessorEditor, public juce::DragAndDropContainer
@@ -44,6 +43,8 @@ namespace pw8::plugin::ui
         };
 
         void showPage(Page page);
+        void updateScopeUi();
+        void refreshFilterPanelScope();
 
         PatchworkEightProcessor& processor_;
         ObsidianLookAndFeel lookAndFeel_;
@@ -51,6 +52,7 @@ namespace pw8::plugin::ui
 
         PatchBrowserBar patchBrowserBar_;
         NodeSelectorRow nodeSelectorRow_;
+        ContextStrip contextStrip_;
         std::array<juce::TextButton, 6> tabButtons_{
             juce::TextButton{"BASIC"},
             juce::TextButton{"OSC"},

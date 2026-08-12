@@ -134,6 +134,11 @@ namespace pw8::patch
                 {"grainSizeMs", o.grainSizeMs},
                 {"grainPositionJitter", o.grainPositionJitter},
                 {"grainPitchJitter", o.grainPitchJitter},
+                {"filter1", json{{"enabled", o.filter1.enabled},
+                                 {"mode", static_cast<int>(o.filter1.mode)},
+                                 {"cutoffHz", o.filter1.cutoffHz},
+                                 {"resonance", o.filter1.resonance},
+                                 {"keyTrack", o.filter1.keyTrack}}},
             };
         }
 
@@ -174,6 +179,15 @@ namespace pw8::patch
             o.grainSizeMs = clampNum(j.value("grainSizeMs", 60.0f), 1.0f, 500.0f);
             o.grainPositionJitter = clampNum(j.value("grainPositionJitter", 0.1f), 0.0f, 1.0f);
             o.grainPitchJitter = clampNum(j.value("grainPitchJitter", 0.0f), 0.0f, 1.0f);
+            if (j.contains("filter1"))
+            {
+                const auto& jf = j.at("filter1");
+                o.filter1.enabled = jf.value("enabled", false);
+                o.filter1.mode = static_cast<filter::FilterMode>(clampNum(jf.value("mode", 0), 0, 4));
+                o.filter1.cutoffHz = clampNum(jf.value("cutoffHz", 8000.0f), 10.0f, 24000.0f);
+                o.filter1.resonance = clampNum(jf.value("resonance", 0.2f), 0.0f, 1.0f);
+                o.filter1.keyTrack = clampNum(jf.value("keyTrack", 0.0f), -1.0f, 1.0f);
+            }
         }
 
         void toJson(json& j, const UnisonSettings& u)

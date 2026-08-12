@@ -6,7 +6,8 @@
 // audible effect on Layer A (the only voiced layer, Phase 8) or is genuinely a
 // live performance control (macros, arpeggiator's scalar fields, effect slot
 // scalar fields), and (b) is POD -- safe to read/write from the audio thread with
-// zero allocation risk. That's 762 parameters: 8 macros, Filter1 (5), 8 LFOs x 5
+// zero allocation risk. That's 802 parameters: 8 macros, Global Filter (5), 8 engine
+// filters x 5 fields (40), 8 LFOs x 5
 // fields (40), 8 operators x 32 fields (256 -- grew from 9 to 13 in the Engine
 // Type 3 (FM/PM) pass, adding the self-contained modulator's ratio/index/
 // feedback/waveform, 13 to 15 in the Engine Type 7 (NoiseChaos) pass, adding
@@ -80,6 +81,7 @@ namespace pw8::plugin
     inline constexpr std::size_t kNumInsertFxSlots = 3;
     inline constexpr std::size_t kNumMasterFxSlots = 4;
     inline constexpr std::size_t kNumOperatorFields = 32;
+    inline constexpr std::size_t kNumOperatorFilterFields = 5;
     inline constexpr std::size_t kNumFilterFields = 5;
     inline constexpr std::size_t kNumLfoFields = 5;
     inline constexpr std::size_t kNumEnvelopeFields = 8;
@@ -102,8 +104,10 @@ namespace pw8::plugin
 
     // Field order matches op::OperatorParams's own field order (see Engine::setOperatorLive).
     extern const std::array<ParamFieldSpec, kNumOperatorFields> kOperatorFieldSpecs;
-    // Field order matches filter::FilterParams.
+    // Field order matches filter::FilterParams (global layer filter).
     extern const std::array<ParamFieldSpec, kNumFilterFields> kFilterFieldSpecs;
+    // Field order matches filter::FilterParams (per-engine filter on each operator).
+    extern const std::array<ParamFieldSpec, kNumOperatorFilterFields> kOperatorFilterFieldSpecs;
     // Field order matches lfo::LfoParams.
     extern const std::array<ParamFieldSpec, kNumLfoFields> kLfoFieldSpecs;
     // Field order matches envelope::DahdsrParams.
@@ -115,6 +119,7 @@ namespace pw8::plugin
     extern const std::array<ParamFieldSpec, kNumArpFields> kArpFieldSpecs;
 
     [[nodiscard]] juce::String operatorParamId(std::size_t opIndex, const char* fieldSuffix);
+    [[nodiscard]] juce::String operatorFilterParamId(std::size_t opIndex, const char* fieldSuffix);
     [[nodiscard]] juce::String lfoParamId(std::size_t lfoIndex, const char* fieldSuffix);
     [[nodiscard]] juce::String envelopeParamId(std::size_t envIndex, const char* fieldSuffix);
     [[nodiscard]] juce::String insertFxParamId(std::size_t slot, const char* fieldSuffix);
@@ -127,7 +132,7 @@ namespace pw8::plugin
     inline constexpr const char* kMasterGainId = "masterGain";
 
     /// Builds the plugin's full `AudioProcessorValueTreeState` parameter layout --
-    /// all 762 parameters described above, generated from the field-spec tables
+    /// all 802 parameters described above, generated from the field-spec tables
     /// rather than hand-written one at a time.
     [[nodiscard]] juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 

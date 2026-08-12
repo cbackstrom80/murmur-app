@@ -19,8 +19,10 @@ namespace pw8::plugin::ui
         {
             switch (destination)
             {
-                case modulation::ModDestination::FilterCutoff: return 36.0f;  // 3 octaves per unit source value.
+                case modulation::ModDestination::FilterCutoff: return 36.0f;
                 case modulation::ModDestination::FilterResonance: return 0.4f;
+                case modulation::ModDestination::OperatorFilterCutoff: return 36.0f;
+                case modulation::ModDestination::OperatorFilterResonance: return 0.4f;
                 default: return 0.0f;
             }
         }

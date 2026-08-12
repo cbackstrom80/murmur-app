@@ -242,6 +242,8 @@ namespace pw8::plugin::ui
         ratioKnob_->setVisible(true);
         wavetablePosKnob_->setVisible(showsWavetableStack);
         wavetableStackView_.setVisible(showsWavetableStack);
+        if (showsWavetableStack)
+            wavetableStackView_.ensureDefaultWavetableLoaded();
         noiseVariantKnob_->setVisible(isNoiseChaos);
         noiseRateKnob_->setVisible(isNoiseChaos);
         phaseBendKnob_->setVisible(isPhaseShape);

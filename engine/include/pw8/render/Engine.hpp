@@ -92,6 +92,13 @@ namespace pw8::render
         void setFilterLive(const filter::FilterParams& params) noexcept;
         [[nodiscard]] const filter::FilterParams& getFilterParams() const noexcept { return patch_.layerA.filter1; }
 
+        /// `opIndex` in [0, kNodesPerLayer). Out-of-range is a no-op.
+        void setOperatorFilterLive(std::size_t opIndex, const filter::FilterParams& params) noexcept;
+        [[nodiscard]] filter::FilterParams getOperatorFilterParams(std::size_t opIndex) const noexcept
+        {
+            return opIndex < core::kNodesPerLayer ? patch_.layerA.operators[opIndex].filter1 : filter::FilterParams{};
+        }
+
         /// `lfoIndex` in [0, kNumLfosPerLayer). Out-of-range is a no-op. Updates both
         /// the per-voice template/active-voice copies AND (since `Engine::process()`
         /// reads `patch_.layerA.lfos[lfoIndex]` fresh every sample for the shared

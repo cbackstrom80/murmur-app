@@ -9,37 +9,52 @@ namespace pw8::plugin::ui
     namespace
     {
         constexpr int kNumNodes = 8;
-
-        juce::String engineLabel(algorithm::EngineType engine)
-        {
-            switch (engine)
-            {
-                case algorithm::EngineType::Classic: return "CLS";
-                case algorithm::EngineType::Wavetable: return "WT";
-                case algorithm::EngineType::FmPm: return "FM";
-                case algorithm::EngineType::Additive: return "ADD";
-                case algorithm::EngineType::PhaseShape: return "PHS";
-                case algorithm::EngineType::Granular: return "GRN";
-                case algorithm::EngineType::NoiseChaos: return "NSE";
-                case algorithm::EngineType::Resonator: return "RES";
-                default: return "?";
-            }
-        }
+        constexpr int kGlobalWidth = 84;
     } // namespace
+
+    juce::String engineLabel(algorithm::EngineType engine)
+    {
+        switch (engine)
+        {
+            case algorithm::EngineType::Classic: return "CLS";
+            case algorithm::EngineType::Wavetable: return "WT";
+            case algorithm::EngineType::FmPm: return "FM";
+            case algorithm::EngineType::Additive: return "ADD";
+            case algorithm::EngineType::PhaseShape: return "PHS";
+            case algorithm::EngineType::Granular: return "GRN";
+            case algorithm::EngineType::NoiseChaos: return "NSE";
+            case algorithm::EngineType::Resonator: return "RES";
+            default: return "?";
+        }
+    }
 
     NodeSelectorRow::NodeSelectorRow(PatchworkEightProcessor& processor) : processor_(processor) {}
 
     void NodeSelectorRow::setSelectedNode(int nodeIndex)
     {
         selectedNode_ = juce::jlimit(0, kNumNodes - 1, nodeIndex);
+        globalScope_ = false;
+        repaint();
+    }
+
+    void NodeSelectorRow::setGlobalScope(bool global)
+    {
+        globalScope_ = global;
         repaint();
     }
 
     juce::Rectangle<int> NodeSelectorRow::pillBounds(int nodeIndex) const
     {
         auto row = getLocalBounds().reduced(2, 4);
+        row.removeFromRight(kGlobalWidth + 6);
         const int pillWidth = row.getWidth() / kNumNodes;
         return row.withX(row.getX() + pillWidth * nodeIndex).withWidth(pillWidth).reduced(2, 0);
+    }
+
+    juce::Rectangle<int> NodeSelectorRow::globalPillBounds() const
+    {
+        auto row = getLocalBounds().reduced(2, 4);
+        return row.removeFromRight(kGlobalWidth);
     }
 
     void NodeSelectorRow::paint(juce::Graphics& g)
@@ -53,7 +68,7 @@ namespace pw8::plugin::ui
         {
             const auto bounds = pillBounds(i);
             const auto engine = patch.layerA.operators[static_cast<std::size_t>(i)].engine;
-            const bool selected = i == selectedNode_;
+            const bool selected = !globalScope_ && i == selectedNode_;
             const bool implemented = algorithm::isEngineImplemented(engine);
 
             g.setColour(selected ? palette::kAccent.withAlpha(0.25f) : palette::kPanelRaised);
@@ -66,12 +81,33 @@ namespace pw8::plugin::ui
             const juce::String label = juce::String(i) + " " + engineLabel(engine);
             g.drawText(label, bounds, juce::Justification::centred);
         }
+
+        {
+            const auto bounds = globalPillBounds();
+            const bool selected = globalScope_;
+            g.setColour(selected ? palette::kAccentWarm.withAlpha(0.28f) : palette::kPanelRaised);
+            g.fillRoundedRectangle(bounds.toFloat(), 4.0f);
+            g.setColour(selected ? palette::kAccentWarm : palette::kBorderBright);
+            g.drawRoundedRectangle(bounds.toFloat(), 4.0f, selected ? 1.5f : 1.0f);
+            g.setColour(selected ? palette::kTextPrimary : palette::kTextSecondary);
+            g.setFont(fonts::label(10.0f));
+            g.drawText("GLOBAL", bounds, juce::Justification::centred);
+        }
     }
 
     void NodeSelectorRow::resized() {}
 
     void NodeSelectorRow::mouseDown(const juce::MouseEvent& event)
     {
+        if (globalPillBounds().contains(event.getPosition()))
+        {
+            globalScope_ = true;
+            repaint();
+            if (onGlobalSelected)
+                onGlobalSelected();
+            return;
+        }
+
         for (int i = 0; i < kNumNodes; ++i)
         {
             if (!pillBounds(i).contains(event.getPosition()))

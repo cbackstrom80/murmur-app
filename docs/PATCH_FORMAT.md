@@ -41,12 +41,13 @@ velocityScale, accent). `numSteps` is re-derived from the parsed `steps[]` array
 length on load if omitted, clamped to `[1, 64]`.
 
 A `LayerPatch` contains: 8 `operators[]` (engine, waveform, morph, pulse width,
-wavetable frame position, frequency ratio / fixed Hz / key-track, level, pan), an
+wavetable frame position, frequency ratio / fixed Hz / key-track, level, pan,
+optional per-engine `filter1`), an
 `algorithm` graph definition (see ALGORITHM_GRAPH.md), an `envelopes` array (8x
 `DahdsrParams` -- IMPLEMENTED, see MODULATION.md; index 0 is conventionally "the"
 amp envelope, all 8 are equally usable mod matrix sources), `unison` settings (data
-model present, DSP wiring PLANNED -- see ROADMAP Phase 7), a `filter1` (Filter 1
-params: enabled/mode/cutoffHz/resonance/keyTrack -- IMPLEMENTED, see DSP_ENGINE.md),
+model present, DSP wiring PLANNED -- see ROADMAP Phase 7), a global `filter1`
+(layer output filter -- optional, see DSP_ENGINE.md),
 a `lfos` array (8x `LfoParams` -- waveform/mode/rateHz/syncDivisionIndex/phaseOffset,
 IMPLEMENTED, VOICE + LAYER/GLOBAL scope, see MODULATION.md), a `modRoutes` array
 (up to 64 `ModRoute`s, each with a 29-value `source` enum -- IMPLEMENTED, see

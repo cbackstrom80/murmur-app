@@ -360,11 +360,17 @@ sweeping under mod-matrix control) turned out not to need them.
 
 ## Filter System
 
-**Filter 1: IMPLEMENTED.** `filter::StateVariableFilter` (`pw8/filter/StateVariableFilter.hpp`),
-a trapezoidal-integrator ("TPT") state-variable filter -- lowpass, highpass,
-bandpass, notch, and peak modes from the same two integrator states. One instance
-per voice, sitting in the signal chain between the algorithm graph's output and the
-amplitude envelope: `Algorithm Graph -> Filter 1 -> Amp Envelope (VCA) -> Pan -> Output`.
+**Global filter (layer `filter1`): IMPLEMENTED.** Optional TPT state-variable filter on
+the full algorithm-graph output, before the amp envelope:
+`Engines (each optionally filtered) -> Algorithm Graph -> Global Filter -> Amp Envelope -> Pan`.
+
+**Per-engine filter (`operators[n].filter1`): IMPLEMENTED.** Optional TPT SVF on each
+operator's own generated output inside the graph (before routed audio is mixed in).
+Off by default; independent enable/cutoff/resonance/mode/keyTrack per engine.
+
+Both use `filter::StateVariableFilter` (`pw8/filter/StateVariableFilter.hpp`).
+Mod matrix destinations: `FilterCutoff`/`FilterResonance` (global) and
+`OperatorFilterCutoff`/`OperatorFilterResonance` (requires `targetIndex` 0..7).
 
 Cutoff and resonance are recomputed from scratch every sample rather than smoothed
 toward a target -- deliberately: the mod matrix can drive cutoff every sample (LFO,

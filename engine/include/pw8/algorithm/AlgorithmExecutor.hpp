@@ -5,6 +5,7 @@
 #include "pw8/algorithm/AlgorithmGraphCompiler.hpp"
 #include "pw8/core/Types.hpp"
 #include "pw8/dsp/Math.hpp"
+#include "pw8/filter/StateVariableFilter.hpp"
 #include "pw8/operator/OperatorNode.hpp"
 
 // Executes a CompiledAlgorithm, one sample at a time, over a voice's 8 operator nodes.
@@ -33,7 +34,11 @@ namespace pw8::algorithm
                                            std::array<op::OperatorParams, core::kNodesPerLayer>& params,
                                            std::array<op::OperatorState, core::kNodesPerLayer>& states,
                                            const std::array<const oscillator::WavetableTable*, core::kNodesPerLayer>& wavetableTables,
-                                           float baseFrequencyHz) noexcept
+                                           float baseFrequencyHz,
+                                           const std::array<filter::FilterParams, core::kNodesPerLayer>& operatorFilterParams,
+                                           std::array<filter::StateVariableFilter, core::kNodesPerLayer>& operatorFilters,
+                                           const std::array<float, core::kNodesPerLayer>& operatorFilterCutoffSemitones,
+                                           const std::array<float, core::kNodesPerLayer>& operatorFilterResonanceOffset) noexcept
         {
             if (!compiled.isValid)
                 return 0.0f;
@@ -80,6 +85,17 @@ namespace pw8::algorithm
 
                 float shaped = raw * ampMulAcc[i] * ringMulAcc[i];
                 shaped = dsp::clamp(dsp::flushIfNotFinite(shaped), -16.0f, 16.0f);
+
+                if (operatorFilterParams[i].enabled)
+                {
+                    const float keyTrackFactor =
+                        std::pow(baseFrequencyHz / 261.6256f, operatorFilterParams[i].keyTrack);
+                    const float cutoffHz = operatorFilterParams[i].cutoffHz * keyTrackFactor *
+                                            std::pow(2.0f, operatorFilterCutoffSemitones[i] / 12.0f);
+                    const float resonance =
+                        dsp::clamp(operatorFilterParams[i].resonance + operatorFilterResonanceOffset[i], 0.0f, 1.0f);
+                    shaped = operatorFilters[i].renderSample(shaped, operatorFilterParams[i].mode, cutoffHz, resonance);
+                }
 
                 const float finalOut = dsp::clamp(dsp::flushIfNotFinite(shaped + audioAcc[i]), -16.0f, 16.0f);
                 finalOutputs[i] = finalOut;

@@ -9,24 +9,34 @@
 #include "SectionPanel.h"
 #include "processor/PatchworkEightProcessor.h"
 
-// Filter 1 and LFO 1's main controls, compact -- the "quick sound-shaping" surface
-// PLAY mode offers. The full 8-LFO/8-envelope modulation bank and Filter 2 (once
-// it exists) are DESIGN-mode territory (docs/ROADMAP.md GATE 6/Phase 17),
-// deliberately out of scope here: PLAY mode is meant to be playable at a glance,
-// not a second copy of the flat 578-parameter list. Cutoff and Resonance are also
-// this pass's two real drag-to-modulate destinations (docs/UI.md) -- the only two
-// ModDestination values PLAY mode currently surfaces a knob for.
 namespace pw8::plugin::ui
 {
+    enum class FilterPanelScope
+    {
+        Global,
+        Engine,
+    };
+
+    /// Global or per-engine filter controls. Global scope includes LFO 1; engine scope
+    /// is filter-only and binds to the selected operator's filter APVTS parameters.
     class FilterLfoPanel : public juce::Component
     {
     public:
         explicit FilterLfoPanel(PatchworkEightProcessor& processor);
 
         void resized() override;
+        void paint(juce::Graphics& g) override;
+
+        void setScope(FilterPanelScope scope, int engineIndex = 0);
 
     private:
-        SectionPanel filterPanel_{"Filter 1"};
+        void rebuildAttachments();
+
+        PatchworkEightProcessor& processor_;
+        FilterPanelScope scope_ = FilterPanelScope::Global;
+        int engineIndex_ = 0;
+
+        SectionPanel filterPanel_{"Global Filter"};
         SectionPanel lfoPanel_{"LFO 1"};
 
         juce::ToggleButton filterEnabledToggle_{"ENABLED"};
