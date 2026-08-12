@@ -61,6 +61,17 @@ This is the single biggest gap between "verified" and "shippable":
   smaller. `docs/PATCH_BROWSER.md` phases it: `PresetIndex` first, then
   prev/next arrows on the existing bar (the smallest useful slice), then a
   real search/filter panel, then favorites.
+- **PLAY mode's vertical stack is too tall** -- see `docs/UI_PAGED_LAYOUT.md`.
+  Direct usability feedback on what's shipping today, not a hypothetical:
+  the algorithm graph "gets whatever's left" of a ~980x1358 window on top of
+  ~960px of other fixed-height strips stacked below it. Plans collapsing the
+  graph to a compact selectable row, and restructuring the whole stack
+  (graph/operator/mod/filter/macro/FX) into tabbed Basic/OSC/Filter/Mod/FX
+  pages -- almost entirely a relayout of already-built, already-tested
+  components (`OperatorEditorPanel`, `FilterLfoPanel`, `ModSourceStrip`,
+  `FxChainStrip`, `MacroStrip`), not a rebuild. Also surfaces a real,
+  separate gap found while scoping it: amp envelope has no PLAY-mode UI at
+  all today, worth closing opportunistically in the same pass.
 
 ## P2 -- Highest-leverage PLANNED items (per ROADMAP, ranked)
 

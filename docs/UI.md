@@ -108,6 +108,12 @@ out of scope for PLAY mode -- DESIGN mode's job, PLANNED. *Selecting* a node
 is in scope as of UI GATE 3 below: clicking a node opens its controls in
 `OperatorEditorPanel` without changing the graph's shape.
 
+**PLANNED redesign:** [UI_PAGED_LAYOUT.md](UI_PAGED_LAYOUT.md) -- the circular
+view has grown too tall across GATE 5/6's window-size increases; plans
+collapsing it to a compact selectable row, and restructuring PLAY mode's
+whole vertical stack (graph/operator/mod/filter/macro/FX, all visible at
+once today) into a tabbed Basic/OSC/Filter/Mod/FX paged layout instead.
+
 ## UI GATE 2: visual overhaul
 
 Per explicit user direction ("make it way radder," after reviewing a
