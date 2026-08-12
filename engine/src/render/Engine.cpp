@@ -91,7 +91,12 @@ namespace pw8::render
         {
             wavetableStorageA_[i].reset();
             const auto& op = patch_.layerA.operators[i];
-            if (op.engine == algorithm::EngineType::Wavetable && !op.wavetableId.empty())
+            // Granular reuses wavetableId for its grain source data (see
+            // OperatorPatch's doc comment and OperatorNode::render()'s Granular
+            // case) -- it needs this load exactly like the Wavetable engine does,
+            // not just Wavetable itself.
+            if ((op.engine == algorithm::EngineType::Wavetable || op.engine == algorithm::EngineType::Granular) &&
+                !op.wavetableId.empty())
             {
                 auto loadResult = oscillator::loadWavetableFromFile(op.wavetableId);
                 if (loadResult.ok)

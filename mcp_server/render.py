@@ -43,7 +43,12 @@ def render_preview(patch_id: str, notes: list[int] | None = None, hold_seconds: 
         result = subprocess.run(
             [str(RENDERER), "--patch", str(patch_path), "--midi", str(midi_path),
              "--output", str(wav_path), "--receipt", str(receipt_path), "--release-tail", "1.0"],
-            capture_output=True, text=True, timeout=30,
+            capture_output=True, text=True, timeout=30, cwd=REPO_ROOT,
+            # cwd matters: OperatorPatch::wavetableId is resolved relative to the
+            # render process's working directory (engine/src/render/Engine.cpp),
+            # and every patch in this repo uses repo-relative paths like
+            # "content/wavetables/...". An MCP client can launch server.py from
+            # anywhere, so this can't rely on inheriting the caller's cwd.
         )
         if result.returncode != 0:
             return {"ok": False, "error": result.stderr.strip() or result.stdout.strip()}
