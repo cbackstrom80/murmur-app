@@ -20,6 +20,13 @@ namespace pw8::plugin::ui
 
         void refreshPresetIndex();
 
+        [[nodiscard]] content::PresetIndex& getPresetIndex() { return presetIndex_; }
+        [[nodiscard]] const content::PresetIndex& getPresetIndex() const { return presetIndex_; }
+
+        void setBrowseFilters(const juce::String& query, const juce::String& category);
+
+        std::function<void()> onBrowseClicked;
+
     private:
         void timerCallback() override;
         void loadPatchFromFile();
@@ -30,7 +37,10 @@ namespace pw8::plugin::ui
         juce::Label patchNameLabel_;
         juce::TextButton prevButton_{"<"};
         juce::TextButton nextButton_{">"};
+        juce::TextButton browseButton_{"BROWSE"};
         juce::TextButton loadButton_{"LOAD..."};
+        juce::String browseQuery_;
+        juce::String browseCategory_;
         std::unique_ptr<juce::FileChooser> fileChooser_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PatchBrowserBar)

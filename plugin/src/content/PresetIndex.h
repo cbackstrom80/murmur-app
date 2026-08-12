@@ -29,8 +29,14 @@ namespace pw8::plugin::content
         [[nodiscard]] juce::Array<PresetEntry> filtered(const juce::String& query,
                                                          const juce::String& category) const;
 
-        [[nodiscard]] std::optional<PresetEntry> nextAfter(const juce::String& currentPath) const;
-        [[nodiscard]] std::optional<PresetEntry> prevBefore(const juce::String& currentPath) const;
+        [[nodiscard]] std::optional<PresetEntry> nextAfter(const juce::String& currentPath,
+                                                            const juce::String& query = {},
+                                                            const juce::String& category = {}) const;
+        [[nodiscard]] std::optional<PresetEntry> prevBefore(const juce::String& currentPath,
+                                                             const juce::String& query = {},
+                                                             const juce::String& category = {}) const;
+
+        [[nodiscard]] juce::StringArray uniqueCategories() const;
 
     private:
         [[nodiscard]] static PresetEntry parsePresetFile(const juce::File& file);

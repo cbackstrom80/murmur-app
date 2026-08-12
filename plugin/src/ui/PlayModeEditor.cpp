@@ -11,13 +11,25 @@ namespace pw8::plugin::ui
           nodeSelectorRow_(processor),
           macroStrip_(processor),
           operatorEditorPanel_(processor),
-          modSourceStrip_(processor),
           filterLfoPanel_(processor),
-          fxChainStrip_(processor.apvts)
+          ampEnvelopePanel_(processor),
+          modSourceStrip_(processor),
+          fxChainStrip_(processor.apvts),
+          presetBrowserOverlay_(processor, patchBrowserBar_.getPresetIndex())
     {
         setLookAndFeel(&lookAndFeel_);
 
         addAndMakeVisible(patchBrowserBar_);
+        patchBrowserBar_.onBrowseClicked = [this] {
+            addAndMakeVisible(presetBrowserOverlay_);
+            presetBrowserOverlay_.setBounds(getLocalBounds());
+            presetBrowserOverlay_.showOverlay();
+        };
+        presetBrowserOverlay_.onClosed = [this] {
+            patchBrowserBar_.setBrowseFilters(presetBrowserOverlay_.browseQuery(),
+                                              presetBrowserOverlay_.browseCategory());
+            removeChildComponent(&presetBrowserOverlay_);
+        };
         addAndMakeVisible(nodeSelectorRow_);
         nodeSelectorRow_.onNodeSelected = [this](int node) { operatorEditorPanel_.showNode(node); };
 
@@ -37,6 +49,7 @@ namespace pw8::plugin::ui
         addAndMakeVisible(basicPage_);
         addAndMakeVisible(oscPage_);
         addAndMakeVisible(filterPage_);
+        addAndMakeVisible(envPage_);
         addAndMakeVisible(modPage_);
         addAndMakeVisible(fxPage_);
 
@@ -45,6 +58,7 @@ namespace pw8::plugin::ui
         oscPage_.addAndMakeVisible(oscPanel_);
         oscPanel_.addAndMakeVisible(operatorEditorPanel_);
         filterPage_.addAndMakeVisible(filterLfoPanel_);
+        envPage_.addAndMakeVisible(ampEnvelopePanel_);
         modPage_.addAndMakeVisible(modSourceStrip_);
         fxPage_.addAndMakeVisible(fxChainStrip_);
 
@@ -66,6 +80,7 @@ namespace pw8::plugin::ui
         basicPage_.setVisible(page == Page::Basic);
         oscPage_.setVisible(page == Page::Osc);
         filterPage_.setVisible(page == Page::Filter);
+        envPage_.setVisible(page == Page::Env);
         modPage_.setVisible(page == Page::Mod);
         fxPage_.setVisible(page == Page::Fx);
 
@@ -122,6 +137,7 @@ namespace pw8::plugin::ui
         basicPage_.setBounds(bounds);
         oscPage_.setBounds(bounds);
         filterPage_.setBounds(bounds);
+        envPage_.setBounds(bounds);
         modPage_.setBounds(bounds);
         fxPage_.setBounds(bounds);
 
@@ -132,8 +148,11 @@ namespace pw8::plugin::ui
         operatorEditorPanel_.setBounds(oscPanel_.getContentBounds());
 
         filterLfoPanel_.setBounds(filterPage_.getLocalBounds());
+        ampEnvelopePanel_.setBounds(envPage_.getLocalBounds());
         modSourceStrip_.setBounds(modPage_.getLocalBounds());
         fxChainStrip_.setBounds(fxPage_.getLocalBounds());
+
+        presetBrowserOverlay_.setBounds(getLocalBounds());
     }
 
 } // namespace pw8::plugin::ui

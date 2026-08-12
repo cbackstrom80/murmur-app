@@ -118,39 +118,46 @@ namespace pw8::plugin::content
         return filteredCopy(query, category);
     }
 
-    std::optional<PresetEntry> PresetIndex::nextAfter(const juce::String& currentPath) const
+    std::optional<PresetEntry> PresetIndex::nextAfter(const juce::String& currentPath, const juce::String& query,
+                                                       const juce::String& category) const
     {
-        const auto list = filteredCopy({}, {});
+        const auto list = filteredCopy(query, category);
         if (list.isEmpty())
             return std::nullopt;
 
-        int idx = 0;
         for (int i = 0; i < list.size(); ++i)
         {
             if (list[i].absolutePath == currentPath)
-            {
-                idx = (i + 1) % list.size();
-                return list[idx];
-            }
+                return list[(i + 1) % list.size()];
         }
         return list[0];
     }
 
-    std::optional<PresetEntry> PresetIndex::prevBefore(const juce::String& currentPath) const
+    std::optional<PresetEntry> PresetIndex::prevBefore(const juce::String& currentPath, const juce::String& query,
+                                                        const juce::String& category) const
     {
-        const auto list = filteredCopy({}, {});
+        const auto list = filteredCopy(query, category);
         if (list.isEmpty())
             return std::nullopt;
 
         for (int i = 0; i < list.size(); ++i)
         {
             if (list[i].absolutePath == currentPath)
-            {
-                const int idx = (i - 1 + list.size()) % list.size();
-                return list[idx];
-            }
+                return list[(i - 1 + list.size()) % list.size()];
         }
         return list[list.size() - 1];
+    }
+
+    juce::StringArray PresetIndex::uniqueCategories() const
+    {
+        juce::StringArray cats;
+        for (const auto& e : entries_)
+        {
+            if (e.category.isNotEmpty() && !cats.contains(e.category, true))
+                cats.add(e.category);
+        }
+        cats.sort(true);
+        return cats;
     }
 
 } // namespace pw8::plugin::content

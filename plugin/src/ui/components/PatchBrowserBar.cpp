@@ -19,7 +19,11 @@ namespace pw8::plugin::ui
 
         prevButton_.onClick = [this] { stepPreset(-1); };
         nextButton_.onClick = [this] { stepPreset(1); };
-        for (auto* btn : {&prevButton_, &nextButton_})
+        browseButton_.onClick = [this] {
+            if (onBrowseClicked)
+                onBrowseClicked();
+        };
+        for (auto* btn : {&prevButton_, &nextButton_, &browseButton_})
         {
             btn->setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
             btn->setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
@@ -40,6 +44,12 @@ namespace pw8::plugin::ui
     PatchBrowserBar::~PatchBrowserBar()
     {
         stopTimer();
+    }
+
+    void PatchBrowserBar::setBrowseFilters(const juce::String& query, const juce::String& category)
+    {
+        browseQuery_ = query;
+        browseCategory_ = category;
     }
 
     void PatchBrowserBar::refreshPresetIndex()
@@ -75,6 +85,8 @@ namespace pw8::plugin::ui
         auto bounds = getLocalBounds().withTrimmedLeft(kWordmarkWidth);
         loadButton_.setBounds(bounds.removeFromRight(72).reduced(0, 6));
         bounds.removeFromRight(4);
+        browseButton_.setBounds(bounds.removeFromRight(72).reduced(0, 6));
+        bounds.removeFromRight(4);
         nextButton_.setBounds(bounds.removeFromRight(28).reduced(0, 8));
         prevButton_.setBounds(bounds.removeFromRight(28).reduced(0, 8));
         bounds.removeFromRight(6);
@@ -86,9 +98,9 @@ namespace pw8::plugin::ui
         const auto current = processor_.getCurrentPresetPath();
         std::optional<content::PresetEntry> entry;
         if (direction > 0)
-            entry = presetIndex_.nextAfter(current);
+            entry = presetIndex_.nextAfter(current, browseQuery_, browseCategory_);
         else
-            entry = presetIndex_.prevBefore(current);
+            entry = presetIndex_.prevBefore(current, browseQuery_, browseCategory_);
 
         if (!entry.has_value())
             return;
