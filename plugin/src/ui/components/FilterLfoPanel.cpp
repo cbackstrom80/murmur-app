@@ -1,6 +1,7 @@
 #include "FilterLfoPanel.h"
 
 #include "../theme/BrandingAssets.h"
+#include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "state/PluginState.h"
 
@@ -48,17 +49,24 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    FilterLfoPanel::FilterLfoPanel(PatchworkEightProcessor& processor) : processor_(processor)
+    FilterLfoPanel::FilterLfoPanel(PatchworkEightProcessor& processor)
+        : processor_(processor), filterWireframe_(processor.apvts), lfoWireframe_(processor.apvts, 0)
     {
         addAndMakeVisible(filterPanel_);
         addAndMakeVisible(lfoPanel_);
-        filterPanel_.addAndMakeVisible(filterEnabledToggle_);
+
+        filterEnabledButton_ = std::make_unique<GlowRingButton>("Filter Enable");
+        filterEnabledLabel_.setText("FILTER", juce::dontSendNotification);
+        filterEnabledLabel_.setFont(fonts::label(9.5f));
+        filterEnabledLabel_.setColour(juce::Label::textColourId, palette::kTextSecondary);
+        filterEnabledLabel_.setJustificationType(juce::Justification::centredLeft);
 
         lfoWaveform_ = std::make_unique<GlowKnob>(processor.apvts, lfoParamId(0, "Waveform"), "Wave", lfoWaveformToText);
         lfoMode_ = std::make_unique<GlowKnob>(processor.apvts, lfoParamId(0, "Mode"), "Mode", lfoModeToText);
         lfoRate_ = std::make_unique<GlowKnob>(processor.apvts, lfoParamId(0, "RateHz"), "Rate");
         for (auto* k : {lfoWaveform_.get(), lfoMode_.get(), lfoRate_.get()})
             lfoPanel_.addAndMakeVisible(*k);
+        lfoPanel_.addAndMakeVisible(lfoWireframe_);
 
         setScope(FilterPanelScope::Global, 0);
     }
@@ -116,8 +124,10 @@ namespace pw8::plugin::ui
             modTarget = static_cast<std::uint8_t>(engineIndex_);
         }
 
+        filterWireframe_.setParamIds(enabledId, modeId, cutoffId, resonanceId);
+
         filterEnabledAttachment_ =
-            std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, enabledId, filterEnabledToggle_);
+            std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, enabledId, *filterEnabledButton_);
 
         filterMode_ = std::make_unique<GlowKnob>(apvts, modeId, "Mode", filterModeToText);
         filterCutoff_ = std::make_unique<GlowKnob>(apvts, cutoffId, "Cutoff");
@@ -127,7 +137,9 @@ namespace pw8::plugin::ui
         filterResonance_->enableModulationTarget(processor_, resonanceDest, modTarget);
 
         filterPanel_.removeAllChildren();
-        filterPanel_.addAndMakeVisible(filterEnabledToggle_);
+        filterPanel_.addAndMakeVisible(filterWireframe_);
+        filterPanel_.addAndMakeVisible(*filterEnabledButton_);
+        filterPanel_.addAndMakeVisible(filterEnabledLabel_);
         for (auto* k : {filterMode_.get(), filterCutoff_.get(), filterResonance_.get(), filterKeyTrack_.get()})
             filterPanel_.addAndMakeVisible(*k);
     }
@@ -157,20 +169,32 @@ namespace pw8::plugin::ui
 
         {
             auto content = filterPanel_.getContentBounds();
-            filterEnabledToggle_.setBounds(content.removeFromTop(20).removeFromLeft(110));
+            auto wireBounds = content.removeFromLeft(static_cast<int>(content.getWidth() * 0.42f)).reduced(0, 2);
+            filterWireframe_.setBounds(wireBounds);
+
+            content = content.reduced(4, 0);
+            auto enableRow = content.removeFromTop(36);
+            const int ringSize = 30;
+            filterEnabledButton_->setBounds(enableRow.removeFromLeft(ringSize + 6).withSizeKeepingCentre(ringSize, ringSize));
+            filterEnabledLabel_.setBounds(enableRow.removeFromLeft(70));
+
             const int knobWidth = content.getWidth() / 4;
-            filterMode_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
-            filterCutoff_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
-            filterResonance_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
-            filterKeyTrack_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            filterMode_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            filterCutoff_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            filterResonance_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            filterKeyTrack_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
         }
         if (scope_ == FilterPanelScope::Global)
         {
             auto content = lfoPanel_.getContentBounds();
+            auto wireBounds = content.removeFromLeft(static_cast<int>(content.getWidth() * 0.42f)).reduced(0, 2);
+            lfoWireframe_.setBounds(wireBounds);
+
+            content = content.reduced(4, 0);
             const int knobWidth = content.getWidth() / 3;
-            lfoWaveform_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
-            lfoMode_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
-            lfoRate_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+            lfoWaveform_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            lfoMode_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            lfoRate_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
         }
     }
 

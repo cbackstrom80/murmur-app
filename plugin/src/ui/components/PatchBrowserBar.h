@@ -24,11 +24,11 @@ namespace pw8::plugin::ui
         [[nodiscard]] content::PresetIndex& getPresetIndex() { return presetIndex_; }
         [[nodiscard]] const content::PresetIndex& getPresetIndex() const { return presetIndex_; }
 
-        void setBrowseFilters(const juce::String& query, const juce::String& category, bool favoritesOnly = false);
+        void setBrowseFilters(const content::PresetMetadataFilter& filter);
 
         void setFavoritesStore(content::FavoritesStore* favoritesStore) { favoritesStore_ = favoritesStore; }
 
-        [[nodiscard]] bool browseFavoritesOnly() const { return browseFavoritesOnly_; }
+        [[nodiscard]] const content::PresetMetadataFilter& browseFilter() const { return browseFilter_; }
 
         std::function<void()> onBrowseClicked;
 
@@ -44,9 +44,7 @@ namespace pw8::plugin::ui
         juce::TextButton nextButton_{">"};
         juce::TextButton browseButton_{"BROWSE"};
         juce::TextButton loadButton_{"LOAD..."};
-        juce::String browseQuery_;
-        juce::String browseCategory_;
-        bool browseFavoritesOnly_ = false;
+        content::PresetMetadataFilter browseFilter_;
         content::FavoritesStore* favoritesStore_ = nullptr;
         std::unique_ptr<juce::FileChooser> fileChooser_;
 

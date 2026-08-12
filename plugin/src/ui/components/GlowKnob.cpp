@@ -8,6 +8,10 @@ namespace pw8::plugin::ui
 {
     namespace
     {
+        constexpr int kMaxKnobDiameter = 88;
+        constexpr int kNameLabelHeight = 14;
+        constexpr int kTextBoxHeight = 16;
+
         /// The modulation depth a fresh drop is assigned -- destination-specific
         /// since the two real PLAY-mode destinations have very different natural
         /// units (see ModMatrixExecutor.hpp's destination-semantics doc comment).
@@ -155,9 +159,14 @@ namespace pw8::plugin::ui
 
     void GlowKnob::resized()
     {
-        auto bounds = getLocalBounds();
-        nameLabel_.setBounds(bounds.removeFromBottom(14));
-        slider_.setBounds(bounds);
+        auto bounds = getLocalBounds().reduced(4);
+        nameLabel_.setBounds(bounds.removeFromBottom(kNameLabelHeight));
+
+        const int dialDiameter =
+            juce::jmin(kMaxKnobDiameter, bounds.getWidth(), juce::jmax(32, bounds.getHeight() - kTextBoxHeight));
+        const int textBoxWidth = juce::jmin(72, juce::jmax(44, bounds.getWidth() - 4));
+        slider_.setTextBoxStyle(juce::Slider::TextBoxBelow, false, textBoxWidth, kTextBoxHeight);
+        slider_.setBounds(bounds.withSizeKeepingCentre(bounds.getWidth(), dialDiameter + kTextBoxHeight));
     }
 
     void GlowKnob::paintOverChildren(juce::Graphics& g)

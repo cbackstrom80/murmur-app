@@ -7,9 +7,11 @@
 namespace pw8::plugin::ui
 {
     AmpEnvelopePanel::AmpEnvelopePanel(PatchworkEightProcessor& processor)
+        : curveView_(processor.apvts, 0)
     {
         auto& apvts = processor.apvts;
         addAndMakeVisible(panel_);
+        panel_.addAndMakeVisible(curveView_);
 
         delay_ = std::make_unique<GlowKnob>(apvts, envelopeParamId(0, "Delay"), "Delay");
         attack_ = std::make_unique<GlowKnob>(apvts, envelopeParamId(0, "Attack"), "Attack");
@@ -53,20 +55,25 @@ namespace pw8::plugin::ui
     {
         panel_.setBounds(getLocalBounds().withTrimmedTop(34));
         auto content = panel_.getContentBounds();
+
+        auto curveBounds = content.removeFromLeft(static_cast<int>(content.getWidth() * 0.45f)).reduced(0, 2);
+        curveView_.setBounds(curveBounds);
+
+        content = content.reduced(6, 0);
         legato_.setBounds(content.removeFromTop(22).removeFromLeft(90));
         content.removeFromTop(6);
 
         const int knobWidth = content.getWidth() / 4;
-        auto row1 = content.removeFromTop(110);
-        delay_->setBounds(row1.removeFromLeft(knobWidth));
-        attack_->setBounds(row1.removeFromLeft(knobWidth));
-        hold_->setBounds(row1.removeFromLeft(knobWidth));
-        decay_->setBounds(row1);
+        auto row1 = content.removeFromTop(120);
+        delay_->setBounds(row1.removeFromLeft(knobWidth).reduced(4));
+        attack_->setBounds(row1.removeFromLeft(knobWidth).reduced(4));
+        hold_->setBounds(row1.removeFromLeft(knobWidth).reduced(4));
+        decay_->setBounds(row1.reduced(4));
 
-        auto row2 = content.removeFromTop(110);
-        sustain_->setBounds(row2.removeFromLeft(knobWidth));
-        release_->setBounds(row2.removeFromLeft(knobWidth));
-        curve_->setBounds(row2.removeFromLeft(knobWidth));
+        auto row2 = content.removeFromTop(120);
+        sustain_->setBounds(row2.removeFromLeft(knobWidth).reduced(4));
+        release_->setBounds(row2.removeFromLeft(knobWidth).reduced(4));
+        curve_->setBounds(row2.removeFromLeft(knobWidth).reduced(4));
     }
 
 } // namespace pw8::plugin::ui

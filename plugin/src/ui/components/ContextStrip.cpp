@@ -3,6 +3,7 @@
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "pw8/algorithm/AlgorithmTypes.hpp"
+#include "state/PluginState.h"
 
 namespace pw8::plugin::ui
 {
@@ -21,6 +22,22 @@ namespace pw8::plugin::ui
                 case algorithm::EngineType::NoiseChaos: return "NOISE";
                 case algorithm::EngineType::Resonator: return "RESONATOR";
                 default: return "ENGINE";
+            }
+        }
+
+        juce::Colour engineScopeAccent(algorithm::EngineType engine)
+        {
+            switch (engine)
+            {
+                case algorithm::EngineType::Wavetable: return palette::kAccent;
+                case algorithm::EngineType::Granular: return palette::kAccentWarm;
+                case algorithm::EngineType::FmPm: return palette::kEdgePhaseMod;
+                case algorithm::EngineType::Additive: return palette::kEdgeFrequencyMod;
+                case algorithm::EngineType::PhaseShape: return palette::kEdgeAmplitudeMod;
+                case algorithm::EngineType::NoiseChaos: return palette::kModVelocity;
+                case algorithm::EngineType::Resonator: return palette::kEdgeRingMod;
+                case algorithm::EngineType::Classic: return palette::kEdgeSync;
+                default: return palette::kAccent;
             }
         }
     } // namespace
@@ -43,10 +60,18 @@ namespace pw8::plugin::ui
         g.drawRoundedRectangle(bounds.reduced(0.5f), 6.0f, 1.0f);
 
         const auto badgeArea = bounds.removeFromLeft(scope_ == FilterPanelScope::Global ? 72.0f : 88.0f).reduced(6.0f, 5.0f);
-        g.setColour(scope_ == FilterPanelScope::Global ? palette::kAccentWarm.withAlpha(0.35f)
-                                                       : palette::kAccent.withAlpha(0.28f));
+        juce::Colour scopeAccent = palette::kAccentWarm;
+        algorithm::EngineType liveEngine = algorithm::EngineType::Classic;
+        if (scope_ == FilterPanelScope::Engine)
+        {
+            if (auto* raw = processor_.apvts.getRawParameterValue(
+                    operatorParamId(static_cast<std::size_t>(engineIndex_), "Engine")))
+                liveEngine = static_cast<algorithm::EngineType>(static_cast<int>(raw->load() + 0.5f));
+            scopeAccent = engineScopeAccent(liveEngine);
+        }
+        g.setColour(scopeAccent.withAlpha(0.32f));
         g.fillRoundedRectangle(badgeArea, 4.0f);
-        g.setColour(scope_ == FilterPanelScope::Global ? palette::kAccentWarm : palette::kAccent);
+        g.setColour(scopeAccent);
         g.setFont(fonts::label(9.5f));
         g.drawText(scope_ == FilterPanelScope::Global ? "GLOBAL" : "ENGINE",
                    badgeArea, juce::Justification::centred);
@@ -55,12 +80,11 @@ namespace pw8::plugin::ui
         g.setFont(fonts::label(11.0f));
         juce::String line;
         if (scope_ == FilterPanelScope::Global)
-            line = "LAYER A · GLOBAL · affects full layer output after all engines";
+            line = "LAYER A · SUM → GLOBAL FILTER → FX → MASTER OUT";
         else
         {
-            const auto& op = processor_.getCurrentPatch().layerA.operators[static_cast<std::size_t>(engineIndex_)];
-            line = "ENGINE " + juce::String(engineIndex_) + " · " + engineName(op.engine) +
-                   " · filters this engine's own output";
+            line = "ENGINE " + juce::String(engineIndex_) + " · " + engineName(liveEngine) +
+                   " · per-engine filter (see FILTER tab)";
         }
         g.drawText(line, bounds.reduced(8.0f, 0.0f), juce::Justification::centredLeft);
     }

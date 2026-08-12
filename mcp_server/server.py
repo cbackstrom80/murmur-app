@@ -93,10 +93,15 @@ def list_wavetables() -> list[dict]:
 
 
 @mcp.tool()
-def list_presets(category: Optional[str] = None) -> list[dict]:
+def list_presets(
+    category: Optional[str] = None,
+    mood: Optional[str] = None,
+    genre: Optional[str] = None,
+    tag: Optional[str] = None,
+) -> list[dict]:
     """Browses content/presets/ (including the 250-patch factory bank),
-    summarized. Pass category (e.g. 'bass', 'ambient') to filter."""
-    return content.list_presets(category)
+    summarized. Pass category/mood/genre/tag to filter (AND semantics)."""
+    return content.list_presets(category, mood, genre, tag)
 
 
 @mcp.tool()

@@ -704,6 +704,31 @@ TEST_CASE("Compressor leaves a quiet tone below threshold essentially untouched"
     REQUIRE(rmsCompressed == Catch::Approx(rmsUncompressed).margin(0.002f));
 }
 
+TEST_CASE("Compressor output transformer bypass matches pre-transformer path", "[effects][compressor][transformer]")
+{
+    CompressorProcessor proc;
+    proc.prepare(kSampleRate);
+
+    EffectSlotParams p;
+    p.type = EffectType::Compressor;
+    p.mix = 1.0f;
+    p.compThresholdDb = -12.0f;
+    p.compRatio = 4.0f;
+    p.compAttackMs = 2.0f;
+    p.compReleaseMs = 80.0f;
+    p.compKneeDb = 0.0f;
+    p.compMakeupDb = 0.0f;
+    p.compTransformerCore = 0.0f;
+    p.compTransformerAmount = 1.0f;
+
+    const float rmsBypass = measureToneRms(proc, p, 200.0f, 1.0f, 0.3);
+
+    p.compTransformerCore = 2.0f; // Iron
+    const float rmsIron = measureToneRms(proc, p, 200.0f, 1.0f, 0.3);
+
+    REQUIRE(rmsIron != Catch::Approx(rmsBypass).margin(0.0005f));
+}
+
 TEST_CASE("Limiter never lets a sustained loud tone's output exceed its ceiling", "[effects][limiter]")
 {
     LimiterProcessor proc;

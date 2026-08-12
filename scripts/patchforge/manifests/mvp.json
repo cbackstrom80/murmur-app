@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "packs": [
+    {
+      "id": "pf-starfighter-starter",
+      "slug": "starfighter-starter-cache",
+      "title": "Starfighter Starter Cache",
+      "shortTitle": "Starter Cache",
+      "description": "Free cross-genre .pw8 patches from the Patchwork Eight showcase bank — rendered and scored by the real engine pipeline.",
+      "genre": ["Multi-Genre"],
+      "mood": ["Varied", "Showcase"],
+      "price": 0,
+      "badge": "free",
+      "palette": ["#5ecfff", "#7c3aed", "#0b0c0f"],
+      "patches": [
+        { "pw8": "content/presets/aurora-showcase.pw8", "notes": [48, 55, 60] },
+        { "pw8": "content/presets/fm-bell.pw8", "notes": [72] },
+        { "pw8": "content/presets/gate4-massive-dark-metallic-bass.pw8", "notes": [36] },
+        { "pw8": "content/presets/somnus-drift.pw8", "notes": [48, 60] },
+        { "pw8": "content/presets/arp-pluck.pw8", "notes": [60] },
+        { "pw8": "content/presets/tide-showcase.pw8", "notes": [48, 55, 60] }
+      ]
+    },
+    {
+      "id": "pf-cinematic-01",
+      "slug": "signal-cinema-vol-1",
+      "title": "Signal Cinema Vol. 1",
+      "shortTitle": "Signal Cinema",
+      "description": "Cinematic ambient and score-ready drones from the Starfighter factory bank — AI-vetted via headless render QA.",
+      "genre": ["Cinematic", "Ambient"],
+      "mood": ["Wide", "Tense", "Emotional"],
+      "price": 14.99,
+      "badge": "new",
+      "palette": ["#0ea5e9", "#4338ca", "#020617"],
+      "patches": [
+        { "pw8": "content/presets/factory/Ambient/01-sere-expanse.pw8", "notes": [48, 55] },
+        { "pw8": "content/presets/factory/Ambient/10-fathomless-bloom.pw8", "notes": [48, 60] },
+        { "pw8": "content/presets/factory/Ambient/21-cavern-echo.pw8", "notes": [45, 52] },
+        { "pw8": "content/presets/factory/Ambient/37-shale-echo.pw8", "notes": [48, 55, 60] },
+        { "pw8": "content/presets/factory/Pads/24-vast-veil.pw8", "notes": [48, 55, 60] },
+        { "pw8": "content/presets/somnus-drift.pw8", "notes": [48, 60] }
+      ]
+    },
+    {
+      "id": "pf-dark-techno-01",
+      "slug": "dark-techno-basses-vol-1",
+      "title": "Dark Techno Basses Vol. 1",
+      "shortTitle": "Dark Techno Basses",
+      "description": "Low-end pressure from the Starfighter factory bass pool — each patch preview-rendered at C1 for honest sub response.",
+      "genre": ["Dark Techno", "Techno"],
+      "mood": ["Dark", "Industrial", "Aggressive"],
+      "price": 14.99,
+      "badge": "bestseller",
+      "palette": ["#7c3aed", "#312e81", "#09090b"],
+      "patches": [
+        { "pw8": "content/presets/factory/Basses/09-trench-growl.pw8", "notes": [36] },
+        { "pw8": "content/presets/factory/Basses/17-root-weight.pw8", "notes": [36] },
+        { "pw8": "content/presets/factory/Basses/27-grind-bass.pw8", "notes": [36] },
+        { "pw8": "content/presets/factory/Basses/32-wobble-growl.pw8", "notes": [36] },
+        { "pw8": "content/presets/factory/Basses/46-fathom-depth.pw8", "notes": [36] },
+        { "pw8": "content/presets/gate4-massive-dark-metallic-bass.pw8", "notes": [36] }
+      ]
+    }
+  ]
+}

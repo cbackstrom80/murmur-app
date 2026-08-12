@@ -8,7 +8,7 @@
 
 #include "GlowKnob.h"
 #include "SectionPanel.h"
-#include "WavetableStackView.h"
+#include "wireframe/OscWireframeHost.h"
 #include "processor/PatchworkEightProcessor.h"
 
 // The operator detail view for whichever algorithm-graph node is currently
@@ -151,7 +151,7 @@ namespace pw8::plugin::ui
         std::unique_ptr<GlowKnob> levelKnob_;
         std::unique_ptr<GlowKnob> ratioKnob_;
         std::unique_ptr<GlowKnob> wavetablePosKnob_; // Visible for the Wavetable AND Granular engines.
-        WavetableStackView wavetableStackView_;      // Same visibility rule; never rebuilt per-node (holds no APVTS attachment).
+        OscWireframeHost oscWireframeHost_; // Engine-specific wireframe previews (always visible).
         // Engine Type 3 (FM/PM) only -- same "always constructed, visibility
         // toggled" pattern as the Wavetable-only knobs above.
         std::unique_ptr<GlowKnob> fmModRatioKnob_;

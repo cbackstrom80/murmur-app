@@ -23,12 +23,17 @@ namespace pw8::plugin::ui
         searchField_.addListener(this);
         panel_.addAndMakeVisible(searchField_);
 
-        categoryBox_.addItem("All categories", 1);
-        categoryBox_.setSelectedId(1, juce::dontSendNotification);
-        categoryBox_.onChange = [this] { rebuildList(); };
-        categoryBox_.setColour(juce::ComboBox::backgroundColourId, palette::kPanelRaised);
-        categoryBox_.setColour(juce::ComboBox::textColourId, palette::kTextPrimary);
-        panel_.addAndMakeVisible(categoryBox_);
+        favoritesToggle_.setClickingTogglesState(true);
+        favoritesToggle_.setColour(juce::ToggleButton::textColourId, palette::kTextSecondary);
+        favoritesToggle_.setColour(juce::ToggleButton::tickColourId, palette::kAccent);
+        favoritesToggle_.onClick = [this] { rebuildFacetsAndList(); };
+        panel_.addAndMakeVisible(favoritesToggle_);
+
+        for (auto* row : {&typeFacet_, &moodFacet_, &contextFacet_, &tagFacet_})
+        {
+            row->onChange = [this] { rebuildFacetsAndList(); };
+            panel_.addAndMakeVisible(*row);
+        }
 
         listBox_.setColour(juce::ListBox::backgroundColourId, palette::kBackgroundBottom);
         listBox_.setOutlineThickness(0);
@@ -40,18 +45,28 @@ namespace pw8::plugin::ui
         panel_.addAndMakeVisible(closeButton_);
     }
 
+    content::PresetMetadataFilter PresetBrowserOverlay::browseFilter() const
+    {
+        content::PresetMetadataFilter filter;
+        filter.query = searchField_.getText();
+        filter.category = typeFacet_.getSelectedValue();
+        filter.mood = moodFacet_.getSelectedValue();
+        filter.genre = contextFacet_.getSelectedValue();
+        filter.tag = tagFacet_.getSelectedValue();
+        filter.favoritesOnly = favoritesToggle_.getToggleState();
+        return filter;
+    }
+
     void PresetBrowserOverlay::showOverlay()
     {
         presetIndex_.rescan();
-        categoryBox_.clear(juce::dontSendNotification);
-        categoryBox_.addItem("All categories", 1);
-        categoryBox_.addItem("Favorites", 2);
-        int id = 3;
-        for (const auto& cat : presetIndex_.uniqueCategories())
-            categoryBox_.addItem(cat, id++);
-        categoryBox_.setSelectedId(1, juce::dontSendNotification);
         searchField_.setText({}, juce::dontSendNotification);
-        rebuildList();
+        favoritesToggle_.setToggleState(false, juce::dontSendNotification);
+        typeFacet_.setSelectedValue({});
+        moodFacet_.setSelectedValue({});
+        contextFacet_.setSelectedValue({});
+        tagFacet_.setSelectedValue({});
+        rebuildFacetsAndList();
         setVisible(true);
         setInterceptsMouseClicks(true, true);
         panel_.setVisible(true);
@@ -67,13 +82,6 @@ namespace pw8::plugin::ui
             onClosed();
     }
 
-    juce::String PresetBrowserOverlay::browseCategory() const
-    {
-        if (categoryBox_.getSelectedId() <= 1 || browseFavoritesOnly())
-            return {};
-        return categoryBox_.getText();
-    }
-
     void PresetBrowserOverlay::paint(juce::Graphics& g)
     {
         g.fillAll(palette::kBackgroundTop.withAlpha(0.72f));
@@ -87,18 +95,28 @@ namespace pw8::plugin::ui
 
     void PresetBrowserOverlay::resized()
     {
-        panel_.setBounds(getLocalBounds().reduced(48, 80));
+        panel_.setBounds(getLocalBounds().reduced(40, 56));
         auto bounds = panel_.getLocalBounds().reduced(14);
 
         titleLabel_.setBounds(bounds.removeFromTop(24));
-        bounds.removeFromTop(8);
+        bounds.removeFromTop(6);
         closeButton_.setBounds(bounds.removeFromTop(28).removeFromRight(72));
-        bounds.removeFromTop(8);
+        bounds.removeFromTop(6);
 
-        auto filterRow = bounds.removeFromTop(28);
-        categoryBox_.setBounds(filterRow.removeFromRight(180));
-        filterRow.removeFromRight(8);
-        searchField_.setBounds(filterRow);
+        auto searchRow = bounds.removeFromTop(28);
+        favoritesToggle_.setBounds(searchRow.removeFromRight(64));
+        searchRow.removeFromRight(8);
+        searchField_.setBounds(searchRow);
+        bounds.removeFromTop(6);
+
+        constexpr int kFacetRowHeight = 24;
+        typeFacet_.setBounds(bounds.removeFromTop(kFacetRowHeight));
+        bounds.removeFromTop(2);
+        moodFacet_.setBounds(bounds.removeFromTop(kFacetRowHeight));
+        bounds.removeFromTop(2);
+        contextFacet_.setBounds(bounds.removeFromTop(kFacetRowHeight));
+        bounds.removeFromTop(2);
+        tagFacet_.setBounds(bounds.removeFromTop(kFacetRowHeight));
         bounds.removeFromTop(8);
 
         listBox_.setBounds(bounds);
@@ -112,7 +130,7 @@ namespace pw8::plugin::ui
 
     void PresetBrowserOverlay::textEditorTextChanged(juce::TextEditor&)
     {
-        rebuildList();
+        rebuildFacetsAndList();
     }
 
     void PresetBrowserOverlay::textEditorReturnKeyPressed(juce::TextEditor&)
@@ -126,12 +144,40 @@ namespace pw8::plugin::ui
         dismiss();
     }
 
-    void PresetBrowserOverlay::rebuildList()
+    void PresetBrowserOverlay::rebuildFacetsAndList()
     {
-        const juce::StringArray* favoritesOnly = browseFavoritesOnly() ? &favoritesStore_.paths() : nullptr;
-        visibleEntries_ = presetIndex_.filtered(searchField_.getText(), browseCategory(), favoritesOnly);
+        const auto filter = browseFilter();
+        const juce::StringArray* favoritesOnly = filter.favoritesOnly ? &favoritesStore_.paths() : nullptr;
+
+        auto refreshFacet = [&](MetadataFacetRow& row, content::PresetFacet facet) {
+            const auto values = presetIndex_.uniqueFacetValues(facet, filter, favoritesOnly);
+            auto selected = row.getSelectedValue();
+            if (selected.isNotEmpty() && !values.contains(selected, true))
+                selected = {};
+            row.setValues(values);
+            row.setSelectedValue(selected);
+        };
+
+        refreshFacet(typeFacet_, content::PresetFacet::Category);
+        refreshFacet(moodFacet_, content::PresetFacet::Mood);
+        refreshFacet(contextFacet_, content::PresetFacet::Genre);
+        refreshFacet(tagFacet_, content::PresetFacet::Tag);
+
+        visibleEntries_ = presetIndex_.filtered(browseFilter(), favoritesOnly);
         listBox_.updateContent();
         listBox_.repaint();
+    }
+
+    juce::String PresetBrowserOverlay::formatEntrySubline(const content::PresetEntry& entry) const
+    {
+        juce::StringArray parts;
+        if (entry.category.isNotEmpty())
+            parts.add(entry.category);
+        if (entry.moods.size() > 0)
+            parts.add(entry.moods.joinIntoString(", "));
+        if (entry.genres.size() > 0)
+            parts.add(entry.genres.joinIntoString(", "));
+        return parts.joinIntoString(" · ");
     }
 
     int PresetBrowserOverlay::getNumRows()
@@ -155,8 +201,7 @@ namespace pw8::plugin::ui
 
         g.setColour(palette::kTextDim);
         g.setFont(fonts::label(10.0f));
-        const auto meta = entry.category + (entry.moods.isEmpty() ? juce::String() : " · " + entry.moods.joinIntoString(", "));
-        g.drawText(meta, bounds, juce::Justification::centredLeft, true);
+        g.drawText(formatEntrySubline(entry), bounds, juce::Justification::centredLeft, true);
 
         const bool starred = favoritesStore_.isFavorite(entry.absolutePath);
         g.setColour(starred ? palette::kAccent : palette::kTextDim);
@@ -179,7 +224,7 @@ namespace pw8::plugin::ui
         if (!juce::isPositiveAndBelow(row, visibleEntries_.size()))
             return;
         favoritesStore_.toggleFavorite(visibleEntries_.getReference(row).absolutePath);
-        rebuildList();
+        rebuildFacetsAndList();
     }
 
     void PresetBrowserOverlay::loadRow(int row)

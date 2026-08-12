@@ -14,9 +14,10 @@ namespace pw8::plugin::ui
           macroStrip_(processor),
           operatorEditorPanel_(processor),
           filterLfoPanel_(processor),
+          engineSummingStrip_(processor),
           ampEnvelopePanel_(processor),
           modSourceStrip_(processor),
-          fxChainStrip_(processor.apvts),
+          fxChainStrip_(processor),
           presetBrowserOverlay_(processor, patchBrowserBar_.getPresetIndex(), favoritesStore_)
     {
         setLookAndFeel(&lookAndFeel_);
@@ -29,15 +30,14 @@ namespace pw8::plugin::ui
             presetBrowserOverlay_.showOverlay();
         };
         presetBrowserOverlay_.onClosed = [this] {
-            patchBrowserBar_.setBrowseFilters(presetBrowserOverlay_.browseQuery(),
-                                              presetBrowserOverlay_.browseCategory(),
-                                              presetBrowserOverlay_.browseFavoritesOnly());
+            patchBrowserBar_.setBrowseFilters(presetBrowserOverlay_.browseFilter());
             removeChildComponent(&presetBrowserOverlay_);
         };
 
         addAndMakeVisible(nodeSelectorRow_);
         nodeSelectorRow_.onNodeSelected = [this](int node) {
             operatorEditorPanel_.showNode(node);
+            engineSummingStrip_.setHighlightedEngine(node);
             updateScopeUi();
         };
         nodeSelectorRow_.onGlobalSelected = [this] {
@@ -72,6 +72,7 @@ namespace pw8::plugin::ui
         macroPanel_.addAndMakeVisible(macroStrip_);
         oscPage_.addAndMakeVisible(oscPanel_);
         oscPanel_.addAndMakeVisible(operatorEditorPanel_);
+        filterPage_.addAndMakeVisible(engineSummingStrip_);
         filterPage_.addAndMakeVisible(filterLfoPanel_);
         envPage_.addAndMakeVisible(ampEnvelopePanel_);
         modPage_.addAndMakeVisible(modSourceStrip_);
@@ -112,6 +113,8 @@ namespace pw8::plugin::ui
             showPage(Page::Osc);
 
         refreshFilterPanelScope();
+        engineSummingStrip_.setVisible(global);
+        contextStrip_.repaint();
         resized();
     }
 
@@ -211,7 +214,18 @@ namespace pw8::plugin::ui
         oscPanel_.setBounds(oscPage_.getLocalBounds());
         operatorEditorPanel_.setBounds(oscPanel_.getContentBounds());
 
-        filterLfoPanel_.setBounds(filterPage_.getLocalBounds());
+        if (nodeSelectorRow_.isGlobalScope() && engineSummingStrip_.isVisible())
+        {
+            auto filterBounds = filterPage_.getLocalBounds();
+            engineSummingStrip_.setBounds(filterBounds.removeFromTop(static_cast<int>(filterBounds.getHeight() * 0.42f)));
+            filterLfoPanel_.setBounds(filterBounds);
+        }
+        else
+        {
+            engineSummingStrip_.setBounds({});
+            filterLfoPanel_.setBounds(filterPage_.getLocalBounds());
+        }
+
         ampEnvelopePanel_.setBounds(envPage_.getLocalBounds());
         modSourceStrip_.setBounds(modPage_.getLocalBounds());
         fxChainStrip_.setBounds(fxPage_.getLocalBounds());

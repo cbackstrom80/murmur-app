@@ -172,6 +172,10 @@ namespace pw8::effects
         float compReleaseMs = 120.0f;
         float compKneeDb = 6.0f;
         float compMakeupDb = 0.0f;
+        // Master-compressor output transformer (post-GR colour); 0 = bypass.
+        float compTransformerCore = 0.0f;   // 0 off, 1 nickel, 2 iron, 3 steel
+        float compTransformerBrand = 0.0f;  // 0 neutral, 1 jensen, 2 cinemag, 3 sowter
+        float compTransformerAmount = 1.0f; // 0..1 blend of transformer colour
 
         // -- Limiter (lookahead, sliding-window-minimum gain -- true no-overshoot) --
         float limiterCeilingDb = -0.3f;

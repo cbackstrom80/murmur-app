@@ -26,6 +26,19 @@ namespace pw8::plugin::content
             }
             return out;
         }
+
+        [[nodiscard]] bool isContextCrossoverMood(const juce::String& mood) noexcept
+        {
+            static const char* kContextTokens[] = {"cinematic", "score", "trailer", "game",      "worship",
+                                                   "sleep",     "demo",  "ambient", "sound-design", nullptr};
+            const auto lower = mood.trim().toLowerCase();
+            for (const char* token = kContextTokens[0]; token != nullptr; ++token)
+            {
+                if (lower == token)
+                    return true;
+            }
+            return false;
+        }
     } // namespace
 
     void PresetIndex::rescan()
@@ -85,48 +98,142 @@ namespace pw8::plugin::content
             entry.category = file.getParentDirectory().getFileName();
         entry.description = readMetadataString(meta, "description");
         entry.moods = readStringArray(meta, "moods");
+        entry.genres = readStringArray(meta, "genres");
         entry.tags = readStringArray(meta, "tags");
         return entry;
     }
 
-    juce::Array<PresetEntry> PresetIndex::filteredCopy(const juce::String& query, const juce::String& category,
-                                                        const juce::StringArray* favoritePathsOnly) const
+    bool PresetIndex::arrayContainsIgnoreCase(const juce::StringArray& arr, const juce::String& value)
+    {
+        const auto needle = value.trim().toLowerCase();
+        if (needle.isEmpty())
+            return false;
+        for (const auto& item : arr)
+        {
+            if (item.trim().toLowerCase() == needle)
+                return true;
+        }
+        return false;
+    }
+
+    bool PresetIndex::entryMatchesFilter(const PresetEntry& entry, const PresetMetadataFilter& filter,
+                                          const juce::StringArray* favoritePathsOnly)
+    {
+        if (favoritePathsOnly != nullptr && !favoritePathsOnly->contains(entry.absolutePath))
+            return false;
+
+        const auto cat = filter.category.trim().toLowerCase();
+        if (cat.isNotEmpty() && !entry.category.toLowerCase().contains(cat))
+            return false;
+
+        const auto mood = filter.mood.trim().toLowerCase();
+        if (mood.isNotEmpty() && !arrayContainsIgnoreCase(entry.moods, mood))
+            return false;
+
+        const auto genre = filter.genre.trim().toLowerCase();
+        if (genre.isNotEmpty() && !arrayContainsIgnoreCase(entry.genres, genre)
+            && !arrayContainsIgnoreCase(entry.moods, genre))
+            return false;
+
+        const auto tag = filter.tag.trim().toLowerCase();
+        if (tag.isNotEmpty() && !arrayContainsIgnoreCase(entry.tags, tag))
+            return false;
+
+        const auto q = filter.query.trim().toLowerCase();
+        if (q.isNotEmpty())
+        {
+            const auto haystack = (entry.name + " " + entry.description + " " + entry.category + " "
+                                   + entry.moods.joinIntoString(" ") + " " + entry.genres.joinIntoString(" ") + " "
+                                   + entry.tags.joinIntoString(" "))
+                                      .toLowerCase();
+            if (!haystack.contains(q))
+                return false;
+        }
+
+        return true;
+    }
+
+    PresetMetadataFilter PresetIndex::filterWithFacetCleared(PresetMetadataFilter filter, PresetFacet facet)
+    {
+        switch (facet)
+        {
+            case PresetFacet::Category: filter.category = {}; break;
+            case PresetFacet::Mood: filter.mood = {}; break;
+            case PresetFacet::Genre: filter.genre = {}; break;
+            case PresetFacet::Tag: filter.tag = {}; break;
+        }
+        return filter;
+    }
+
+    void PresetIndex::collectFacetValue(PresetFacet facet, const PresetEntry& entry, juce::StringArray& out)
+    {
+        auto addUnique = [&](const juce::String& value) {
+            const auto trimmed = value.trim();
+            if (trimmed.isNotEmpty() && !out.contains(trimmed, true))
+                out.add(trimmed);
+        };
+
+        switch (facet)
+        {
+            case PresetFacet::Category:
+                addUnique(entry.category);
+                break;
+            case PresetFacet::Mood:
+                for (const auto& mood : entry.moods)
+                    addUnique(mood);
+                break;
+            case PresetFacet::Genre:
+                for (const auto& genre : entry.genres)
+                    addUnique(genre);
+                for (const auto& mood : entry.moods)
+                {
+                    if (isContextCrossoverMood(mood))
+                        addUnique(mood);
+                }
+                break;
+            case PresetFacet::Tag:
+                for (const auto& tag : entry.tags)
+                    addUnique(tag);
+                break;
+        }
+    }
+
+    juce::Array<PresetEntry> PresetIndex::filtered(const PresetMetadataFilter& filter,
+                                                    const juce::StringArray* favoritePathsOnly) const
     {
         juce::Array<PresetEntry> out;
-        const auto q = query.trim().toLowerCase();
-        const auto cat = category.trim().toLowerCase();
-        const bool favoritesOnly = favoritePathsOnly != nullptr;
+        const juce::StringArray* fav = filter.favoritesOnly ? favoritePathsOnly : nullptr;
 
-        for (const auto& e : entries_)
+        for (const auto& entry : entries_)
         {
-            if (favoritesOnly && !favoritePathsOnly->contains(e.absolutePath))
-                continue;
-            if (!favoritesOnly && cat.isNotEmpty() && !e.category.toLowerCase().contains(cat))
-                continue;
-            if (q.isNotEmpty())
-            {
-                const auto haystack = (e.name + " " + e.description + " " + e.category + " " +
-                                       e.moods.joinIntoString(" ") + " " + e.tags.joinIntoString(" "))
-                                          .toLowerCase();
-                if (!haystack.contains(q))
-                    continue;
-            }
-            out.add(e);
+            if (entryMatchesFilter(entry, filter, fav))
+                out.add(entry);
         }
         return out;
     }
 
-    juce::Array<PresetEntry> PresetIndex::filtered(const juce::String& query, const juce::String& category,
-                                                    const juce::StringArray* favoritePathsOnly) const
+    juce::StringArray PresetIndex::uniqueFacetValues(PresetFacet facet, const PresetMetadataFilter& filter,
+                                                      const juce::StringArray* favoritePathsOnly) const
     {
-        return filteredCopy(query, category, favoritePathsOnly);
+        const auto facetFilter = filterWithFacetCleared(filter, facet);
+        const juce::StringArray* fav = facetFilter.favoritesOnly ? favoritePathsOnly : nullptr;
+
+        juce::StringArray values;
+        for (const auto& entry : entries_)
+        {
+            if (!entryMatchesFilter(entry, facetFilter, fav))
+                continue;
+            collectFacetValue(facet, entry, values);
+        }
+        values.sort(true);
+        return values;
     }
 
-    std::optional<PresetEntry> PresetIndex::nextAfter(const juce::String& currentPath, const juce::String& query,
-                                                       const juce::String& category,
+    std::optional<PresetEntry> PresetIndex::nextAfter(const juce::String& currentPath,
+                                                       const PresetMetadataFilter& filter,
                                                        const juce::StringArray* favoritePathsOnly) const
     {
-        const auto list = filteredCopy(query, category, favoritePathsOnly);
+        const auto list = filtered(filter, favoritePathsOnly);
         if (list.isEmpty())
             return std::nullopt;
 
@@ -138,11 +245,11 @@ namespace pw8::plugin::content
         return list[0];
     }
 
-    std::optional<PresetEntry> PresetIndex::prevBefore(const juce::String& currentPath, const juce::String& query,
-                                                        const juce::String& category,
+    std::optional<PresetEntry> PresetIndex::prevBefore(const juce::String& currentPath,
+                                                        const PresetMetadataFilter& filter,
                                                         const juce::StringArray* favoritePathsOnly) const
     {
-        const auto list = filteredCopy(query, category, favoritePathsOnly);
+        const auto list = filtered(filter, favoritePathsOnly);
         if (list.isEmpty())
             return std::nullopt;
 
@@ -156,14 +263,40 @@ namespace pw8::plugin::content
 
     juce::StringArray PresetIndex::uniqueCategories() const
     {
-        juce::StringArray cats;
-        for (const auto& e : entries_)
-        {
-            if (e.category.isNotEmpty() && !cats.contains(e.category, true))
-                cats.add(e.category);
-        }
-        cats.sort(true);
-        return cats;
+        PresetMetadataFilter empty;
+        return uniqueFacetValues(PresetFacet::Category, empty, nullptr);
+    }
+
+    juce::Array<PresetEntry> PresetIndex::filtered(const juce::String& query, const juce::String& category,
+                                                    const juce::StringArray* favoritePathsOnly) const
+    {
+        PresetMetadataFilter filter;
+        filter.query = query;
+        filter.category = category;
+        filter.favoritesOnly = favoritePathsOnly != nullptr;
+        return filtered(filter, favoritePathsOnly);
+    }
+
+    std::optional<PresetEntry> PresetIndex::nextAfter(const juce::String& currentPath, const juce::String& query,
+                                                       const juce::String& category,
+                                                       const juce::StringArray* favoritePathsOnly) const
+    {
+        PresetMetadataFilter filter;
+        filter.query = query;
+        filter.category = category;
+        filter.favoritesOnly = favoritePathsOnly != nullptr;
+        return nextAfter(currentPath, filter, favoritePathsOnly);
+    }
+
+    std::optional<PresetEntry> PresetIndex::prevBefore(const juce::String& currentPath, const juce::String& query,
+                                                        const juce::String& category,
+                                                        const juce::StringArray* favoritePathsOnly) const
+    {
+        PresetMetadataFilter filter;
+        filter.query = query;
+        filter.category = category;
+        filter.favoritesOnly = favoritePathsOnly != nullptr;
+        return prevBefore(currentPath, filter, favoritePathsOnly);
     }
 
 } // namespace pw8::plugin::content

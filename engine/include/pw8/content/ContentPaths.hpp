@@ -16,6 +16,10 @@ namespace pw8::content
     /// Application Support/Patchwork Eight). Later calls take precedence.
     void addSearchRoot(const std::string& rootPath) noexcept;
 
+    /// Walks upward from `startPath` (typically the plugin binary directory)
+    /// looking for content/wavetables/ and registers the first match.
+    void addSearchRootsFromAncestorWalk(const std::string& startPath, int maxDepth = 10) noexcept;
+
     /// Returns an existing filesystem path for `wavetableId`, or nullopt if none found.
     /// Tries the id as-is (absolute or cwd-relative) before searching roots.
     [[nodiscard]] std::optional<std::string> resolveWavetablePath(const std::string& wavetableId) noexcept;

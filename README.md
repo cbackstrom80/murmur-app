@@ -69,6 +69,9 @@ ctest --preset dev --output-on-failure
 166 test cases, 9,802,196 assertions, all passing. See [docs/BUILD.md](docs/BUILD.md)
 for every preset (release/asan/ubsan/benchmarks/python/plugin/plugin-release).
 
+**MVP gate:** `scripts/mvp_check.sh` — build, test, content validation, MCP smoke,
+render + fuzz sample. Scope: [docs/MVP.md](docs/MVP.md).
+
 ## Running the renderer
 
 ```bash

@@ -6,8 +6,11 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "GlowKnob.h"
+#include "GlowRingButton.h"
 #include "SectionPanel.h"
 #include "processor/PatchworkEightProcessor.h"
+#include "wireframe/FilterWireframeView.h"
+#include "wireframe/LfoWireframeView.h"
 
 namespace pw8::plugin::ui
 {
@@ -38,8 +41,11 @@ namespace pw8::plugin::ui
 
         SectionPanel filterPanel_{"Global Filter"};
         SectionPanel lfoPanel_{"LFO 1"};
+        wireframe::FilterWireframeView filterWireframe_;
+        wireframe::LfoWireframeView lfoWireframe_;
 
-        juce::ToggleButton filterEnabledToggle_{"ENABLED"};
+        std::unique_ptr<GlowRingButton> filterEnabledButton_;
+        juce::Label filterEnabledLabel_;
         std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> filterEnabledAttachment_;
 
         std::unique_ptr<GlowKnob> filterMode_;

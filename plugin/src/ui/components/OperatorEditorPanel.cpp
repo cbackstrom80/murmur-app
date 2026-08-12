@@ -47,22 +47,13 @@ namespace pw8::plugin::ui
     } // namespace
 
     OperatorEditorPanel::OperatorEditorPanel(PatchworkEightProcessor& processor)
-        : processor_(processor), wavetableStackView_(processor)
+        : processor_(processor), oscWireframeHost_(processor)
     {
         addAndMakeVisible(panel_);
-        // panel_ is a plain paint()-only shell with no interactivity of its own
-        // (SectionPanel's own doc comment) -- without this, its full-bounds hit
-        // region would swallow every click in the pill row before this
-        // component's own mouseDown() ever saw it. `true` for the children
-        // parameter keeps the knobs (panel_'s own children) fully clickable.
         panel_.setInterceptsMouseClicks(false, true);
-        // wavetableStackView_ holds no APVTS attachment (unlike the GlowKnobs
-        // below), so it's a plain always-alive member, added once here rather
-        // than reconstructed per showNode() -- showNode() just re-points it at
-        // the newly-selected node via its own showNode().
-        panel_.addAndMakeVisible(wavetableStackView_);
+        panel_.addAndMakeVisible(oscWireframeHost_);
         showNode(0);
-        startTimerHz(4); // Matches WavetableStackView's own poll rate -- see header doc comment.
+        startTimerHz(4);
     }
 
     OperatorEditorPanel::~OperatorEditorPanel()
@@ -96,7 +87,7 @@ namespace pw8::plugin::ui
     {
         selectedNode_ = juce::jlimit(0, static_cast<int>(pw8::core::kNodesPerLayer) - 1, nodeIndex);
         panel_.setTitle("Operator " + juce::String(selectedNode_));
-        wavetableStackView_.showNode(selectedNode_);
+        oscWireframeHost_.showNode(selectedNode_);
         // Every knob's APVTS attachment needs to be re-pointed at the new node's
         // parameter IDs, so this always rebuilds regardless of whether the new
         // node happens to share the old one's engine ordinal.
@@ -241,9 +232,10 @@ namespace pw8::plugin::ui
         waveformKnob_->setVisible(!showsWavetableStack && !isNoiseChaos && !isPhaseShape && !isAdditive && !isResonator);
         ratioKnob_->setVisible(true);
         wavetablePosKnob_->setVisible(showsWavetableStack);
-        wavetableStackView_.setVisible(showsWavetableStack);
+        oscWireframeHost_.setVisible(true);
+        oscWireframeHost_.setEngine(engineForIndex(engine));
         if (showsWavetableStack)
-            wavetableStackView_.ensureDefaultWavetableLoaded();
+            oscWireframeHost_.ensureDefaultWavetableLoaded();
         noiseVariantKnob_->setVisible(isNoiseChaos);
         noiseRateKnob_->setVisible(isNoiseChaos);
         phaseBendKnob_->setVisible(isPhaseShape);
@@ -316,6 +308,8 @@ namespace pw8::plugin::ui
         const auto paramId = operatorParamId(static_cast<std::size_t>(selectedNode_), "Engine");
         if (auto* param = apvts.getParameter(paramId))
             param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(i)));
+        // Keep patch.engine aligned with the pill (wavetable arrows reload via loadPatch).
+        processor_.syncCurrentPatchFromApvts();
         // setValueNotifyingHost() updates the underlying value synchronously
         // before notifying listeners, so currentEngineOrdinal() below already
         // sees the new value -- no need to wait for the next timerCallback().
@@ -329,128 +323,118 @@ namespace pw8::plugin::ui
         content.removeFromTop(kPillRowHeight);
         content.removeFromBottom(kNoteHeight);
 
-        if (wavetableStackView_.isVisible() && grainDensityKnob_ && grainDensityKnob_->isVisible())
-        {
-            // Granular: the stack shrinks further than the plain Wavetable case
-            // (0.40 vs 0.55) to make room for level/ratio/wtPos + 4 grain knobs
-            // (7-way split) in the remaining strip.
-            auto stackArea = content.removeFromLeft(static_cast<int>(static_cast<float>(content.getWidth()) * 0.40f));
-            wavetableStackView_.setBounds(stackArea.reduced(3));
+        const bool isGranular = grainDensityKnob_ && grainDensityKnob_->isVisible();
+        const float wireframeFrac = isGranular ? 0.40f : 0.45f;
+        auto wireframeArea = content.removeFromLeft(static_cast<int>(static_cast<float>(content.getWidth()) * wireframeFrac));
+        oscWireframeHost_.setBounds(wireframeArea.reduced(5));
 
+        if (isGranular)
+        {
             const int knobWidth = content.getWidth() / 7;
             if (levelKnob_)
-                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (ratioKnob_)
-                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (wavetablePosKnob_)
-                wavetablePosKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                wavetablePosKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (grainDensityKnob_)
-                grainDensityKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                grainDensityKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (grainSizeKnob_)
-                grainSizeKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                grainSizeKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (grainPosJitterKnob_)
-                grainPosJitterKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                grainPosJitterKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (grainPitchJitterKnob_)
-                grainPitchJitterKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
-        }
-        else if (wavetableStackView_.isVisible())
-        {
-            // 0.55, not GATE 5's original 0.62 -- ratioKnob_ joining this row
-            // (see updateEngineVisibility()'s doc comment on why it's always
-            // visible now) means 3 knobs share the remaining width instead of 2.
-            auto stackArea = content.removeFromLeft(static_cast<int>(static_cast<float>(content.getWidth()) * 0.55f));
-            wavetableStackView_.setBounds(stackArea.reduced(3));
-
-            const int knobWidth = content.getWidth() / 3;
-            if (levelKnob_)
-                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
-            if (ratioKnob_)
-                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
-            if (wavetablePosKnob_)
-                wavetablePosKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                grainPitchJitterKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
         }
         else if (fmModRatioKnob_ && fmModRatioKnob_->isVisible())
         {
-            // FM/PM: carrier's own Wave/Level/Ratio plus the internal
-            // modulator's 4 knobs -- 7 across, the same row-width budget
-            // FxChainStrip's 7 FX slots already prove works at this panel width.
             const int knobWidth = content.getWidth() / 7;
             for (auto* k : {waveformKnob_.get(), levelKnob_.get(), ratioKnob_.get(), fmModRatioKnob_.get(),
                              fmModIndexKnob_.get(), fmModFeedbackKnob_.get(), fmModWaveformKnob_.get()})
                 if (k != nullptr)
-                    k->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                    k->setBounds(content.removeFromLeft(knobWidth).reduced(5));
         }
         else if (noiseVariantKnob_ && noiseVariantKnob_->isVisible())
         {
             const int knobWidth = content.getWidth() / 4;
             if (ratioKnob_)
-                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (levelKnob_)
-                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (noiseVariantKnob_)
-                noiseVariantKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                noiseVariantKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (noiseRateKnob_)
-                noiseRateKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                noiseRateKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
         }
         else if (phaseBendKnob_ && phaseBendKnob_->isVisible())
         {
             const int knobWidth = content.getWidth() / 6;
             if (ratioKnob_)
-                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (levelKnob_)
-                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (phaseBendKnob_)
-                phaseBendKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                phaseBendKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (phaseFoldKnob_)
-                phaseFoldKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                phaseFoldKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (phaseAsymmetryKnob_)
-                phaseAsymmetryKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                phaseAsymmetryKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (phaseShapeKnob_)
-                phaseShapeKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                phaseShapeKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
         }
         else if (additivePartialsKnob_ && additivePartialsKnob_->isVisible())
         {
             const int knobWidth = content.getWidth() / 6;
             if (ratioKnob_)
-                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (levelKnob_)
-                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (additivePartialsKnob_)
-                additivePartialsKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                additivePartialsKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (additiveTiltKnob_)
-                additiveTiltKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                additiveTiltKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (additiveOddEvenKnob_)
-                additiveOddEvenKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                additiveOddEvenKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (additiveStretchKnob_)
-                additiveStretchKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                additiveStretchKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
         }
         else if (resonatorStructureKnob_ && resonatorStructureKnob_->isVisible())
         {
             const int knobWidth = content.getWidth() / 7;
             if (ratioKnob_)
-                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (levelKnob_)
-                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (resonatorStructureKnob_)
-                resonatorStructureKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                resonatorStructureKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (resonatorDecayKnob_)
-                resonatorDecayKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                resonatorDecayKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (resonatorDampingKnob_)
-                resonatorDampingKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                resonatorDampingKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (resonatorBrightnessKnob_)
-                resonatorBrightnessKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                resonatorBrightnessKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (resonatorModesKnob_)
-                resonatorModesKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                resonatorModesKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+        }
+        else if (wavetablePosKnob_ && wavetablePosKnob_->isVisible())
+        {
+            const int knobWidth = content.getWidth() / 3;
+            if (levelKnob_)
+                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            if (ratioKnob_)
+                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            if (wavetablePosKnob_)
+                wavetablePosKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
         }
         else
         {
             const int knobWidth = content.getWidth() / 3;
             if (waveformKnob_)
-                waveformKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                waveformKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (levelKnob_)
-                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (ratioKnob_)
-                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
+                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
         }
     }
 

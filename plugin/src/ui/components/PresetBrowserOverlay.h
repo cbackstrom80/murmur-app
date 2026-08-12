@@ -4,11 +4,13 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "MetadataFacetRow.h"
 #include "content/FavoritesStore.h"
 #include "content/PresetIndex.h"
 #include "processor/PatchworkEightProcessor.h"
 
-// Overlay preset browser: search, category filter, scrollable list (docs/PATCH_BROWSER.md phase 3).
+// Overlay preset browser: search, metadata facet filters, scrollable list
+// (docs/PATCH_BROWSER.md Phase 4).
 namespace pw8::plugin::ui
 {
     class PresetBrowserOverlay : public juce::Component, private juce::TextEditor::Listener, private juce::ListBoxModel
@@ -22,9 +24,7 @@ namespace pw8::plugin::ui
         void showOverlay();
         void dismiss();
 
-        [[nodiscard]] juce::String browseQuery() const { return searchField_.getText(); }
-        [[nodiscard]] juce::String browseCategory() const;
-        [[nodiscard]] bool browseFavoritesOnly() const { return categoryBox_.getSelectedId() == 2; }
+        [[nodiscard]] content::PresetMetadataFilter browseFilter() const;
 
         void paint(juce::Graphics& g) override;
         void resized() override;
@@ -39,9 +39,10 @@ namespace pw8::plugin::ui
         void paintListBoxItem(int row, juce::Graphics& g, int width, int height, bool selected) override;
         void listBoxItemClicked(int row, const juce::MouseEvent& event) override;
 
-        void rebuildList();
+        void rebuildFacetsAndList();
         void loadRow(int row);
         void toggleFavoriteRow(int row);
+        [[nodiscard]] juce::String formatEntrySubline(const content::PresetEntry& entry) const;
 
         PatchworkEightProcessor& processor_;
         content::PresetIndex& presetIndex_;
@@ -50,7 +51,11 @@ namespace pw8::plugin::ui
         juce::Component panel_;
         juce::Label titleLabel_{"", "PRESETS"};
         juce::TextEditor searchField_;
-        juce::ComboBox categoryBox_;
+        juce::ToggleButton favoritesToggle_{"★ FAV"};
+        MetadataFacetRow typeFacet_{"TYPE"};
+        MetadataFacetRow moodFacet_{"MOOD"};
+        MetadataFacetRow contextFacet_{"CONTEXT"};
+        MetadataFacetRow tagFacet_{"TAG"};
         juce::ListBox listBox_{"Presets", this};
         juce::TextButton closeButton_{"CLOSE"};
 
