@@ -51,6 +51,16 @@ This is the single biggest gap between "verified" and "shippable":
   `PatchworkEightProcessor.cpp`, `OperatorEditorPanel.h/.cpp`). All 8 of the
   headline "8-engine algorithmic synthesizer" engines now actually exist on
   `main`.
+- **A real patch browser** -- see `docs/PATCH_BROWSER.md`. Promoted here
+  from P2 by explicit direction (UA's plugin browser named as the concrete
+  UX reference: search, category filter, prev/next stepping, favorites).
+  `PatchBrowserBar` can currently load one file via a native dialog and
+  nothing else, against a library that's now 278 presets deep
+  (`content/presets/` root + the 250-patch factory bank) -- the gap this
+  closes is bigger now than when it was first flagged as PLANNED, not
+  smaller. `docs/PATCH_BROWSER.md` phases it: `PresetIndex` first, then
+  prev/next arrows on the existing bar (the smallest useful slice), then a
+  real search/filter panel, then favorites.
 
 ## P2 -- Highest-leverage PLANNED items (per ROADMAP, ranked)
 
@@ -59,17 +69,12 @@ In order of audible/usable impact per unit of engineering effort:
 1. **Filter 2** (Phase 6) -- Filter 1 already proved the pattern
    (`StateVariableFilter.hpp` + mod-matrix wiring); a second, differently
    -voiced filter is mostly repeating known work, not new design.
-2. **A real preset index/browser** (`docs/UI.md` "PLANNED") -- `PatchBrowserBar`
-   can load one file but can't step through a library. Low DSP risk, pure
-   plumbing (scan `content/presets/*.pw8`, cache names), and it's the single
-   most obvious "this feels unfinished" moment for anyone actually playing the
-   synth day to day.
-3. **DESIGN mode** (Phase 17) -- graph topology editing, full mod-matrix UI,
+2. **DESIGN mode** (Phase 17) -- graph topology editing, full mod-matrix UI,
    per-algorithm FX detail. This is where PLAY mode's honest scoping
    (dashed rings, "3 sources x 2 destinations only") stops being a feature and
    starts being a ceiling. Worth sequencing after P1's engine gaps close,
    since DESIGN mode editing engines that render silence doesn't help anyone.
-4. **Unison + Layer B DSP** (see P1) -- listed again here because once fixed
+3. **Unison + Layer B DSP** (see P1) -- listed again here because once fixed
    they're also roadmap phase completions, not just correctness fixes.
 
 ## P3 -- Polish and hardening, lower urgency
