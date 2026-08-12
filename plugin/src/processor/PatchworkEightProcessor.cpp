@@ -1,11 +1,14 @@
 // STATUS: PARTIAL -- see PatchworkEightProcessor.h.
 
+#include <cstdlib>
+
 #include "processor/PatchworkEightProcessor.h"
 
 #include <algorithm>
 
 #include "pw8/core/AudioBlock.hpp"
 #include "pw8/patch/PatchSerializer.hpp"
+#include "pw8/content/ContentPaths.hpp"
 #include "ui/PlayModeEditor.h"
 
 namespace pw8::plugin
@@ -39,6 +42,17 @@ namespace pw8::plugin
         engineStorageA_ = std::make_unique<render::Engine>();
         engineStorageA_->loadPatch(currentPatch_);
         activeEngine_.store(engineStorageA_.get(), std::memory_order_release);
+
+#if defined(__APPLE__)
+        pw8::content::addSearchRoot("/Library/Application Support/Patchwork Eight");
+        if (const char* home = std::getenv("HOME"))
+            pw8::content::addSearchRoot(std::string(home) + "/Library/Application Support/Patchwork Eight");
+#endif
+        if (const char* envRoot = std::getenv("PW8_CONTENT_ROOT"))
+        {
+            if (envRoot[0] != '\0')
+                pw8::content::addSearchRoot(envRoot);
+        }
     }
 
     PatchworkEightProcessor::~PatchworkEightProcessor() = default;
@@ -430,6 +444,21 @@ namespace pw8::plugin
         // so there's nothing useful left for a stale publish to contribute.
         pendingModRoutes_.store(nullptr, std::memory_order_release);
         return ok;
+    }
+
+    bool PatchworkEightProcessor::loadPatchFromFile(const juce::String& filePath)
+    {
+        const juce::File file(filePath);
+        if (!file.existsAsFile())
+            return false;
+
+        const auto json = file.loadFileAsString();
+        const auto result = patch::loadPatchFromJson(json.toStdString());
+        if (!result.ok)
+            return false;
+
+        currentPresetPath_ = file.getFullPathName();
+        return loadPatch(result.patch);
     }
 
     bool PatchworkEightProcessor::setOperatorWavetableFile(std::size_t opIndex, const juce::String& filePath)

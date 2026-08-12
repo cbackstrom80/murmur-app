@@ -8,50 +8,71 @@ namespace pw8::plugin::ui
         : juce::AudioProcessorEditor(&processor),
           processor_(processor),
           patchBrowserBar_(processor),
-          graphView_(processor),
+          nodeSelectorRow_(processor),
+          macroStrip_(processor),
           operatorEditorPanel_(processor),
           modSourceStrip_(processor),
           filterLfoPanel_(processor),
-          macroStrip_(processor),
           fxChainStrip_(processor.apvts)
     {
         setLookAndFeel(&lookAndFeel_);
 
         addAndMakeVisible(patchBrowserBar_);
-        addAndMakeVisible(graphPanel_);
-        graphPanel_.addAndMakeVisible(graphView_);
-        graphPanel_.addAndMakeVisible(operatorEditorPanel_);
-        graphView_.onNodeSelected = [this](int node) { operatorEditorPanel_.showNode(node); };
-        addAndMakeVisible(modSourceStrip_);
-        addAndMakeVisible(filterLfoPanel_);
-        addAndMakeVisible(macroStrip_);
-        addAndMakeVisible(fxChainStrip_);
+        addAndMakeVisible(nodeSelectorRow_);
+        nodeSelectorRow_.onNodeSelected = [this](int node) { operatorEditorPanel_.showNode(node); };
 
+        for (std::size_t i = 0; i < tabButtons_.size(); ++i)
+        {
+            auto& btn = tabButtons_[i];
+            btn.setClickingTogglesState(true);
+            btn.setRadioGroupId(9001);
+            btn.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
+            btn.setColour(juce::TextButton::buttonOnColourId, palette::kAccent.withAlpha(0.35f));
+            btn.setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
+            btn.setColour(juce::TextButton::textColourOnId, palette::kTextPrimary);
+            btn.onClick = [this, page = static_cast<Page>(i)] { showPage(page); };
+            addAndMakeVisible(btn);
+        }
+
+        addAndMakeVisible(basicPage_);
+        addAndMakeVisible(oscPage_);
+        addAndMakeVisible(filterPage_);
+        addAndMakeVisible(modPage_);
+        addAndMakeVisible(fxPage_);
+
+        basicPage_.addAndMakeVisible(macroPanel_);
+        macroPanel_.addAndMakeVisible(macroStrip_);
+        oscPage_.addAndMakeVisible(oscPanel_);
+        oscPanel_.addAndMakeVisible(operatorEditorPanel_);
+        filterPage_.addAndMakeVisible(filterLfoPanel_);
+        modPage_.addAndMakeVisible(modSourceStrip_);
+        fxPage_.addAndMakeVisible(fxChainStrip_);
+
+        showPage(Page::Basic);
         setResizable(false, false);
-        // +160 over the original 890 for OperatorEditorPanel's fixed allotment
-        // inside the graph card, +80 more for ModSourceStrip's connections list
-        // (UI GATE 3), +48 more (UI GATE 4) so FxChainStrip's 7 slots -- each
-        // paying a 24px type-label tax on top of its knob, unlike every other
-        // strip's knobs -- stop flooring out at ObsidianLookAndFeel's 16px
-        // defensive-minimum diameter, +50 more (UI GATE 5) for the identical
-        // failure mode in OperatorEditorPanel's Wave/Level/Ratio knobs (and so
-        // the new WavetableStackView, swapped in for Wave/Ratio on a Wavetable-
-        // engine node, isn't a squashed sliver), +130 more (UI GATE 6) so
-        // WavetableStackView's perspective wireframe mesh has real vertical
-        // room -- the old ~554x88 allotment was fine for flat "deck of cards"
-        // ribbons but far too short for anything reading as 3D depth. These
-        // deltas are each independent -- different strips/lines in resized()
-        // below -- so they simply add: 1130 + 48 + 50 + 130.
-        // Every one of these, growing the window rather than squeezing a
-        // control back down toward illegibility, the exact "negative/
-        // undersized geometry" failure mode UI GATE 1 already found once via
-        // lldb (docs/UI.md).
-        setSize(980, 1358);
+        // Shorter than the old single-screen stack (docs/UI_PAGED_LAYOUT.md): tabs
+        // replace ~960px of always-visible utility strips with one page at a time.
+        setSize(980, 920);
     }
 
     PlayModeEditor::~PlayModeEditor()
     {
         setLookAndFeel(nullptr);
+    }
+
+    void PlayModeEditor::showPage(Page page)
+    {
+        currentPage_ = page;
+        basicPage_.setVisible(page == Page::Basic);
+        oscPage_.setVisible(page == Page::Osc);
+        filterPage_.setVisible(page == Page::Filter);
+        modPage_.setVisible(page == Page::Mod);
+        fxPage_.setVisible(page == Page::Fx);
+
+        for (std::size_t i = 0; i < tabButtons_.size(); ++i)
+            tabButtons_[i].setToggleState(static_cast<Page>(i) == page, juce::dontSendNotification);
+
+        resized();
     }
 
     void PlayModeEditor::paint(juce::Graphics& g)
@@ -63,20 +84,12 @@ namespace pw8::plugin::ui
         g.setGradientFill(bg);
         g.fillAll();
 
-        // A very sparse, deterministic dot grain -- the "milled panel" material
-        // read extended to the whole background, not just card edges. Cheap
-        // (no image asset, no per-frame recompute -- paint() only runs on
-        // repaint, and this background never changes shape) and subtle enough
-        // that it reads as texture, not as visible dots at normal viewing scale.
         g.setColour(palette::kTopHighlight.withAlpha(0.05f));
         constexpr float kSpacing = 26.0f;
         for (float gy = 10.0f; gy < h; gy += kSpacing)
         {
             for (float gx = 10.0f; gx < w; gx += kSpacing)
             {
-                // A cheap positional hash, not real randomness -- deterministic so
-                // the texture never swims between repaints, which matters since
-                // several child components repaint on their own timers.
                 const auto hash = static_cast<juce::uint32>(gx * 7919.0f + gy * 104729.0f);
                 if ((hash & 3u) != 0u)
                     continue;
@@ -84,9 +97,6 @@ namespace pw8::plugin::ui
             }
         }
 
-        // Soft vignette: a radial gradient darkening the corners, the last touch
-        // that keeps the eye pulled toward the centre (the algorithm graph)
-        // rather than the flat edges of the window.
         juce::ColourGradient vignette(juce::Colours::transparentBlack, w * 0.5f, h * 0.42f,
                                        palette::kBackgroundTop.withAlpha(0.55f), w, h, true);
         vignette.addColour(0.75, juce::Colours::transparentBlack);
@@ -99,42 +109,31 @@ namespace pw8::plugin::ui
         auto bounds = getLocalBounds().reduced(12);
 
         patchBrowserBar_.setBounds(bounds.removeFromTop(40));
-        bounds.removeFromTop(10);
+        bounds.removeFromTop(8);
+        nodeSelectorRow_.setBounds(bounds.removeFromTop(36));
+        bounds.removeFromTop(8);
 
-        // Bottom-up: the three utility strips get fixed heights generous enough
-        // for a knob + label + value box to never be cramped (the exact bug a
-        // too-small allotment caused here during development -- a starved rotary
-        // slider's derived radii went negative, which juce::Graphics's own debug
-        // assertions caught as a malformed fillEllipse call). The algorithm graph,
-        // as the centerpiece, gets whatever's left rather than a fixed share.
-        // FxChainStrip pays a 24px type-label tax per slot on top of its knob
-        // (unlike MacroStrip's plain knob row), so it needs more height than the
-        // other utility strips to land its knob at a comparable, legible size --
-        // see the UI GATE 4 note above `setSize()`.
-        auto fxArea = bounds.removeFromBottom(168);
-        bounds.removeFromBottom(8);
-        auto macroArea = bounds.removeFromBottom(120);
-        bounds.removeFromBottom(8);
-        auto filterLfoArea = bounds.removeFromBottom(130);
-        bounds.removeFromBottom(8);
-        auto modSourceArea = bounds.removeFromBottom(140); // Chip row + connections list (UI GATE 3).
-        bounds.removeFromBottom(8);
+        auto tabRow = bounds.removeFromTop(32);
+        const int tabWidth = tabRow.getWidth() / static_cast<int>(tabButtons_.size());
+        for (auto& btn : tabButtons_)
+            btn.setBounds(tabRow.removeFromLeft(tabWidth).reduced(2, 2));
+        bounds.removeFromTop(8);
 
-        graphPanel_.setBounds(bounds);
-        auto graphContent = graphPanel_.getContentBounds();
-        // 320, not UI GATE 5's 190 -- see the UI GATE 6 note above `setSize()`.
-        // The +130 here is exactly offset by setSize()'s own +130, so
-        // graphView_'s height below is unchanged from before this pass (the
-        // circle doesn't shrink to make room).
-        auto opEditorArea = graphContent.removeFromBottom(320);
-        graphContent.removeFromBottom(8);
-        graphView_.setBounds(graphContent);
-        operatorEditorPanel_.setBounds(opEditorArea);
+        basicPage_.setBounds(bounds);
+        oscPage_.setBounds(bounds);
+        filterPage_.setBounds(bounds);
+        modPage_.setBounds(bounds);
+        fxPage_.setBounds(bounds);
 
-        modSourceStrip_.setBounds(modSourceArea);
-        filterLfoPanel_.setBounds(filterLfoArea);
-        macroStrip_.setBounds(macroArea);
-        fxChainStrip_.setBounds(fxArea);
+        macroPanel_.setBounds(basicPage_.getLocalBounds());
+        macroStrip_.setBounds(macroPanel_.getContentBounds());
+
+        oscPanel_.setBounds(oscPage_.getLocalBounds());
+        operatorEditorPanel_.setBounds(oscPanel_.getContentBounds());
+
+        filterLfoPanel_.setBounds(filterPage_.getLocalBounds());
+        modSourceStrip_.setBounds(modPage_.getLocalBounds());
+        fxChainStrip_.setBounds(fxPage_.getLocalBounds());
     }
 
 } // namespace pw8::plugin::ui

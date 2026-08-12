@@ -7,20 +7,24 @@ namespace pw8::plugin::ui
 {
     namespace
     {
-        // Was a bare `280` repeated independently in both paint() and resized() --
-        // harmless while they happened to agree, but a real bug waiting to happen
-        // the first time only one of the two got edited (e.g. a wider wordmark
-        // needing more room, changed in paint() and silently not in resized(), or
-        // vice versa).
-        constexpr int kWordmarkWidth = 280;
+        constexpr int kWordmarkWidth = 220;
     } // namespace
 
     PatchBrowserBar::PatchBrowserBar(PatchworkEightProcessor& processor) : processor_(processor)
     {
-        patchNameLabel_.setJustificationType(juce::Justification::centredRight);
+        patchNameLabel_.setJustificationType(juce::Justification::centred);
         patchNameLabel_.setColour(juce::Label::textColourId, palette::kTextPrimary);
-        patchNameLabel_.setFont(fonts::title(16.0f));
+        patchNameLabel_.setFont(fonts::title(15.0f));
         addAndMakeVisible(patchNameLabel_);
+
+        prevButton_.onClick = [this] { stepPreset(-1); };
+        nextButton_.onClick = [this] { stepPreset(1); };
+        for (auto* btn : {&prevButton_, &nextButton_})
+        {
+            btn->setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
+            btn->setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
+            addAndMakeVisible(*btn);
+        }
 
         loadButton_.onClick = [this] { loadPatchFromFile(); };
         loadButton_.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
@@ -28,6 +32,7 @@ namespace pw8::plugin::ui
         loadButton_.setColour(juce::ComboBox::outlineColourId, palette::kBorderBright);
         addAndMakeVisible(loadButton_);
 
+        refreshPresetIndex();
         startTimerHz(2);
         timerCallback();
     }
@@ -35,6 +40,13 @@ namespace pw8::plugin::ui
     PatchBrowserBar::~PatchBrowserBar()
     {
         stopTimer();
+    }
+
+    void PatchBrowserBar::refreshPresetIndex()
+    {
+        presetIndex_.rescan();
+        prevButton_.setEnabled(!presetIndex_.allEntries().isEmpty());
+        nextButton_.setEnabled(!presetIndex_.allEntries().isEmpty());
     }
 
     void PatchBrowserBar::timerCallback()
@@ -50,20 +62,39 @@ namespace pw8::plugin::ui
         auto wordmarkArea = bounds.removeFromLeft(kWordmarkWidth);
 
         g.setColour(palette::kTextPrimary);
-        g.setFont(fonts::title(18.0f));
-        g.drawText("PATCHWORK EIGHT", wordmarkArea.removeFromTop(22), juce::Justification::bottomLeft);
+        g.setFont(fonts::title(16.0f));
+        g.drawText("PATCHWORK EIGHT", wordmarkArea.removeFromTop(20), juce::Justification::bottomLeft);
 
         g.setColour(palette::kTextDim);
-        g.setFont(fonts::label(9.0f));
-        g.drawText("8-ENGINE ALGORITHMIC SYNTHESIZER", wordmarkArea, juce::Justification::topLeft);
+        g.setFont(fonts::label(8.0f));
+        g.drawText("8-ENGINE ALGORITHMIC SYNTH", wordmarkArea, juce::Justification::topLeft);
     }
 
     void PatchBrowserBar::resized()
     {
         auto bounds = getLocalBounds().withTrimmedLeft(kWordmarkWidth);
-        loadButton_.setBounds(bounds.removeFromRight(80).reduced(0, 6));
-        bounds.removeFromRight(8);
+        loadButton_.setBounds(bounds.removeFromRight(72).reduced(0, 6));
+        bounds.removeFromRight(4);
+        nextButton_.setBounds(bounds.removeFromRight(28).reduced(0, 8));
+        prevButton_.setBounds(bounds.removeFromRight(28).reduced(0, 8));
+        bounds.removeFromRight(6);
         patchNameLabel_.setBounds(bounds);
+    }
+
+    void PatchBrowserBar::stepPreset(int direction)
+    {
+        const auto current = processor_.getCurrentPresetPath();
+        std::optional<content::PresetEntry> entry;
+        if (direction > 0)
+            entry = presetIndex_.nextAfter(current);
+        else
+            entry = presetIndex_.prevBefore(current);
+
+        if (!entry.has_value())
+            return;
+
+        processor_.loadPatchFromFile(entry->absolutePath);
+        timerCallback();
     }
 
     void PatchBrowserBar::loadPatchFromFile()
@@ -74,11 +105,10 @@ namespace pw8::plugin::ui
         fileChooser_->launchAsync(flags, [this](const juce::FileChooser& chooser) {
             const auto file = chooser.getResult();
             if (!file.existsAsFile())
-                return; // Cancelled -- not an error.
+                return;
 
-            const auto json = file.loadFileAsString();
-            processor_.setStateInformation(json.toRawUTF8(), static_cast<int>(json.getNumBytesAsUTF8()));
-            timerCallback(); // Refresh the displayed name immediately rather than waiting for the next timer tick.
+            processor_.loadPatchFromFile(file.getFullPathName());
+            timerCallback();
         });
     }
 

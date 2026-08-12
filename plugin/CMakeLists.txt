@@ -44,11 +44,13 @@ juce_add_plugin(pw8_plugin
 target_sources(pw8_plugin PRIVATE
     src/processor/PatchworkEightProcessor.cpp
     src/state/PluginState.cpp
+    src/content/PresetIndex.cpp
     src/ui/PlayModeEditor.cpp
     src/ui/theme/ObsidianLookAndFeel.cpp
     src/ui/components/GlowKnob.cpp
     src/ui/components/SectionPanel.cpp
     src/ui/components/AlgorithmGraphView.cpp
+    src/ui/components/NodeSelectorRow.cpp
     src/ui/components/OperatorEditorPanel.cpp
     src/ui/components/MacroStrip.cpp
     src/ui/components/FilterLfoPanel.cpp

@@ -58,6 +58,11 @@ namespace pw8::plugin
         /// new Engine off-thread and atomically publishes it for processBlock() to pick up.
         bool loadPatch(const patch::Patch& newPatch);
 
+        /// Message-thread only: load a `.pw8` from disk and remember its path for preset browsing.
+        bool loadPatchFromFile(const juce::String& filePath);
+
+        [[nodiscard]] juce::String getCurrentPresetPath() const noexcept { return currentPresetPath_; }
+
         /// Message-thread only (WavetableStackView's "Load..." button -- the only
         /// UI anywhere that can assign a wavetable to an operator; everything else
         /// requires hand-editing a .pw8's wavetableId field). Sets operator
@@ -181,6 +186,7 @@ namespace pw8::plugin
         void publishModRoutesLive(const core::FixedVector<modulation::ModRoute, core::kMaxModRoutes>& routes);
 
         patch::Patch currentPatch_ = patch::Patch::makeInit();
+        juce::String currentPresetPath_;
 
         // Cached once in the constructor: audio-thread-safe raw pointers into the
         // APVTS's atomic parameter storage. Organized to mirror the field-spec tables
