@@ -49,11 +49,19 @@ namespace pw8::plugin
 
     // Matches filter::FilterParams: enabled, mode, cutoffHz, resonance, keyTrack.
     const std::array<ParamFieldSpec, kNumFilterFields> kFilterFieldSpecs = {{
-        {"Enabled",   "Enabled",    0.0f,  1.0f,     0.0f,    true},
-        {"Mode",      "Mode",       0.0f,  4.0f,     0.0f,    true},
-        {"CutoffHz",  "Cutoff Hz",  10.0f, 24000.0f, 8000.0f, false},
-        {"Resonance", "Resonance",  0.0f,  1.0f,     0.2f,    false},
-        {"KeyTrack",  "Key Track", -1.0f,  1.0f,     0.0f,    false},
+        {"Enabled",   "Global Filter Enabled", 0.0f,  1.0f,     0.0f,    true},
+        {"Mode",      "Global Filter Mode",    0.0f,  4.0f,     0.0f,    true},
+        {"CutoffHz",  "Global Cutoff Hz",      10.0f, 24000.0f, 8000.0f, false},
+        {"Resonance", "Global Resonance",      0.0f,  1.0f,     0.2f,    false},
+        {"KeyTrack",  "Global Key Track",     -1.0f,  1.0f,     0.0f,    false},
+    }};
+
+    const std::array<ParamFieldSpec, kNumOperatorFilterFields> kOperatorFilterFieldSpecs = {{
+        {"FilterEnabled",   "Engine Filter Enabled", 0.0f,  1.0f,     0.0f,    true},
+        {"FilterMode",      "Engine Filter Mode",    0.0f,  4.0f,     0.0f,    true},
+        {"FilterCutoffHz",  "Engine Cutoff Hz",      10.0f, 24000.0f, 8000.0f, false},
+        {"FilterResonance", "Engine Resonance",      0.0f,  1.0f,     0.2f,    false},
+        {"FilterKeyTrack",  "Engine Key Track",     -1.0f,  1.0f,     0.0f,    false},
     }};
 
     // Matches lfo::LfoParams: waveform, mode, rateHz, syncDivisionIndex, phaseOffset.
@@ -156,6 +164,11 @@ namespace pw8::plugin
         return "op" + juce::String(static_cast<int>(opIndex)) + fieldSuffix;
     }
 
+    juce::String operatorFilterParamId(std::size_t opIndex, const char* fieldSuffix)
+    {
+        return operatorParamId(opIndex, fieldSuffix);
+    }
+
     juce::String lfoParamId(std::size_t lfoIndex, const char* fieldSuffix)
     {
         return "lfo" + juce::String(static_cast<int>(lfoIndex)) + fieldSuffix;
@@ -193,8 +206,8 @@ namespace pw8::plugin
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
     {
         std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
-        params.reserve(8 + kNumFilterFields + kNumLfos * kNumLfoFields + kNumOperators * kNumOperatorFields +
-                       kNumEnvelopes * kNumEnvelopeFields + 3 +
+        params.reserve(8 + kNumFilterFields + kNumOperators * kNumOperatorFilterFields + kNumLfos * kNumLfoFields +
+                       kNumOperators * kNumOperatorFields + kNumEnvelopes * kNumEnvelopeFields + 3 +
                        (kNumInsertFxSlots + kNumMasterFxSlots) * kNumEffectSlotFields + kNumArpFields);
 
         for (std::size_t i = 0; i < kMacroParameterIds.size(); ++i)
@@ -212,6 +225,10 @@ namespace pw8::plugin
         for (std::size_t op = 0; op < kNumOperators; ++op)
             for (const auto& spec : kOperatorFieldSpecs)
                 addParam(params, operatorParamId(op, spec.idSuffix), spec);
+
+        for (std::size_t op = 0; op < kNumOperators; ++op)
+            for (const auto& spec : kOperatorFilterFieldSpecs)
+                addParam(params, operatorFilterParamId(op, spec.idSuffix), spec);
 
         for (std::size_t env = 0; env < kNumEnvelopes; ++env)
             for (const auto& spec : kEnvelopeFieldSpecs)

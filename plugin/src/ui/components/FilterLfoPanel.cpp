@@ -1,5 +1,6 @@
 #include "FilterLfoPanel.h"
 
+#include "../theme/BrandingAssets.h"
 #include "../theme/ObsidianPalette.h"
 #include "state/PluginState.h"
 
@@ -47,43 +48,112 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    FilterLfoPanel::FilterLfoPanel(PatchworkEightProcessor& processor)
+    FilterLfoPanel::FilterLfoPanel(PatchworkEightProcessor& processor) : processor_(processor)
     {
-        auto& apvts = processor.apvts;
         addAndMakeVisible(filterPanel_);
         addAndMakeVisible(lfoPanel_);
-
-        filterEnabledAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
-            apvts, juce::String(kFilterIdPrefix) + "Enabled", filterEnabledToggle_);
         filterPanel_.addAndMakeVisible(filterEnabledToggle_);
 
-        filterMode_ = std::make_unique<GlowKnob>(apvts, juce::String(kFilterIdPrefix) + "Mode", "Mode",
-                                                   filterModeToText);
-        filterCutoff_ = std::make_unique<GlowKnob>(apvts, juce::String(kFilterIdPrefix) + "CutoffHz", "Cutoff");
-        filterResonance_ =
-            std::make_unique<GlowKnob>(apvts, juce::String(kFilterIdPrefix) + "Resonance", "Resonance");
-        filterKeyTrack_ = std::make_unique<GlowKnob>(apvts, juce::String(kFilterIdPrefix) + "KeyTrack", "Key Trk");
-        // The two real drag-to-modulate destinations this pass surfaces (docs/UI.md)
-        // -- Mode and Key Track aren't ModMatrixExecutor destinations at all, so they
-        // deliberately stay plain knobs, not drop targets.
-        filterCutoff_->enableModulationTarget(processor, modulation::ModDestination::FilterCutoff);
-        filterResonance_->enableModulationTarget(processor, modulation::ModDestination::FilterResonance);
-        for (auto* k : {filterMode_.get(), filterCutoff_.get(), filterResonance_.get(), filterKeyTrack_.get()})
-            filterPanel_.addAndMakeVisible(*k);
-
-        lfoWaveform_ = std::make_unique<GlowKnob>(apvts, lfoParamId(0, "Waveform"), "Wave", lfoWaveformToText);
-        lfoMode_ = std::make_unique<GlowKnob>(apvts, lfoParamId(0, "Mode"), "Mode", lfoModeToText);
-        lfoRate_ = std::make_unique<GlowKnob>(apvts, lfoParamId(0, "RateHz"), "Rate");
+        lfoWaveform_ = std::make_unique<GlowKnob>(processor.apvts, lfoParamId(0, "Waveform"), "Wave", lfoWaveformToText);
+        lfoMode_ = std::make_unique<GlowKnob>(processor.apvts, lfoParamId(0, "Mode"), "Mode", lfoModeToText);
+        lfoRate_ = std::make_unique<GlowKnob>(processor.apvts, lfoParamId(0, "RateHz"), "Rate");
         for (auto* k : {lfoWaveform_.get(), lfoMode_.get(), lfoRate_.get()})
             lfoPanel_.addAndMakeVisible(*k);
+
+        setScope(FilterPanelScope::Global, 0);
+    }
+
+    void FilterLfoPanel::setScope(FilterPanelScope scope, int engineIndex)
+    {
+        scope_ = scope;
+        engineIndex_ = juce::jlimit(0, 7, engineIndex);
+        rebuildAttachments();
+        lfoPanel_.setVisible(scope_ == FilterPanelScope::Global);
+        filterPanel_.setTitle(scope_ == FilterPanelScope::Global
+                                  ? "Global Filter"
+                                  : "Engine " + juce::String(engineIndex_) + " Filter");
+        resized();
+        repaint();
+    }
+
+    void FilterLfoPanel::rebuildAttachments()
+    {
+        filterEnabledAttachment_.reset();
+        filterMode_.reset();
+        filterCutoff_.reset();
+        filterResonance_.reset();
+        filterKeyTrack_.reset();
+
+        auto& apvts = processor_.apvts;
+        juce::String enabledId;
+        juce::String modeId;
+        juce::String cutoffId;
+        juce::String resonanceId;
+        juce::String keyTrackId;
+        modulation::ModDestination cutoffDest = modulation::ModDestination::None;
+        modulation::ModDestination resonanceDest = modulation::ModDestination::None;
+        std::uint8_t modTarget = 0;
+
+        if (scope_ == FilterPanelScope::Global)
+        {
+            enabledId = juce::String(kFilterIdPrefix) + "Enabled";
+            modeId = juce::String(kFilterIdPrefix) + "Mode";
+            cutoffId = juce::String(kFilterIdPrefix) + "CutoffHz";
+            resonanceId = juce::String(kFilterIdPrefix) + "Resonance";
+            keyTrackId = juce::String(kFilterIdPrefix) + "KeyTrack";
+            cutoffDest = modulation::ModDestination::FilterCutoff;
+            resonanceDest = modulation::ModDestination::FilterResonance;
+        }
+        else
+        {
+            enabledId = operatorFilterParamId(static_cast<std::size_t>(engineIndex_), "FilterEnabled");
+            modeId = operatorFilterParamId(static_cast<std::size_t>(engineIndex_), "FilterMode");
+            cutoffId = operatorFilterParamId(static_cast<std::size_t>(engineIndex_), "FilterCutoffHz");
+            resonanceId = operatorFilterParamId(static_cast<std::size_t>(engineIndex_), "FilterResonance");
+            keyTrackId = operatorFilterParamId(static_cast<std::size_t>(engineIndex_), "FilterKeyTrack");
+            cutoffDest = modulation::ModDestination::OperatorFilterCutoff;
+            resonanceDest = modulation::ModDestination::OperatorFilterResonance;
+            modTarget = static_cast<std::uint8_t>(engineIndex_);
+        }
+
+        filterEnabledAttachment_ =
+            std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, enabledId, filterEnabledToggle_);
+
+        filterMode_ = std::make_unique<GlowKnob>(apvts, modeId, "Mode", filterModeToText);
+        filterCutoff_ = std::make_unique<GlowKnob>(apvts, cutoffId, "Cutoff");
+        filterResonance_ = std::make_unique<GlowKnob>(apvts, resonanceId, "Resonance");
+        filterKeyTrack_ = std::make_unique<GlowKnob>(apvts, keyTrackId, "Key Trk");
+        filterCutoff_->enableModulationTarget(processor_, cutoffDest, modTarget);
+        filterResonance_->enableModulationTarget(processor_, resonanceDest, modTarget);
+
+        filterPanel_.removeAllChildren();
+        filterPanel_.addAndMakeVisible(filterEnabledToggle_);
+        for (auto* k : {filterMode_.get(), filterCutoff_.get(), filterResonance_.get(), filterKeyTrack_.get()})
+            filterPanel_.addAndMakeVisible(*k);
+    }
+
+    void FilterLfoPanel::paint(juce::Graphics& g)
+    {
+        if (scope_ != FilterPanelScope::Global)
+            return;
+
+        g.setColour(branding::glowColour().withAlpha(0.06f));
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), 8.0f);
     }
 
     void FilterLfoPanel::resized()
     {
         auto bounds = getLocalBounds();
-        const int half = bounds.getWidth() / 2;
-        filterPanel_.setBounds(bounds.removeFromLeft(half).reduced(4, 0));
-        lfoPanel_.setBounds(bounds.reduced(4, 0));
+        if (scope_ == FilterPanelScope::Global)
+        {
+            const int half = bounds.getWidth() / 2;
+            filterPanel_.setBounds(bounds.removeFromLeft(half).reduced(4, 0));
+            lfoPanel_.setBounds(bounds.reduced(4, 0));
+        }
+        else
+        {
+            filterPanel_.setBounds(bounds.reduced(4, 0));
+        }
 
         {
             auto content = filterPanel_.getContentBounds();
@@ -94,6 +164,7 @@ namespace pw8::plugin::ui
             filterResonance_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
             filterKeyTrack_->setBounds(content.removeFromLeft(knobWidth).reduced(3));
         }
+        if (scope_ == FilterPanelScope::Global)
         {
             auto content = lfoPanel_.getContentBounds();
             const int knobWidth = content.getWidth() / 3;

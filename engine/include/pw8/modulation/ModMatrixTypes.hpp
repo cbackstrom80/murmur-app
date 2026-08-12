@@ -30,8 +30,10 @@ namespace pw8::modulation
     enum class ModDestination : std::uint8_t
     {
         None = 0,
-        FilterCutoff,   ///< exponential (semitone-style) offset, see ModMatrixExecutor.
+        FilterCutoff,   ///< global filter; exponential (semitone-style) offset, see ModMatrixExecutor.
         FilterResonance,
+        OperatorFilterCutoff,    ///< per-engine filter; requires `targetIndex` in [0, kNodesPerLayer).
+        OperatorFilterResonance,
         OperatorLevel,           ///< requires `targetIndex` in [0, kNodesPerLayer).
         Pan,
         OperatorWavetablePosition, ///< requires `targetIndex`; additive offset, 0..1 result.

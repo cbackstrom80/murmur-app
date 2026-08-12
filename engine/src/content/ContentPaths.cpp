@@ -137,4 +137,15 @@ namespace pw8::content
         return out;
     }
 
+    std::vector<std::string> wavetableSearchRoots() noexcept
+    {
+        std::vector<std::string> out;
+        for (const auto& root : allRoots())
+        {
+            out.push_back((root / "content/wavetables").string());
+            out.push_back((root / "Wavetables").string());
+        }
+        return out;
+    }
+
 } // namespace pw8::content

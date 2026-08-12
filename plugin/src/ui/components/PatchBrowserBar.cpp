@@ -1,5 +1,6 @@
 #include "PatchBrowserBar.h"
 
+#include "../theme/BrandingAssets.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 
@@ -7,7 +8,17 @@ namespace pw8::plugin::ui
 {
     namespace
     {
-        constexpr int kWordmarkWidth = 220;
+        juce::Colour glowMix(float alpha)
+        {
+            return branding::glowColour().withAlpha(alpha);
+        }
+
+        void paintVerticalSeparator(juce::Graphics& g, float x, float top, float bottom)
+        {
+            juce::ColourGradient line(glowMix(0.55f), x, top, glowMix(0.0f), x, bottom, false);
+            g.setGradientFill(line);
+            g.fillRect(x, top, 1.0f, bottom - top);
+        }
     } // namespace
 
     PatchBrowserBar::PatchBrowserBar(PatchworkEightProcessor& processor) : processor_(processor)
@@ -46,10 +57,11 @@ namespace pw8::plugin::ui
         stopTimer();
     }
 
-    void PatchBrowserBar::setBrowseFilters(const juce::String& query, const juce::String& category)
+    void PatchBrowserBar::setBrowseFilters(const juce::String& query, const juce::String& category, bool favoritesOnly)
     {
         browseQuery_ = query;
         browseCategory_ = category;
+        browseFavoritesOnly_ = favoritesOnly;
     }
 
     void PatchBrowserBar::refreshPresetIndex()
@@ -68,27 +80,59 @@ namespace pw8::plugin::ui
 
     void PatchBrowserBar::paint(juce::Graphics& g)
     {
-        auto bounds = getLocalBounds();
-        auto wordmarkArea = bounds.removeFromLeft(kWordmarkWidth);
+        const auto fullBounds = getLocalBounds().toFloat();
 
+        juce::ColourGradient barFill(palette::kPanelRaised.brighter(0.06f), fullBounds.getX(), fullBounds.getY(),
+                                     palette::kPanel.darker(0.12f), fullBounds.getRight(), fullBounds.getBottom(), false);
+        barFill.addColour(0.35, palette::kPanelRaised);
+        g.setGradientFill(barFill);
+        g.fillRoundedRectangle(fullBounds.reduced(0.0f, 1.0f), 8.0f);
+
+        g.setColour(palette::kTopHighlight.withAlpha(0.08f));
+        g.drawHorizontalLine(static_cast<int>(fullBounds.getY() + 1.0f), fullBounds.getX() + 8.0f,
+                             fullBounds.getRight() - 8.0f);
+
+        g.setColour(palette::kBorder.withAlpha(0.85f));
+        g.drawRoundedRectangle(fullBounds.reduced(0.5f, 1.5f), 8.0f, 1.0f);
+
+        const float brandWidth = static_cast<float>(branding::wordmarkWidth());
+        auto brandArea = fullBounds.withTrimmedRight(fullBounds.getWidth() - brandWidth).reduced(8.0f, 6.0f);
+
+        auto badge = brandArea.removeFromLeft(52.0f);
+        g.setColour(palette::kBackgroundBottom.withAlpha(0.92f));
+        g.fillRoundedRectangle(badge, 10.0f);
+
+        g.setColour(glowMix(0.22f));
+        g.drawRoundedRectangle(badge.expanded(0.5f), 10.5f, 1.25f);
+
+        g.setColour(glowMix(0.08f));
+        g.fillRoundedRectangle(badge.expanded(2.0f), 12.0f);
+
+        branding::paintShipGlow(g, branding::getShipIcon(), badge.reduced(3.0f));
+
+        brandArea.removeFromLeft(10.0f);
+
+        auto titleArea = brandArea.removeFromTop(24.0f);
+        g.setFont(fonts::title(19.0f));
         g.setColour(palette::kTextPrimary);
-        g.setFont(fonts::title(16.0f));
-        g.drawText("PATCHWORK EIGHT", wordmarkArea.removeFromTop(20), juce::Justification::bottomLeft);
+        g.drawText("STARFIGHTER", titleArea, juce::Justification::centredLeft, true);
 
-        g.setColour(palette::kTextDim);
-        g.setFont(fonts::label(8.0f));
-        g.drawText("8-ENGINE ALGORITHMIC SYNTH", wordmarkArea, juce::Justification::topLeft);
+        g.setFont(fonts::label(8.5f));
+        g.setColour(glowMix(0.75f));
+        g.drawText("8-ENGINE ALGORITHMIC SYNTH", brandArea.removeFromTop(14.0f), juce::Justification::centredLeft, true);
+
+        paintVerticalSeparator(g, brandWidth - 0.5f, fullBounds.getY() + 10.0f, fullBounds.getBottom() - 10.0f);
     }
 
     void PatchBrowserBar::resized()
     {
-        auto bounds = getLocalBounds().withTrimmedLeft(kWordmarkWidth);
-        loadButton_.setBounds(bounds.removeFromRight(72).reduced(0, 6));
+        auto bounds = getLocalBounds().withTrimmedLeft(branding::wordmarkWidth());
+        loadButton_.setBounds(bounds.removeFromRight(72).reduced(0, 8));
         bounds.removeFromRight(4);
-        browseButton_.setBounds(bounds.removeFromRight(72).reduced(0, 6));
+        browseButton_.setBounds(bounds.removeFromRight(72).reduced(0, 8));
         bounds.removeFromRight(4);
-        nextButton_.setBounds(bounds.removeFromRight(28).reduced(0, 8));
-        prevButton_.setBounds(bounds.removeFromRight(28).reduced(0, 8));
+        nextButton_.setBounds(bounds.removeFromRight(28).reduced(0, 10));
+        prevButton_.setBounds(bounds.removeFromRight(28).reduced(0, 10));
         bounds.removeFromRight(6);
         patchNameLabel_.setBounds(bounds);
     }
@@ -96,11 +140,13 @@ namespace pw8::plugin::ui
     void PatchBrowserBar::stepPreset(int direction)
     {
         const auto current = processor_.getCurrentPresetPath();
+        const juce::StringArray* favoritesOnly =
+            browseFavoritesOnly_ && favoritesStore_ != nullptr ? &favoritesStore_->paths() : nullptr;
         std::optional<content::PresetEntry> entry;
         if (direction > 0)
-            entry = presetIndex_.nextAfter(current, browseQuery_, browseCategory_);
+            entry = presetIndex_.nextAfter(current, browseQuery_, browseCategory_, favoritesOnly);
         else
-            entry = presetIndex_.prevBefore(current, browseQuery_, browseCategory_);
+            entry = presetIndex_.prevBefore(current, browseQuery_, browseCategory_, favoritesOnly);
 
         if (!entry.has_value())
             return;
@@ -111,8 +157,7 @@ namespace pw8::plugin::ui
 
     void PatchBrowserBar::loadPatchFromFile()
     {
-        fileChooser_ = std::make_unique<juce::FileChooser>("Load a Patchwork Eight patch...", juce::File(),
-                                                             "*.pw8");
+        fileChooser_ = std::make_unique<juce::FileChooser>("Load a patch...", juce::File(), "*.pw8");
         const auto flags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
         fileChooser_->launchAsync(flags, [this](const juce::FileChooser& chooser) {
             const auto file = chooser.getResult();

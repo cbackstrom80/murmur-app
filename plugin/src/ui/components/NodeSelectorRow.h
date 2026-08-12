@@ -6,15 +6,13 @@
 
 #include "processor/PatchworkEightProcessor.h"
 
-// Compact PLAY-mode node selector: eight engine-pill chips in one row (see
-// docs/UI_PAGED_LAYOUT.md work-stream 1). Replaces the tall circular graph for
-// node selection only -- topology display stays DESIGN-mode scope.
 namespace pw8::plugin::ui
 {
     class NodeSelectorRow : public juce::Component
     {
     public:
         std::function<void(int nodeIndex)> onNodeSelected;
+        std::function<void()> onGlobalSelected;
 
         explicit NodeSelectorRow(PatchworkEightProcessor& processor);
 
@@ -23,13 +21,17 @@ namespace pw8::plugin::ui
         void mouseDown(const juce::MouseEvent& event) override;
 
         void setSelectedNode(int nodeIndex);
+        void setGlobalScope(bool global);
+        [[nodiscard]] bool isGlobalScope() const noexcept { return globalScope_; }
         [[nodiscard]] int getSelectedNode() const noexcept { return selectedNode_; }
 
     private:
         [[nodiscard]] juce::Rectangle<int> pillBounds(int nodeIndex) const;
+        [[nodiscard]] juce::Rectangle<int> globalPillBounds() const;
 
         PatchworkEightProcessor& processor_;
         int selectedNode_ = 0;
+        bool globalScope_ = false;
     };
 
 } // namespace pw8::plugin::ui

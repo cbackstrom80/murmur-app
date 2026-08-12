@@ -23,4 +23,7 @@ namespace pw8::content
     /// Preset library directories to scan (factory, showcase, dev tree).
     [[nodiscard]] std::vector<std::string> presetSearchRoots() noexcept;
 
+    /// Wavetable library directories (content/wavetables under each root).
+    [[nodiscard]] std::vector<std::string> wavetableSearchRoots() noexcept;
+
 } // namespace pw8::content

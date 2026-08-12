@@ -12,11 +12,9 @@
 // function only ever writes into a stack-allocated ModOutputs.
 //
 // Destination semantics:
-//   FilterCutoff    -- `amount` is interpreted as semitones of cutoff shift per unit
-//                       of source value (source values are -1..1 for bipolar sources
-//                       like LFOs, 0..1 for unipolar ones like envelopes/velocity/
-//                       macros). Applied exponentially: cutoffHz *= 2^(sum/12).
-//   FilterResonance -- additive offset to resonance (0..1), summed then clamped.
+//   FilterCutoff / OperatorFilterCutoff -- semitones of cutoff shift per unit source
+//                       value; global vs per-engine selected by destination.
+//   FilterResonance / OperatorFilterResonance -- additive resonance offset (0..1).
 //   OperatorLevel   -- multiplicative: level *= (1 + sourceValue * amount), per
 //                       route, targeting `targetIndex` (0..7). Multiple routes to
 //                       the same operator compose multiplicatively.
@@ -49,6 +47,8 @@ namespace pw8::modulation
     {
         float filterCutoffSemitones = 0.0f;
         float filterResonanceOffset = 0.0f;
+        std::array<float, core::kNodesPerLayer> operatorFilterCutoffSemitones{};
+        std::array<float, core::kNodesPerLayer> operatorFilterResonanceOffset{};
         std::array<float, core::kNodesPerLayer> operatorLevelMultiplier{};
         std::array<float, core::kNodesPerLayer> operatorWavetablePositionOffset{};
         float panOffset = 0.0f;
@@ -77,6 +77,20 @@ namespace pw8::modulation
                     case ModDestination::FilterResonance:
                         out.filterResonanceOffset += sourceValue * route.amount;
                         break;
+                    case ModDestination::OperatorFilterCutoff:
+                    {
+                        const std::uint8_t idx =
+                            route.targetIndex < core::kNodesPerLayer ? route.targetIndex : std::uint8_t{0};
+                        out.operatorFilterCutoffSemitones[idx] += sourceValue * route.amount;
+                        break;
+                    }
+                    case ModDestination::OperatorFilterResonance:
+                    {
+                        const std::uint8_t idx =
+                            route.targetIndex < core::kNodesPerLayer ? route.targetIndex : std::uint8_t{0};
+                        out.operatorFilterResonanceOffset[idx] += sourceValue * route.amount;
+                        break;
+                    }
                     case ModDestination::OperatorLevel:
                     {
                         const std::uint8_t idx =

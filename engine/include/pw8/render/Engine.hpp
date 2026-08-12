@@ -87,9 +87,17 @@ namespace pw8::render
         // knob value -- still not part of the automation surface, but no longer
         // frozen to patch-load-only either.
         // Layer B is not voiced yet (Phase 8), so only Layer A has a live API.
+        // STACK mode voices both layers; live setters still target Layer A only.
 
         void setFilterLive(const filter::FilterParams& params) noexcept;
         [[nodiscard]] const filter::FilterParams& getFilterParams() const noexcept { return patch_.layerA.filter1; }
+
+        /// `opIndex` in [0, kNodesPerLayer). Out-of-range is a no-op.
+        void setOperatorFilterLive(std::size_t opIndex, const filter::FilterParams& params) noexcept;
+        [[nodiscard]] filter::FilterParams getOperatorFilterParams(std::size_t opIndex) const noexcept
+        {
+            return opIndex < core::kNodesPerLayer ? patch_.layerA.operators[opIndex].filter1 : filter::FilterParams{};
+        }
 
         /// `lfoIndex` in [0, kNumLfosPerLayer). Out-of-range is a no-op. Updates both
         /// the per-voice template/active-voice copies AND (since `Engine::process()`
@@ -207,11 +215,30 @@ namespace pw8::render
         void triggerNoteOnDirect(int note, int channel, int velocity7) noexcept;
         void triggerNoteOffDirect(int note, int channel, int velocity7) noexcept;
 
+        void triggerLayerNoteOn(const patch::LayerPatch& layer, const patch::UnisonSettings& unison,
+                                 const std::array<op::OperatorParams, core::kNodesPerLayer>& templates,
+                                 voice::VoicePool& voices, voice::VoiceAllocator& allocator, int note, int channel,
+                                 int velocity7) noexcept;
+
+        void loadLayerResources(const patch::LayerPatch& layer, algorithm::CompiledAlgorithm& compiledOut,
+                                 std::array<op::OperatorParams, core::kNodesPerLayer>& templatesOut,
+                                 std::array<std::optional<oscillator::WavetableTable>, core::kNodesPerLayer>& storageOut,
+                                 std::array<const oscillator::WavetableTable*, core::kNodesPerLayer>& tablesOut,
+                                 std::array<lfo::Lfo, core::kNumLfosPerLayer>& lfosOut,
+                                 voice::VoicePool& voices, algorithm::CompileStatus& statusOut) noexcept;
+
+        [[nodiscard]] bool isStackModeActive() const noexcept
+        {
+            return patch_.layerMode == patch::LayerMode::Stack;
+        }
+
         patch::Patch patch_{};
         algorithm::CompiledAlgorithm compiledLayerA_{};
+        algorithm::CompiledAlgorithm compiledLayerB_{};
         algorithm::CompileStatus lastCompileStatus_ = algorithm::CompileStatus::Ok;
 
         std::array<op::OperatorParams, core::kNodesPerLayer> operatorParamsTemplateA_{};
+        std::array<op::OperatorParams, core::kNodesPerLayer> operatorParamsTemplateB_{};
 
         /// Owns loaded wavetable content (control-path-populated in loadPatch(), which
         /// treats `OperatorPatch::wavetableId` as a filesystem path -- see
@@ -221,9 +248,13 @@ namespace pw8::render
         /// concurrently with process().
         std::array<std::optional<oscillator::WavetableTable>, core::kNodesPerLayer> wavetableStorageA_{};
         std::array<const oscillator::WavetableTable*, core::kNodesPerLayer> wavetableTablesA_{};
+        std::array<std::optional<oscillator::WavetableTable>, core::kNodesPerLayer> wavetableStorageB_{};
+        std::array<const oscillator::WavetableTable*, core::kNodesPerLayer> wavetableTablesB_{};
 
         voice::VoicePool voices_{};
+        voice::VoicePool voicesB_{};
         voice::VoiceAllocator allocator_{};
+        voice::VoiceAllocator allocatorB_{};
         tuning::TuningService tuning_{};
         sequencer::Arpeggiator arpeggiator_{};
 
@@ -235,12 +266,13 @@ namespace pw8::render
         /// LFO modes have no distinct trigger event at this scope and behave the same
         /// as Free (documented, not silently wrong).
         std::array<lfo::Lfo, core::kNumLfosPerLayer> layerLfosA_{};
+        std::array<lfo::Lfo, core::kNumLfosPerLayer> layerLfosB_{};
 
         /// Layer A's 3 insert FX slots (applied to the summed voice output) and the
         /// engine-wide 4 master FX slots (applied to the final mixed bus). See
-        /// docs/FX_BANK.md. Layer B has no voiced signal yet (Phase 8), so it has no
-        /// insert chain of its own in this pass.
+        /// docs/FX_BANK.md. STACK mode also runs layer B through its own insert chain.
         effects::LayerInsertChain layerAInsertChain_{};
+        effects::LayerInsertChain layerBInsertChain_{};
         effects::MasterChain masterChain_{};
 
         static constexpr float kPitchBendRangeSemitones = 2.0f;

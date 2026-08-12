@@ -4,10 +4,24 @@ Manual validation checklist for Patchwork Eight as a VST3/AU instrument across
 common macOS hosts. Run after plugin packaging changes, JUCE upgrades, or
 preset/content path work.
 
-**Build under test:** _______________  
+**Build under test:** local `main` + `cursor/favorites-unison-stack-daw` (2026-08-12)  
 **Plugin build:** VST3 / AU / Standalone  
-**Tester:** _______________  
-**Date:** _______________
+**Tester:** automated + pending manual DAW pass  
+**Date:** 2026-08-12
+
+## Automated validation (2026-08-12)
+
+| Check | Result |
+|-------|--------|
+| Unit/regression tests (`ctest --preset dev`) | **169/169 PASS** |
+| pluginval VST3 strictness 5 | **PASS** |
+| auval AU (`aumu` / `Pwe8` / `Pwei`) | **PASS** |
+| Logic / Ableton / Reaper / Bitwig manual matrix | **Pending** (requires human host session) |
+
+Notes:
+- VST3/AU binaries built from `build/plugin` (`pw8_plugin_VST3`, `pw8_plugin_AU`).
+- Standalone link may fail if `build/plugin/.../Standalone/` is root-owned from a prior `sudo` install — run `sudo chown -R "$(whoami)" build/plugin` if needed.
+- Manual DAW rows below remain unchecked until tested in each host.
 
 ## Install paths (macOS)
 
@@ -90,6 +104,7 @@ Re-run this matrix when any of the following change:
 
 Document here if observed during testing:
 
-- Layer B and unison >1 are clamped at load (not yet implemented in DSP)
+- Layer modes other than **SingleA** and **STACK** are still clamped at load (Split, Morph, etc.)
+- Unison supports **Full** spread mode only (`voices` + detune/spread/blend); Operator/Stereo/Hyper/Harmonic modes deferred
 - MCP in-app chat deferred (external MCP server only)
-- Favorites/starred presets not yet in browser (PATCH_BROWSER.md phase 4)
+- Favorites persist to `~/Library/Application Support/Patchwork Eight/favorites.json`

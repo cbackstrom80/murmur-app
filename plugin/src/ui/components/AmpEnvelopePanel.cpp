@@ -1,5 +1,7 @@
 #include "AmpEnvelopePanel.h"
 
+#include "../theme/ObsidianFonts.h"
+#include "../theme/ObsidianPalette.h"
 #include "state/PluginState.h"
 
 namespace pw8::plugin::ui
@@ -26,9 +28,30 @@ namespace pw8::plugin::ui
         panel_.addAndMakeVisible(legato_);
     }
 
+    void AmpEnvelopePanel::paint(juce::Graphics& g)
+    {
+        auto banner = getLocalBounds().removeFromTop(28).toFloat().reduced(0.0f, 2.0f);
+        g.setColour(palette::kPanelRaised);
+        g.fillRoundedRectangle(banner, 6.0f);
+        g.setColour(palette::kBorderBright);
+        g.drawRoundedRectangle(banner.reduced(0.5f), 6.0f, 1.0f);
+
+        const auto badge = banner.removeFromLeft(72.0f).reduced(6.0f, 5.0f);
+        g.setColour(palette::kAccentWarm.withAlpha(0.35f));
+        g.fillRoundedRectangle(badge, 4.0f);
+        g.setColour(palette::kAccentWarm);
+        g.setFont(fonts::label(9.5f));
+        g.drawText("LAYER", badge, juce::Justification::centred);
+
+        g.setColour(palette::kTextPrimary);
+        g.setFont(fonts::label(11.0f));
+        g.drawText("LAYER A · amp envelope (env0) · affects all voices on this layer",
+                   banner.reduced(8.0f, 0.0f), juce::Justification::centredLeft);
+    }
+
     void AmpEnvelopePanel::resized()
     {
-        panel_.setBounds(getLocalBounds());
+        panel_.setBounds(getLocalBounds().withTrimmedTop(34));
         auto content = panel_.getContentBounds();
         legato_.setBounds(content.removeFromTop(22).removeFromLeft(90));
         content.removeFromTop(6);

@@ -89,16 +89,19 @@ namespace pw8::plugin::content
         return entry;
     }
 
-    juce::Array<PresetEntry> PresetIndex::filteredCopy(const juce::String& query,
-                                                        const juce::String& category) const
+    juce::Array<PresetEntry> PresetIndex::filteredCopy(const juce::String& query, const juce::String& category,
+                                                        const juce::StringArray* favoritePathsOnly) const
     {
         juce::Array<PresetEntry> out;
         const auto q = query.trim().toLowerCase();
         const auto cat = category.trim().toLowerCase();
+        const bool favoritesOnly = favoritePathsOnly != nullptr;
 
         for (const auto& e : entries_)
         {
-            if (cat.isNotEmpty() && !e.category.toLowerCase().contains(cat))
+            if (favoritesOnly && !favoritePathsOnly->contains(e.absolutePath))
+                continue;
+            if (!favoritesOnly && cat.isNotEmpty() && !e.category.toLowerCase().contains(cat))
                 continue;
             if (q.isNotEmpty())
             {
@@ -113,15 +116,17 @@ namespace pw8::plugin::content
         return out;
     }
 
-    juce::Array<PresetEntry> PresetIndex::filtered(const juce::String& query, const juce::String& category) const
+    juce::Array<PresetEntry> PresetIndex::filtered(const juce::String& query, const juce::String& category,
+                                                    const juce::StringArray* favoritePathsOnly) const
     {
-        return filteredCopy(query, category);
+        return filteredCopy(query, category, favoritePathsOnly);
     }
 
     std::optional<PresetEntry> PresetIndex::nextAfter(const juce::String& currentPath, const juce::String& query,
-                                                       const juce::String& category) const
+                                                       const juce::String& category,
+                                                       const juce::StringArray* favoritePathsOnly) const
     {
-        const auto list = filteredCopy(query, category);
+        const auto list = filteredCopy(query, category, favoritePathsOnly);
         if (list.isEmpty())
             return std::nullopt;
 
@@ -134,9 +139,10 @@ namespace pw8::plugin::content
     }
 
     std::optional<PresetEntry> PresetIndex::prevBefore(const juce::String& currentPath, const juce::String& query,
-                                                        const juce::String& category) const
+                                                        const juce::String& category,
+                                                        const juce::StringArray* favoritePathsOnly) const
     {
-        const auto list = filteredCopy(query, category);
+        const auto list = filteredCopy(query, category, favoritePathsOnly);
         if (list.isEmpty())
             return std::nullopt;
 

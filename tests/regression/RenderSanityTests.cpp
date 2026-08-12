@@ -181,6 +181,34 @@ TEST_CASE("Renderer: enabling Filter 1 audibly changes a bright saw's spectrum (
     REQUIRE(filtered.metrics.rms < unfiltered.metrics.rms * 0.9f);
 }
 
+TEST_CASE("Renderer: per-engine filter audibly darkens that operator's contribution", "[render][regression][filter]")
+{
+    patch::Patch p = patch::Patch::makeInit();
+    p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Saw;
+    p.layerA.envelopes[0].attackSeconds = 0.005f;
+    p.layerA.envelopes[0].decaySeconds = 0.2f;
+    p.layerA.envelopes[0].sustainLevel = 1.0f;
+
+    auto midiSeq = singleNoteSequence(0.0, 1.0, 48);
+
+    render::RenderOptions options;
+    options.sampleRate = 48000.0;
+    options.durationSecondsOverride = 1.2;
+
+    const auto unfiltered = render::render(p, midiSeq, options);
+    REQUIRE(unfiltered.ok);
+
+    p.layerA.operators[0].filter1.enabled = true;
+    p.layerA.operators[0].filter1.mode = filter::FilterMode::Lowpass;
+    p.layerA.operators[0].filter1.cutoffHz = 120.0f;
+    p.layerA.operators[0].filter1.resonance = 0.1f;
+
+    const auto filtered = render::render(p, midiSeq, options);
+    REQUIRE(filtered.ok);
+    REQUIRE_FALSE(filtered.metrics.containsNaNOrInf);
+    REQUIRE(filtered.metrics.rms < unfiltered.metrics.rms * 0.9f);
+}
+
 TEST_CASE("Renderer: mod matrix (LFO -> filter cutoff, velocity -> operator level) renders finite audio", "[render][regression][modulation]")
 {
     patch::Patch p = patch::Patch::makeInit();

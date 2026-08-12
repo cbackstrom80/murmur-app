@@ -27,21 +27,25 @@ namespace pw8::plugin::content
         [[nodiscard]] const juce::Array<PresetEntry>& allEntries() const noexcept { return entries_; }
 
         [[nodiscard]] juce::Array<PresetEntry> filtered(const juce::String& query,
-                                                         const juce::String& category) const;
+                                                         const juce::String& category,
+                                                         const juce::StringArray* favoritePathsOnly = nullptr) const;
 
         [[nodiscard]] std::optional<PresetEntry> nextAfter(const juce::String& currentPath,
                                                             const juce::String& query = {},
-                                                            const juce::String& category = {}) const;
+                                                            const juce::String& category = {},
+                                                            const juce::StringArray* favoritePathsOnly = nullptr) const;
         [[nodiscard]] std::optional<PresetEntry> prevBefore(const juce::String& currentPath,
                                                              const juce::String& query = {},
-                                                             const juce::String& category = {}) const;
+                                                             const juce::String& category = {},
+                                                             const juce::StringArray* favoritePathsOnly = nullptr) const;
 
         [[nodiscard]] juce::StringArray uniqueCategories() const;
 
     private:
         [[nodiscard]] static PresetEntry parsePresetFile(const juce::File& file);
         [[nodiscard]] juce::Array<PresetEntry> filteredCopy(const juce::String& query,
-                                                             const juce::String& category) const;
+                                                             const juce::String& category,
+                                                             const juce::StringArray* favoritePathsOnly) const;
 
         juce::Array<PresetEntry> entries_;
     };

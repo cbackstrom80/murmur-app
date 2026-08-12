@@ -6,6 +6,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "processor/PatchworkEightProcessor.h"
+#include "content/WavetableIndex.h"
 
 // A real perspective wireframe mesh of the currently-selected node's loaded
 // wavetable -- classic oscilloscope/wavetable-editor look (phosphor-glow rows
@@ -46,10 +47,7 @@
 //   only ever parses that JSON format (see engine/src/oscillator/WavetableTableLoader.cpp);
 //   turning a raw .wav into mip levels stays tools/wavetable_builder's job, not
 //   wired into the plugin's message thread here.
-// - "<"/">" -- browse the OTHER *.json files sitting next to the currently
-//   assigned one (same directory), without opening a file dialog each time.
-//   Only meaningful once some wavetableId is already set (nothing to browse
-//   siblings of otherwise), so both arrows disable themselves until then.
+// - "<"/">" -- cycle through the full factory wavetable library (WavetableIndex).
 namespace pw8::plugin::ui
 {
     class WavetableStackView : public juce::Component, private juce::Timer
@@ -66,6 +64,9 @@ namespace pw8::plugin::ui
         /// AlgorithmGraphView::onNodeSelected straight to both.
         void showNode(int nodeIndex);
 
+        /// Loads the first indexed wavetable when this operator has none assigned.
+        void ensureDefaultWavetableLoaded();
+
     private:
         void timerCallback() override;
         void loadWavetableFromFile();
@@ -75,26 +76,17 @@ namespace pw8::plugin::ui
         /// file's index. Always safe to call (empty wavetableId / no parent
         /// directory just clears the sibling list, disabling both arrows).
         void refreshSiblings();
-        /// Moves +1/-1 through refreshSiblings()' list, wrapping at the ends,
-        /// and assigns the new file via the same
-        /// PatchworkEightProcessor::setOperatorWavetableFile() path "Load..."
-        /// already uses.
         void goToSibling(int delta);
+        [[nodiscard]] juce::String currentWavetablePath() const;
 
         PatchworkEightProcessor& processor_;
+        content::WavetableIndex wavetableIndex_;
         int selectedNode_ = 0;
         juce::TextButton loadButton_{"Load..."};
         juce::TextButton prevButton_{"<"};
         juce::TextButton nextButton_{">"};
         std::unique_ptr<juce::FileChooser> fileChooser_;
 
-        juce::Array<juce::File> siblings_;
-        int siblingIndex_ = -1;
-        // Message-thread-only cache of the last wavetableId refreshSiblings()
-        // was computed against -- lets timerCallback() skip the (real disk IO)
-        // sibling rescan on ticks where nothing changed, matching the same
-        // "diff before acting" idiom GlowKnob/MacroStrip already use for their
-        // own polls.
         juce::String lastKnownWavetableId_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(WavetableStackView)

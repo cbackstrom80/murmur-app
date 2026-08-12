@@ -78,6 +78,11 @@ namespace pw8::plugin
             for (std::size_t i = 0; i < kNumOperatorFields; ++i)
                 operatorParamPointers_[op][i] = apvts.getRawParameterValue(operatorParamId(op, kOperatorFieldSpecs[i].idSuffix));
 
+        for (std::size_t op = 0; op < kNumOperators; ++op)
+            for (std::size_t i = 0; i < kNumOperatorFilterFields; ++i)
+                operatorFilterParamPointers_[op][i] =
+                    apvts.getRawParameterValue(operatorFilterParamId(op, kOperatorFilterFieldSpecs[i].idSuffix));
+
         for (std::size_t slot = 0; slot < kNumInsertFxSlots; ++slot)
             for (std::size_t i = 0; i < kNumEffectSlotFields; ++i)
                 insertFxParamPointers_[slot][i] =
@@ -230,6 +235,15 @@ namespace pw8::plugin
             params.grainPositionJitter = loadF(ptrs[30]);
             params.grainPitchJitter = loadF(ptrs[31]);
             engine.setOperatorLive(op, params);
+
+            const auto& fptrs = operatorFilterParamPointers_[op];
+            filter::FilterParams fp;
+            fp.enabled = loadB(fptrs[0]);
+            fp.mode = static_cast<filter::FilterMode>(loadI(fptrs[1]));
+            fp.cutoffHz = loadF(fptrs[2]);
+            fp.resonance = loadF(fptrs[3]);
+            fp.keyTrack = loadF(fptrs[4]);
+            engine.setOperatorFilterLive(op, fp);
         }
 
         // 8 envelopes -- field order matches kEnvelopeFieldSpecs / envelope::DahdsrParams.
@@ -582,6 +596,13 @@ namespace pw8::plugin
             };
             for (std::size_t i = 0; i < kNumOperatorFields; ++i)
                 setParam(operatorParamId(op, kOperatorFieldSpecs[i].idSuffix), opValues[i]);
+
+            const auto& ef = o.filter1;
+            const std::array<float, kNumOperatorFilterFields> engineFilterValues = {
+                ef.enabled ? 1.0f : 0.0f, static_cast<float>(ef.mode), ef.cutoffHz, ef.resonance, ef.keyTrack,
+            };
+            for (std::size_t i = 0; i < kNumOperatorFilterFields; ++i)
+                setParam(operatorFilterParamId(op, kOperatorFilterFieldSpecs[i].idSuffix), engineFilterValues[i]);
         }
 
         for (std::size_t envIdx = 0; envIdx < kNumEnvelopes; ++envIdx)
@@ -698,6 +719,14 @@ namespace pw8::plugin
             o.grainSizeMs = loadF(ptrs[29]);
             o.grainPositionJitter = loadF(ptrs[30]);
             o.grainPitchJitter = loadF(ptrs[31]);
+
+            const auto& fptrs = operatorFilterParamPointers_[op];
+            auto& ef = o.filter1;
+            ef.enabled = loadB(fptrs[0]);
+            ef.mode = static_cast<pw8::filter::FilterMode>(loadI(fptrs[1]));
+            ef.cutoffHz = loadF(fptrs[2]);
+            ef.resonance = loadF(fptrs[3]);
+            ef.keyTrack = loadF(fptrs[4]);
         }
 
         for (std::size_t envIdx = 0; envIdx < kNumEnvelopes; ++envIdx)

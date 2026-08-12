@@ -196,6 +196,7 @@ namespace pw8::plugin
         std::array<std::atomic<float>*, kNumFilterFields> filterParamPointers_{};
         std::array<std::array<std::atomic<float>*, kNumLfoFields>, kNumLfos> lfoParamPointers_{};
         std::array<std::array<std::atomic<float>*, kNumOperatorFields>, kNumOperators> operatorParamPointers_{};
+        std::array<std::array<std::atomic<float>*, kNumOperatorFilterFields>, kNumOperators> operatorFilterParamPointers_{};
         std::array<std::array<std::atomic<float>*, kNumEnvelopeFields>, kNumEnvelopes> envelopeParamPointers_{};
         std::atomic<float>* layerGainPointer_ = nullptr;
         std::atomic<float>* layerPanPointer_ = nullptr;

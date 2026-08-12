@@ -9,7 +9,6 @@
 #include "SectionPanel.h"
 #include "processor/PatchworkEightProcessor.h"
 
-// Amp envelope (Envelope 1 / env0*) -- the VCA envelope with no PLAY-mode UI until now.
 namespace pw8::plugin::ui
 {
     class AmpEnvelopePanel : public juce::Component
@@ -17,10 +16,11 @@ namespace pw8::plugin::ui
     public:
         explicit AmpEnvelopePanel(PatchworkEightProcessor& processor);
 
+        void paint(juce::Graphics& g) override;
         void resized() override;
 
     private:
-        SectionPanel panel_{"Amp Envelope"};
+        SectionPanel panel_{"Layer Amp Envelope"};
         std::unique_ptr<GlowKnob> delay_;
         std::unique_ptr<GlowKnob> attack_;
         std::unique_ptr<GlowKnob> hold_;

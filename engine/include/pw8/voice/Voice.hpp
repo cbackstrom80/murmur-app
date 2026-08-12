@@ -19,9 +19,8 @@
 // state needed for MPE and voice allocation.
 //
 // Signal chain per sample: 8 LFOs + 8 envelopes render (mod sources) -> mod matrix
-// -> (operator-level-modulated) algorithm graph -> Filter 1 (cutoff/resonance
-// modulated) -> amplitude envelope (envelopes[0]) VCA -> pan (modulated) -> stereo
-// output.
+// -> (operator-level-modulated) algorithm graph (each engine optionally filtered)
+// -> global filter (optional) -> amplitude envelope (envelopes[0]) VCA -> pan -> output.
 //
 // envelopes[0]/lfos[0] are conventionally "the" amp envelope / LFO1 (envelopes[0]
 // is the only one wired to the VCA and to voice lifetime -- see isFree()); all 8 of
@@ -60,6 +59,8 @@ namespace pw8::voice
             for (auto& l : lfos)
                 l.prepare(sampleRate);
             filter1.prepare(sampleRate);
+            for (auto& f : operatorFilters_)
+                f.prepare(sampleRate);
             sampleRate_ = sampleRate;
         }
 
@@ -94,6 +95,8 @@ namespace pw8::voice
             for (std::size_t i = 0; i < core::kNumEnvelopesPerLayer; ++i)
                 envelopes[i].noteOn(envParams[i]);
             filter1.reset();
+            for (auto& f : operatorFilters_)
+                f.reset();
             for (std::size_t i = 0; i < core::kNumLfosPerLayer; ++i)
                 lfos[i].noteOn(lfoParams[i], rng.nextU64());
         }
@@ -179,7 +182,10 @@ namespace pw8::voice
                     modulatedParams[i].wavetableFramePosition + modOut.operatorWavetablePositionOffset[i], 0.0f, 1.0f);
             }
 
-            const float raw = executor.processSample(compiled, modulatedParams, operatorStates, wavetableTables, effectiveFreq);
+            const float raw = executor.processSample(compiled, modulatedParams, operatorStates, wavetableTables,
+                                                      effectiveFreq, operatorFilterParams_, operatorFilters_,
+                                                      modOut.operatorFilterCutoffSemitones,
+                                                      modOut.operatorFilterResonanceOffset);
 
             float filtered = raw;
             if (filterParams.enabled)
@@ -224,6 +230,9 @@ namespace pw8::voice
 
         filter::FilterParams filterParams{};
         filter::StateVariableFilter filter1{};
+
+        std::array<filter::FilterParams, core::kNodesPerLayer> operatorFilterParams_{};
+        std::array<filter::StateVariableFilter, core::kNodesPerLayer> operatorFilters_{};
 
         std::array<lfo::LfoParams, core::kNumLfosPerLayer> lfoParams{};
         std::array<lfo::Lfo, core::kNumLfosPerLayer> lfos{};

@@ -72,8 +72,12 @@ namespace pw8::plugin::ui
         switch (destination)
         {
             case ModDestination::None: return "-";
-            case ModDestination::FilterCutoff: return "FILTER CUTOFF";
-            case ModDestination::FilterResonance: return "FILTER RESONANCE";
+            case ModDestination::FilterCutoff: return "GLOBAL FILTER CUTOFF";
+            case ModDestination::FilterResonance: return "GLOBAL FILTER RESONANCE";
+            case ModDestination::OperatorFilterCutoff:
+                return "ENG " + juce::String(static_cast<int>(targetIndex)) + " FILTER CUTOFF";
+            case ModDestination::OperatorFilterResonance:
+                return "ENG " + juce::String(static_cast<int>(targetIndex)) + " FILTER RES";
             case ModDestination::OperatorLevel: return "OP " + juce::String(static_cast<int>(targetIndex)) + " LEVEL";
             case ModDestination::Pan: return "PAN";
             case ModDestination::OperatorWavetablePosition:

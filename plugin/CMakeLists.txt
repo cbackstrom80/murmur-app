@@ -25,6 +25,12 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(JUCE)
 
+juce_add_binary_data(pw8_branding_data
+    SOURCES
+        resources/branding/starfighter_logo_full.png
+        resources/branding/starfighter_logo_mark.png
+)
+
 juce_add_plugin(pw8_plugin
     PRODUCT_NAME "Patchwork Eight"
     COMPANY_NAME "Patchwork"
@@ -45,12 +51,16 @@ target_sources(pw8_plugin PRIVATE
     src/processor/PatchworkEightProcessor.cpp
     src/state/PluginState.cpp
     src/content/PresetIndex.cpp
+    src/content/WavetableIndex.cpp
+    src/content/FavoritesStore.cpp
     src/ui/PlayModeEditor.cpp
     src/ui/theme/ObsidianLookAndFeel.cpp
+    src/ui/theme/BrandingAssets.cpp
     src/ui/components/GlowKnob.cpp
     src/ui/components/SectionPanel.cpp
     src/ui/components/AlgorithmGraphView.cpp
     src/ui/components/NodeSelectorRow.cpp
+    src/ui/components/ContextStrip.cpp
     src/ui/components/OperatorEditorPanel.cpp
     src/ui/components/MacroStrip.cpp
     src/ui/components/FilterLfoPanel.cpp
@@ -68,6 +78,7 @@ target_include_directories(pw8_plugin PRIVATE src)
 target_link_libraries(pw8_plugin
     PRIVATE
         pw8::core
+        pw8_branding_data
         juce::juce_audio_utils
         juce::juce_dsp
     PUBLIC

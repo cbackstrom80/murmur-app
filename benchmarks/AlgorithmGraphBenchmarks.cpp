@@ -3,6 +3,7 @@
 
 #include "pw8/algorithm/AlgorithmExecutor.hpp"
 #include "pw8/algorithm/AlgorithmGraphCompiler.hpp"
+#include "pw8/filter/StateVariableFilter.hpp"
 #include "pw8/operator/OperatorNode.hpp"
 
 using namespace pw8;
@@ -45,12 +46,20 @@ namespace
             s.prepare(48000.0);
 
         algorithm::AlgorithmExecutor executor;
+        std::array<filter::FilterParams, core::kNodesPerLayer> operatorFilterParams{};
+        std::array<filter::StateVariableFilter, core::kNodesPerLayer> operatorFilters{};
+        std::array<float, core::kNodesPerLayer> operatorFilterCutoffSemitones{};
+        std::array<float, core::kNodesPerLayer> operatorFilterResonanceOffset{};
+        for (auto& f : operatorFilters)
+            f.prepare(48000.0);
 
         for (auto _ : state)
         {
             float sum = 0.0f;
             for (int i = 0; i < kBlockSize; ++i)
-                sum += executor.processSample(compiled, params, states, tables, 220.0f);
+                sum += executor.processSample(compiled, params, states, tables, 220.0f, operatorFilterParams,
+                                              operatorFilters, operatorFilterCutoffSemitones,
+                                              operatorFilterResonanceOffset);
             benchmark::DoNotOptimize(sum);
         }
         state.SetItemsProcessed(static_cast<std::int64_t>(state.iterations()) * kBlockSize);

@@ -36,6 +36,7 @@ add_executable(pw8_tests
     serialization/StandardMidiFileTests.cpp
     serialization/WavetableTableLoaderTests.cpp
     regression/RenderSanityTests.cpp
+    regression/EngineLayerUnisonTests.cpp
 )
 
 target_link_libraries(pw8_tests PRIVATE pw8::core Catch2::Catch2WithMain)

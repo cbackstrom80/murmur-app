@@ -1,5 +1,6 @@
 #include "PlayModeEditor.h"
 
+#include "theme/BrandingAssets.h"
 #include "theme/ObsidianPalette.h"
 
 namespace pw8::plugin::ui
@@ -9,17 +10,19 @@ namespace pw8::plugin::ui
           processor_(processor),
           patchBrowserBar_(processor),
           nodeSelectorRow_(processor),
+          contextStrip_(processor),
           macroStrip_(processor),
           operatorEditorPanel_(processor),
           filterLfoPanel_(processor),
           ampEnvelopePanel_(processor),
           modSourceStrip_(processor),
           fxChainStrip_(processor.apvts),
-          presetBrowserOverlay_(processor, patchBrowserBar_.getPresetIndex())
+          presetBrowserOverlay_(processor, patchBrowserBar_.getPresetIndex(), favoritesStore_)
     {
         setLookAndFeel(&lookAndFeel_);
 
         addAndMakeVisible(patchBrowserBar_);
+        patchBrowserBar_.setFavoritesStore(&favoritesStore_);
         patchBrowserBar_.onBrowseClicked = [this] {
             addAndMakeVisible(presetBrowserOverlay_);
             presetBrowserOverlay_.setBounds(getLocalBounds());
@@ -27,11 +30,23 @@ namespace pw8::plugin::ui
         };
         presetBrowserOverlay_.onClosed = [this] {
             patchBrowserBar_.setBrowseFilters(presetBrowserOverlay_.browseQuery(),
-                                              presetBrowserOverlay_.browseCategory());
+                                              presetBrowserOverlay_.browseCategory(),
+                                              presetBrowserOverlay_.browseFavoritesOnly());
             removeChildComponent(&presetBrowserOverlay_);
         };
+
         addAndMakeVisible(nodeSelectorRow_);
-        nodeSelectorRow_.onNodeSelected = [this](int node) { operatorEditorPanel_.showNode(node); };
+        nodeSelectorRow_.onNodeSelected = [this](int node) {
+            operatorEditorPanel_.showNode(node);
+            updateScopeUi();
+        };
+        nodeSelectorRow_.onGlobalSelected = [this] {
+            if (currentPage_ == Page::Osc)
+                showPage(Page::Filter);
+            updateScopeUi();
+        };
+
+        addAndMakeVisible(contextStrip_);
 
         for (std::size_t i = 0; i < tabButtons_.size(); ++i)
         {
@@ -39,7 +54,7 @@ namespace pw8::plugin::ui
             btn.setClickingTogglesState(true);
             btn.setRadioGroupId(9001);
             btn.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
-            btn.setColour(juce::TextButton::buttonOnColourId, palette::kAccent.withAlpha(0.35f));
+            btn.setColour(juce::TextButton::buttonOnColourId, branding::glowColour().withAlpha(0.28f));
             btn.setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
             btn.setColour(juce::TextButton::textColourOnId, palette::kTextPrimary);
             btn.onClick = [this, page = static_cast<Page>(i)] { showPage(page); };
@@ -62,11 +77,10 @@ namespace pw8::plugin::ui
         modPage_.addAndMakeVisible(modSourceStrip_);
         fxPage_.addAndMakeVisible(fxChainStrip_);
 
-        showPage(Page::Basic);
+        showPage(Page::Osc);
+        updateScopeUi();
         setResizable(false, false);
-        // Shorter than the old single-screen stack (docs/UI_PAGED_LAYOUT.md): tabs
-        // replace ~960px of always-visible utility strips with one page at a time.
-        setSize(980, 920);
+        setSize(980, 920 + branding::headerBarHeight() - 40);
     }
 
     PlayModeEditor::~PlayModeEditor()
@@ -74,8 +88,40 @@ namespace pw8::plugin::ui
         setLookAndFeel(nullptr);
     }
 
+    void PlayModeEditor::refreshFilterPanelScope()
+    {
+        if (nodeSelectorRow_.isGlobalScope())
+            filterLfoPanel_.setScope(FilterPanelScope::Global, 0);
+        else
+            filterLfoPanel_.setScope(FilterPanelScope::Engine, nodeSelectorRow_.getSelectedNode());
+    }
+
+    void PlayModeEditor::updateScopeUi()
+    {
+        const bool global = nodeSelectorRow_.isGlobalScope();
+        contextStrip_.setScope(global ? FilterPanelScope::Global : FilterPanelScope::Engine,
+                               nodeSelectorRow_.getSelectedNode());
+
+        tabButtons_[static_cast<std::size_t>(Page::Basic)].setButtonText(global ? "PERF" : "MACROS");
+        tabButtons_[static_cast<std::size_t>(Page::Basic)].setVisible(global);
+        tabButtons_[static_cast<std::size_t>(Page::Osc)].setVisible(!global);
+
+        if (global && currentPage_ == Page::Osc)
+            showPage(Page::Filter);
+        if (!global && currentPage_ == Page::Basic)
+            showPage(Page::Osc);
+
+        refreshFilterPanelScope();
+        resized();
+    }
+
     void PlayModeEditor::showPage(Page page)
     {
+        if (nodeSelectorRow_.isGlobalScope() && page == Page::Osc)
+            page = Page::Filter;
+        if (!nodeSelectorRow_.isGlobalScope() && page == Page::Basic)
+            page = Page::Osc;
+
         currentPage_ = page;
         basicPage_.setVisible(page == Page::Basic);
         oscPage_.setVisible(page == Page::Osc);
@@ -87,6 +133,9 @@ namespace pw8::plugin::ui
         for (std::size_t i = 0; i < tabButtons_.size(); ++i)
             tabButtons_[i].setToggleState(static_cast<Page>(i) == page, juce::dontSendNotification);
 
+        if (page == Page::Filter)
+            refreshFilterPanelScope();
+
         resized();
     }
 
@@ -97,6 +146,11 @@ namespace pw8::plugin::ui
 
         juce::ColourGradient bg(palette::kBackgroundTop, 0.0f, 0.0f, palette::kBackgroundBottom, 0.0f, h, false);
         g.setGradientFill(bg);
+        g.fillAll();
+
+        juce::ColourGradient brandGlow(branding::glowColour().withAlpha(0.14f), 0.0f, 0.0f,
+                                       juce::Colours::transparentBlack, w * 0.42f, h * 0.18f, true);
+        g.setGradientFill(brandGlow);
         g.fillAll();
 
         g.setColour(palette::kTopHighlight.withAlpha(0.05f));
@@ -123,15 +177,25 @@ namespace pw8::plugin::ui
     {
         auto bounds = getLocalBounds().reduced(12);
 
-        patchBrowserBar_.setBounds(bounds.removeFromTop(40));
+        patchBrowserBar_.setBounds(bounds.removeFromTop(branding::headerBarHeight()));
         bounds.removeFromTop(8);
         nodeSelectorRow_.setBounds(bounds.removeFromTop(36));
+        bounds.removeFromTop(6);
+        contextStrip_.setBounds(bounds.removeFromTop(28));
         bounds.removeFromTop(8);
 
         auto tabRow = bounds.removeFromTop(32);
-        const int tabWidth = tabRow.getWidth() / static_cast<int>(tabButtons_.size());
+        int visibleTabs = 0;
+        for (const auto& btn : tabButtons_)
+            if (btn.isVisible())
+                ++visibleTabs;
+        const int tabWidth = visibleTabs > 0 ? tabRow.getWidth() / visibleTabs : tabRow.getWidth();
         for (auto& btn : tabButtons_)
+        {
+            if (!btn.isVisible())
+                continue;
             btn.setBounds(tabRow.removeFromLeft(tabWidth).reduced(2, 2));
+        }
         bounds.removeFromTop(8);
 
         basicPage_.setBounds(bounds);
