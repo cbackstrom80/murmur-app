@@ -230,6 +230,10 @@ for doc in BEN_MVP.md INSTALL.md KAWAI_MP11SE.md LOGIC_SMART_CONTROLS.md MIDI_CO
         cp "$REPO_ROOT/docs/$doc" "$DOCS_DIR/"
     fi
 done
+if [[ -d "$REPO_ROOT/docs/product" ]]; then
+    mkdir -p "$DOCS_DIR/product"
+    cp "$REPO_ROOT/docs/product/"*.md "$DOCS_DIR/product/"
+fi
 
 # README dropped next to presets for first-run guidance.
 mkdir -p "$PAYLOAD/Library/Application Support/MURMUR"
@@ -245,6 +249,9 @@ Factory presets (${PRESET_COUNT}):
 Logic + Kawai MP11SE setup:
   ~/Library/Application Support/MURMUR/Docs/KAWAI_MP11SE.md
   ~/Library/Application Support/MURMUR/Docs/LOGIC_SMART_CONTROLS.md
+
+Product documentation (start here):
+  ~/Library/Application Support/MURMUR/Docs/product/README.md
 
 After installing: quit Logic, reopen, Plug-in Manager → Reset & Rescan.
 
@@ -284,6 +291,7 @@ ${OPTIONAL_FORMATS_LINE}
   • ${PRESET_COUNT} factory presets (Basses, Leads, Pads, Sequences, Ambient)
   • ${WAVETABLE_COUNT} wavetable files
   • Logic + Kawai MP11SE setup guides (Application Support/MURMUR/Docs/)
+  • MURMUR product documentation (Docs/product/)
 
 After installing:
   1. Quit Logic completely and reopen
@@ -391,6 +399,7 @@ if [[ "$MAKE_DMG" -eq 1 ]]; then
     mkdir -p "$DMG_STAGE"
     cp "$PKG_PATH" "$DMG_STAGE/"
     cp "$REPO_ROOT/docs/BEN_MVP.md" "$DMG_STAGE/BEN MVP — Read Me.txt"
+    cp "$REPO_ROOT/docs/product/README.md" "$DMG_STAGE/MURMUR Product Docs.txt"
     cp "$REPO_ROOT/docs/INSTALL.md" "$DMG_STAGE/INSTALL.txt"
     ln -s /Applications "$DMG_STAGE/Applications" 2>/dev/null || true
     DMG_PATH="$DIST_DIR/MURMUR-${VERSION}-macOS-${SCOPE_SUFFIX}.dmg"

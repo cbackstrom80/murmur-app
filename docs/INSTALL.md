@@ -1,6 +1,6 @@
 # Installing MURMUR on macOS (Ben MVP)
 
-**MURMUR 1.0.0** — install like any Mac app: download the `.pkg`, double-click, open Logic. No Xcode or terminal required.
+**MURMUR 1.0.1** — install like any Mac app: download the `.pkg`, double-click, open Logic. No Xcode or terminal required.
 
 Built for **Apple Silicon (M1/M2/M3/M4)** + **Logic Pro** + **Kawai MP11SE**.
 
@@ -9,7 +9,7 @@ Built for **Apple Silicon (M1/M2/M3/M4)** + **Logic Pro** + **Kawai MP11SE**.
 ## Quick install
 
 1. **Download** from [GitHub Releases](https://github.com/cbackstrom80/patchwork-eight/releases):
-   - `MURMUR-1.0.0-macOS-arm64.pkg`
+   - `MURMUR-1.0.1-macOS-arm64.pkg`
 
 2. **Open the `.pkg`** and follow the installer.
    - Installs to **your home folder** — **no admin password**
@@ -31,6 +31,7 @@ Full Ben MVP guide: [`BEN_MVP.md`](BEN_MVP.md)
 
 | Topic | Doc |
 |-------|-----|
+| **MURMUR product docs** | [`product/README.md`](product/README.md) |
 | MP11SE knob + pedal mapping | [`KAWAI_MP11SE.md`](KAWAI_MP11SE.md) |
 | Smart Controls 8-knob template | [`LOGIC_SMART_CONTROLS.md`](LOGIC_SMART_CONTROLS.md) |
 | All MIDI CC / mod wheel / expression | [`MIDI_CONTROLLERS.md`](MIDI_CONTROLLERS.md) |
@@ -39,6 +40,7 @@ Installed copies live at:
 
 ```
 ~/Library/Application Support/MURMUR/Docs/
+~/Library/Application Support/MURMUR/Docs/product/
 ```
 
 ---
@@ -52,6 +54,7 @@ Installed copies live at:
 | Showcase presets | `~/Library/Application Support/MURMUR/Presets/showcase/` |
 | Wavetables | `~/Library/Application Support/MURMUR/Wavetables/` |
 | Docs (Logic, MP11SE, MIDI) | `~/Library/Application Support/MURMUR/Docs/` |
+| Product documentation | `~/Library/Application Support/MURMUR/Docs/product/` |
 
 The default Ben release is **Audio Unit only** (ideal for Logic). Maintainers can build VST3 + Standalone with `scripts/build_release_pkg.sh --full`.
 
