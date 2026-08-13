@@ -660,6 +660,7 @@ namespace pw8::plugin
         if (!preview.ok)
             return false;
 
+        syncCurrentPatchFromApvts();
         currentPatch_.layerA.algorithm = def;
         return loadPatch(currentPatch_);
     }

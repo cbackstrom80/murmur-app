@@ -1,24 +1,52 @@
+#include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
 #include "pw8/algorithm/AlgorithmGraphCompiler.hpp"
 #include "pw8/patch/Patch.hpp"
 
-// Mirrors PatchworkEightProcessor::commitAlgorithmGraph compile gate — valid edits swap,
-// invalid edits leave the patch unchanged.
+// Mirrors PatchworkEightProcessor::commitAlgorithmGraph — valid edits swap,
+// invalid edits leave the patch unchanged, and APVTS-backed fields sync before reload.
 
 using namespace pw8;
 using namespace pw8::algorithm;
 
 namespace
 {
-    bool commitAlgorithmGraph(patch::Patch& patch, const AlgorithmGraphDefinition& def) noexcept
+    /// Stand-in for host-facing APVTS values that may diverge from `currentPatch_`
+    /// between the last sync and a graph commit (e.g. warp knobs edited in DESIGN).
+    struct LiveApvtsSnapshot
+    {
+        float wtBend = 0.0f;
+    };
+
+    void syncPatchFromApvts(patch::Patch& patch, const LiveApvtsSnapshot& apvts) noexcept
+    {
+        patch.layerA.operators[0].wtBend = apvts.wtBend;
+    }
+
+    void syncApvtsFromPatch(const patch::Patch& patch, LiveApvtsSnapshot& apvts) noexcept
+    {
+        apvts.wtBend = patch.layerA.operators[0].wtBend;
+    }
+
+    bool commitAlgorithmGraph(patch::Patch& patch, LiveApvtsSnapshot& apvts, const AlgorithmGraphDefinition& def,
+                              bool syncBeforeLoad) noexcept
     {
         CompiledAlgorithm compiled;
         if (AlgorithmGraphCompiler::compile(def, compiled) != CompileStatus::Ok)
             return false;
 
+        if (syncBeforeLoad)
+            syncPatchFromApvts(patch, apvts);
         patch.layerA.algorithm = def;
+        syncApvtsFromPatch(patch, apvts); // loadPatch -> syncAllParametersFromPatch
         return true;
+    }
+
+    bool commitAlgorithmGraph(patch::Patch& patch, const AlgorithmGraphDefinition& def) noexcept
+    {
+        LiveApvtsSnapshot apvts;
+        return commitAlgorithmGraph(patch, apvts, def, true);
     }
 
     AlgorithmGraphDefinition makeValidBellGraph()
@@ -84,6 +112,35 @@ TEST_CASE("commitAlgorithmGraph preserves isOutput flags", "[algorithm][processo
     REQUIRE(patch.layerA.algorithm.nodes[0].isOutput);
     REQUIRE_FALSE(patch.layerA.algorithm.nodes[1].isOutput);
     REQUIRE(patch.layerA.algorithm.nodes[3].isOutput);
+}
+
+TEST_CASE("commitAlgorithmGraph preserves APVTS warp edits after reload sync", "[algorithm][processor][commit][sync]")
+{
+    patch::Patch patch = patch::Patch::makeInit();
+    patch.layerA.operators[0].wtBend = 0.0f; // stale currentPatch_ value
+
+    LiveApvtsSnapshot apvts;
+    apvts.wtBend = 0.75f; // user moved the DESIGN warp knob since last sync
+
+    const auto bell = makeValidBellGraph();
+    REQUIRE(commitAlgorithmGraph(patch, apvts, bell, true));
+
+    REQUIRE(apvts.wtBend == Catch::Approx(0.75f));
+    REQUIRE(patch.layerA.operators[0].wtBend == Catch::Approx(0.75f));
+}
+
+TEST_CASE("commitAlgorithmGraph without APVTS sync reverts warp knob edits", "[algorithm][processor][commit][sync]")
+{
+    patch::Patch patch = patch::Patch::makeInit();
+    patch.layerA.operators[0].wtBend = 0.0f;
+
+    LiveApvtsSnapshot apvts;
+    apvts.wtBend = 0.75f;
+
+    const auto bell = makeValidBellGraph();
+    REQUIRE(commitAlgorithmGraph(patch, apvts, bell, false));
+
+    REQUIRE(apvts.wtBend == Catch::Approx(0.0f)); // documents the pre-fix regression
 }
 
 TEST_CASE("algorithm node engines stay aligned with operators after sync", "[algorithm][processor][sync]")

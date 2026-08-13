@@ -1,6 +1,7 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include "pw8/modulation/ModMatrixTypes.hpp"
 #include "pw8/patch/PatchSerializer.hpp"
 
 using namespace pw8::patch;
@@ -124,6 +125,23 @@ TEST_CASE("A v1 document's modRoutes source ordinals remap to the new ModSource 
     REQUIRE(routes[2].source == pw8::modulation::ModSource::Velocity); // old 3 (Velocity) -> new Velocity (17).
     REQUIRE(routes[3].source == pw8::modulation::ModSource::Macro1); // old 7 (Macro1) -> new Macro1 (21).
     REQUIRE(routes[4].source == pw8::modulation::ModSource::Macro8); // old 14 (Macro8) -> new Macro8 (28).
+}
+
+TEST_CASE("loadPatchFromJson preserves Expression mod source ordinal 30", "[patch][serialization][mod]")
+{
+    constexpr auto json = R"({
+        "schemaVersion": 3,
+        "layerA": {
+            "modRoutes": [
+                {"source": 30, "destination": 1, "targetIndex": 0, "amount": 12.0, "scope": 0}
+            ]
+        }
+    })";
+
+    const auto result = loadPatchFromJson(json);
+    REQUIRE(result.ok);
+    REQUIRE(result.patch.layerA.modRoutes.size() >= 1);
+    REQUIRE(result.patch.layerA.modRoutes[0].source == pw8::modulation::ModSource::Expression);
 }
 
 TEST_CASE("Patch algorithm graph roundtrips through JSON", "[patch][serialization][algorithm]")
