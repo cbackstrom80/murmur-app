@@ -115,6 +115,12 @@ namespace pw8::render
         void setFilterLive(const filter::FilterParams& params) noexcept;
         [[nodiscard]] const filter::FilterParams& getFilterParams() const noexcept { return patch_.layerA.filter1; }
 
+        void setFilter2Live(const filter::CharacterFilterParams& params) noexcept;
+        [[nodiscard]] const filter::CharacterFilterParams& getFilter2Params() const noexcept
+        {
+            return patch_.layerA.filter2;
+        }
+
         /// `opIndex` in [0, kNodesPerLayer). Out-of-range is a no-op.
         void setOperatorFilterLive(std::size_t opIndex, const filter::FilterParams& params) noexcept;
         [[nodiscard]] filter::FilterParams getOperatorFilterParams(std::size_t opIndex) const noexcept

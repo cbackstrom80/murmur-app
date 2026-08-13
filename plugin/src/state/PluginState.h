@@ -83,6 +83,7 @@ namespace pw8::plugin
     inline constexpr std::size_t kNumOperatorFields = 32;
     inline constexpr std::size_t kNumOperatorFilterFields = 5;
     inline constexpr std::size_t kNumFilterFields = 5;
+    inline constexpr std::size_t kNumFilter2Fields = 5;
     inline constexpr std::size_t kNumLfoFields = 5;
     inline constexpr std::size_t kNumEnvelopeFields = 8;
     inline constexpr std::size_t kNumEffectSlotFields = 57;
@@ -106,6 +107,7 @@ namespace pw8::plugin
     extern const std::array<ParamFieldSpec, kNumOperatorFields> kOperatorFieldSpecs;
     // Field order matches filter::FilterParams (global layer filter).
     extern const std::array<ParamFieldSpec, kNumFilterFields> kFilterFieldSpecs;
+    extern const std::array<ParamFieldSpec, kNumFilter2Fields> kFilter2FieldSpecs;
     // Field order matches filter::FilterParams (per-engine filter on each operator).
     extern const std::array<ParamFieldSpec, kNumOperatorFilterFields> kOperatorFilterFieldSpecs;
     // Field order matches lfo::LfoParams.
@@ -126,6 +128,7 @@ namespace pw8::plugin
     [[nodiscard]] juce::String masterFxParamId(std::size_t slot, const char* fieldSuffix);
 
     inline constexpr const char* kFilterIdPrefix = "filter";
+    inline constexpr const char* kFilter2IdPrefix = "filter2";
     inline constexpr const char* kArpIdPrefix = "arp";
     inline constexpr const char* kModWheelId = "modWheel";
     inline constexpr const char* kModWheelName = "Mod Wheel (CC1)";

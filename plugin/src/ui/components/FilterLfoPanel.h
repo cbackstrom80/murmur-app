@@ -10,6 +10,7 @@
 #include "GlowRingButton.h"
 #include "ModAssignmentController.h"
 #include "ModSourcePalette.h"
+#include "OscilloscopeView.h"
 #include "SectionPanel.h"
 #include "processor/PatchworkEightProcessor.h"
 #include "wireframe/FilterWireframeView.h"
@@ -64,6 +65,15 @@ namespace pw8::plugin::ui
         std::unique_ptr<GlowKnob> lfoRate_;
 
         ModSourcePalette modSourcePalette_;
+        SectionPanel filter2Panel_{"Filter 2"};
+        std::unique_ptr<GlowRingButton> filter2EnabledButton_;
+        juce::Label filter2EnabledLabel_;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> filter2EnabledAttachment_;
+        std::unique_ptr<GlowKnob> filter2Cutoff_;
+        std::unique_ptr<GlowKnob> filter2Resonance_;
+        std::unique_ptr<GlowKnob> filter2Drive_;
+        std::unique_ptr<GlowKnob> filter2KeyTrack_;
+        OscilloscopeView oscilloscope_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FilterLfoPanel)
     };

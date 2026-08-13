@@ -151,7 +151,16 @@ namespace pw8::plugin::ui
     void assignModRoute(PatchworkEightProcessor& processor, modulation::ModSource source,
                         modulation::ModDestination destination, std::uint8_t targetIndex)
     {
-        assignModRoute(processor, source, destination, targetIndex, defaultModAmountFor(destination));
+        float amount = defaultModAmountFor(destination);
+        for (const auto& route : processor.getCurrentPatch().layerA.modRoutes)
+        {
+            if (route.isActive() && route.destination == destination && route.targetIndex == targetIndex)
+            {
+                amount = route.amount;
+                break;
+            }
+        }
+        assignModRoute(processor, source, destination, targetIndex, amount);
     }
 
     void assignModRoute(PatchworkEightProcessor& processor, modulation::ModSource source,

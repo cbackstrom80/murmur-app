@@ -15,6 +15,7 @@ add_executable(pw8_tests
     dsp/DahdsrEnvelopeTests.cpp
     dsp/VoiceAllocatorTests.cpp
     dsp/StateVariableFilterTests.cpp
+    dsp/CharacterFilterTests.cpp
     dsp/LfoTests.cpp
     dsp/NoiseChaosOperatorTests.cpp
     dsp/PhaseShapeOscillatorTests.cpp

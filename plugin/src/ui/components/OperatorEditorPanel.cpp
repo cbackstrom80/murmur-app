@@ -3,6 +3,7 @@
 #include "AlgorithmGraphView.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
+#include "ModRoutingUi.h"
 #include "state/PluginState.h"
 
 namespace pw8::plugin::ui
@@ -46,8 +47,9 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    OperatorEditorPanel::OperatorEditorPanel(PatchworkEightProcessor& processor)
-        : processor_(processor), oscWireframeHost_(processor)
+    OperatorEditorPanel::OperatorEditorPanel(PatchworkEightProcessor& processor,
+                                             ModAssignmentController& assignmentController)
+        : processor_(processor), assignmentController_(assignmentController), oscWireframeHost_(processor)
     {
         addAndMakeVisible(panel_);
         panel_.setInterceptsMouseClicks(false, true);
@@ -102,6 +104,7 @@ namespace pw8::plugin::ui
             apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "Waveform"), "Wave", waveformToText);
         levelKnob_ =
             std::make_unique<GlowKnob>(apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "Level"), "Level");
+        panKnob_ = std::make_unique<GlowKnob>(apvts, juce::String(kLayerPanId), "Pan");
         ratioKnob_ = std::make_unique<GlowKnob>(apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "FreqRatio"),
                                                   "Ratio");
         // Previously had no UI anywhere -- PluginState.h's "WavetablePos" field is
@@ -176,7 +179,7 @@ namespace pw8::plugin::ui
         grainPitchJitterKnob_ = std::make_unique<GlowKnob>(
             apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "GrainPitchJitter"), "Pitch Jit");
 
-        for (auto* k : {waveformKnob_.get(), levelKnob_.get(), ratioKnob_.get(), wavetablePosKnob_.get(),
+        for (auto* k : {waveformKnob_.get(), levelKnob_.get(), panKnob_.get(), ratioKnob_.get(), wavetablePosKnob_.get(),
                          fmModRatioKnob_.get(), fmModIndexKnob_.get(), fmModFeedbackKnob_.get(), fmModWaveformKnob_.get(),
                          noiseVariantKnob_.get(), noiseRateKnob_.get(),
                          phaseBendKnob_.get(), phaseFoldKnob_.get(), phaseAsymmetryKnob_.get(), phaseShapeKnob_.get(),
@@ -187,6 +190,28 @@ namespace pw8::plugin::ui
                          grainDensityKnob_.get(), grainSizeKnob_.get(), grainPosJitterKnob_.get(),
                          grainPitchJitterKnob_.get()})
             panel_.addAndMakeVisible(*k);
+        wireModTargets();
+    }
+
+    void OperatorEditorPanel::wireModTargets()
+    {
+        const auto targetIndex = static_cast<std::uint8_t>(selectedNode_);
+        if (levelKnob_ != nullptr)
+        {
+            levelKnob_->enableModulationTarget(processor_, modulation::ModDestination::OperatorLevel, targetIndex);
+            levelKnob_->setModAssignmentController(&assignmentController_);
+        }
+        if (wavetablePosKnob_ != nullptr)
+        {
+            wavetablePosKnob_->enableModulationTarget(processor_, modulation::ModDestination::OperatorWavetablePosition,
+                                                      targetIndex);
+            wavetablePosKnob_->setModAssignmentController(&assignmentController_);
+        }
+        if (panKnob_ != nullptr)
+        {
+            panKnob_->enableModulationTarget(processor_, modulation::ModDestination::Pan, 0);
+            panKnob_->setModAssignmentController(&assignmentController_);
+        }
     }
 
     void OperatorEditorPanel::updateEngineVisibility()
@@ -256,6 +281,7 @@ namespace pw8::plugin::ui
         grainPosJitterKnob_->setVisible(isGranular);
         grainPitchJitterKnob_->setVisible(isGranular);
         levelKnob_->setVisible(true);
+        panKnob_->setVisible(true);
 
         for (auto* k : {fmModRatioKnob_.get(), fmModIndexKnob_.get(), fmModFeedbackKnob_.get(), fmModWaveformKnob_.get()})
             k->setVisible(isFmPm);
@@ -330,9 +356,11 @@ namespace pw8::plugin::ui
 
         if (isGranular)
         {
-            const int knobWidth = content.getWidth() / 7;
+            const int knobWidth = content.getWidth() / 8;
             if (levelKnob_)
                 levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            if (panKnob_)
+                panKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (ratioKnob_)
                 ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (wavetablePosKnob_)
@@ -348,19 +376,21 @@ namespace pw8::plugin::ui
         }
         else if (fmModRatioKnob_ && fmModRatioKnob_->isVisible())
         {
-            const int knobWidth = content.getWidth() / 7;
-            for (auto* k : {waveformKnob_.get(), levelKnob_.get(), ratioKnob_.get(), fmModRatioKnob_.get(),
+            const int knobWidth = content.getWidth() / 8;
+            for (auto* k : {waveformKnob_.get(), levelKnob_.get(), panKnob_.get(), ratioKnob_.get(), fmModRatioKnob_.get(),
                              fmModIndexKnob_.get(), fmModFeedbackKnob_.get(), fmModWaveformKnob_.get()})
                 if (k != nullptr)
                     k->setBounds(content.removeFromLeft(knobWidth).reduced(5));
         }
         else if (noiseVariantKnob_ && noiseVariantKnob_->isVisible())
         {
-            const int knobWidth = content.getWidth() / 4;
+            const int knobWidth = content.getWidth() / 5;
             if (ratioKnob_)
                 ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (levelKnob_)
                 levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            if (panKnob_)
+                panKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (noiseVariantKnob_)
                 noiseVariantKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (noiseRateKnob_)
@@ -368,11 +398,13 @@ namespace pw8::plugin::ui
         }
         else if (phaseBendKnob_ && phaseBendKnob_->isVisible())
         {
-            const int knobWidth = content.getWidth() / 6;
+            const int knobWidth = content.getWidth() / 7;
             if (ratioKnob_)
                 ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (levelKnob_)
                 levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            if (panKnob_)
+                panKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (phaseBendKnob_)
                 phaseBendKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (phaseFoldKnob_)
@@ -384,11 +416,13 @@ namespace pw8::plugin::ui
         }
         else if (additivePartialsKnob_ && additivePartialsKnob_->isVisible())
         {
-            const int knobWidth = content.getWidth() / 6;
+            const int knobWidth = content.getWidth() / 7;
             if (ratioKnob_)
                 ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (levelKnob_)
                 levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            if (panKnob_)
+                panKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (additivePartialsKnob_)
                 additivePartialsKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (additiveTiltKnob_)
@@ -400,11 +434,13 @@ namespace pw8::plugin::ui
         }
         else if (resonatorStructureKnob_ && resonatorStructureKnob_->isVisible())
         {
-            const int knobWidth = content.getWidth() / 7;
+            const int knobWidth = content.getWidth() / 8;
             if (ratioKnob_)
                 ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (levelKnob_)
                 levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            if (panKnob_)
+                panKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (resonatorStructureKnob_)
                 resonatorStructureKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (resonatorDecayKnob_)
@@ -418,9 +454,11 @@ namespace pw8::plugin::ui
         }
         else if (wavetablePosKnob_ && wavetablePosKnob_->isVisible())
         {
-            const int knobWidth = content.getWidth() / 3;
+            const int knobWidth = content.getWidth() / 4;
             if (levelKnob_)
                 levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            if (panKnob_)
+                panKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (ratioKnob_)
                 ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (wavetablePosKnob_)
@@ -428,11 +466,13 @@ namespace pw8::plugin::ui
         }
         else
         {
-            const int knobWidth = content.getWidth() / 3;
+            const int knobWidth = content.getWidth() / 4;
             if (waveformKnob_)
                 waveformKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (levelKnob_)
                 levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            if (panKnob_)
+                panKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (ratioKnob_)
                 ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
         }

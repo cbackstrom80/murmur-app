@@ -7,6 +7,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "GlowKnob.h"
+#include "ModAssignmentController.h"
 #include "SectionPanel.h"
 #include "wireframe/OscWireframeHost.h"
 #include "processor/PatchworkEightProcessor.h"
@@ -96,7 +97,8 @@ namespace pw8::plugin::ui
     class OperatorEditorPanel : public juce::Component, public juce::TooltipClient, private juce::Timer
     {
     public:
-        explicit OperatorEditorPanel(PatchworkEightProcessor& processor);
+        explicit OperatorEditorPanel(PatchworkEightProcessor& processor,
+                                   ModAssignmentController& assignmentController);
         ~OperatorEditorPanel() override;
 
         void resized() override;
@@ -131,6 +133,7 @@ namespace pw8::plugin::ui
         /// depends on the node, not the engine, so an engine-only change (see
         /// updateEngineVisibility()) never needs to touch these.
         void rebuildKnobsForNode();
+        void wireModTargets();
         /// Applies the Wave/Ratio-vs-WavetableStackView+WTPos visibility split for
         /// the CURRENT engine value and calls resized() -- shared by showNode()
         /// (after rebuildKnobsForNode()) and timerCallback()/mouseDown() (engine
@@ -143,12 +146,14 @@ namespace pw8::plugin::ui
         void timerCallback() override;
 
         PatchworkEightProcessor& processor_;
+        ModAssignmentController& assignmentController_;
         SectionPanel panel_{"Operator"};
         int selectedNode_ = 0;
         int lastKnownEngine_ = -1; // -1 forces updateEngineDependentLayout() on first showNode().
 
         std::unique_ptr<GlowKnob> waveformKnob_;
         std::unique_ptr<GlowKnob> levelKnob_;
+        std::unique_ptr<GlowKnob> panKnob_;
         std::unique_ptr<GlowKnob> ratioKnob_;
         std::unique_ptr<GlowKnob> wavetablePosKnob_; // Visible for the Wavetable AND Granular engines.
         OscWireframeHost oscWireframeHost_; // Engine-specific wireframe previews (always visible).

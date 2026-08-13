@@ -81,6 +81,7 @@ namespace pw8::plugin
             macroParamPointers_[i] = apvts.getRawParameterValue(kMacroParameterIds[i]);
 
         cacheGroup(apvts, filterParamPointers_, kFilterIdPrefix, kFilterFieldSpecs);
+        cacheGroup(apvts, filter2ParamPointers_, kFilter2IdPrefix, kFilter2FieldSpecs);
         cacheGroup(apvts, arpParamPointers_, kArpIdPrefix, kArpFieldSpecs);
 
         for (std::size_t lfo = 0; lfo < kNumLfos; ++lfo)
@@ -291,6 +292,14 @@ namespace pw8::plugin
             fp.resonance = loadF(filterParamPointers_[3]);
             fp.keyTrack = loadF(filterParamPointers_[4]);
             engine.setFilterLive(fp);
+
+            filter::CharacterFilterParams f2;
+            f2.enabled = loadB(filter2ParamPointers_[0]);
+            f2.cutoffHz = loadF(filter2ParamPointers_[1]);
+            f2.resonance = loadF(filter2ParamPointers_[2]);
+            f2.drive = loadF(filter2ParamPointers_[3]);
+            f2.keyTrack = loadF(filter2ParamPointers_[4]);
+            engine.setFilter2Live(f2);
         }
 
         // 8 LFOs -- field order matches kLfoFieldSpecs / lfo::LfoParams. One
@@ -671,7 +680,7 @@ namespace pw8::plugin
     {
         if (parameterID.startsWith("macro"))
             return ParamGroup::Macros;
-        if (parameterID.startsWith(kFilterIdPrefix))
+        if (parameterID.startsWith(kFilterIdPrefix) || parameterID.startsWith(kFilter2IdPrefix))
             return ParamGroup::Filter;
         if (parameterID.startsWith(kLayerGainId) || parameterID.startsWith(kLayerPanId))
             return ParamGroup::LayerGainPan;
@@ -835,6 +844,13 @@ namespace pw8::plugin
         for (std::size_t i = 0; i < kNumFilterFields; ++i)
             setParam(juce::String(kFilterIdPrefix) + kFilterFieldSpecs[i].idSuffix, filterValues[i]);
 
+        const auto& filter2 = currentPatch_.layerA.filter2;
+        const std::array<float, kNumFilter2Fields> filter2Values = {
+            filter2.enabled ? 1.0f : 0.0f, filter2.cutoffHz, filter2.resonance, filter2.drive, filter2.keyTrack,
+        };
+        for (std::size_t i = 0; i < kNumFilter2Fields; ++i)
+            setParam(juce::String(kFilter2IdPrefix) + kFilter2FieldSpecs[i].idSuffix, filter2Values[i]);
+
         for (std::size_t lfoIdx = 0; lfoIdx < kNumLfos; ++lfoIdx)
         {
             const auto& lfo = currentPatch_.layerA.lfos[lfoIdx];
@@ -946,6 +962,13 @@ namespace pw8::plugin
         filter.cutoffHz = loadF(filterParamPointers_[2]);
         filter.resonance = loadF(filterParamPointers_[3]);
         filter.keyTrack = loadF(filterParamPointers_[4]);
+
+        auto& filter2 = currentPatch_.layerA.filter2;
+        filter2.enabled = loadB(filter2ParamPointers_[0]);
+        filter2.cutoffHz = loadF(filter2ParamPointers_[1]);
+        filter2.resonance = loadF(filter2ParamPointers_[2]);
+        filter2.drive = loadF(filter2ParamPointers_[3]);
+        filter2.keyTrack = loadF(filter2ParamPointers_[4]);
 
         for (std::size_t lfoIdx = 0; lfoIdx < kNumLfos; ++lfoIdx)
         {

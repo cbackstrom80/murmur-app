@@ -10,6 +10,7 @@
 #include "pw8/dsp/Random.hpp"
 #include "pw8/dsp/Smoother.hpp"
 #include "pw8/envelope/DahdsrEnvelope.hpp"
+#include "pw8/filter/CharacterFilter.hpp"
 #include "pw8/filter/StateVariableFilter.hpp"
 #include "pw8/lfo/Lfo.hpp"
 #include "pw8/modulation/ModMatrixExecutor.hpp"
@@ -63,6 +64,7 @@ namespace pw8::voice
             for (auto& l : lfos)
                 l.prepare(sampleRate);
             filter1.prepare(sampleRate);
+            filter2.prepare(sampleRate);
             for (auto& f : operatorFilters_)
                 f.prepare(sampleRate);
             sampleRate_ = sampleRate;
@@ -218,6 +220,13 @@ namespace pw8::voice
                 filtered = filter1.renderSample(raw, filterParams.mode, cutoffHz, resonance);
             }
 
+            if (filter2Params.enabled)
+            {
+                const float keyTrackFactor = std::pow(effectiveFreq / 261.6256f, filter2Params.keyTrack);
+                const float cutoffHz = filter2Params.cutoffHz * keyTrackFactor;
+                filtered = filter2.renderSample(filtered, cutoffHz, filter2Params.resonance, filter2Params.drive);
+            }
+
             const float amp = dsp::clamp(filtered * env * velocity * outputGain * stealOutputGain_, -16.0f, 16.0f);
 
             const float panClamped = dsp::clamp(pan + modOut.panOffset, -1.0f, 1.0f);
@@ -323,6 +332,7 @@ namespace pw8::voice
             for (std::size_t i = 0; i < core::kNumEnvelopesPerLayer; ++i)
                 envelopes[i].noteOn(envParams[i]);
             filter1.reset();
+            filter2.reset();
             for (auto& f : operatorFilters_)
                 f.reset();
             for (std::size_t i = 0; i < core::kNumLfosPerLayer; ++i)
@@ -392,6 +402,9 @@ namespace pw8::voice
 
         filter::FilterParams filterParams{};
         filter::StateVariableFilter filter1{};
+
+        filter::CharacterFilterParams filter2Params{};
+        filter::CharacterFilter filter2{};
 
         std::array<filter::FilterParams, core::kNodesPerLayer> operatorFilterParams_{};
         std::array<filter::StateVariableFilter, core::kNodesPerLayer> operatorFilters_{};

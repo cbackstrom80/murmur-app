@@ -16,7 +16,7 @@ namespace pw8::plugin::ui
           contextStrip_(processor),
           patchFocusPanel_(processor),
           compactEditor_(processor),
-          operatorEditorPanel_(processor),
+          operatorEditorPanel_(processor, modAssignmentController_),
           filterLfoPanel_(processor, modAssignmentController_),
           ampEnvelopePanel_(processor),
           modLauncherPanel_(processor, modAssignmentController_),
@@ -331,8 +331,8 @@ namespace pw8::plugin::ui
             return;
         }
 
-        modAssignmentBanner_.setText("Step 2: click a purple/cyan destination — FILTER tab ringed knobs, or "
-                                     "Cutoff/Resonance in Edit routes.",
+        modAssignmentBanner_.setText("Step 2: click a ringed knob — OSC (Level/WT Pos/Pan), FILTER (Cutoff/Reso), "
+                                     "or destination buttons in MOD.",
                                      juce::dontSendNotification);
         modAssignmentBanner_.setVisible(true);
         resized();

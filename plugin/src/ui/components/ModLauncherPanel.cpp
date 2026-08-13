@@ -12,7 +12,7 @@ namespace pw8::plugin::ui
                                         ModAssignmentController& assignmentController)
         : processor_(processor), modSourceStrip_(processor, assignmentController)
     {
-        titleLabel_.setText("Modulation", juce::dontSendNotification);
+        titleLabel_.setText("Mod Matrix", juce::dontSendNotification);
         titleLabel_.setFont(fonts::title(16.0f));
         titleLabel_.setColour(juce::Label::textColourId, palette::kTextPrimary);
         addAndMakeVisible(titleLabel_);
@@ -22,8 +22,9 @@ namespace pw8::plugin::ui
         summaryLabel_.setJustificationType(juce::Justification::centredLeft);
         addAndMakeVisible(summaryLabel_);
 
+        openButton_.setButtonText("Expand");
         openButton_.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
-        openButton_.setColour(juce::TextButton::textColourOffId, palette::kTextPrimary);
+        openButton_.setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
         openButton_.onClick = [this] {
             if (onOpenAdvanced)
                 onOpenAdvanced();
@@ -66,13 +67,13 @@ namespace pw8::plugin::ui
 
         juce::String summary;
         if (routeCount == 0)
-            summary = "No automatic movement wired — assign sources below, or open full screen.";
+            summary = "Arm a source, pick a destination, drag amount sliders below.";
         else
         {
-            summary = juce::String(routeCount) + " active route" + (routeCount == 1 ? "" : "s");
+            summary = juce::String(routeCount) + " route" + (routeCount == 1 ? "" : "s") + " active";
             if (hasModWheel)
-                summary += " · Mod Wheel wired";
-            summary += ".";
+                summary += " · Mod Wheel";
+            summary += " — edit depths inline.";
         }
         summaryLabel_.setText(summary, juce::dontSendNotification);
         repaint();
@@ -89,11 +90,11 @@ namespace pw8::plugin::ui
     {
         auto bounds = getLocalBounds().reduced(12, 10);
         titleLabel_.setBounds(bounds.removeFromTop(22));
+        bounds.removeFromTop(2);
+        auto headerRow = bounds.removeFromTop(18);
+        summaryLabel_.setBounds(headerRow.removeFromLeft(headerRow.getWidth() - 72));
+        openButton_.setBounds(headerRow.removeFromRight(68).reduced(0, 1));
         bounds.removeFromTop(4);
-        auto headerRow = bounds.removeFromTop(22);
-        summaryLabel_.setBounds(headerRow.removeFromLeft(headerRow.getWidth() - 108));
-        openButton_.setBounds(headerRow.removeFromRight(100).reduced(0, 1));
-        bounds.removeFromTop(6);
         modSourceStrip_.setBounds(bounds);
     }
 

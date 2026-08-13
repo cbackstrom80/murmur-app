@@ -56,6 +56,14 @@ namespace pw8::plugin
         {"KeyTrack",  "Global Key Track",     -1.0f,  1.0f,     0.0f,    false},
     }};
 
+    const std::array<ParamFieldSpec, kNumFilter2Fields> kFilter2FieldSpecs = {{
+        {"Enabled",   "Filter 2 Enabled", 0.0f,  1.0f,     0.0f,    true},
+        {"CutoffHz",  "Filter 2 Cutoff",  20.0f, 24000.0f, 4000.0f, false},
+        {"Resonance", "Filter 2 Reso",    0.0f,  1.0f,     0.3f,    false},
+        {"Drive",     "Filter 2 Drive",   0.0f,  1.0f,     0.0f,    false},
+        {"KeyTrack",  "Filter 2 Key Trk", -1.0f,  1.0f,     0.0f,    false},
+    }};
+
     const std::array<ParamFieldSpec, kNumOperatorFilterFields> kOperatorFilterFieldSpecs = {{
         {"FilterEnabled",   "Engine Filter Enabled", 0.0f,  1.0f,     0.0f,    true},
         {"FilterMode",      "Engine Filter Mode",    0.0f,  4.0f,     0.0f,    true},
@@ -209,9 +217,9 @@ namespace pw8::plugin
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout()
     {
         std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
-        params.reserve(8 + kNumFilterFields + kNumOperators * kNumOperatorFilterFields + kNumLfos * kNumLfoFields +
-                       kNumOperators * kNumOperatorFields + kNumEnvelopes * kNumEnvelopeFields + 3 +
-                       (kNumInsertFxSlots + kNumMasterFxSlots) * kNumEffectSlotFields + kNumArpFields);
+        params.reserve(8 + kNumFilterFields + kNumFilter2Fields + kNumOperators * kNumOperatorFilterFields +
+                       kNumLfos * kNumLfoFields + kNumOperators * kNumOperatorFields + kNumEnvelopes * kNumEnvelopeFields +
+                       3 + (kNumInsertFxSlots + kNumMasterFxSlots) * kNumEffectSlotFields + kNumArpFields);
 
         for (std::size_t i = 0; i < kMacroParameterIds.size(); ++i)
             params.push_back(std::make_unique<juce::AudioParameterFloat>(
@@ -226,6 +234,9 @@ namespace pw8::plugin
 
         for (const auto& spec : kFilterFieldSpecs)
             addParam(params, juce::String(kFilterIdPrefix) + spec.idSuffix, spec);
+
+        for (const auto& spec : kFilter2FieldSpecs)
+            addParam(params, juce::String(kFilter2IdPrefix) + spec.idSuffix, spec);
 
         for (std::size_t lfo = 0; lfo < kNumLfos; ++lfo)
             for (const auto& spec : kLfoFieldSpecs)

@@ -10,8 +10,8 @@
 
 namespace pw8::plugin::ui
 {
-    /// Horizontal row of PLAY-mode mod source chips (LFO 1, AMP ENV, Velocity, Macro 1–4).
-    /// Used on both MOD and FILTER tabs so routing never requires a cross-tab drag.
+    /// Horizontal scrollable row of PLAY-mode mod source chips.
+    /// Used on MOD and FILTER tabs so routing never requires a cross-tab drag.
     class ModSourcePalette : public juce::Component
     {
     public:
@@ -35,6 +35,8 @@ namespace pw8::plugin::ui
 
         ModAssignmentController& controller_;
         juce::Label hintLabel_;
+        juce::Viewport viewport_;
+        juce::Component chipContainer_;
         std::vector<std::unique_ptr<ModSourceChip>> chips_;
         bool compact_ = false;
 

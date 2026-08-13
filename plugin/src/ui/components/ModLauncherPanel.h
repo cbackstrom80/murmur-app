@@ -32,7 +32,7 @@ namespace pw8::plugin::ui
         PatchworkEightProcessor& processor_;
         juce::Label titleLabel_;
         juce::Label summaryLabel_;
-        juce::TextButton openButton_{"Full screen..."};
+        juce::TextButton openButton_{"Expand"};
         ModSourceStrip modSourceStrip_;
     };
 

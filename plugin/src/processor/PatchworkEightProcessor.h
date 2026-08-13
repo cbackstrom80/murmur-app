@@ -238,6 +238,7 @@ namespace pw8::plugin
         // struct in pushLiveParametersToEngine() is a straight positional read.
         std::array<std::atomic<float>*, 8> macroParamPointers_{};
         std::array<std::atomic<float>*, kNumFilterFields> filterParamPointers_{};
+        std::array<std::atomic<float>*, kNumFilter2Fields> filter2ParamPointers_{};
         std::array<std::array<std::atomic<float>*, kNumLfoFields>, kNumLfos> lfoParamPointers_{};
         std::array<std::array<std::atomic<float>*, kNumOperatorFields>, kNumOperators> operatorParamPointers_{};
         std::array<std::array<std::atomic<float>*, kNumOperatorFilterFields>, kNumOperators> operatorFilterParamPointers_{};

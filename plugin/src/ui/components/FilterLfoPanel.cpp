@@ -54,7 +54,8 @@ namespace pw8::plugin::ui
           assignmentController_(assignmentController),
           filterWireframe_(processor.apvts),
           lfoWireframe_(processor.apvts, 0),
-          modSourcePalette_(assignmentController)
+          modSourcePalette_(assignmentController),
+          oscilloscope_(processor)
     {
         addAndMakeVisible(filterPanel_);
         addAndMakeVisible(lfoPanel_);
@@ -74,6 +75,17 @@ namespace pw8::plugin::ui
             lfoPanel_.addAndMakeVisible(*k);
         lfoPanel_.addAndMakeVisible(lfoWireframe_);
 
+        filter2EnabledButton_ = std::make_unique<GlowRingButton>("Filter 2 Enable");
+        filter2EnabledLabel_.setText("FILTER 2", juce::dontSendNotification);
+        filter2EnabledLabel_.setFont(fonts::label(9.5f));
+        filter2EnabledLabel_.setColour(juce::Label::textColourId, palette::kTextSecondary);
+        filter2EnabledLabel_.setJustificationType(juce::Justification::centredLeft);
+        filter2Panel_.addAndMakeVisible(*filter2EnabledButton_);
+        filter2Panel_.addAndMakeVisible(filter2EnabledLabel_);
+
+        addAndMakeVisible(filter2Panel_);
+        addAndMakeVisible(oscilloscope_);
+
         setScope(FilterPanelScope::Global, 0);
     }
 
@@ -83,6 +95,7 @@ namespace pw8::plugin::ui
         engineIndex_ = juce::jlimit(0, 7, engineIndex);
         rebuildAttachments();
         lfoPanel_.setVisible(scope_ == FilterPanelScope::Global);
+        filter2Panel_.setVisible(scope_ == FilterPanelScope::Global);
         filterPanel_.setTitle(scope_ == FilterPanelScope::Global
                                   ? "Global Filter"
                                   : "Engine " + juce::String(engineIndex_) + " Filter");
@@ -153,6 +166,28 @@ namespace pw8::plugin::ui
         filterPanel_.addAndMakeVisible(*filterMode_);
         filterPanel_.addAndMakeVisible(*filterToneKnob_);
         filterPanel_.addAndMakeVisible(*filterKeyTrack_);
+
+        filter2EnabledAttachment_.reset();
+        filter2Cutoff_.reset();
+        filter2Resonance_.reset();
+        filter2Drive_.reset();
+        filter2KeyTrack_.reset();
+        filter2Panel_.removeAllChildren();
+        filter2Panel_.addAndMakeVisible(*filter2EnabledButton_);
+        filter2Panel_.addAndMakeVisible(filter2EnabledLabel_);
+
+        if (scope_ == FilterPanelScope::Global)
+        {
+            const juce::String prefix = juce::String(kFilter2IdPrefix);
+            filter2EnabledAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
+                apvts, prefix + "Enabled", *filter2EnabledButton_);
+            filter2Cutoff_ = std::make_unique<GlowKnob>(apvts, prefix + "CutoffHz", "Cutoff");
+            filter2Resonance_ = std::make_unique<GlowKnob>(apvts, prefix + "Resonance", "Reso");
+            filter2Drive_ = std::make_unique<GlowKnob>(apvts, prefix + "Drive", "Drive");
+            filter2KeyTrack_ = std::make_unique<GlowKnob>(apvts, prefix + "KeyTrack", "Key Trk");
+            for (auto* k : {filter2Cutoff_.get(), filter2Resonance_.get(), filter2Drive_.get(), filter2KeyTrack_.get()})
+                filter2Panel_.addAndMakeVisible(*k);
+        }
     }
 
     void FilterLfoPanel::paint(juce::Graphics& g)
@@ -168,12 +203,35 @@ namespace pw8::plugin::ui
     {
         auto bounds = getLocalBounds();
 
+        auto scopeRow = bounds.removeFromBottom(56);
+        oscilloscope_.setBounds(scopeRow.reduced(4, 2));
+
         auto paletteRow = bounds.removeFromTop(30);
         modSourcePalette_.setBounds(paletteRow.reduced(4, 2));
         bounds.removeFromTop(4);
 
         if (scope_ == FilterPanelScope::Global)
         {
+            auto filter2Row = bounds.removeFromBottom(88);
+            filter2Panel_.setBounds(filter2Row.reduced(4, 0));
+            {
+                auto content = filter2Panel_.getContentBounds().reduced(4, 0);
+                auto enableRow = content.removeFromTop(32);
+                const int ringSize = 28;
+                filter2EnabledButton_->setBounds(enableRow.removeFromLeft(ringSize + 6).withSizeKeepingCentre(ringSize, ringSize));
+                filter2EnabledLabel_.setBounds(enableRow.removeFromLeft(72));
+                const int knobWidth = content.getWidth() / 4;
+                if (filter2Cutoff_)
+                    filter2Cutoff_->setBounds(content.removeFromLeft(knobWidth).reduced(4));
+                if (filter2Resonance_)
+                    filter2Resonance_->setBounds(content.removeFromLeft(knobWidth).reduced(4));
+                if (filter2Drive_)
+                    filter2Drive_->setBounds(content.removeFromLeft(knobWidth).reduced(4));
+                if (filter2KeyTrack_)
+                    filter2KeyTrack_->setBounds(content.removeFromLeft(knobWidth).reduced(4));
+            }
+            bounds.removeFromBottom(4);
+
             const int half = bounds.getWidth() / 2;
             filterPanel_.setBounds(bounds.removeFromLeft(half).reduced(4, 0));
             lfoPanel_.setBounds(bounds.reduced(4, 0));

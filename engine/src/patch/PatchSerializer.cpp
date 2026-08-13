@@ -223,6 +223,21 @@ namespace pw8::patch
             f.keyTrack = clampNum(j.value("keyTrack", 0.0f), -1.0f, 1.0f);
         }
 
+        void toJson(json& j, const filter::CharacterFilterParams& f)
+        {
+            j = json{{"enabled", f.enabled},     {"cutoffHz", f.cutoffHz}, {"resonance", f.resonance},
+                     {"drive", f.drive},         {"keyTrack", f.keyTrack}};
+        }
+
+        void fromJson(const json& j, filter::CharacterFilterParams& f)
+        {
+            f.enabled = j.value("enabled", false);
+            f.cutoffHz = clampNum(j.value("cutoffHz", 4000.0f), 20.0f, 24000.0f);
+            f.resonance = clampNum(j.value("resonance", 0.3f), 0.0f, 1.0f);
+            f.drive = clampNum(j.value("drive", 0.0f), 0.0f, 1.0f);
+            f.keyTrack = clampNum(j.value("keyTrack", 0.0f), -1.0f, 1.0f);
+        }
+
         void toJson(json& j, const lfo::LfoParams& l)
         {
             j = json{{"waveform", static_cast<int>(l.waveform)}, {"mode", static_cast<int>(l.mode)},
@@ -433,10 +448,11 @@ namespace pw8::patch
                 toJson(jo, o);
                 ops.push_back(jo);
             }
-            json algo, uni, filt;
+            json algo, uni, filt, filt2;
             toJson(algo, l.algorithm);
             toJson(uni, l.unison);
             toJson(filt, l.filter1);
+            toJson(filt2, l.filter2);
 
             json envelopes = json::array();
             for (const auto& e : l.envelopes)
@@ -471,9 +487,9 @@ namespace pw8::patch
             }
 
             j = json{{"operators", ops},       {"algorithm", algo},           {"envelopes", envelopes},
-                     {"unison", uni},           {"filter1", filt},             {"lfos", lfos},
-                     {"modRoutes", routes},     {"gain", l.gain},              {"pan", l.pan},
-                     {"width", l.width},         {"centerGravity", l.centerGravity},
+                     {"unison", uni},           {"filter1", filt},             {"filter2", filt2},
+                     {"lfos", lfos},            {"modRoutes", routes},         {"gain", l.gain},
+                     {"pan", l.pan},            {"width", l.width},            {"centerGravity", l.centerGravity},
                      {"insertEffects", inserts}};
         }
 
@@ -513,6 +529,8 @@ namespace pw8::patch
                 fromJson(j.at("unison"), l.unison);
             if (j.contains("filter1"))
                 fromJson(j.at("filter1"), l.filter1);
+            if (j.contains("filter2"))
+                fromJson(j.at("filter2"), l.filter2);
 
             l.lfos = std::array<lfo::LfoParams, core::kNumLfosPerLayer>{};
             if (j.contains("lfos") && j.at("lfos").is_array())

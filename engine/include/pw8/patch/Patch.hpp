@@ -10,6 +10,7 @@
 #include "pw8/core/Version.hpp"
 #include "pw8/effects/EffectTypes.hpp"
 #include "pw8/envelope/DahdsrEnvelope.hpp"
+#include "pw8/filter/CharacterFilter.hpp"
 #include "pw8/filter/StateVariableFilter.hpp"
 #include "pw8/lfo/Lfo.hpp"
 #include "pw8/modulation/ModMatrixTypes.hpp"
@@ -146,6 +147,9 @@ namespace pw8::patch
         /// Optional -- disabled by default on new operators/patches. See docs/DSP_ENGINE.md.
         filter::FilterParams filter1{};
 
+        /// Global character filter (nonlinear ladder + drive), serial after Filter 1.
+        filter::CharacterFilterParams filter2{};
+
         /// 8 LFOs, usable as mod matrix sources (Lfo1..Lfo8, see docs/MODULATION.md).
         /// `lfos[0]` is what used to be the singular `lfo1` field (schema v1 migrates
         /// on load, same as `envelopes` above). VOICE-scoped routes give each voice
@@ -166,9 +170,6 @@ namespace pw8::patch
         /// 3 layer insert FX slots, applied in order to this layer's summed voice
         /// output before it reaches the master bus. See docs/FX_BANK.md.
         std::array<effects::EffectSlotParams, effects::kNumLayerInsertSlots> insertEffects{};
-
-        // Filter 2 (character) is architected as of docs/DSP_ENGINE.md but not yet
-        // part of the signal path in this pass -- see docs/ROADMAP.md Phase 6.
     };
 
     /// AI-generation lock flags: control what Generate/Mutate/Breed are allowed to touch.
