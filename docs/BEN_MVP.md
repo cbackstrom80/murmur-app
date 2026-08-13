@@ -1,11 +1,11 @@
-# Ben MVP — MURMUR 1.0.4
+# Ben MVP — MURMUR 1.0.5
 
 First installable release for **Ben** on **Apple Silicon Mac + Logic Pro + Kawai MP11SE**.
 
 ## What’s included
 
 - **MURMUR** Audio Unit (`MURMUR.component`) — Logic-native instrument
-- **800 factory presets** (160 each: Basses, Leads, Pads, Sequences, Ambient)
+- **900 factory presets** (800 core + 100 Interstellar cinematic)
 - **Wavetable library** + showcase presets
 - **MP11SE performance mapping** out of the box (mod wheel, expression, knobs A–D → macros)
 - **Pad playability fix** — legato chords no longer stack infinitely (polyphony + amp legato)
@@ -13,7 +13,7 @@ First installable release for **Ben** on **Apple Silicon Mac + Logic Pro + Kawai
 
 ## Install
 
-1. Download `MURMUR-1.0.4-macOS-arm64.pkg` from [GitHub Releases](https://github.com/cbackstrom80/patchwork-eight/releases).
+1. Download `MURMUR-1.0.5-macOS-arm64.pkg` from [GitHub Releases](https://github.com/cbackstrom80/patchwork-eight/releases).
 2. Double-click the `.pkg` → follow the installer (no admin password; installs to your home folder).
 3. **Quit Logic** completely, reopen.
 4. **Logic → Settings → Plug-in Manager → Reset & Rescan Selection** (or full rescan).
