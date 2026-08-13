@@ -18,6 +18,7 @@ MURMUR is an algorithmic software synthesizer for macOS — built for deep sound
 | [**Performance**](PERFORMANCE.md) | MIDI, mod wheel, expression, controller keyboards |
 | [**Requirements & Formats**](REQUIREMENTS_AND_FORMATS.md) | macOS, Logic, AU/VST3, install paths |
 | [**FAQ**](FAQ.md) | Common questions and troubleshooting |
+| [**Product gap plan**](../PRODUCT_GAP_PLAN.md) | Roadmap for DESIGN mode, filters, warps, sampler, analyzers, mod UX |
 
 ---
 

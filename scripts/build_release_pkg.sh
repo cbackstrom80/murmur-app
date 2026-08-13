@@ -225,7 +225,7 @@ cp "$WAVETABLES_SRC"/*.json "$PAYLOAD/Library/Application Support/MURMUR/Wavetab
 # Logic / Ben MVP docs shipped beside presets.
 DOCS_DIR="$PAYLOAD/Library/Application Support/MURMUR/Docs"
 mkdir -p "$DOCS_DIR"
-for doc in BEN_MVP.md INSTALL.md KAWAI_MP11SE.md LOGIC_SMART_CONTROLS.md MIDI_CONTROLLERS.md; do
+for doc in BEN_MVP.md INSTALL.md KAWAI_MP11SE.md LOGIC_SMART_CONTROLS.md MIDI_CONTROLLERS.md PRODUCT_GAP_PLAN.md; do
     if [[ -f "$REPO_ROOT/docs/$doc" ]]; then
         cp "$REPO_ROOT/docs/$doc" "$DOCS_DIR/"
     fi
