@@ -1,0 +1,42 @@
+#!/bin/bash
+# Merge factory presets from pkg staging into the live factory folder.
+# macOS pkg upgrades can skip new subfolders under an existing Presets/factory/
+# tree; rsync from .murmur-factory-staging guarantees Interstellar and future banks land.
+set -euo pipefail
+
+PRESETS_ROOT="${HOME}/Library/Application Support/MURMUR/Presets"
+STAGING="${PRESETS_ROOT}/.murmur-factory-staging"
+FACTORY="${PRESETS_ROOT}/factory"
+INTERSTELLAR="${FACTORY}/Interstellar"
+MIN_INTERSTELLAR=100
+MIN_TOTAL=900
+
+if [[ -d "$STAGING" ]]; then
+    mkdir -p "$FACTORY"
+    /usr/bin/rsync -a "$STAGING/" "$FACTORY/"
+fi
+
+if [[ ! -d "$FACTORY" ]]; then
+    echo "MURMUR postinstall: factory preset folder missing at ${FACTORY}" >&2
+    exit 0
+fi
+
+interstellar_count=0
+if [[ -d "$INTERSTELLAR" ]]; then
+    interstellar_count=$(find "$INTERSTELLAR" -name '*.pw8' 2>/dev/null | wc -l | tr -d ' ')
+fi
+
+total_count=$(find "$FACTORY" -name '*.pw8' 2>/dev/null | wc -l | tr -d ' ')
+
+if [[ "$interstellar_count" -lt "$MIN_INTERSTELLAR" ]]; then
+    echo "MURMUR postinstall: WARNING — expected at least ${MIN_INTERSTELLAR} Interstellar presets," >&2
+    echo "  found ${interstellar_count} under ${INTERSTELLAR}." >&2
+    echo "  Total factory presets on disk: ${total_count}." >&2
+    echo "  Re-run the MURMUR installer or rsync content/presets/factory/ to fix." >&2
+elif [[ "$total_count" -lt "$MIN_TOTAL" ]]; then
+    echo "MURMUR postinstall: WARNING — expected at least ${MIN_TOTAL} factory presets, found ${total_count}." >&2
+else
+    echo "MURMUR postinstall: ${total_count} factory presets installed (${interstellar_count} Interstellar)."
+fi
+
+exit 0

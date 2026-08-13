@@ -15,7 +15,7 @@ Right-click the `.pkg` → **Open** → confirm **Open**. Or remove quarantine: 
 **Presets folder is empty in BROWSE.**
 
 Re-run the installer or check:
-`~/Library/Application Support/MURMUR/Presets/factory/` — should contain 800 `.pw8` files.
+`~/Library/Application Support/MURMUR/Presets/factory/` — should contain 900 `.pw8` files (including `Interstellar/`).
 
 ---
 

@@ -168,7 +168,13 @@ if [[ ! -d "$PRESETS_SRC" ]] || [[ -z "$(find "$PRESETS_SRC" -name '*.pw8' -prin
     python3 scripts/generate_factory_presets.py
 fi
 PRESET_COUNT=$(find "$PRESETS_SRC" -name '*.pw8' | wc -l | tr -d ' ')
-echo "==> Bundling $PRESET_COUNT factory presets."
+INTERSTELLAR_COUNT=$(find "$PRESETS_SRC/Interstellar" -name '*.pw8' 2>/dev/null | wc -l | tr -d ' ')
+echo "==> Bundling $PRESET_COUNT factory presets (${INTERSTELLAR_COUNT} Interstellar)."
+if [[ ! -d "$PRESETS_SRC/Interstellar" ]] || [[ "$INTERSTELLAR_COUNT" -lt 100 ]]; then
+    echo "ERROR: Interstellar factory bank missing or incomplete under $PRESETS_SRC/Interstellar" >&2
+    echo "       Run: python3 scripts/generate_interstellar_presets.py" >&2
+    exit 1
+fi
 
 if [[ ! -d "$WAVETABLES_SRC" ]] || [[ -z "$(find "$WAVETABLES_SRC" -name '*.json' -print -quit 2>/dev/null)" ]]; then
     echo "ERROR: wavetable library missing under $WAVETABLES_SRC" >&2
@@ -205,6 +211,7 @@ make_root() {
     mkdir -p "$STAGE_DIR/${name}-root/Library/Audio/Plug-Ins/VST3"
     mkdir -p "$STAGE_DIR/${name}-root/Applications"
     mkdir -p "$STAGE_DIR/${name}-root/Library/Application Support/MURMUR/Presets/factory"
+    mkdir -p "$STAGE_DIR/${name}-root/Library/Application Support/MURMUR/Presets/.murmur-factory-staging"
     mkdir -p "$STAGE_DIR/${name}-root/Library/Application Support/MURMUR/Presets/showcase"
     mkdir -p "$STAGE_DIR/${name}-root/Library/Application Support/MURMUR/Wavetables"
 }
@@ -217,7 +224,18 @@ if [[ "$SYSTEM_ONLY" -eq 0 ]]; then
     cp -R "$VST3_SRC" "$PAYLOAD/Library/Audio/Plug-Ins/VST3/"
     cp -R "$APP_SRC" "$PAYLOAD/Applications/"
 fi
-cp -R "$PRESETS_SRC/"* "$PAYLOAD/Library/Application Support/MURMUR/Presets/factory/"
+FACTORY_DST="$PAYLOAD/Library/Application Support/MURMUR/Presets/factory"
+STAGING_DST="$PAYLOAD/Library/Application Support/MURMUR/Presets/.murmur-factory-staging"
+cp -R "$PRESETS_SRC/"* "$FACTORY_DST/"
+cp -R "$PRESETS_SRC/"* "$STAGING_DST/"
+
+STAGED_INTERSTELLAR=$(find "$FACTORY_DST/Interstellar" -name '*.pw8' 2>/dev/null | wc -l | tr -d ' ')
+if [[ "$STAGED_INTERSTELLAR" -lt 100 ]]; then
+    echo "ERROR: pkg payload missing Interstellar bank (found ${STAGED_INTERSTELLAR} .pw8 under factory/Interstellar)" >&2
+    exit 1
+fi
+echo "==> Staged ${PRESET_COUNT} factory presets in pkg payload (${STAGED_INTERSTELLAR} Interstellar)."
+
 find "$SHOWCASE_PRESETS_SRC" -maxdepth 1 -name '*.pw8' -exec cp {} \
     "$PAYLOAD/Library/Application Support/MURMUR/Presets/showcase/" \;
 cp "$WAVETABLES_SRC"/*.json "$PAYLOAD/Library/Application Support/MURMUR/Wavetables/"
@@ -258,10 +276,16 @@ After installing: quit Logic, reopen, Plug-in Manager → Reset & Rescan.
 Updates: https://github.com/cbackstrom80/patchwork-eight/releases
 README_EOF
 
+PKG_SCRIPTS="$STAGE_DIR/pkg-scripts"
+mkdir -p "$PKG_SCRIPTS"
+cp "$REPO_ROOT/scripts/pkg/postinstall" "$PKG_SCRIPTS/postinstall"
+chmod +x "$PKG_SCRIPTS/postinstall"
+
 pkgbuild --root "$PAYLOAD" \
     --identifier "com.patchwork.murmur.${SCOPE_SUFFIX}" \
     --version "$VERSION" \
     --install-location "/" \
+    --scripts "$PKG_SCRIPTS" \
     "$STAGE_DIR/components/murmur.pkg" >/dev/null
 
 RES_DIR="$STAGE_DIR/resources"
@@ -288,7 +312,7 @@ It places MURMUR in ${INSTALL_BLURB}
 Included:
   • MURMUR Audio Unit (Logic: AU Instruments → Murmur → MURMUR)
 ${OPTIONAL_FORMATS_LINE}
-  • ${PRESET_COUNT} factory presets (Basses, Leads, Pads, Sequences, Ambient)
+  • ${PRESET_COUNT} factory presets (Basses, Leads, Pads, Sequences, Ambient, Interstellar)
   • ${WAVETABLE_COUNT} wavetable files
   • Logic + Kawai MP11SE setup guides (Application Support/MURMUR/Docs/)
   • MURMUR product documentation (Docs/product/)

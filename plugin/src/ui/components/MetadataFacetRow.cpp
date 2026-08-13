@@ -5,6 +5,17 @@
 
 namespace pw8::plugin::ui
 {
+    namespace
+    {
+        juce::String formatFacetLabel(const juce::String& value)
+        {
+            const auto trimmed = value.trim();
+            if (trimmed.isEmpty())
+                return trimmed;
+            return trimmed.substring(0, 1).toUpperCase() + trimmed.substring(1).toLowerCase();
+        }
+    } // namespace
+
     MetadataFacetRow::MetadataFacetRow(const juce::String& rowLabel) : rowLabel_(rowLabel)
     {
         label_.setText(rowLabel, juce::dontSendNotification);
@@ -36,10 +47,12 @@ namespace pw8::plugin::ui
     void MetadataFacetRow::selectValue(const juce::String& value, bool notify)
     {
         selectedValue_ = value;
-        for (auto& chip : chips_)
+        for (std::size_t i = 0; i < chips_.size(); ++i)
         {
-            const bool isAll = chip->getButtonText() == "All";
-            const bool on = isAll ? selectedValue_.isEmpty() : chip->getButtonText().equalsIgnoreCase(selectedValue_);
+            auto& chip = chips_[i];
+            const bool isAll = i == 0;
+            const auto rawValue = isAll ? juce::String() : values_[static_cast<int>(i - 1)];
+            const bool on = isAll ? selectedValue_.isEmpty() : rawValue.equalsIgnoreCase(selectedValue_);
             chip->setToggleState(on, juce::dontSendNotification);
             chip->setColour(juce::TextButton::buttonOnColourId,
                             on ? palette::kAccent.withAlpha(0.42f) : palette::kPanelRaised);
@@ -63,20 +76,20 @@ namespace pw8::plugin::ui
         chips_.clear();
         chipHost_.removeAllChildren();
 
-        auto makeChip = [this](const juce::String& text) {
-            auto chip = std::make_unique<juce::TextButton>(text);
+        auto makeChip = [this](const juce::String& displayText, const juce::String& rawValue) {
+            auto chip = std::make_unique<juce::TextButton>(displayText);
             chip->setClickingTogglesState(true);
             chip->setRadioGroupId(rowLabel_.hashCode());
             chip->setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
             chip->setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
-            chip->onClick = [this, text]() { selectValue(text == "All" ? juce::String() : text, true); };
+            chip->onClick = [this, rawValue]() { selectValue(rawValue, true); };
             chipHost_.addAndMakeVisible(*chip);
             chips_.push_back(std::move(chip));
         };
 
-        makeChip("All");
+        makeChip("All", {});
         for (const auto& value : values_)
-            makeChip(value);
+            makeChip(formatFacetLabel(value), value);
 
         selectValue(selectedValue_, false);
     }

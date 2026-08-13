@@ -1,6 +1,6 @@
 # Installing MURMUR on macOS (Ben MVP)
 
-**MURMUR 1.0.5** — install like any Mac app: download the `.pkg`, double-click, open Logic. No Xcode or terminal required.
+**MURMUR 1.0.6** — install like any Mac app: download the `.pkg`, double-click, open Logic. No Xcode or terminal required.
 
 Built for **Apple Silicon (M1/M2/M3/M4)** + **Logic Pro** + **Kawai MP11SE**.
 
@@ -9,7 +9,7 @@ Built for **Apple Silicon (M1/M2/M3/M4)** + **Logic Pro** + **Kawai MP11SE**.
 ## Quick install
 
 1. **Download** from [GitHub Releases](https://github.com/cbackstrom80/patchwork-eight/releases):
-   - `MURMUR-1.0.5-macOS-arm64.pkg`
+   - `MURMUR-1.0.6-macOS-arm64.pkg`
 
 2. **Open the `.pkg`** and follow the installer.
    - Installs to **your home folder** — **no admin password**
@@ -50,7 +50,7 @@ Installed copies live at:
 | Item | Path |
 |------|------|
 | Audio Unit | `~/Library/Audio/Plug-Ins/Components/MURMUR.component` |
-| Factory presets (800) | `~/Library/Application Support/MURMUR/Presets/factory/` |
+| Factory presets (900) | `~/Library/Application Support/MURMUR/Presets/factory/` |
 | Showcase presets | `~/Library/Application Support/MURMUR/Presets/showcase/` |
 | Wavetables | `~/Library/Application Support/MURMUR/Wavetables/` |
 | Docs (Logic, MP11SE, MIDI) | `~/Library/Application Support/MURMUR/Docs/` |

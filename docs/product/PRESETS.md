@@ -1,6 +1,6 @@
 # MURMUR — Presets
 
-MURMUR ships with **800 factory presets** — a complete starting library across five musical roles. Every preset includes six Knobs of Interest, standard MIDI performance routes, and patch-specific macro names.
+MURMUR ships with **900 factory presets** — a complete starting library across six musical roles. Every preset includes six Knobs of Interest, standard MIDI performance routes, and patch-specific macro names.
 
 ---
 
@@ -13,6 +13,7 @@ MURMUR ships with **800 factory presets** — a complete starting library across
 | **Pads** | 160 | `Presets/factory/Pads/` | Strings, washes, dream-pop, cinematic |
 | **Sequences** | 160 | `Presets/factory/Sequences/` | Arps, plucks, gated 80s, acid lines |
 | **Ambient** | 160 | `Presets/factory/Ambient/` | Drones, gran clouds, hymn swells, FX beds |
+| **Interstellar** | 100 | `Presets/factory/Interstellar/` | Cinematic cosmic pads, subs, arps, contact tones |
 
 Installed location:
 
