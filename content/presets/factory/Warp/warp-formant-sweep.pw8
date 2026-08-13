@@ -1,0 +1,180 @@
+{
+  "schemaVersion": 3,
+  "metadata": {
+    "id": "pw8-factory-warp-formant-sweep",
+    "name": "WARP FORMANT SWEEP",
+    "author": "Patchwork Eight Engineering",
+    "description": "Factory formant warp showcase: OP0 reads formant-vowel-aa.json with wtFormantShift at 0.55 and LFO1 sweeping WT Pos. Automate or sweep the Formant knob in PLAY for vowel motion.",
+    "category": "warp",
+    "moods": [
+      "vocal",
+      "evolving",
+      "bright"
+    ],
+    "genres": [
+      "factory"
+    ],
+    "tags": [
+      "factory",
+      "warp",
+      "formant",
+      "vocal",
+      "demo"
+    ],
+    "createdAt": "2026-08-13T00:00:00Z",
+    "engineVersion": "0.1.0",
+    "schemaVersion": 3,
+    "seed": 3102,
+    "lineage": []
+  },
+  "layerMode": 0,
+  "layerMorph": 0.0,
+  "layerA": {
+    "operators": [
+      {
+        "engine": 1,
+        "wavetableId": "content/wavetables/formant-vowel-aa.json",
+        "wavetableFramePosition": 0.35,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.95,
+        "pan": 0.0,
+        "wtFormantShift": 0.55
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      }
+    ],
+    "algorithm": {
+      "nodes": [
+        {"id": 0, "engine": 1, "isOutput": true},
+        {"id": 1, "engine": 0, "isOutput": false},
+        {"id": 2, "engine": 0, "isOutput": false},
+        {"id": 3, "engine": 0, "isOutput": false},
+        {"id": 4, "engine": 0, "isOutput": false},
+        {"id": 5, "engine": 0, "isOutput": false},
+        {"id": 6, "engine": 0, "isOutput": false},
+        {"id": 7, "engine": 0, "isOutput": false}
+      ],
+      "edges": []
+    },
+    "envelopes": [
+      {
+        "attackSeconds": 0.04,
+        "decaySeconds": 0.35,
+        "sustainLevel": 0.9,
+        "releaseSeconds": 0.6,
+        "curveShape": 2.0
+      }
+    ],
+    "lfos": [
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 0.25,
+        "phaseOffset": 0.0
+      }
+    ],
+    "modRoutes": [
+      {
+        "source": 1,
+        "destination": 5,
+        "targetIndex": 0,
+        "amount": 0.45,
+        "scope": 0
+      }
+    ],
+    "gain": 0.88,
+    "pan": 0.0,
+    "width": 1.0,
+    "centerGravity": 0.45
+  },
+  "layerB": {
+    "operators": [
+      {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0}
+    ],
+    "algorithm": {
+      "nodes": [
+        {"id": 0, "engine": 0, "isOutput": true},
+        {"id": 1, "engine": 0, "isOutput": false},
+        {"id": 2, "engine": 0, "isOutput": false},
+        {"id": 3, "engine": 0, "isOutput": false},
+        {"id": 4, "engine": 0, "isOutput": false},
+        {"id": 5, "engine": 0, "isOutput": false},
+        {"id": 6, "engine": 0, "isOutput": false},
+        {"id": 7, "engine": 0, "isOutput": false}
+      ],
+      "edges": []
+    },
+    "envelopes": [
+      {
+        "attackSeconds": 0.02,
+        "decaySeconds": 0.3,
+        "sustainLevel": 0.85,
+        "releaseSeconds": 0.5
+      }
+    ],
+    "gain": 1.0,
+    "pan": 0.0,
+    "width": 1.0,
+    "centerGravity": 0.5
+  },
+  "voiceSettings": {
+    "polyphony": 8,
+    "masterGain": 0.8,
+    "a4Hz": 440.0
+  },
+  "locks": {},
+  "macros": [
+    {"id": "m1", "name": "DARKNESS", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m2", "name": "IMPACT", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m3", "name": "MOTION", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m4", "name": "SPACE", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m5", "name": "BODY", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m6", "name": "METAL", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m7", "name": "CHAOS", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m8", "name": "MORPH", "description": "Reserved -- not yet routed.", "value": 0.0}
+  ],
+  "seed": 3102,
+  "uiFocus": {
+    "maxKnobs": 4,
+    "knobs": [
+      {"kind": "param", "paramId": "op0WtFormantShift", "label": "Formant"},
+      {"kind": "param", "paramId": "op0WavetablePos", "label": "WT Pos"},
+      {"kind": "param", "paramId": "filterCutoffHz", "label": "Cutoff"},
+      {"kind": "param", "paramId": "masterGain", "label": "Master"}
+    ]
+  }
+}

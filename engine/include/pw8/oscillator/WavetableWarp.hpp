@@ -1,5 +1,6 @@
 #pragma once
 
+#include "pw8/dsp/Biquad.hpp"
 #include "pw8/dsp/Math.hpp"
 #include "pw8/oscillator/PhaseWarpCommon.hpp"
 
@@ -14,7 +15,63 @@ namespace pw8::oscillator
         float asymmetry = 0.0f; ///< -1..1 half-cycle skew
         float syncRatio = 1.0f;  ///< 1..16 internal sync cycles per carrier cycle
         float syncAmount = 0.0f; ///< 0..1 soft/hard sync blend
-        float formantShift = 0.0f; ///< -1..1 post-read emphasis (Week 5+)
+        float formantShift = 0.0f; ///< -1..1 post-read formant emphasis
+    };
+
+    /// Post-read two-peaking emphasis bank — shifts spectral envelope without rebaking mips.
+    class FormantEmphasisBank
+    {
+    public:
+        void prepare(double sampleRate) noexcept
+        {
+            sampleRate_ = sampleRate > 0.0 ? sampleRate : 48000.0;
+            reset();
+        }
+
+        void reset() noexcept
+        {
+            lowShelf_.reset();
+            highShelf_.reset();
+            cachedShift_ = 999.0f;
+        }
+
+        [[nodiscard]] float process(float sample, float formantShift) noexcept
+        {
+            if (std::abs(formantShift) < 1.0e-5f)
+                return sample;
+
+            updateIfNeeded(formantShift);
+
+            const float filtered = highShelf_.renderSample(lowShelf_.renderSample(sample));
+            const float blend = std::min(std::abs(formantShift) * 0.85f, 1.0f);
+            return dsp::flushIfNotFinite(dsp::lerp(sample, filtered, blend));
+        }
+
+    private:
+        void updateIfNeeded(float shift) noexcept
+        {
+            if (std::abs(shift - cachedShift_) < 1.0e-4f)
+                return;
+            cachedShift_ = shift;
+
+            const float amount = std::min(std::abs(shift), 1.0f);
+            const float gainDb = amount * 12.0f;
+            if (shift >= 0.0f)
+            {
+                lowShelf_.setLowShelf(900.0f, -gainDb * 0.45f, sampleRate_);
+                highShelf_.setHighShelf(2200.0f, gainDb, sampleRate_);
+            }
+            else
+            {
+                lowShelf_.setLowShelf(900.0f, gainDb, sampleRate_);
+                highShelf_.setHighShelf(2200.0f, -gainDb * 0.45f, sampleRate_);
+            }
+        }
+
+        double sampleRate_ = 48000.0;
+        float cachedShift_ = 999.0f;
+        dsp::Biquad lowShelf_;
+        dsp::Biquad highShelf_;
     };
 
     /// Soft/hard sync on read phase — at amount=0 identical to input; at 1, frac(t * ratio).

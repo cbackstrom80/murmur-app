@@ -10,7 +10,7 @@
 // Status: IMPLEMENTED core reader — multi-frame, linearly interpolated across
 // sample and frame position, with mip-mapped band-limited views selected via
 // `WavetableTable::viewForFrequency()`. Pre-read phase warps (bend, asymmetry,
-// sync) apply via `WtWarpParams` — see docs/DESIGN_AND_WARPS_PLAN.md.
+// sync) apply via `WtWarpParams`; post-read formant emphasis via `FormantEmphasisBank`.
 //
 // The oscillator itself owns no sample storage (no realtime allocation): callers
 // point it at a `WavetableView` that is prepared off the audio thread (see
@@ -41,9 +41,17 @@ namespace pw8::oscillator
     class WavetableOscillator
     {
     public:
-        void prepare(double sampleRate) noexcept { sampleRate_ = sampleRate > 0.0 ? sampleRate : 48000.0; }
+        void prepare(double sampleRate) noexcept
+        {
+            sampleRate_ = sampleRate > 0.0 ? sampleRate : 48000.0;
+            formantBank_.prepare(sampleRate_);
+        }
 
-        void reset(float initialPhase = 0.0f) noexcept { phase_ = dsp::wrapPhase(initialPhase); }
+        void reset(float initialPhase = 0.0f) noexcept
+        {
+            phase_ = dsp::wrapPhase(initialPhase);
+            formantBank_.reset();
+        }
 
         void setFrequency(float hz) noexcept { frequencyHz_ = hz; }
 
@@ -61,7 +69,8 @@ namespace pw8::oscillator
 
             const float modulatedPhase = dsp::wrapPhase(phase_ + externalPhaseModulation);
             const float readPhase = warpReadPhase(modulatedPhase, warp);
-            const float out = readTable(table, dsp::clamp(framePosition01, 0.0f, 1.0f), readPhase);
+            const float raw = readTable(table, dsp::clamp(framePosition01, 0.0f, 1.0f), readPhase);
+            const float out = formantBank_.process(raw, warp.formantShift);
 
             const float dt = static_cast<float>(frequencyHz_ / sampleRate_);
             const float phaseBefore = phase_;
@@ -94,6 +103,7 @@ namespace pw8::oscillator
         float frequencyHz_ = 440.0f;
         float phase_ = 0.0f;
         bool didWrapThisSample_ = false;
+        FormantEmphasisBank formantBank_;
     };
 
 } // namespace pw8::oscillator

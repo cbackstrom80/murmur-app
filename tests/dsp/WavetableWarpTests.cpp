@@ -258,3 +258,116 @@ TEST_CASE("WavetableOscillator asymmetry changes output when bend is active", "[
 
     REQUIRE(withAsym != Catch::Approx(bendOnly).margin(1.0e-4f));
 }
+
+TEST_CASE("WavetableWarp formant identity at zero shift", "[wavetable][warp]")
+{
+    FormantEmphasisBank bank;
+    bank.prepare(48000.0);
+    REQUIRE(bank.process(0.5f, 0.0f) == Catch::Approx(0.5f));
+    REQUIRE(bank.process(-0.25f, 0.0f) == Catch::Approx(-0.25f));
+}
+
+TEST_CASE("WavetableWarp formant changes output vs zero", "[wavetable][warp]")
+{
+    FormantEmphasisBank bank;
+    bank.prepare(48000.0);
+    const float neutral = bank.process(0.42f, 0.0f);
+    bank.reset();
+    const float shifted = bank.process(0.42f, 0.75f);
+    REQUIRE(shifted != Catch::Approx(neutral).margin(1.0e-4f));
+}
+
+TEST_CASE("WavetableOscillator formant warp changes output", "[wavetable][warp]")
+{
+    constexpr int kTableSize = 256;
+    std::vector<float> samples(static_cast<std::size_t>(kTableSize));
+    for (int i = 0; i < kTableSize; ++i)
+        samples[static_cast<std::size_t>(i)] =
+            std::sin(dsp::kTwoPi * static_cast<float>(i) / static_cast<float>(kTableSize));
+
+    WavetableView view;
+    view.samples = samples.data();
+    view.numFrames = 1;
+    view.samplesPerFrame = kTableSize;
+
+    WavetableOscillator osc;
+    osc.prepare(48000.0);
+    osc.setFrequency(220.0f);
+    osc.reset(0.25f);
+
+    WtWarpParams neutral;
+    WtWarpParams formant;
+    formant.formantShift = 0.8f;
+
+    const float flat = osc.renderSample(view, 0.0f, 0.0f, neutral);
+    osc.reset(0.25f);
+    const float warped = osc.renderSample(view, 0.0f, 0.0f, formant);
+
+    REQUIRE(warped != Catch::Approx(flat).margin(1.0e-4f));
+}
+
+TEST_CASE("WavetableWarp formant shifts spectral centroid", "[wavetable][warp]")
+{
+    constexpr std::size_t kNumSamples = 8192;
+    constexpr std::size_t kWarmup = 512;
+    constexpr double kSampleRate = 48000.0;
+    constexpr std::size_t kFundamentalBin = 20;
+    constexpr float kFreqHz = static_cast<float>(kFundamentalBin) * static_cast<float>(kSampleRate) /
+                              static_cast<float>(kNumSamples);
+
+    auto renderWithFormant = [&](float formantShift) {
+        constexpr int kTableSize = 256;
+        std::vector<float> table(static_cast<std::size_t>(kTableSize));
+        for (int i = 0; i < kTableSize; ++i)
+        {
+            const float phase = static_cast<float>(i) / static_cast<float>(kTableSize);
+            table[static_cast<std::size_t>(i)] = 2.0f * phase - 1.0f;
+        }
+
+        WavetableView view;
+        view.samples = table.data();
+        view.numFrames = 1;
+        view.samplesPerFrame = kTableSize;
+
+        WavetableOscillator osc;
+        osc.prepare(kSampleRate);
+        osc.setFrequency(kFreqHz);
+        osc.reset(0.125f);
+
+        WtWarpParams warp;
+        warp.formantShift = formantShift;
+
+        std::vector<float> out(kWarmup + kNumSamples);
+        for (std::size_t i = 0; i < out.size(); ++i)
+            out[i] = osc.renderSample(view, 0.0f, 0.0f, warp);
+        return std::vector<float>(out.begin() + static_cast<std::ptrdiff_t>(kWarmup), out.end());
+    };
+
+    auto spectralCentroidHz = [](const std::vector<float>& samples, double sampleRate) {
+        const std::size_t n = samples.size();
+        std::vector<std::complex<float>> data(n);
+        for (std::size_t i = 0; i < n; ++i)
+            data[i] = std::complex<float>(samples[i], 0.0f);
+        dsp::fft(data, false);
+
+        const std::size_t half = n / 2;
+        double weighted = 0.0;
+        double total = 0.0;
+        for (std::size_t k = 1; k < half; ++k)
+        {
+            const double mag = std::norm(data[k]);
+            const double freq = static_cast<double>(k) * sampleRate / static_cast<double>(n);
+            weighted += freq * mag;
+            total += mag;
+        }
+        return weighted / std::max(total, 1.0e-9);
+    };
+
+    const auto low = renderWithFormant(-0.85f);
+    const auto high = renderWithFormant(0.85f);
+
+    const double centroidLow = spectralCentroidHz(low, kSampleRate);
+    const double centroidHigh = spectralCentroidHz(high, kSampleRate);
+
+    REQUIRE(centroidHigh > centroidLow * 1.02);
+}

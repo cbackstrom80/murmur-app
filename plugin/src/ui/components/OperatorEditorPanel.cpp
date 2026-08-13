@@ -184,6 +184,8 @@ namespace pw8::plugin::ui
             apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "WtAsymmetry"), "WT Asym");
         wtSyncAmountKnob_ = std::make_unique<GlowKnob>(
             apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "WtSyncAmount"), "Sync Amt");
+        wtFormantKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "WtFormantShift"), "Formant");
 
         for (auto* k : {waveformKnob_.get(), levelKnob_.get(), panKnob_.get(), ratioKnob_.get(), wavetablePosKnob_.get(),
                          fmModRatioKnob_.get(), fmModIndexKnob_.get(), fmModFeedbackKnob_.get(), fmModWaveformKnob_.get(),
@@ -194,7 +196,8 @@ namespace pw8::plugin::ui
                          resonatorStructureKnob_.get(), resonatorDecayKnob_.get(), resonatorDampingKnob_.get(),
                          resonatorBrightnessKnob_.get(), resonatorModesKnob_.get(),
                          grainDensityKnob_.get(), grainSizeKnob_.get(), grainPosJitterKnob_.get(),
-                         grainPitchJitterKnob_.get(), wtBendKnob_.get(), wtAsymmetryKnob_.get(), wtSyncAmountKnob_.get()})
+                         grainPitchJitterKnob_.get(), wtBendKnob_.get(), wtAsymmetryKnob_.get(), wtSyncAmountKnob_.get(),
+                         wtFormantKnob_.get()})
             panel_.addAndMakeVisible(*k);
         wireModTargets();
     }
@@ -295,6 +298,7 @@ namespace pw8::plugin::ui
         wtBendKnob_->setVisible(isWavetable);
         wtAsymmetryKnob_->setVisible(isWavetable);
         wtSyncAmountKnob_->setVisible(isWavetable);
+        wtFormantKnob_->setVisible(isWavetable);
         levelKnob_->setVisible(true);
         panKnob_->setVisible(true);
 
@@ -469,7 +473,7 @@ namespace pw8::plugin::ui
         }
         else if (wtBendKnob_ && wtBendKnob_->isVisible())
         {
-            const int knobWidth = content.getWidth() / 7;
+            const int knobWidth = content.getWidth() / 8;
             if (levelKnob_)
                 levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (panKnob_)
@@ -484,6 +488,8 @@ namespace pw8::plugin::ui
                 wtAsymmetryKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (wtSyncAmountKnob_)
                 wtSyncAmountKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            if (wtFormantKnob_)
+                wtFormantKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
         }
         else if (wavetablePosKnob_ && wavetablePosKnob_->isVisible())
         {
