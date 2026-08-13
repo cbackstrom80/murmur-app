@@ -664,6 +664,14 @@ namespace pw8::plugin
         return loadPatch(currentPatch_);
     }
 
+    bool PatchworkEightProcessor::commitModMatrix(
+        const core::FixedVector<modulation::ModRoute, core::kMaxModRoutes>& routes)
+    {
+        currentPatch_.layerA.modRoutes = routes;
+        publishModRoutesLive(routes);
+        return true;
+    }
+
     float PatchworkEightProcessor::getModWheelValue() const noexcept
     {
         return mirroredModWheel_.load(std::memory_order_relaxed);

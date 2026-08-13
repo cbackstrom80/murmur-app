@@ -39,6 +39,9 @@ namespace pw8::plugin::ui
                 onGraphApplied();
         };
 
+        matrixEditor_ = std::make_unique<ModMatrixDesignPanel>(processor_);
+        matrixPanel_.addAndMakeVisible(*matrixEditor_);
+
         openBuilderButton_.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
         openBuilderButton_.setColour(juce::TextButton::textColourOffId, palette::kAccent);
         openBuilderButton_.onClick = [] {
@@ -48,13 +51,12 @@ namespace pw8::plugin::ui
                 "Use tools/wavetable_builder for now.");
         };
 
-        for (auto* label : {&matrixPlaceholder_, &fxPlaceholder_, &wavetablePlaceholder_})
+        for (auto* label : {&fxPlaceholder_, &wavetablePlaceholder_})
         {
             label->setJustificationType(juce::Justification::centred);
             label->setColour(juce::Label::textColourId, palette::kTextDim);
         }
 
-        matrixPanel_.addAndMakeVisible(matrixPlaceholder_);
         fxPanel_.addAndMakeVisible(fxPlaceholder_);
         wavetablePanel_.addAndMakeVisible(wavetablePlaceholder_);
         wavetablePanel_.addAndMakeVisible(openBuilderButton_);
@@ -66,6 +68,8 @@ namespace pw8::plugin::ui
     {
         if (graphEditor_ != nullptr)
             graphEditor_->refreshFromPatch();
+        if (matrixEditor_ != nullptr)
+            matrixEditor_->refreshFromPatch();
     }
 
     void DesignModeEditor::showPage(Page page)
@@ -113,7 +117,9 @@ namespace pw8::plugin::ui
         if (graphEditor_ != nullptr)
             graphEditor_->setBounds(graphPanel_.getContentBounds());
 
-        matrixPlaceholder_.setBounds(matrixPanel_.getContentBounds());
+        if (matrixEditor_ != nullptr)
+            matrixEditor_->setBounds(matrixPanel_.getContentBounds());
+
         fxPlaceholder_.setBounds(fxPanel_.getContentBounds());
         auto wtBounds = wavetablePanel_.getContentBounds();
         auto builderRow = wtBounds.removeFromBottom(36);

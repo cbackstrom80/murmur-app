@@ -93,6 +93,7 @@ namespace pw8::plugin::ui
             case modulation::ModDestination::OperatorFilterResonance: return 0.4f;
             case modulation::ModDestination::OperatorLevel: return 0.35f;
             case modulation::ModDestination::OperatorWavetablePosition: return 0.25f;
+            case modulation::ModDestination::OperatorWavetableBend: return 0.35f;
             case modulation::ModDestination::Pan: return 0.4f;
             default: return 0.0f;
         }
@@ -119,6 +120,9 @@ namespace pw8::plugin::ui
             case modulation::ModDestination::OperatorWavetablePosition:
                 return ModDestinationParam{operatorParamId(targetIndex, "WavetablePos"),
                                            "Op " + juce::String(static_cast<int>(targetIndex)) + " WT Pos"};
+            case modulation::ModDestination::OperatorWavetableBend:
+                return ModDestinationParam{operatorParamId(targetIndex, "WtBend"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " WT Bend"};
             case modulation::ModDestination::Pan:
                 return ModDestinationParam{juce::String(kLayerPanId), "Layer Pan"};
             case modulation::ModDestination::None:
@@ -140,6 +144,8 @@ namespace pw8::plugin::ui
             case modulation::ModDestination::OperatorLevel:
                 return {-1.0f, 1.0f};
             case modulation::ModDestination::OperatorWavetablePosition:
+                return {-1.0f, 1.0f};
+            case modulation::ModDestination::OperatorWavetableBend:
                 return {-1.0f, 1.0f};
             case modulation::ModDestination::Pan:
                 return {-1.0f, 1.0f};

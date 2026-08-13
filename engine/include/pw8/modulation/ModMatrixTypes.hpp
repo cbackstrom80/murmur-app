@@ -39,6 +39,7 @@ namespace pw8::modulation
         OperatorLevel,           ///< requires `targetIndex` in [0, kNodesPerLayer).
         Pan,
         OperatorWavetablePosition, ///< requires `targetIndex`; additive offset, 0..1 result.
+        OperatorWavetableBend,     ///< requires `targetIndex`; additive offset, -1..1 result.
     };
 
     /// VOICE-scoped routes read a per-voice, independently-phased source (each

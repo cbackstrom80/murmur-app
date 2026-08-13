@@ -82,6 +82,8 @@ namespace pw8::plugin::ui
             case ModDestination::Pan: return "PAN";
             case ModDestination::OperatorWavetablePosition:
                 return "OP " + juce::String(static_cast<int>(targetIndex)) + " WT POS";
+            case ModDestination::OperatorWavetableBend:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " WT BEND";
         }
         return "-";
     }

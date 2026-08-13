@@ -184,6 +184,7 @@ namespace pw8::plugin::ui
         std::unique_ptr<GlowKnob> grainPitchJitterKnob_; // Only visible for the Granular engine.
         std::unique_ptr<GlowKnob> wtBendKnob_;           // Only visible for the Wavetable engine.
         std::unique_ptr<GlowKnob> wtAsymmetryKnob_;      // Only visible for the Wavetable engine.
+        std::unique_ptr<GlowKnob> wtSyncAmountKnob_;     // Only visible for the Wavetable engine (Week 4).
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OperatorEditorPanel)
     };

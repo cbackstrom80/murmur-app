@@ -118,6 +118,9 @@ namespace pw8::plugin
         /// Message-thread only: apply a validated graph to Layer A and reload the engine.
         bool commitAlgorithmGraph(const algorithm::AlgorithmGraphDefinition& def);
 
+        /// Message-thread only: replace Layer A mod routes and publish live (persists to patch for save).
+        bool commitModMatrix(const core::FixedVector<modulation::ModRoute, core::kMaxModRoutes>& routes);
+
         /// Message-thread only. True once this player has performed the
         /// drag-to-modulate gesture at least once via setOrReplaceModRouteLive()
         /// in the current session -- deliberately NOT "does the current patch have

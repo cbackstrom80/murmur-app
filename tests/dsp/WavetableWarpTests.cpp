@@ -135,6 +135,69 @@ TEST_CASE("WavetableWarp asymmetry modulates bend displacement", "[wavetable][wa
     REQUIRE(warpReadPhase(0.125f, bendAndAsym) != Catch::Approx(warpReadPhase(0.125f, bendOnly)).margin(1.0e-4f));
 }
 
+TEST_CASE("WavetableWarp sync identity at zero amount", "[wavetable][warp]")
+{
+    WtWarpParams params;
+    params.syncRatio = 4.0f;
+    params.syncAmount = 0.0f;
+    REQUIRE(warpReadPhase(0.25f, params) == Catch::Approx(0.25f));
+}
+
+TEST_CASE("WavetableWarp sync hard blend changes read phase", "[wavetable][warp]")
+{
+    WtWarpParams neutral;
+    WtWarpParams synced;
+    synced.syncRatio = 2.0f;
+    synced.syncAmount = 1.0f;
+
+    REQUIRE(warpReadPhase(0.25f, synced) != Catch::Approx(warpReadPhase(0.25f, neutral)).margin(1.0e-4f));
+    REQUIRE(warpReadPhase(0.25f, synced) == Catch::Approx(0.5f).margin(1.0e-4f));
+}
+
+TEST_CASE("WavetableWarp sync increases sideband energy at ratio 2", "[wavetable][warp]")
+{
+    constexpr std::size_t kNumSamples = 8192;
+    constexpr std::size_t kWarmup = 512;
+    constexpr double kSampleRate = 48000.0;
+    constexpr std::size_t kFundamentalBin = 40;
+    constexpr float kFreqHz = static_cast<float>(kFundamentalBin) * static_cast<float>(kSampleRate) /
+                              static_cast<float>(kNumSamples);
+
+    const auto flat = renderSineTableWithWarp(0.0f, 0.0f, kSampleRate, kFreqHz, kWarmup + kNumSamples);
+
+    WtWarpParams syncParams;
+    syncParams.syncRatio = 2.0f;
+    syncParams.syncAmount = 1.0f;
+
+    std::vector<float> synced(kWarmup + kNumSamples);
+    constexpr int kTableSize = 256;
+    std::vector<float> table(static_cast<std::size_t>(kTableSize));
+    for (int i = 0; i < kTableSize; ++i)
+        table[static_cast<std::size_t>(i)] =
+            std::sin(dsp::kTwoPi * static_cast<float>(i) / static_cast<float>(kTableSize));
+
+    float phase = 0.0f;
+    const float dt = kFreqHz / static_cast<float>(kSampleRate);
+    for (std::size_t i = 0; i < synced.size(); ++i)
+    {
+        const float readPhase = warpReadPhase(phase, syncParams);
+        const float sampleF = readPhase * static_cast<float>(kTableSize);
+        const int idx0 = static_cast<int>(sampleF) % kTableSize;
+        const int idx1 = (idx0 + 1) % kTableSize;
+        const float frac = sampleF - std::floor(sampleF);
+        synced[i] = dsp::lerp(table[static_cast<std::size_t>(idx0)], table[static_cast<std::size_t>(idx1)], frac);
+        phase = dsp::wrapPhase(phase + dt);
+    }
+
+    const auto flatTail = std::vector<float>(flat.begin() + static_cast<std::ptrdiff_t>(kWarmup), flat.end());
+    const auto syncedTail = std::vector<float>(synced.begin() + static_cast<std::ptrdiff_t>(kWarmup), synced.end());
+
+    const double flatRatio = nonFundamentalEnergyRatio(flatTail, kFundamentalBin);
+    const double syncedRatio = nonFundamentalEnergyRatio(syncedTail, kFundamentalBin);
+
+    REQUIRE(syncedRatio > flatRatio * 1.05);
+}
+
 TEST_CASE("WavetableOscillator warp changes output vs identity", "[wavetable][warp]")
 {
     constexpr int kTableSize = 256;

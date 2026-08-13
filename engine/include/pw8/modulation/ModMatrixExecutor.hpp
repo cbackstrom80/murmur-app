@@ -22,6 +22,8 @@
 //   OperatorWavetablePosition -- additive offset to wavetable frame position
 //                       (0..1), per route, targeting `targetIndex` (0..7). Only
 //                       meaningful for operators on the Wavetable engine.
+//   OperatorWavetableBend -- additive offset to wt bend (-1..1), per route,
+//                       targeting `targetIndex` (0..7). Wavetable engine only.
 //
 // Scope: see ModScope's doc comment in ModMatrixTypes.hpp for the full rationale.
 // In short -- LFO sources read a shared, layer-wide tick when scope is Layer or
@@ -53,6 +55,7 @@ namespace pw8::modulation
         std::array<float, core::kNodesPerLayer> operatorFilterResonanceOffset{};
         std::array<float, core::kNodesPerLayer> operatorLevelMultiplier{};
         std::array<float, core::kNodesPerLayer> operatorWavetablePositionOffset{};
+        std::array<float, core::kNodesPerLayer> operatorWavetableBendOffset{};
         float panOffset = 0.0f;
 
         ModOutputs() noexcept { operatorLevelMultiplier.fill(1.0f); }
@@ -164,6 +167,13 @@ namespace pw8::modulation
                         const std::uint8_t idx =
                             route.targetIndex < core::kNodesPerLayer ? route.targetIndex : std::uint8_t{0};
                         out.operatorWavetablePositionOffset[idx] += sourceValue * route.amount;
+                        break;
+                    }
+                    case ModDestination::OperatorWavetableBend:
+                    {
+                        const std::uint8_t idx =
+                            route.targetIndex < core::kNodesPerLayer ? route.targetIndex : std::uint8_t{0};
+                        out.operatorWavetableBendOffset[idx] += sourceValue * route.amount;
                         break;
                     }
                     case ModDestination::None:

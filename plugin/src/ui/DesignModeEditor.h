@@ -7,6 +7,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "components/AlgorithmGraphEditor.h"
+#include "components/ModMatrixDesignPanel.h"
 #include "components/SectionPanel.h"
 #include "processor/PatchworkEightProcessor.h"
 #include "theme/ObsidianLookAndFeel.h"
@@ -56,7 +57,7 @@ namespace pw8::plugin::ui
         SectionPanel fxPanel_{"FX Detail"};
         SectionPanel wavetablePanel_{"Wavetable"};
         std::unique_ptr<AlgorithmGraphEditor> graphEditor_;
-        juce::Label matrixPlaceholder_{"", "Full mod matrix — Week 4"};
+        std::unique_ptr<ModMatrixDesignPanel> matrixEditor_;
         juce::Label fxPlaceholder_{"", "FX detail panels — Week 5"};
         juce::Label wavetablePlaceholder_{"", "Wavetable warp panel — Week 7"};
         juce::TextButton openBuilderButton_{"Open Builder…"};

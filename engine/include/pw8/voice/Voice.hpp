@@ -203,6 +203,8 @@ namespace pw8::voice
                 modulatedParams[i].level *= modOut.operatorLevelMultiplier[i];
                 modulatedParams[i].wavetableFramePosition = dsp::clamp(
                     modulatedParams[i].wavetableFramePosition + modOut.operatorWavetablePositionOffset[i], 0.0f, 1.0f);
+                modulatedParams[i].wtBend = dsp::clamp(
+                    modulatedParams[i].wtBend + modOut.operatorWavetableBendOffset[i], -1.0f, 1.0f);
             }
 
             const float raw = executor.processSample(compiled, modulatedParams, operatorStates, wavetableTables,

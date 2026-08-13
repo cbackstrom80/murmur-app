@@ -48,7 +48,8 @@ namespace pw8::plugin
         {"GrainPitchJitter",     "Pitch Jit", 0.0f,   1.0f, 0.0f,  false},
         {"WtBend",               "WT Bend",  -1.0f,   1.0f, 0.0f,  false},
         {"WtAsymmetry",          "WT Asym",  -1.0f,   1.0f, 0.0f,  false},
-        // WtSyncRatio / WtSyncAmount / WtFormantShift are APVTS placeholders until Week 4–5 warp DSP
+        // WtSyncRatio / WtFormantShift are APVTS-only until DESIGN warp panel (Week 7).
+        // WtSyncAmount is on PLAY OSC page (Week 4 sync DSP).
         // (see docs/adr/play-warp-knobs.md). Not exposed on PLAY OSC page — Bend + Asym only.
         {"WtSyncRatio",          "WT Sync Ratio", 1.0f, 16.0f, 1.0f, false},
         {"WtSyncAmount",         "WT Sync Amt",   0.0f,  1.0f, 0.0f, false},

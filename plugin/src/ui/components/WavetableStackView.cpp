@@ -292,6 +292,12 @@ namespace pw8::plugin::ui
             if (auto* raw = processor_.apvts.getRawParameterValue(
                     operatorParamId(static_cast<std::size_t>(selectedNode_), "WtAsymmetry")))
                 warpParams.asymmetry = raw->load();
+            if (auto* raw = processor_.apvts.getRawParameterValue(
+                    operatorParamId(static_cast<std::size_t>(selectedNode_), "WtSyncRatio")))
+                warpParams.syncRatio = raw->load();
+            if (auto* raw = processor_.apvts.getRawParameterValue(
+                    operatorParamId(static_cast<std::size_t>(selectedNode_), "WtSyncAmount")))
+                warpParams.syncAmount = raw->load();
         }
 
         auto captionArea = bounds.removeFromBottom(14.0f);

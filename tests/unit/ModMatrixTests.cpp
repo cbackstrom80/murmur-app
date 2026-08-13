@@ -149,6 +149,19 @@ TEST_CASE("ModMatrixExecutor routes Expression to FilterResonance correctly", "[
     REQUIRE(out.filterResonanceOffset == Catch::Approx(0.35f));
 }
 
+TEST_CASE("ModMatrixExecutor routes LFO to OperatorWavetableBend with targetIndex", "[modulation][warp]")
+{
+    pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;
+    routes.push_back(ModRoute{ModSource::Lfo1, ModDestination::OperatorWavetableBend, 2, 0.5f, ModScope::Voice});
+
+    ModSourceValues sources;
+    sources.voiceLfos[0] = 1.0f;
+
+    const auto out = ModMatrixExecutor::apply(routes, sources);
+    REQUIRE(out.operatorWavetableBendOffset[2] == Catch::Approx(0.5f));
+    REQUIRE(out.operatorWavetableBendOffset[0] == 0.0f);
+}
+
 TEST_CASE("ModMatrixExecutor resolves macro sources by index", "[modulation]")
 {
     pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;
