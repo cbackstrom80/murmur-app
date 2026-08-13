@@ -40,7 +40,7 @@ namespace
         const fs::path factoryRoot = repoRoot() / "content/presets/factory";
         std::vector<fs::path> paths;
 
-        for (const char* subdir : {"Warp", "Templates"})
+        for (const char* subdir : {"Warp", "Templates", "Interstellar"})
         {
             const fs::path dir = factoryRoot / subdir;
             if (!fs::is_directory(dir))
@@ -71,6 +71,30 @@ TEST_CASE("Week 3 factory presets load under schema v3", "[patch][serialization]
         REQUIRE(patch.schemaVersion == core::kPatchSchemaVersion);
         REQUIRE(patch.layerA.operators.size() == core::kNodesPerLayer);
     }
+}
+
+TEST_CASE("Interstellar factory presets load under schema v3", "[patch][serialization][factory]")
+{
+    content::resetSearchRootsForTests();
+    content::addSearchRoot(repoRoot().string());
+
+    const fs::path dir = repoRoot() / "content/presets/factory/Interstellar";
+    if (!fs::is_directory(dir))
+        SKIP("Missing content/presets/factory/Interstellar/");
+
+    std::size_t count = 0;
+    for (const auto& entry : fs::directory_iterator(dir))
+    {
+        if (entry.path().extension() != ".pw8")
+            continue;
+        INFO("preset: " << entry.path().filename().string());
+        const auto patch = loadPresetFile(entry.path());
+        REQUIRE(patch.schemaVersion == core::kPatchSchemaVersion);
+        REQUIRE(patch.layerA.operators.size() == core::kNodesPerLayer);
+        REQUIRE(patch.metadata.category == "interstellar");
+        ++count;
+    }
+    REQUIRE(count == 100);
 }
 
 TEST_CASE("warp-bend-demo preset has audible bend on OP0", "[patch][serialization][factory]")
