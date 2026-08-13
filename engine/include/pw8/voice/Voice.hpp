@@ -205,6 +205,12 @@ namespace pw8::voice
                     modulatedParams[i].wavetableFramePosition + modOut.operatorWavetablePositionOffset[i], 0.0f, 1.0f);
                 modulatedParams[i].wtBend = dsp::clamp(
                     modulatedParams[i].wtBend + modOut.operatorWavetableBendOffset[i], -1.0f, 1.0f);
+                modulatedParams[i].wtAsymmetry = dsp::clamp(
+                    modulatedParams[i].wtAsymmetry + modOut.operatorWavetableAsymmetryOffset[i], -1.0f, 1.0f);
+                modulatedParams[i].wtSyncRatio = dsp::clamp(
+                    modulatedParams[i].wtSyncRatio + modOut.operatorWavetableSyncRatioOffset[i], 1.0f, 16.0f);
+                modulatedParams[i].wtFormantShift = dsp::clamp(
+                    modulatedParams[i].wtFormantShift + modOut.operatorWavetableFormantOffset[i], -1.0f, 1.0f);
             }
 
             const float raw = executor.processSample(compiled, modulatedParams, operatorStates, wavetableTables,

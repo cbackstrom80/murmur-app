@@ -162,6 +162,44 @@ TEST_CASE("ModMatrixExecutor routes LFO to OperatorWavetableBend with targetInde
     REQUIRE(out.operatorWavetableBendOffset[0] == 0.0f);
 }
 
+TEST_CASE("ModMatrixExecutor routes LFO to OperatorWavetableAsymmetry with targetIndex", "[modulation][warp]")
+{
+    pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;
+    routes.push_back(ModRoute{ModSource::Lfo2, ModDestination::OperatorWavetableAsymmetry, 1, 0.4f, ModScope::Voice});
+
+    ModSourceValues sources;
+    sources.voiceLfos[1] = 1.0f;
+
+    const auto out = ModMatrixExecutor::apply(routes, sources);
+    REQUIRE(out.operatorWavetableAsymmetryOffset[1] == Catch::Approx(0.4f));
+    REQUIRE(out.operatorWavetableAsymmetryOffset[0] == 0.0f);
+}
+
+TEST_CASE("ModMatrixExecutor routes LFO to OperatorWavetableSyncRatio with targetIndex", "[modulation][warp]")
+{
+    pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;
+    routes.push_back(ModRoute{ModSource::Lfo3, ModDestination::OperatorWavetableSyncRatio, 0, 3.0f, ModScope::Voice});
+
+    ModSourceValues sources;
+    sources.voiceLfos[2] = 0.5f;
+
+    const auto out = ModMatrixExecutor::apply(routes, sources);
+    REQUIRE(out.operatorWavetableSyncRatioOffset[0] == Catch::Approx(1.5f));
+}
+
+TEST_CASE("ModMatrixExecutor routes LFO to OperatorWavetableFormant with targetIndex", "[modulation][warp]")
+{
+    pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;
+    routes.push_back(ModRoute{ModSource::Env2, ModDestination::OperatorWavetableFormant, 4, 0.6f, ModScope::Voice});
+
+    ModSourceValues sources;
+    sources.envelopes[1] = 1.0f;
+
+    const auto out = ModMatrixExecutor::apply(routes, sources);
+    REQUIRE(out.operatorWavetableFormantOffset[4] == Catch::Approx(0.6f));
+    REQUIRE(out.operatorWavetableFormantOffset[0] == 0.0f);
+}
+
 TEST_CASE("ModMatrixExecutor resolves macro sources by index", "[modulation]")
 {
     pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;

@@ -711,6 +711,30 @@
       "sampleRate": 48000.0,
       "seed": 5273400,
       "sha256": "dd2d758d40a9d39898788778bc104169a27256e16a7958174072e2a444df4fef"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Warp/warp-bend-demo.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "1494e43aee421bd28e80619a634d8c3c662718ddc0c78ba44b8d4e64ec15a29e"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Warp/warp-formant-sweep.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "60bf0017859ba6155d627f612af2b17641ee11f70baa440deba36f7188bbbf3e"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Warp/warp-formant-vowel.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "b129b093001e2b2127c6df35729fecc2c2b98dda927736621253a8afb2e626a8"
     }
   ],
   "schemaVersion": 1

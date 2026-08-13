@@ -84,6 +84,12 @@ namespace pw8::plugin::ui
                 return "OP " + juce::String(static_cast<int>(targetIndex)) + " WT POS";
             case ModDestination::OperatorWavetableBend:
                 return "OP " + juce::String(static_cast<int>(targetIndex)) + " WT BEND";
+            case ModDestination::OperatorWavetableAsymmetry:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " WT ASYM";
+            case ModDestination::OperatorWavetableSyncRatio:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " WT SYNC RATIO";
+            case ModDestination::OperatorWavetableFormant:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " WT FORMANT";
         }
         return "-";
     }

@@ -72,3 +72,29 @@ TEST_CASE("commitAlgorithmGraph leaves patch unchanged on compile failure", "[al
         REQUIRE(patch.layerA.algorithm.edges[i].type == snapshot.edges[i].type);
     }
 }
+
+TEST_CASE("commitAlgorithmGraph preserves isOutput flags", "[algorithm][processor][commit][sync]")
+{
+    patch::Patch patch = patch::Patch::makeInit();
+    auto def = patch.layerA.algorithm;
+    for (std::size_t i = 0; i < def.nodes.size(); ++i)
+        def.nodes[i].isOutput = (i == 0 || i == 3);
+
+    REQUIRE(commitAlgorithmGraph(patch, def));
+    REQUIRE(patch.layerA.algorithm.nodes[0].isOutput);
+    REQUIRE_FALSE(patch.layerA.algorithm.nodes[1].isOutput);
+    REQUIRE(patch.layerA.algorithm.nodes[3].isOutput);
+}
+
+TEST_CASE("algorithm node engines stay aligned with operators after sync", "[algorithm][processor][sync]")
+{
+    patch::Patch patch = patch::Patch::makeInit();
+    patch.layerA.operators[2].engine = algorithm::EngineType::Wavetable;
+    patch.layerA.operators[5].engine = algorithm::EngineType::FmPm;
+
+    for (std::size_t i = 0; i < patch::Patch::makeInit().layerA.algorithm.nodes.size(); ++i)
+        patch.layerA.algorithm.nodes[i].engine = patch.layerA.operators[i].engine;
+
+    REQUIRE(patch.layerA.algorithm.nodes[2].engine == algorithm::EngineType::Wavetable);
+    REQUIRE(patch.layerA.algorithm.nodes[5].engine == algorithm::EngineType::FmPm);
+}

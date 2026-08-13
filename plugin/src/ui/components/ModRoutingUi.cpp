@@ -94,6 +94,9 @@ namespace pw8::plugin::ui
             case modulation::ModDestination::OperatorLevel: return 0.35f;
             case modulation::ModDestination::OperatorWavetablePosition: return 0.25f;
             case modulation::ModDestination::OperatorWavetableBend: return 0.35f;
+            case modulation::ModDestination::OperatorWavetableAsymmetry: return 0.35f;
+            case modulation::ModDestination::OperatorWavetableSyncRatio: return 2.0f;
+            case modulation::ModDestination::OperatorWavetableFormant: return 0.35f;
             case modulation::ModDestination::Pan: return 0.4f;
             default: return 0.0f;
         }
@@ -123,6 +126,15 @@ namespace pw8::plugin::ui
             case modulation::ModDestination::OperatorWavetableBend:
                 return ModDestinationParam{operatorParamId(targetIndex, "WtBend"),
                                            "Op " + juce::String(static_cast<int>(targetIndex)) + " WT Bend"};
+            case modulation::ModDestination::OperatorWavetableAsymmetry:
+                return ModDestinationParam{operatorParamId(targetIndex, "WtAsymmetry"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " WT Asym"};
+            case modulation::ModDestination::OperatorWavetableSyncRatio:
+                return ModDestinationParam{operatorParamId(targetIndex, "WtSyncRatio"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " WT Sync Ratio"};
+            case modulation::ModDestination::OperatorWavetableFormant:
+                return ModDestinationParam{operatorParamId(targetIndex, "WtFormantShift"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " WT Formant"};
             case modulation::ModDestination::Pan:
                 return ModDestinationParam{juce::String(kLayerPanId), "Layer Pan"};
             case modulation::ModDestination::None:
@@ -146,7 +158,11 @@ namespace pw8::plugin::ui
             case modulation::ModDestination::OperatorWavetablePosition:
                 return {-1.0f, 1.0f};
             case modulation::ModDestination::OperatorWavetableBend:
+            case modulation::ModDestination::OperatorWavetableAsymmetry:
+            case modulation::ModDestination::OperatorWavetableFormant:
                 return {-1.0f, 1.0f};
+            case modulation::ModDestination::OperatorWavetableSyncRatio:
+                return {-8.0f, 8.0f};
             case modulation::ModDestination::Pan:
                 return {-1.0f, 1.0f};
             default:

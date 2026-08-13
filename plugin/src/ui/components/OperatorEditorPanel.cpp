@@ -222,6 +222,18 @@ namespace pw8::plugin::ui
                                                 targetIndex);
             wtBendKnob_->setModAssignmentController(&assignmentController_);
         }
+        if (wtAsymmetryKnob_ != nullptr)
+        {
+            wtAsymmetryKnob_->enableModulationTarget(processor_, modulation::ModDestination::OperatorWavetableAsymmetry,
+                                                     targetIndex);
+            wtAsymmetryKnob_->setModAssignmentController(&assignmentController_);
+        }
+        if (wtFormantKnob_ != nullptr)
+        {
+            wtFormantKnob_->enableModulationTarget(processor_, modulation::ModDestination::OperatorWavetableFormant,
+                                                   targetIndex);
+            wtFormantKnob_->setModAssignmentController(&assignmentController_);
+        }
         if (panKnob_ != nullptr)
         {
             panKnob_->enableModulationTarget(processor_, modulation::ModDestination::Pan, 0);
@@ -355,6 +367,7 @@ namespace pw8::plugin::ui
             param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(i)));
         // Keep patch.engine aligned with the pill (wavetable arrows reload via loadPatch).
         processor_.syncCurrentPatchFromApvts();
+        processor_.notifyPatchMetadataChanged();
         // setValueNotifyingHost() updates the underlying value synchronously
         // before notifying listeners, so currentEngineOrdinal() below already
         // sees the new value -- no need to wait for the next timerCallback().

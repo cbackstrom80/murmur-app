@@ -62,6 +62,9 @@ namespace pw8::plugin::ui
             {modulation::ModDestination::OperatorLevel, true, "Operator Level"},
             {modulation::ModDestination::OperatorWavetablePosition, true, "WT Position"},
             {modulation::ModDestination::OperatorWavetableBend, true, "WT Bend"},
+            {modulation::ModDestination::OperatorWavetableAsymmetry, true, "WT Asymmetry"},
+            {modulation::ModDestination::OperatorWavetableSyncRatio, true, "WT Sync Ratio"},
+            {modulation::ModDestination::OperatorWavetableFormant, true, "WT Formant"},
             {modulation::ModDestination::Pan, false, "Layer Pan"},
         };
 

@@ -38,8 +38,11 @@ namespace pw8::modulation
         OperatorFilterResonance,
         OperatorLevel,           ///< requires `targetIndex` in [0, kNodesPerLayer).
         Pan,
-        OperatorWavetablePosition, ///< requires `targetIndex`; additive offset, 0..1 result.
-        OperatorWavetableBend,     ///< requires `targetIndex`; additive offset, -1..1 result.
+        OperatorWavetablePosition,   ///< requires `targetIndex`; additive offset, 0..1 result.
+        OperatorWavetableBend,       ///< requires `targetIndex`; additive offset, -1..1 result.
+        OperatorWavetableAsymmetry,  ///< requires `targetIndex`; additive offset, -1..1 result.
+        OperatorWavetableSyncRatio,  ///< requires `targetIndex`; additive offset, 1..16 result.
+        OperatorWavetableFormant,    ///< requires `targetIndex`; additive offset, -1..1 result.
     };
 
     /// VOICE-scoped routes read a per-voice, independently-phased source (each

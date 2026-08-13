@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
 #include <cctype>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -101,7 +102,7 @@ namespace
 
         const fs::path factoryRoot = repoRoot() / "content/presets/factory";
         static constexpr const char* kCategories[] = {
-            "Basses", "Leads", "Pads", "Ambient", "Sequences",
+            "Basses", "Leads", "Pads", "Ambient", "Sequences", "Warp",
         };
 
         for (const char* category : kCategories)
@@ -113,8 +114,10 @@ namespace
             std::vector<fs::path> files;
             for (const auto& entry : fs::directory_iterator(categoryDir))
             {
-                if (entry.path().extension() == ".pw8"
-                    && isGoldenFactorySlot(entry.path().filename().string()))
+                if (entry.path().extension() != ".pw8")
+                    continue;
+                const auto filename = entry.path().filename().string();
+                if (std::strcmp(category, "Warp") == 0 || isGoldenFactorySlot(filename))
                     files.push_back(entry.path());
             }
 

@@ -74,6 +74,10 @@ namespace pw8::plugin
         /// Message-thread only: invoked after a successful `loadPatch()` / preset reload.
         std::function<void()> onPatchLoaded;
 
+        /// Message-thread only: lightweight UI refresh after patch metadata edits that do
+        /// not require a full engine reload (e.g. operator engine pill, graph output flags).
+        std::function<void()> onPatchMetadataChanged;
+
         /// Message-thread only: load a `.pw8` from disk and remember its path for preset browsing.
         bool loadPatchFromFile(const juce::String& filePath);
 
@@ -99,6 +103,9 @@ namespace pw8::plugin
         /// so UI edits (engine pills, knobs) and patch-only fields (wavetableId) stay
         /// aligned before a reload or save.
         void syncCurrentPatchFromApvts() noexcept;
+
+        /// Message-thread only: sync algorithm node engines from operators and notify UI.
+        void notifyPatchMetadataChanged() noexcept;
 
         /// Swap two adjacent effect slots within the layer insert chain (0..2) or
         /// master chain (0..3). Message-thread only; reloads the engine.

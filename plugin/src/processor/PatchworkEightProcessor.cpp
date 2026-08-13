@@ -687,6 +687,12 @@ namespace pw8::plugin
         syncPatchFromAllParameters();
     }
 
+    void PatchworkEightProcessor::notifyPatchMetadataChanged() noexcept
+    {
+        if (onPatchMetadataChanged)
+            onPatchMetadataChanged();
+    }
+
     bool PatchworkEightProcessor::swapEffectSlots(bool masterChain, std::size_t indexA, std::size_t indexB)
     {
         syncCurrentPatchFromApvts();
@@ -1176,6 +1182,13 @@ namespace pw8::plugin
         arp.octaveRange = loadI(arpParamPointers_[5]);
         arp.numSteps = static_cast<std::size_t>(std::max(1, loadI(arpParamPointers_[6])));
         arp.latch = loadB(arpParamPointers_[7]);
+
+        // Keep algorithm graph node engines aligned with operator engine pills.
+        if (currentPatch_.layerA.algorithm.nodes.size() == kNumOperators)
+        {
+            for (std::size_t i = 0; i < kNumOperators; ++i)
+                currentPatch_.layerA.algorithm.nodes[i].engine = currentPatch_.layerA.operators[i].engine;
+        }
     }
 
     void PatchworkEightProcessor::publishEngine(std::unique_ptr<render::Engine> newEngine)

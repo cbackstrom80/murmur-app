@@ -22,8 +22,10 @@
 //   OperatorWavetablePosition -- additive offset to wavetable frame position
 //                       (0..1), per route, targeting `targetIndex` (0..7). Only
 //                       meaningful for operators on the Wavetable engine.
-//   OperatorWavetableBend -- additive offset to wt bend (-1..1), per route,
-//                       targeting `targetIndex` (0..7). Wavetable engine only.
+//   OperatorWavetableBend / Asymmetry / Formant -- additive offset (-1..1), per
+//                       route, targeting `targetIndex` (0..7). Wavetable only.
+//   OperatorWavetableSyncRatio -- additive offset to wt sync ratio (1..16), per
+//                       route, targeting `targetIndex` (0..7). Wavetable only.
 //
 // Scope: see ModScope's doc comment in ModMatrixTypes.hpp for the full rationale.
 // In short -- LFO sources read a shared, layer-wide tick when scope is Layer or
@@ -56,6 +58,9 @@ namespace pw8::modulation
         std::array<float, core::kNodesPerLayer> operatorLevelMultiplier{};
         std::array<float, core::kNodesPerLayer> operatorWavetablePositionOffset{};
         std::array<float, core::kNodesPerLayer> operatorWavetableBendOffset{};
+        std::array<float, core::kNodesPerLayer> operatorWavetableAsymmetryOffset{};
+        std::array<float, core::kNodesPerLayer> operatorWavetableSyncRatioOffset{};
+        std::array<float, core::kNodesPerLayer> operatorWavetableFormantOffset{};
         float panOffset = 0.0f;
 
         ModOutputs() noexcept { operatorLevelMultiplier.fill(1.0f); }
@@ -174,6 +179,27 @@ namespace pw8::modulation
                         const std::uint8_t idx =
                             route.targetIndex < core::kNodesPerLayer ? route.targetIndex : std::uint8_t{0};
                         out.operatorWavetableBendOffset[idx] += sourceValue * route.amount;
+                        break;
+                    }
+                    case ModDestination::OperatorWavetableAsymmetry:
+                    {
+                        const std::uint8_t idx =
+                            route.targetIndex < core::kNodesPerLayer ? route.targetIndex : std::uint8_t{0};
+                        out.operatorWavetableAsymmetryOffset[idx] += sourceValue * route.amount;
+                        break;
+                    }
+                    case ModDestination::OperatorWavetableSyncRatio:
+                    {
+                        const std::uint8_t idx =
+                            route.targetIndex < core::kNodesPerLayer ? route.targetIndex : std::uint8_t{0};
+                        out.operatorWavetableSyncRatioOffset[idx] += sourceValue * route.amount;
+                        break;
+                    }
+                    case ModDestination::OperatorWavetableFormant:
+                    {
+                        const std::uint8_t idx =
+                            route.targetIndex < core::kNodesPerLayer ? route.targetIndex : std::uint8_t{0};
+                        out.operatorWavetableFormantOffset[idx] += sourceValue * route.amount;
                         break;
                     }
                     case ModDestination::None:

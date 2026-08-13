@@ -61,6 +61,11 @@ namespace pw8::plugin::ui
             designModeEditor_.refreshFromPatch();
         };
 
+        processor.onPatchMetadataChanged = [this] {
+            playModeEditor_.refreshFromPatch();
+            designModeEditor_.refreshFromPatch();
+        };
+
         setAppMode(AppMode::Play);
         setSize(layout::kDefaultWidth, layout::kDefaultHeight);
     }

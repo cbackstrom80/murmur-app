@@ -65,28 +65,38 @@ namespace pw8::plugin::ui
         g.drawText("OPERATORS", getLocalBounds().removeFromLeft(72), juce::Justification::centredLeft);
 
         const auto& patch = processor_.getCurrentPatch();
+        const auto& algo = patch.layerA.algorithm;
         for (int i = 0; i < kNumNodes; ++i)
         {
             const auto bounds = pillBounds(i);
             const auto engine = patch.layerA.operators[static_cast<std::size_t>(i)].engine;
+            const bool isOutput =
+                i < static_cast<int>(algo.nodes.size()) ? algo.nodes[static_cast<std::size_t>(i)].isOutput : true;
             const auto boundsF = bounds.toFloat();
             const bool selected = !globalScope_ && i == selectedNode_;
             const bool implemented = algorithm::isEngineImplemented(engine);
+            const float alphaMul = isOutput ? 1.0f : 0.45f;
 
             if (selected)
             {
-                g.setColour(palette::kAccent.withAlpha(0.18f));
+                g.setColour(palette::kAccent.withAlpha(0.18f * alphaMul));
                 g.fillRoundedRectangle(boundsF, 4.0f);
                 draw::strokeGlowPath(g, draw::roundedRectPath(boundsF.reduced(0.5f), 4.0f), 0.95f, 1.3f, true);
             }
             else
             {
                 draw::fillRecessedRoundedRect(g, boundsF.reduced(0.5f), 4.0f);
-                g.setColour(palette::kBorder);
+                g.setColour(palette::kBorder.withAlpha(alphaMul));
                 g.drawRoundedRectangle(boundsF.reduced(0.5f), 4.0f, 1.0f);
             }
 
-            g.setColour(implemented ? palette::kTextPrimary : palette::kTextDim);
+            if (isOutput)
+            {
+                g.setColour(palette::kAccent.withAlpha(0.85f));
+                g.fillEllipse(boundsF.getX() + 4.0f, boundsF.getCentreY() - 2.0f, 4.0f, 4.0f);
+            }
+
+            g.setColour((implemented ? palette::kTextPrimary : palette::kTextDim).withAlpha(alphaMul));
             g.setFont(fonts::label(10.0f));
             const juce::String label = juce::String(i) + " " + engineLabel(engine);
             g.drawText(label, bounds, juce::Justification::centred);
