@@ -32,7 +32,8 @@ namespace
         return nonFundamental / std::max(fundamentalEnergy, 1.0e-9);
     }
 
-    std::vector<float> renderSineTableWithWarp(float bend, double sampleRate, float freqHz, std::size_t numSamples)
+    std::vector<float> renderSineTableWithWarp(float bend, float asymmetry, double sampleRate, float freqHz,
+                                               std::size_t numSamples)
     {
         constexpr int kTableSize = 256;
         std::vector<float> table(static_cast<std::size_t>(kTableSize));
@@ -42,6 +43,7 @@ namespace
 
         WtWarpParams params;
         params.bend = bend;
+        params.asymmetry = asymmetry;
 
         std::vector<float> out(numSamples);
         float phase = 0.0f;
@@ -85,8 +87,8 @@ TEST_CASE("WavetableWarp bend increases harmonics", "[wavetable][warp]")
     constexpr float kFreqHz = static_cast<float>(kFundamentalBin) * static_cast<float>(kSampleRate) /
                               static_cast<float>(kNumSamples);
 
-    const auto flat = renderSineTableWithWarp(0.0f, kSampleRate, kFreqHz, kWarmup + kNumSamples);
-    const auto warped = renderSineTableWithWarp(0.75f, kSampleRate, kFreqHz, kWarmup + kNumSamples);
+    const auto flat = renderSineTableWithWarp(0.0f, 0.0f, kSampleRate, kFreqHz, kWarmup + kNumSamples);
+    const auto warped = renderSineTableWithWarp(0.75f, 0.0f, kSampleRate, kFreqHz, kWarmup + kNumSamples);
 
     const auto flatTail = std::vector<float>(flat.begin() + static_cast<std::ptrdiff_t>(kWarmup), flat.end());
     const auto warpedTail = std::vector<float>(warped.begin() + static_cast<std::ptrdiff_t>(kWarmup), warped.end());
@@ -95,6 +97,42 @@ TEST_CASE("WavetableWarp bend increases harmonics", "[wavetable][warp]")
     const double warpedRatio = nonFundamentalEnergyRatio(warpedTail, kFundamentalBin);
 
     REQUIRE(warpedRatio > flatRatio * 1.05);
+}
+
+TEST_CASE("WavetableWarp asymmetry changes harmonic content when bend is active", "[wavetable][warp]")
+{
+    constexpr std::size_t kNumSamples = 8192;
+    constexpr std::size_t kWarmup = 512;
+    constexpr double kSampleRate = 48000.0;
+    constexpr std::size_t kFundamentalBin = 40;
+    constexpr float kFreqHz = static_cast<float>(kFundamentalBin) * static_cast<float>(kSampleRate) /
+                              static_cast<float>(kNumSamples);
+
+    const auto bendOnly = renderSineTableWithWarp(0.55f, 0.0f, kSampleRate, kFreqHz, kWarmup + kNumSamples);
+    const auto bendAndAsym =
+        renderSineTableWithWarp(0.55f, 0.75f, kSampleRate, kFreqHz, kWarmup + kNumSamples);
+
+    const auto bendTail = std::vector<float>(bendOnly.begin() + static_cast<std::ptrdiff_t>(kWarmup), bendOnly.end());
+    const auto asymTail =
+        std::vector<float>(bendAndAsym.begin() + static_cast<std::ptrdiff_t>(kWarmup), bendAndAsym.end());
+
+    const double bendRatio = nonFundamentalEnergyRatio(bendTail, kFundamentalBin);
+    const double asymRatio = nonFundamentalEnergyRatio(asymTail, kFundamentalBin);
+
+    REQUIRE(bendRatio > 0.05);
+    REQUIRE(asymRatio != Catch::Approx(bendRatio).margin(0.005));
+}
+
+TEST_CASE("WavetableWarp asymmetry modulates bend displacement", "[wavetable][warp]")
+{
+    WtWarpParams bendOnly;
+    bendOnly.bend = 0.6f;
+
+    WtWarpParams bendAndAsym;
+    bendAndAsym.bend = 0.6f;
+    bendAndAsym.asymmetry = 0.8f;
+
+    REQUIRE(warpReadPhase(0.125f, bendAndAsym) != Catch::Approx(warpReadPhase(0.125f, bendOnly)).margin(1.0e-4f));
 }
 
 TEST_CASE("WavetableOscillator warp changes output vs identity", "[wavetable][warp]")
@@ -125,4 +163,35 @@ TEST_CASE("WavetableOscillator warp changes output vs identity", "[wavetable][wa
 
     REQUIRE(flat != Catch::Approx(0.0f).margin(1.0e-4f));
     REQUIRE(warped != Catch::Approx(flat).margin(1.0e-4f));
+}
+
+TEST_CASE("WavetableOscillator asymmetry changes output when bend is active", "[wavetable][warp]")
+{
+    constexpr int kTableSize = 256;
+    std::vector<float> samples(static_cast<std::size_t>(kTableSize));
+    for (int i = 0; i < kTableSize; ++i)
+        samples[static_cast<std::size_t>(i)] =
+            std::sin(dsp::kTwoPi * static_cast<float>(i) / static_cast<float>(kTableSize));
+
+    WavetableView view;
+    view.samples = samples.data();
+    view.numFrames = 1;
+    view.samplesPerFrame = kTableSize;
+
+    WavetableOscillator osc;
+    osc.prepare(48000.0);
+    osc.setFrequency(440.0f);
+    osc.reset(0.125f);
+
+    WtWarpParams bent;
+    bent.bend = 0.75f;
+    WtWarpParams bentAsym;
+    bentAsym.bend = 0.75f;
+    bentAsym.asymmetry = 0.75f;
+
+    const float bendOnly = osc.renderSample(view, 0.0f, 0.0f, bent);
+    osc.reset(0.125f);
+    const float withAsym = osc.renderSample(view, 0.0f, 0.0f, bentAsym);
+
+    REQUIRE(withAsym != Catch::Approx(bendOnly).margin(1.0e-4f));
 }

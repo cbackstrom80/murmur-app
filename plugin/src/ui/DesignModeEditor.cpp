@@ -34,6 +34,19 @@ namespace pw8::plugin::ui
 
         graphEditor_ = std::make_unique<AlgorithmGraphEditor>(processor_);
         graphPanel_.addAndMakeVisible(*graphEditor_);
+        graphEditor_->onGraphApplied = [this] {
+            if (onGraphApplied)
+                onGraphApplied();
+        };
+
+        openBuilderButton_.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
+        openBuilderButton_.setColour(juce::TextButton::textColourOffId, palette::kAccent);
+        openBuilderButton_.onClick = [] {
+            juce::AlertWindow::showMessageBoxAsync(
+                juce::AlertWindow::InfoIcon, "Wavetable Builder",
+                "External wavetable builder handoff — embedded editor lands in a later sprint.\n\n"
+                "Use tools/wavetable_builder for now.");
+        };
 
         for (auto* label : {&matrixPlaceholder_, &fxPlaceholder_, &wavetablePlaceholder_})
         {
@@ -44,6 +57,7 @@ namespace pw8::plugin::ui
         matrixPanel_.addAndMakeVisible(matrixPlaceholder_);
         fxPanel_.addAndMakeVisible(fxPlaceholder_);
         wavetablePanel_.addAndMakeVisible(wavetablePlaceholder_);
+        wavetablePanel_.addAndMakeVisible(openBuilderButton_);
 
         showPage(Page::Graph);
     }
@@ -101,7 +115,11 @@ namespace pw8::plugin::ui
 
         matrixPlaceholder_.setBounds(matrixPanel_.getContentBounds());
         fxPlaceholder_.setBounds(fxPanel_.getContentBounds());
-        wavetablePlaceholder_.setBounds(wavetablePanel_.getContentBounds());
+        auto wtBounds = wavetablePanel_.getContentBounds();
+        auto builderRow = wtBounds.removeFromBottom(36);
+        builderRow = builderRow.withSizeKeepingCentre(160, 28);
+        openBuilderButton_.setBounds(builderRow);
+        wavetablePlaceholder_.setBounds(wtBounds);
     }
 
 } // namespace pw8::plugin::ui

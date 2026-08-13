@@ -26,6 +26,7 @@ add_executable(pw8_tests
     dsp/GranularOscillatorTests.cpp
     dsp/SyncEdgeTests.cpp
     unit/AlgorithmGraphCompilerTests.cpp
+    unit/AlgorithmGraphCommitTests.cpp
     unit/ContentPathsTests.cpp
     unit/DeterministicRngTests.cpp
     unit/ModMatrixTests.cpp
@@ -36,6 +37,7 @@ add_executable(pw8_tests
     unit/EngineMacroLiveUpdateTests.cpp
     unit/EngineLiveParamsTests.cpp
     serialization/PatchSerializerTests.cpp
+    serialization/FactoryPresetLoadTests.cpp
     serialization/StandardMidiFileTests.cpp
     serialization/WavetableTableLoaderTests.cpp
     regression/RenderSanityTests.cpp

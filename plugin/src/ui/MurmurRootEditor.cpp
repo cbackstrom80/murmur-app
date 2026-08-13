@@ -53,6 +53,8 @@ namespace pw8::plugin::ui
         addAndMakeVisible(playModeEditor_);
         addChildComponent(designModeEditor_);
 
+        designModeEditor_.onGraphApplied = [this] { playModeEditor_.refreshFromPatch(); };
+
         processor.onPatchLoaded = [this, &processor] {
             juce::ignoreUnused(processor);
             playModeEditor_.refreshFromPatch();

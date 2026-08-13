@@ -540,7 +540,7 @@ Pattern: mirror `tests/dsp/PhaseShapeOscillatorTests.cpp` FFT assertions.
 | D2 | Graph SYNC vs wt sync precedence | **Graph SYNC wins** on wrap event; wt sync affects read phase only — document in ALGORITHM_GRAPH.md | Week 4 |
 | D3 | Mod matrix in modal vs DESIGN tab | **DESIGN tab primary**; keep PLAY overlay | Week 1 |
 | D4 | Schema v3 vs piggyback v2 optional fields | **v3** — warp fields affect golden tests | Week 2 |
-| D5 | PLAY warp knob count | **4 max** (Bend, Asym, SyncAmt, Formant); ratio in DESIGN or advanced | Week 3 |
+| D5 | PLAY warp knob count | **Bend + Asym only on PLAY** (decided Week 3 — see [play-warp-knobs.md](adr/play-warp-knobs.md)); Sync/Formant deferred Week 4–5 | Week 3 ✓ |
 | D6 | Root editor vs toggle inside PlayModeEditor | **Root editor** — clean separation | Week 1 |
 
 ---
@@ -613,3 +613,19 @@ Concrete tasks to start **Monday** — assignable per engineer.
 ---
 
 *This plan supersedes the Horizon 2 placement of Gap 1 MVP and Gap 3 MVP in [PRODUCT_GAP_PLAN.md](PRODUCT_GAP_PLAN.md) § "Horizon 2 — Competitive parity" for the duration of the MURMUR accelerated track. Update that doc when this program starts.*
+
+---
+
+## Week 3 status (Aug 2026 — v1.0.3+ sprint)
+
+**Goal:** Prove sound design works entirely in-plugin — FM bell via DESIGN graph, bend/asym warps in PLAY, save/reload, factory demo presets.
+
+| Stream | Delivered |
+|---|---|
+| **DESIGN** | `graphEditor_->onGraphApplied` → PLAY `NodeSelectorRow` refresh; `AlgorithmGraphCommitTests` compile gate |
+| **Warps** | Asymmetry harmonic unit tests; PLAY = Bend + Asym only ([ADR](adr/play-warp-knobs.md)) |
+| **Content** | `factory/Warp/warp-bend-demo.pw8`, `factory/Templates/feedback-bell.pw8` |
+| **QA** | v2→v3 warp default migration test; factory preset load smoke under schema v3 |
+| **Decisions** | D5 closed (PLAY warp surface); D1 stub — **Open Builder…** on DESIGN Wavetable tab |
+
+**Deferred to Week 4–5:** Sync/Formant warp DSP and PLAY knobs. **Out of scope:** ModMatrixDesignPanel, FX detail panels, golden render refresh.

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <functional>
 #include <memory>
 
 #include <juce_gui_basics/juce_gui_basics.h>
@@ -22,6 +23,9 @@ namespace pw8::plugin::ui
         void resized() override;
 
         void refreshFromPatch();
+
+        /// Fired after DESIGN graph Apply succeeds — wire to refresh PLAY graph display.
+        std::function<void()> onGraphApplied;
 
     private:
         enum class Page
@@ -55,6 +59,7 @@ namespace pw8::plugin::ui
         juce::Label matrixPlaceholder_{"", "Full mod matrix — Week 4"};
         juce::Label fxPlaceholder_{"", "FX detail panels — Week 5"};
         juce::Label wavetablePlaceholder_{"", "Wavetable warp panel — Week 7"};
+        juce::TextButton openBuilderButton_{"Open Builder…"};
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DesignModeEditor)
     };

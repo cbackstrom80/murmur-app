@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 3,
+  "metadata": {
+    "id": "pw8-factory-feedback-bell",
+    "name": "FEEDBACK BELL",
+    "author": "Patchwork Eight Engineering",
+    "description": "Factory template from content/algorithms/feedback_bell.json: OP2 PM→OP1, OP1 self-feedback, OP1 PM→carrier OP0. Inharmonic ratios (3.5, 7.0) plus bell decay envelope. Build or tweak topology in DESIGN → Graph tab.",
+    "category": "templates",
+    "moods": [
+      "metallic",
+      "glassy",
+      "evolving"
+    ],
+    "genres": [
+      "factory"
+    ],
+    "tags": [
+      "factory",
+      "fm",
+      "bell",
+      "feedback",
+      "template"
+    ],
+    "createdAt": "2026-08-13T00:00:00Z",
+    "engineVersion": "0.1.0",
+    "schemaVersion": 3,
+    "seed": 3102,
+    "lineage": ["content/algorithms/feedback_bell.json"]
+  },
+  "layerMode": 0,
+  "layerMorph": 0.0,
+  "layerA": {
+    "operators": [
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 1.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 3.5,
+        "keyTrack": true,
+        "level": 1.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 7.0,
+        "keyTrack": true,
+        "level": 1.0,
+        "pan": 0.0
+      },
+      {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0}
+    ],
+    "algorithm": {
+      "nodes": [
+        {"id": 0, "engine": 0, "isOutput": true},
+        {"id": 1, "engine": 0, "isOutput": false},
+        {"id": 2, "engine": 0, "isOutput": false},
+        {"id": 3, "engine": 0, "isOutput": false},
+        {"id": 4, "engine": 0, "isOutput": false},
+        {"id": 5, "engine": 0, "isOutput": false},
+        {"id": 6, "engine": 0, "isOutput": false},
+        {"id": 7, "engine": 0, "isOutput": false}
+      ],
+      "edges": [
+        {"source": 2, "destination": 1, "type": 1, "amount": 0.8},
+        {"source": 1, "destination": 1, "type": 6, "amount": 0.6},
+        {"source": 1, "destination": 0, "type": 1, "amount": 1.0}
+      ]
+    },
+    "envelopes": [
+      {
+        "attackSeconds": 0.002,
+        "decaySeconds": 1.6,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 1.0,
+        "curveShape": 1.5
+      }
+    ],
+    "gain": 0.7,
+    "pan": 0.0,
+    "width": 1.0,
+    "centerGravity": 0.5
+  },
+  "layerB": {
+    "operators": [
+      {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0},
+      {"engine": 0, "level": 0.0}
+    ],
+    "algorithm": {
+      "nodes": [
+        {"id": 0, "engine": 0, "isOutput": true},
+        {"id": 1, "engine": 0, "isOutput": false},
+        {"id": 2, "engine": 0, "isOutput": false},
+        {"id": 3, "engine": 0, "isOutput": false},
+        {"id": 4, "engine": 0, "isOutput": false},
+        {"id": 5, "engine": 0, "isOutput": false},
+        {"id": 6, "engine": 0, "isOutput": false},
+        {"id": 7, "engine": 0, "isOutput": false}
+      ],
+      "edges": []
+    },
+    "envelopes": [
+      {
+        "attackSeconds": 0.002,
+        "decaySeconds": 1.6,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 1.0
+      }
+    ],
+    "gain": 1.0,
+    "pan": 0.0,
+    "width": 1.0,
+    "centerGravity": 0.5
+  },
+  "voiceSettings": {
+    "polyphony": 12,
+    "masterGain": 0.7,
+    "a4Hz": 440.0
+  },
+  "locks": {},
+  "macros": [
+    {"id": "m1", "name": "DARKNESS", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m2", "name": "IMPACT", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m3", "name": "MOTION", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m4", "name": "SPACE", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m5", "name": "BODY", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m6", "name": "METAL", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m7", "name": "CHAOS", "description": "Reserved -- not yet routed.", "value": 0.0},
+    {"id": "m8", "name": "MORPH", "description": "Reserved -- not yet routed.", "value": 0.0}
+  ],
+  "seed": 3102,
+  "uiFocus": {
+    "maxKnobs": 4,
+    "knobs": [
+      {"kind": "param", "paramId": "filterCutoffHz", "label": "Cutoff"},
+      {"kind": "param", "paramId": "filterResonance", "label": "Reso"},
+      {"kind": "param", "paramId": "layerGain", "label": "Layer"},
+      {"kind": "param", "paramId": "masterGain", "label": "Master"}
+    ]
+  }
+}

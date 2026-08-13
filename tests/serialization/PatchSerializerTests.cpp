@@ -169,3 +169,27 @@ TEST_CASE("loadPatchFromJson fills in sane defaults for a minimal document", "[p
     REQUIRE(result.patch.layerA.operators.size() == pw8::core::kNodesPerLayer);
     REQUIRE(result.patch.voiceSettings.polyphony >= 1);
 }
+
+TEST_CASE("A v2 document without warp fields defaults wt warps on migration to v3", "[patch][serialization][migration]")
+{
+    constexpr auto v2Json = R"({
+        "schemaVersion": 2,
+        "layerA": {
+            "operators": [
+                {"engine": 1, "level": 1.0}
+            ]
+        }
+    })";
+
+    const auto result = loadPatchFromJson(v2Json);
+    REQUIRE(result.ok);
+    REQUIRE(result.originalSchemaVersion == 2);
+    REQUIRE(result.patch.schemaVersion == pw8::core::kPatchSchemaVersion);
+
+    const auto& op = result.patch.layerA.operators[0];
+    REQUIRE(op.wtBend == Catch::Approx(0.0f));
+    REQUIRE(op.wtAsymmetry == Catch::Approx(0.0f));
+    REQUIRE(op.wtSyncRatio == Catch::Approx(1.0f));
+    REQUIRE(op.wtSyncAmount == Catch::Approx(0.0f));
+    REQUIRE(op.wtFormantShift == Catch::Approx(0.0f));
+}

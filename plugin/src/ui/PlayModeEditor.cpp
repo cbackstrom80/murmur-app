@@ -116,6 +116,7 @@ namespace pw8::plugin::ui
 
     void PlayModeEditor::refreshFromPatch()
     {
+        nodeSelectorRow_.repaint();
         patchFocusPanel_.refreshFromPatch();
         compactEditor_.refreshFromPatch();
     }
