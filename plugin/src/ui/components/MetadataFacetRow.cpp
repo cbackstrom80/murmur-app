@@ -21,6 +21,8 @@ namespace pw8::plugin::ui
 
     void MetadataFacetRow::setValues(const juce::StringArray& values)
     {
+        if (values_ == values)
+            return;
         values_ = values;
         rebuildChips();
         resized();
@@ -45,7 +47,12 @@ namespace pw8::plugin::ui
             chip->setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
         }
         if (notify && onChange)
-            onChange();
+        {
+            // Defer: rebuildFacetsAndList() destroys chip buttons — never run that
+            // synchronously from inside a chip's onClick handler.
+            const auto callback = onChange;
+            juce::MessageManager::callAsync([callback] { callback(); });
+        }
     }
 
     void MetadataFacetRow::rebuildChips()

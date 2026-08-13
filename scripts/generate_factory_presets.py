@@ -35,12 +35,12 @@ def layer_b():
     return {
         "operators": [{"engine": 0, "level": 0.0} for _ in range(8)],
         "algorithm": {"nodes": [{"id": i, "engine": 0, "isOutput": (i == 0)} for i in range(8)], "edges": []},
-        "ampEnvelope": {"attackSeconds": 0.002, "decaySeconds": 0.15, "sustainLevel": 0.0, "releaseSeconds": 0.05},
+        "envelopes": envelopes_from_amp(default_envelope_slot()),
         "gain": 1.0, "pan": 0.0, "width": 1.0, "centerGravity": 0.5,
     }
 
 def macros(names):
-    return [{"id": f"m{i+1}", "name": n, "description": "Reserved -- not yet routed.", "value": 0.0}
+    return [{"id": f"m{i+1}", "name": n, "description": "Performance macro.", "value": 0.0}
             for i, n in enumerate(names)]
 
 def op_pad(ops):
@@ -49,11 +49,30 @@ def op_pad(ops):
         ops.append({"engine": 0, "classicWaveform": 0, "frequencyRatio": 1.0, "keyTrack": True, "level": 0.0, "pan": 0.0})
     return ops[:8]
 
+def default_envelope_slot():
+    return {"delaySeconds": 0.0, "attackSeconds": 0.002, "holdSeconds": 0.0, "decaySeconds": 0.15,
+            "sustainLevel": 0.0, "releaseSeconds": 0.05, "curveShape": 2.0, "legato": False}
+
+def default_lfo_slot():
+    return {"waveform": 0, "mode": 0, "rateHz": 1.0, "syncDivisionIndex": 4, "phaseOffset": 0.0}
+
+def envelopes_from_amp(amp_env):
+    slots = [amp_env]
+    while len(slots) < 8:
+        slots.append(default_envelope_slot())
+    return slots[:8]
+
+def lfos_from_pair(lfo1, lfo2):
+    slots = [lfo1, lfo2]
+    while len(slots) < 8:
+        slots.append(default_lfo_slot())
+    return slots[:8]
+
 def build_patch(name, description, category, moods, tags, seed, operators, ampEnv, filter1, lfo1, lfo2,
                  modRoutes, insertEffects, masterEffects, macroNames, unison=None, arpeggiator=None,
-                 polyphony=8, gain=1.0):
-    return {
-        "schemaVersion": 1,
+                 polyphony=8, gain=1.0, ui_focus=None):
+    patch = {
+        "schemaVersion": 2,
         "metadata": {
             "id": f"pw8-factory-{category}-{seed}",
             "name": name,
@@ -65,7 +84,7 @@ def build_patch(name, description, category, moods, tags, seed, operators, ampEn
             "tags": tags,
             "createdAt": "2026-08-12T00:00:00Z",
             "engineVersion": "0.1.0",
-            "schemaVersion": 1,
+            "schemaVersion": 2,
             "seed": seed,
             "lineage": [],
         },
@@ -74,11 +93,10 @@ def build_patch(name, description, category, moods, tags, seed, operators, ampEn
         "layerA": {
             "operators": op_pad(operators),
             "algorithm": base_algorithm(),
-            "ampEnvelope": ampEnv,
+            "envelopes": envelopes_from_amp(ampEnv),
             "unison": unison or {"mode": 0, "voices": 1},
             "filter1": filter1,
-            "lfo1": lfo1,
-            "lfo2": lfo2,
+            "lfos": lfos_from_pair(lfo1, lfo2),
             "modRoutes": modRoutes,
             "gain": gain, "pan": 0.0, "width": 1.0, "centerGravity": 0.5,
             "insertEffects": insertEffects,
@@ -90,6 +108,37 @@ def build_patch(name, description, category, moods, tags, seed, operators, ampEn
         "arpeggiator": arpeggiator or {"enabled": False},
         "masterEffects": masterEffects,
     }
+    if ui_focus is not None:
+        patch["uiFocus"] = ui_focus
+    return patch
+
+def infer_ui_focus(macro_names, mod_routes, category):
+    """Patch-authored PLAY-mode Knobs of Interest hints."""
+    knobs = []
+    primary_macros = {
+        "bass": [0, 2],
+        "lead": [0, 1],
+        "pad": [0, 3],
+        "seq": [0, 4],
+        "ambient": [0, 5],
+    }
+    for idx in primary_macros.get(category, [0])[:2]:
+        if idx < len(macro_names):
+            knobs.append({"kind": "macro", "index": idx, "label": macro_names[idx]})
+    for route in mod_routes:
+        dest = route.get("destination", 0)
+        if dest in (1, 2) and len(knobs) < 5:
+            param = "filterCutoffHz" if dest == 1 else "filterResonance"
+            label = "Cutoff" if dest == 1 else "Resonance"
+            if not any(k.get("paramId") == param for k in knobs if k.get("kind") == "param"):
+                knobs.append({"kind": "param", "paramId": param, "label": label})
+        elif dest == 5 and len(knobs) < 6:
+            knobs.append({"kind": "param", "paramId": "layerPan", "label": "Pan"})
+    if len(knobs) < 3:
+        for idx in range(min(3, len(macro_names))):
+            if not any(k.get("index") == idx for k in knobs if k.get("kind") == "macro"):
+                knobs.append({"kind": "macro", "index": idx, "label": macro_names[idx]})
+    return {"maxKnobs": min(6, max(4, len(knobs))), "knobs": knobs[:6]}
 
 def reverb(mix, size, decay, predelay=25.0):
     return {"type": 7, "mix": mix, "reverbSizeParam": size, "reverbDecaySeconds": decay,
@@ -123,7 +172,7 @@ def freq_shift_echo(mix=0.2, hz=7.0, delay=280.0, fb=0.5, lowCut=120.0, highCut=
     return {"type": 5, "mix": mix, "freqShiftHz": hz, "freqShiftDelayMs": delay, "freqShiftFeedback": fb,
             "freqShiftLowCutHz": lowCut, "freqShiftHighCutHz": highCut}
 
-# ModSource / ModDestination ordinals
+# ModSource / ModDestination ordinals (schema v2 — ModMatrixTypes.hpp)
 SRC_LFO1, SRC_LFO2 = 1, 2
 SRC_VELOCITY = 17
 DST_FILTER_CUTOFF, DST_FILTER_RES, DST_OP_LEVEL, DST_PAN, DST_WT_POS = 1, 2, 3, 4, 5
@@ -145,16 +194,80 @@ WT = {
             "bell-bright-tine.json", "bell-dark-gong.json", "bell-fm-classic.json", "bell-glass-chime.json",
             "bell-metallic-strike.json", "metallic-detuned-cluster.json"],
     "ambient": ["texture-frozen-noise-bright.json", "texture-frozen-noise-warm.json",
-                "texture-granular-shimmer.json", "texture-tonal-to-noise.json", "ambient-airy-drift.json",
+                "texture-tonal-to-noise.json", "ambient-airy-drift.json",
                 "ambient-dreamy-veil.json", "ambient-evolving-swell.json", "fold-dual-sine.json",
                 "fold-saw-soft.json", "fold-sine-sharp.json", "fold-sine-triangle.json",
                 "formant-vowel-morph-o-to-u.json"],
+    "gran": ["gran-cloud-drift.json", "gran-glass-spray.json", "gran-vocal-dust.json",
+             "gran-tape-warmth.json", "gran-crystal-burst.json", "gran-sub-rumble.json",
+             "gran-digital-glitch.json", "gran-ocean-swell.json", "gran-frozen-grit.json",
+             "gran-shimmer-voice.json", "texture-granular-shimmer.json"],
 }
 
 def wt_path(pool_key, rng):
     return f"content/wavetables/{rng.choice(WT[pool_key])}"
 
 # ------------------------------------------------------------- name banks --
+
+# Classic synth archetype tags for browser filtering (no trademark names).
+ARCHETYPE_TAGS = {
+    "bass": ["ladder-bass", "rubber-funk", "fm-sub", "acid-line", "sync-low", "mono-growl"],
+    "lead": ["sync-lead", "fifth-lead", "brass-stab", "formant-vox", "portamento", "chip-lead"],
+    "pad": ["poly-sweet", "dual-layer", "string-ensemble", "brass-pad", "wt-evolve", "formant-choir"],
+    "seq": ["acid-seq", "gated-80s", "arp-bell", "sync-seq", "fm-pluck", "stab-seq"],
+    "ambient": ["hymn-swell", "wt-wash", "noise-drone", "fx-riser", "gran-cloud", "resonant-cave"],
+}
+
+# Human-readable archetype phrases for description suffix (parallel to ARCHETYPE_TAGS).
+ARCHETYPE_PHRASES = {
+    "ladder-bass": "ladder-filter mono bass",
+    "rubber-funk": "rubber funk bass with portamento",
+    "fm-sub": "FM sub bass pulse",
+    "acid-line": "resonant acid sequence bass",
+    "sync-low": "sync oscillator low lead-bass",
+    "mono-growl": "mono growl bass",
+    "sync-lead": "hard sync lead",
+    "fifth-lead": "detuned fifth stack lead",
+    "brass-stab": "dual-saw brass stab",
+    "formant-vox": "formant vocal lead",
+    "portamento": "portamento solo line",
+    "chip-lead": "8-bit square lead",
+    "poly-sweet": "poly sweet chorus pad",
+    "dual-layer": "dual-layer swell pad",
+    "string-ensemble": "detuned string ensemble",
+    "brass-pad": "brass-pad hybrid",
+    "wt-evolve": "evolving wavetable pad",
+    "formant-choir": "formant choir pad",
+    "acid-seq": "acid squelch sequence",
+    "gated-80s": "gated 80s pulse sequence",
+    "arp-bell": "arp bell pluck sequence",
+    "sync-seq": "sync oscillator sequence",
+    "fm-pluck": "FM pluck sequence",
+    "stab-seq": "chord stab sequence",
+    "hymn-swell": "slow hymn swell ambient",
+    "wt-wash": "wavetable wash drone",
+    "noise-drone": "noise texture drone",
+    "fx-riser": "noise riser FX",
+    "gran-cloud": "granular cloud ambient",
+    "resonant-cave": "resonant cavern ambient",
+}
+
+# Synthesis-evocative vocabulary (~30% of generated display names).
+SYNTH_ADJECTIVES = {
+    "bass": ["Bronze", "Squelch", "Ladder", "Rubber", "Coil", "Fifth", "Ratio", "Metallic", "Accent"],
+    "lead": ["Sync", "Bronze", "Glass", "Formant", "Fifth", "Voltage", "Pixel", "Tine", "Rip"],
+    "pad": ["Chorus", "Dual", "Velvet", "Drawbar", "Haze", "Swell", "Ensemble", "Bucket", "Marble"],
+    "seq": ["Gate", "Chime", "Accent", "Motor", "Ratchet", "Glass", "Stab", "Tine", "Squelch"],
+    "ambient": ["Photon", "Hollow", "Granular", "Resonant", "Void", "Swell", "Mist", "Drift", "Hymn"],
+}
+
+SYNTH_NOUNS = {
+    "bass": ["Squelch", "Pulse", "Line", "Sub", "Growl", "Drive", "Low", "Depth"],
+    "lead": ["Tear", "Stab", "Beam", "Scream", "Stack", "Section", "Line", "Sync"],
+    "pad": ["Swell", "Ensemble", "Hymn", "Veil", "Stack", "Chord", "Wash", "Glow"],
+    "seq": ["Motif", "Chime", "Motor", "Pattern", "Stab", "Cycle", "Line", "Step"],
+    "ambient": ["Riser", "Cave", "Cloud", "Drift", "Hymn", "Wash", "Expanse", "Field"],
+}
 
 NAME_BANKS = {
     "bass": (["Sub", "Growl", "Thud", "Wobble", "Crawl", "Fang", "Rumble", "Grind", "Mono", "Anchor",
@@ -176,15 +289,32 @@ NAME_BANKS = {
 
 def make_name(category, rng, used):
     adjs, nouns = NAME_BANKS[category]
+    synth_adjs = SYNTH_ADJECTIVES.get(category, adjs)
+    synth_nouns = SYNTH_NOUNS.get(category, nouns)
     for _ in range(200):
-        name = f"{rng.choice(adjs)} {rng.choice(nouns)}"
+        if rng.random() < 0.30:
+            name = f"{rng.choice(synth_adjs)} {rng.choice(synth_nouns)}"
+        else:
+            name = f"{rng.choice(adjs)} {rng.choice(nouns)}"
         if name not in used:
             used.add(name)
             return name
-    # fallback if we exhaust unique combos
     name = f"{rng.choice(adjs)} {rng.choice(nouns)} {rng.randint(2, 99)}"
     used.add(name)
     return name
+
+def pick_archetype_tags(category, rng, count=2):
+    pool = list(ARCHETYPE_TAGS.get(category, []))
+    if not pool:
+        return []
+    n = min(count, len(pool))
+    return rng.sample(pool, n)
+
+def archetype_description_phrase(tags):
+    phrases = [ARCHETYPE_PHRASES[t] for t in tags if t in ARCHETYPE_PHRASES]
+    if not phrases:
+        return tags[0].replace("-", " ") if tags else "general synthesis"
+    return phrases[0] if len(phrases) == 1 else f"{phrases[0]} with {phrases[1]} character"
 
 # --------------------------------------------------------- category generators --
 
@@ -419,7 +549,7 @@ def gen_ambient(i, rng):
                 "resonatorStructure": rng.uniform(0.2, 0.65), "resonatorDecay": rng.uniform(0.55, 0.9),
                 "resonatorDamping": rng.uniform(0.3, 0.65), "resonatorBrightness": rng.uniform(0.35, 0.65),
                 "resonatorModeCount": rng.randint(4, 8)})
-    ops.append({"engine": 5, "wavetableId": wt_path("ambient", rng), "wavetableFramePosition": rng.uniform(0.0, 0.5),
+    ops.append({"engine": 5, "wavetableId": wt_path("gran", rng), "wavetableFramePosition": rng.uniform(0.0, 0.5),
                 "frequencyRatio": rng.choice([1.0, 2.0]), "keyTrack": True, "level": rng.uniform(0.3, 0.55),
                 "pan": rng.uniform(-0.45, 0.45), "grainDensity": rng.uniform(4.0, 22.0),
                 "grainSizeMs": rng.uniform(60.0, 220.0), "grainPositionJitter": rng.uniform(0.15, 0.5),
@@ -472,6 +602,8 @@ manifest = []
 for cat_key, (cat_label, gen_fn) in CATEGORIES.items():
     out_dir = f"{OUT_ROOT}/{cat_label}"
     os.makedirs(out_dir, exist_ok=True)
+    for stale in pathlib.Path(out_dir).glob("*.pw8"):
+        stale.unlink()
     used_names = set()
     for i in range(COUNT_PER_CATEGORY):
         seed = hash((cat_key, i)) & 0xFFFFFFFF
@@ -487,17 +619,22 @@ for cat_key, (cat_label, gen_fn) in CATEGORIES.items():
 
         engines_used = sorted({o["engine"] for o in ops})
         engine_names = ["Classic", "Wavetable", "FM/PM", "Additive", "PhaseShape", "Granular", "NoiseChaos", "Resonator"]
+        archetype_tags = pick_archetype_tags(cat_key, rng, count=rng.choice([1, 2]))
+        archetype_phrase = archetype_description_phrase(archetype_tags)
         desc = (f"Factory {cat_label[:-1] if cat_label.endswith('s') else cat_label} patch #{i+1:02d}. "
                 f"Engines: {', '.join(engine_names[e] for e in engines_used)}. Procedurally generated "
-                f"(seed {seed}) as part of the 250-patch factory content bank.")
+                f"(seed {seed}) as part of the 250-patch factory content bank. "
+                f"Archetype: {archetype_phrase}.")
 
+        patch_tags = ["factory", cat_key] + archetype_tags
         full_name = f"{name.upper()}"
         patch = build_patch(
             name=full_name, description=desc, category=cat_key,
-            moods=[cat_label.lower()], tags=["factory", cat_key],
+            moods=[cat_label.lower()], tags=patch_tags,
             seed=seed, operators=ops, ampEnv=ampEnv, filter1=filter1, lfo1=lfo1, lfo2=lfo2,
             modRoutes=modRoutes, insertEffects=insert, masterEffects=master, macroNames=macroNames,
             arpeggiator=arpeggiator,
+            ui_focus=infer_ui_focus(macroNames, modRoutes, cat_key),
         )
         fname = f"{i+1:02d}-{name.lower().replace(' ', '-')}.pw8"
         path = f"{out_dir}/{fname}"

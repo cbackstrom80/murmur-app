@@ -352,11 +352,12 @@ rather than an unseeded/global RNG.
 (`pw8/dsp/Smoother.hpp`) but are not yet wired onto every continuous parameter --
 Filter 1's cutoff/resonance are recomputed and reapplied fresh every sample instead
 (see "Filter System" below, which explains why that's the right call for a filter
-specifically), and drive/FX-mix don't exist yet to smooth. `OnePoleSmoother`/
-`LinearRamp` remain unused by any current code path; wiring them onto
-block-rate-only parameters (e.g. gain/pan set at note-on) is lower priority than it
-looked before Filter 1 shipped, since the highest-risk zipper-noise source (cutoff
-sweeping under mod-matrix control) turned out not to need them.
+specifically), and drive/FX-mix don't exist yet to smooth. `LinearRamp` is used for
+voice-steal output crossfades (`Voice::stealGainRamp_`); `OnePoleSmoother` remains
+unused. Wiring smoothers onto block-rate-only parameters (e.g. gain/pan set at
+note-on) is lower priority than it looked before Filter 1 shipped, since the
+highest-risk zipper-noise source (cutoff sweeping under mod-matrix control) turned
+out not to need them.
 
 ## Filter System
 
@@ -414,17 +415,87 @@ pressure, poly aftertouch, and MPE slide are mod matrix *sources*
 
 **Voice stealing policy** (`VoiceAllocator::allocate()`): free voice first; else the
 quietest *released* voice; else the quietest voice overall, ties broken by oldest.
-No crossfade on steal yet (PLANNED, Phase 7) -- a stolen voice's envelope restarts
-from Delay rather than being hard-cut, which avoids the worst clicks in the common
-case but isn't a true ramped crossfade.
+`VoiceAllocation::result` reports whether the voice was free, released, or stolen
+(actively gated). Stolen voices are crossfaded in `Voice::beginStealCrossfadeNoteOn()`
+(~8 ms linear ramp out/in via `dsp::LinearRamp`) so filter/operator resets and
+envelope retrigger happen at zero gain and don't click on chord changes.
 
 ## Quality Modes
 
-**PARTIAL (data model only).** `render::QualityMode` (Eco/Normal/High/Ultra/Offline)
-exists and is threaded through `RenderOptions`/the Python bindings, but nothing in
-the DSP path currently branches on it -- there's no oversampling, no
-adjustable-quality interpolation, and no reverb to vary yet. It's real, typed,
-plumbed-through state waiting for the DSP that will consume it.
+**IMPLEMENTED (v1).** `render::QualityMode` (Eco/Normal/High/Ultra/Offline) is stored on
+`render::Engine` (`setQualityMode()` / `getQualityMode()`), threaded through
+`RenderOptions`, the offline `Renderer`, `Voice::renderSample()`, `OperatorState::render()`,
+and the plugin PDC hook.
+
+When `quality >= High`, nonlinear stages run at 2× (High) or 4× (Ultra/Offline) with
+boxcar downsample:
+
+- **PhaseShape** wavefold (`PhaseShapeOscillator::applyFold()`)
+- **FM/PM** modulator self-feedback and algorithm-graph **FEEDBACK** edges
+  (`dsp::tanhFeedbackOs()`)
+
+Normal/Eco skip the extra sub-sample evaluations (lower CPU, slightly more aliasing on
+extreme fold/feedback settings). Plugin latency adds **1 sample** of group delay at High
+and **2 samples** at Ultra/Offline (`render::nonlinearOversamplingLatencySamples()`),
+not a full millisecond budget.
+
+**Ultra and Offline** use 4× nonlinear oversampling (four evenly spaced sub-positions
+between the previous and current sample, boxcar downsample, heavier one-pole smoother).
+Offline is the default for golden/offline regression renders.
+
+Measured: `tests/dsp/PhaseShapeOscillatorTests.cpp` verifies 2× and 4× fold measurably
+lower non-fundamental energy vs. the direct path at `phaseFold=1`.
+
+**PLANNED follow-ups:** higher-quality half-band decimation filters, global engine
+oversampling.
+
+## Block Render Loop (Sprint 4)
+
+**PARTIAL / prototype.** `render::Engine::process()` walks the block in
+`kVoiceSumSubBlockSize` (= 4) sample sub-blocks. FM/sync/PM graph evaluation inside
+`Voice::renderSample()` remains strictly per-sample; only the outer scheduling and
+voice-bus summation structure changed. Voice outputs are accumulated with Kahan
+compensation on the L/R mix bus to reduce FP drift when many voices are active.
+
+**PLANNED follow-ups:** vectorized voice summation within the sub-block, optional
+batching of layer LFO ticks when no LFO-mod routes are active.
+
+## Additive Partial SIMD
+
+**PARTIAL.** `oscillator::AdditiveOscillator::renderSample()` batches the coupled-form
+partial recursion four-wide on SSE (`__m128`) or NEON (`float32x4_t`) when external
+phase modulation is zero (the common held-note case). External phase-mod edges and
+the scalar tail (count not divisible by 4) use the original scalar path unchanged.
+Renormalization every `kRenormalizeInterval` samples is unchanged.
+
+## Host Parity & Live Updates (2026 roadmap)
+
+**IMPLEMENTED / PARTIAL:**
+
+- **SYNC edge semantics:** `AlgorithmExecutor` fires sync resets only when the
+  source operator's phase-based oscillator reports `didWrapThisSample()` this sample
+  (`ClassicOscillator`, `WavetableOscillator`, `PhaseShapeOscillator`, `AdditiveOscillator`
+  + `OperatorState::didWrapThisSample()`). Verified in `tests/dsp/SyncEdgeTests.cpp`.
+- **Sample-accurate MIDI:** `Engine::process()` accepts optional
+  `BlockMidiEvent` arrays; the plugin dispatches JUCE `samplePosition` per event;
+  offline `Renderer` converts event times to intra-block offsets.
+  `tests/regression/BlockMidiTests.cpp`.
+- **Wavetable cache:** `content::WavetableCache` deduplicates loaded tables by path;
+  `Engine::loadPatch()` and `setOperatorWavetableLive()` hot-swap pointers without a
+  full engine rebuild when picking a new file in the UI.
+- **Envelope live retarget:** `DahdsrEnvelope::retargetParams()` +
+  `Engine::setEnvelopeLive()` update sustaining voices mid-note.
+  `tests/dsp/DahdsrEnvelopeLiveTests.cpp`.
+- **Automation queue:** plugin `ParamChangeQueue` (SPSC group indices) avoids scanning
+  all APVTS atomics when nothing changed.
+- **Granular mip selection:** granular engine uses `viewForFrequency()` like wavetable.
+- **Sustain pedal (CC64):** deferred note-off while held, release on pedal up.
+- **MPE per-note pitch bend:** member-channel pitch bend routes to `mpePitch`.
+- **Plugin PDC:** `EffectLatency.hpp` sums delay/reverb/limiter latencies into
+  `setLatencySamples()`.
+- **Golden/determinism:** `tests/regression/GoldenPresetTests.cpp` SHA256-regresses
+  offline renders of factory presets; `tests/regression/BlockMidiTests.cpp` verifies
+  identical render fingerprints across runs; CI runs `pw8-fuzz-render --count 500`.
 
 ## CPU Governor / Complexity Estimator
 

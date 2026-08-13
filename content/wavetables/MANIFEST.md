@@ -2,7 +2,7 @@
 
 Factory wavetable data, built with `pw8-wavetable-builder` (see `tools/wavetable_builder/`) via `scripts/generate_wavetable_library.py`.
 
-50 tables, all at 2048 samples/frame, 10 mip levels (only frame count varies per table). Source WAVs (used to regenerate the JSON tables if the builder ever changes) live under `sources/`.
+50 classic tables + 10 granular-engine tables, all at 2048 samples/frame, 10 mip levels (only frame count varies per table). Source WAVs (used to regenerate the JSON tables if the builder ever changes) live under `sources/`.
 
 | Name | Category | Moods | Frames |
 |------|----------|-------|--------|
@@ -56,5 +56,17 @@ Factory wavetable data, built with `pw8-wavetable-builder` (see `tools/wavetable
 | `ambient-airy-drift.json` | pad | airy, dreamy | 12 |
 | `ambient-dreamy-veil.json` | pad | dreamy, dark | 12 |
 | `ambient-evolving-swell.json` | pad | evolving, lush | 16 |
+| `gran-cloud-drift.json` | granular | evolving, airy | 24 |
+| `gran-glass-spray.json` | granular | glassy, bright | 16 |
+| `gran-vocal-dust.json` | granular | organic, evolving | 12 |
+| `gran-tape-warmth.json` | granular | dark, warm | 12 |
+| `gran-crystal-burst.json` | granular | airy, bright | 16 |
+| `gran-sub-rumble.json` | granular | dark, ambient | 12 |
+| `gran-digital-glitch.json` | granular | digital, gritty | 12 |
+| `gran-ocean-swell.json` | granular | evolving, lush | 32 |
+| `gran-frozen-grit.json` | granular | gritty, dark | 8 |
+| `gran-shimmer-voice.json` | granular | evolving, organic | 16 |
+
+Granular-engine tables (`gran-*`) are authored for Engine Type 6 — long frame counts so grain position jitter has rich material to scan.
 
 Plus `basic_harmonic.json` (the original UI-GATE-5-era example, kept as-is) and `basic_harmonic_source.wav`.

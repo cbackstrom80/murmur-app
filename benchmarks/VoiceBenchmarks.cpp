@@ -2,6 +2,7 @@
 #include <benchmark/benchmark.h>
 
 #include "pw8/algorithm/AlgorithmGraphCompiler.hpp"
+#include "pw8/render/RenderTypes.hpp"
 #include "pw8/voice/Voice.hpp"
 
 using namespace pw8;
@@ -36,7 +37,8 @@ namespace
             float l = 0.0f, r = 0.0f, sumL = 0.0f, sumR = 0.0f;
             for (int i = 0; i < kBlockSize; ++i)
             {
-                v.renderSample(compiled, tables, 120.0f, layerLfoValues, modRoutes, l, r);
+                v.renderSample(compiled, tables, 120.0f, layerLfoValues, modRoutes,
+                               render::QualityMode::Normal, l, r);
                 sumL += l;
                 sumR += r;
             }

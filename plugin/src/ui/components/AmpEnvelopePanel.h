@@ -8,7 +8,7 @@
 #include "GlowKnob.h"
 #include "SectionPanel.h"
 #include "processor/PatchworkEightProcessor.h"
-#include "wireframe/EnvelopeCurveView.h"
+#include "ObsidianEnvelopeVisualizer.h"
 
 namespace pw8::plugin::ui
 {
@@ -22,7 +22,7 @@ namespace pw8::plugin::ui
 
     private:
         SectionPanel panel_{"Layer Amp Envelope"};
-        wireframe::EnvelopeCurveView curveView_;
+        ObsidianEnvelopeVisualizer visualizer_;
         std::unique_ptr<GlowKnob> delay_;
         std::unique_ptr<GlowKnob> attack_;
         std::unique_ptr<GlowKnob> hold_;

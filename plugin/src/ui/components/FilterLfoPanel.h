@@ -7,6 +7,8 @@
 
 #include "GlowKnob.h"
 #include "GlowRingButton.h"
+#include "ModAssignmentController.h"
+#include "ModSourcePalette.h"
 #include "SectionPanel.h"
 #include "processor/PatchworkEightProcessor.h"
 #include "wireframe/FilterWireframeView.h"
@@ -25,17 +27,21 @@ namespace pw8::plugin::ui
     class FilterLfoPanel : public juce::Component
     {
     public:
-        explicit FilterLfoPanel(PatchworkEightProcessor& processor);
+        explicit FilterLfoPanel(PatchworkEightProcessor& processor, ModAssignmentController& assignmentController);
 
         void resized() override;
         void paint(juce::Graphics& g) override;
 
         void setScope(FilterPanelScope scope, int engineIndex = 0);
 
+        /// Repaint mod source chips after armed-source changes (from PlayModeEditor).
+        void repaintModAssignmentState();
+
     private:
         void rebuildAttachments();
 
         PatchworkEightProcessor& processor_;
+        ModAssignmentController& assignmentController_;
         FilterPanelScope scope_ = FilterPanelScope::Global;
         int engineIndex_ = 0;
 
@@ -56,6 +62,8 @@ namespace pw8::plugin::ui
         std::unique_ptr<GlowKnob> lfoWaveform_;
         std::unique_ptr<GlowKnob> lfoMode_;
         std::unique_ptr<GlowKnob> lfoRate_;
+
+        ModSourcePalette modSourcePalette_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FilterLfoPanel)
     };

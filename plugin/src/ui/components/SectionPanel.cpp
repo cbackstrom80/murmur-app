@@ -12,11 +12,21 @@ namespace pw8::plugin::ui
         constexpr int kPadding = 8;
     } // namespace
 
-    SectionPanel::SectionPanel(const juce::String& title, juce::Colour accentColour)
-        : title_(title.toUpperCase()),
+    SectionPanel::SectionPanel(const juce::String& title, juce::Colour accentColour, bool preserveTitleCase)
+        : title_(preserveTitleCase ? title : title.toUpperCase()),
           accentColour_(accentColour.isTransparent() ? palette::kAccent : accentColour)
     {
     }
+
+    namespace
+    {
+        juce::Colour sectionTitleColour(juce::Colour accentColour)
+        {
+            if (accentColour == palette::kAccentWarm)
+                return palette::kAccentWarm.brighter(0.22f);
+            return palette::kTextPrimary;
+        }
+    } // namespace
 
     void SectionPanel::paint(juce::Graphics& g)
     {
@@ -61,8 +71,8 @@ namespace pw8::plugin::ui
             g.fillEllipse(dotBounds);
 
             titleRow.removeFromLeft(6.0f);
-            g.setColour(palette::kTextDim);
-            g.setFont(fonts::label(11.0f));
+            g.setColour(sectionTitleColour(accentColour_));
+            g.setFont(fonts::title(12.0f));
             g.drawText(title_, titleRow, juce::Justification::centredLeft);
 
             // A hairline divider under the header row, the "card header" treatment
@@ -80,7 +90,7 @@ namespace pw8::plugin::ui
 
     void SectionPanel::setTitle(const juce::String& title)
     {
-        title_ = title.toUpperCase();
+        title_ = title;
         repaint();
     }
 

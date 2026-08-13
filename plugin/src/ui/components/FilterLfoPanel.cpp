@@ -49,11 +49,17 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    FilterLfoPanel::FilterLfoPanel(PatchworkEightProcessor& processor)
-        : processor_(processor), filterWireframe_(processor.apvts), lfoWireframe_(processor.apvts, 0)
+    FilterLfoPanel::FilterLfoPanel(PatchworkEightProcessor& processor, ModAssignmentController& assignmentController)
+        : processor_(processor),
+          assignmentController_(assignmentController),
+          filterWireframe_(processor.apvts),
+          lfoWireframe_(processor.apvts, 0),
+          modSourcePalette_(assignmentController)
     {
         addAndMakeVisible(filterPanel_);
         addAndMakeVisible(lfoPanel_);
+        addAndMakeVisible(modSourcePalette_);
+        modSourcePalette_.setCompactLayout(true);
 
         filterEnabledButton_ = std::make_unique<GlowRingButton>("Filter Enable");
         filterEnabledLabel_.setText("FILTER", juce::dontSendNotification);
@@ -82,6 +88,11 @@ namespace pw8::plugin::ui
                                   : "Engine " + juce::String(engineIndex_) + " Filter");
         resized();
         repaint();
+    }
+
+    void FilterLfoPanel::repaintModAssignmentState()
+    {
+        modSourcePalette_.repaintAssignmentState();
     }
 
     void FilterLfoPanel::rebuildAttachments()
@@ -135,6 +146,8 @@ namespace pw8::plugin::ui
         filterKeyTrack_ = std::make_unique<GlowKnob>(apvts, keyTrackId, "Key Trk");
         filterCutoff_->enableModulationTarget(processor_, cutoffDest, modTarget);
         filterResonance_->enableModulationTarget(processor_, resonanceDest, modTarget);
+        filterCutoff_->setModAssignmentController(&assignmentController_);
+        filterResonance_->setModAssignmentController(&assignmentController_);
 
         filterPanel_.removeAllChildren();
         filterPanel_.addAndMakeVisible(filterWireframe_);
@@ -156,6 +169,11 @@ namespace pw8::plugin::ui
     void FilterLfoPanel::resized()
     {
         auto bounds = getLocalBounds();
+
+        auto paletteRow = bounds.removeFromTop(30);
+        modSourcePalette_.setBounds(paletteRow.reduced(4, 2));
+        bounds.removeFromTop(4);
+
         if (scope_ == FilterPanelScope::Global)
         {
             const int half = bounds.getWidth() / 2;

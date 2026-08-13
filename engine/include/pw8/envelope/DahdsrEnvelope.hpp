@@ -12,6 +12,9 @@
 
 namespace pw8::envelope
 {
+    /// Floor for attack time to avoid a zero-length ramp (audible DC step / click).
+    inline constexpr float kMinAttackSeconds = 0.003f;
+
     enum class Stage : std::uint8_t
     {
         Idle = 0,
@@ -53,6 +56,8 @@ namespace pw8::envelope
         void noteOn(const DahdsrParams& params) noexcept
         {
             params_ = params;
+            if (params_.attackSeconds < kMinAttackSeconds)
+                params_.attackSeconds = kMinAttackSeconds;
             if (!params.legato || stage_ == Stage::Idle)
                 startLevel_ = 0.0f;
             else
@@ -146,6 +151,77 @@ namespace pw8::envelope
         [[nodiscard]] bool isActive() const noexcept { return stage_ != Stage::Idle; }
         [[nodiscard]] bool isReleasing() const noexcept { return stage_ == Stage::Release; }
         [[nodiscard]] float getCurrentLevel() const noexcept { return currentLevel_; }
+
+        /// Live-updates envelope timing/levels on a sustaining voice without retriggering.
+        /// Recalculates the current stage's remaining duration from the present level.
+        void retargetParams(const DahdsrParams& newParams) noexcept
+        {
+            if (stage_ == Stage::Idle)
+            {
+                params_ = newParams;
+                if (params_.attackSeconds < kMinAttackSeconds)
+                    params_.attackSeconds = kMinAttackSeconds;
+                return;
+            }
+
+            const float savedLevel = currentLevel_;
+            const Stage savedStage = stage_;
+            params_ = newParams;
+            if (params_.attackSeconds < kMinAttackSeconds)
+                params_.attackSeconds = kMinAttackSeconds;
+
+            switch (savedStage)
+            {
+                case Stage::Delay:
+                {
+                    const auto remaining = stageLengthSamples_ - samplesIntoStage_;
+                    stageLengthSamples_ = secondsToSamples(params_.delaySeconds);
+                    samplesIntoStage_ = stageLengthSamples_ - remaining;
+                    if (samplesIntoStage_ < 0)
+                        samplesIntoStage_ = 0;
+                    break;
+                }
+                case Stage::Attack:
+                {
+                    const float remainingToPeak = dsp::clamp(1.0f - savedLevel, 0.0f, 1.0f);
+                    startLevel_ = savedLevel;
+                    samplesIntoStage_ = 0;
+                    stageLengthSamples_ = secondsToSamples(params_.attackSeconds * remainingToPeak);
+                    if (stageLengthSamples_ < 1)
+                        stageLengthSamples_ = 1;
+                    break;
+                }
+                case Stage::Hold:
+                {
+                    const auto remaining = stageLengthSamples_ - samplesIntoStage_;
+                    stageLengthSamples_ = secondsToSamples(params_.holdSeconds);
+                    samplesIntoStage_ = stageLengthSamples_ - remaining;
+                    if (samplesIntoStage_ < 0)
+                        samplesIntoStage_ = 0;
+                    break;
+                }
+                case Stage::Decay:
+                {
+                    const float totalDrop = 1.0f - params_.sustainLevel;
+                    const float remainingDrop = dsp::clamp(savedLevel - params_.sustainLevel, 0.0f, totalDrop);
+                    const float frac = totalDrop > 1.0e-6f ? remainingDrop / totalDrop : 0.0f;
+                    samplesIntoStage_ = 0;
+                    stageLengthSamples_ = secondsToSamples(params_.decaySeconds * frac);
+                    if (stageLengthSamples_ < 1)
+                        stageLengthSamples_ = 1;
+                    break;
+                }
+                case Stage::Sustain:
+                    break;
+                case Stage::Release:
+                    releaseStartLevel_ = savedLevel;
+                    samplesIntoStage_ = 0;
+                    stageLengthSamples_ = secondsToSamples(params_.releaseSeconds);
+                    break;
+                default:
+                    break;
+            }
+        }
 
     private:
         [[nodiscard]] std::int64_t secondsToSamples(float seconds) const noexcept

@@ -32,9 +32,9 @@ namespace pw8::plugin::content
             static const char* kContextTokens[] = {"cinematic", "score", "trailer", "game",      "worship",
                                                    "sleep",     "demo",  "ambient", "sound-design", nullptr};
             const auto lower = mood.trim().toLowerCase();
-            for (const char* token = kContextTokens[0]; token != nullptr; ++token)
+            for (std::size_t i = 0; kContextTokens[i] != nullptr; ++i)
             {
-                if (lower == token)
+                if (lower == kContextTokens[i])
                     return true;
             }
             return false;
@@ -123,7 +123,7 @@ namespace pw8::plugin::content
             return false;
 
         const auto cat = filter.category.trim().toLowerCase();
-        if (cat.isNotEmpty() && !entry.category.toLowerCase().contains(cat))
+        if (cat.isNotEmpty() && entry.category.trim().toLowerCase() != cat)
             return false;
 
         const auto mood = filter.mood.trim().toLowerCase();

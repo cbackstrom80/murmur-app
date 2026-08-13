@@ -14,7 +14,9 @@ namespace pw8::plugin::ui
     public:
         /// `accentColour`, if not transparent (the default cool cyan), tints this
         /// panel's header dot -- used by MacroStrip for the duotone's warm half.
-        explicit SectionPanel(const juce::String& title, juce::Colour accentColour = juce::Colours::transparentBlack);
+        /// When `preserveTitleCase` is true the title string is not uppercased.
+        explicit SectionPanel(const juce::String& title, juce::Colour accentColour = juce::Colours::transparentBlack,
+                              bool preserveTitleCase = false);
 
         void paint(juce::Graphics& g) override;
         void resized() override;

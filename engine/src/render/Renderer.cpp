@@ -2,38 +2,34 @@
 
 #include <algorithm>
 #include <cmath>
+#include <vector>
 
+#include "pw8/render/BlockMidi.hpp"
 #include "pw8/render/Engine.hpp"
 
 namespace pw8::render
 {
     namespace
     {
-        void dispatchEvent(Engine& engine, const midi::MidiEvent& e) noexcept
+        BlockMidiEvent toBlockEvent(const midi::MidiEvent& e) noexcept
         {
+            BlockMidiEvent out{};
+            out.channel = e.channel;
+            out.note = e.note;
+            out.velocity = e.velocity;
+            out.controller = e.controller;
+            out.value = e.value;
             switch (e.type)
             {
-                case midi::EventType::NoteOn:
-                    engine.noteOn(e.note, e.channel, e.velocity);
-                    break;
-                case midi::EventType::NoteOff:
-                    engine.noteOff(e.note, e.channel, e.velocity);
-                    break;
-                case midi::EventType::PitchBend:
-                    engine.pitchBend(e.channel, e.value);
-                    break;
-                case midi::EventType::ControlChange:
-                    engine.controlChange(e.channel, e.controller, e.value);
-                    break;
-                case midi::EventType::ChannelPressure:
-                    engine.channelPressure(e.channel, e.value);
-                    break;
-                case midi::EventType::PolyAftertouch:
-                    engine.polyAftertouch(e.channel, e.note, e.velocity);
-                    break;
-                case midi::EventType::ProgramChange:
-                    break; // Patch-per-program-change is PLANNED (Patchwork integration concern).
+                case midi::EventType::NoteOn: out.type = BlockMidiType::NoteOn; break;
+                case midi::EventType::NoteOff: out.type = BlockMidiType::NoteOff; break;
+                case midi::EventType::PitchBend: out.type = BlockMidiType::PitchBend; break;
+                case midi::EventType::ControlChange: out.type = BlockMidiType::ControlChange; break;
+                case midi::EventType::ChannelPressure: out.type = BlockMidiType::ChannelPressure; break;
+                case midi::EventType::PolyAftertouch: out.type = BlockMidiType::PolyAftertouch; break;
+                case midi::EventType::ProgramChange: break;
             }
+            return out;
         }
 
         RenderMetrics computeMetrics(const std::vector<float>& interleaved, double sampleRate) noexcept
@@ -98,6 +94,7 @@ namespace pw8::render
         }
 
         engine.setTempo(static_cast<float>(options.bpm));
+        engine.setQualityMode(options.quality);
 
         double totalSeconds = options.durationSecondsOverride;
         if (totalSeconds < 0.0)
@@ -120,18 +117,27 @@ namespace pw8::render
             const std::size_t framesThisBlock =
                 std::min(static_cast<std::size_t>(options.blockSize), totalFrames - framesRendered);
 
-            // Events are sorted ascending and nextEventIndex only moves forward, so any
-            // event not yet dispatched is guaranteed to fall at or after this block's start.
-            const double blockEndSeconds = static_cast<double>(framesRendered + framesThisBlock) / options.sampleRate;
-
-            while (nextEventIndex < events.size() && events[nextEventIndex].timeSeconds < blockEndSeconds)
+            std::vector<BlockMidiEvent> blockEvents;
+            blockEvents.reserve(32);
+            while (nextEventIndex < events.size())
             {
-                dispatchEvent(engine, events[nextEventIndex]);
+                const auto& ev = events[nextEventIndex];
+                const auto eventFrame = static_cast<std::size_t>(ev.timeSeconds * options.sampleRate + 0.5);
+                if (eventFrame >= framesRendered + framesThisBlock)
+                    break;
+                if (ev.type == midi::EventType::ProgramChange)
+                {
+                    ++nextEventIndex;
+                    continue;
+                }
+                auto blockEv = toBlockEvent(ev);
+                blockEv.sampleOffset = eventFrame - framesRendered;
+                blockEvents.push_back(blockEv);
                 ++nextEventIndex;
             }
 
             core::StereoBlockView view(blockL.data(), blockR.data(), framesThisBlock);
-            engine.process(view);
+            engine.process(view, blockEvents.empty() ? nullptr : blockEvents.data(), blockEvents.size());
 
             for (std::size_t i = 0; i < framesThisBlock; ++i)
             {

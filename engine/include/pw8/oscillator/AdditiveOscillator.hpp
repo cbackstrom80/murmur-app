@@ -7,6 +7,15 @@
 
 #include "pw8/dsp/Math.hpp"
 
+#if defined(__SSE__) || defined(__SSE2__) || defined(_M_X64) || (defined(_M_IX86_FP) && _M_IX86_FP >= 1)
+    #include <xmmintrin.h>
+    #define PW8_ADDITIVE_HAS_SSE 1
+#endif
+#if defined(__ARM_NEON) || defined(__ARM_NEON__)
+    #include <arm_neon.h>
+    #define PW8_ADDITIVE_HAS_NEON 1
+#endif
+
 // Engine Type 4 -- Additive.
 //
 // A vectorized oscillator bank (not independent oscillator objects per partial,
@@ -71,6 +80,8 @@ namespace pw8::oscillator
             lastOddEven_ = -999.0f;
             lastPartialCount_ = -1;
             sampleCounter_ = 0;
+            carrierPhase_ = dsp::wrapPhase(initialPhase);
+            didWrapThisSample_ = false;
         }
 
         void setFrequency(float hz) noexcept { frequencyHz_ = hz; }
@@ -106,17 +117,12 @@ namespace pw8::oscillator
             }
 
             float sum = 0.0f;
-            for (int i = 0; i < count; ++i)
+            if (!hasPhaseMod)
+                sum = renderPartialBatchNoPhaseMod(count);
+            else
             {
-                // Complex-multiply by this partial's per-sample rotation -- advances
-                // its phase by one sample's worth without any trig call.
-                const float nx = x_[i] * cosT_[i] - y_[i] * sinT_[i];
-                const float ny = x_[i] * sinT_[i] + y_[i] * cosT_[i];
-                x_[i] = nx;
-                y_[i] = ny;
-
-                const float sampleX = hasPhaseMod ? (x_[i] * modCos - y_[i] * modSin) : x_[i];
-                sum += sampleX * amplitude_[i];
+                for (int i = 0; i < count; ++i)
+                    sum += renderPartialScalar(i, modCos, modSin, true);
             }
 
             if (++sampleCounter_ >= kRenormalizeInterval)
@@ -138,11 +144,78 @@ namespace pw8::oscillator
             // swing overall loudness -- otherwise adding partials would quietly get
             // louder/quieter depending on tilt, which isn't how any of these controls
             // are meant to read.
+            const float dt = static_cast<float>(frequencyHz_ / sampleRate_);
+            const float phaseBefore = carrierPhase_;
+            carrierPhase_ = dsp::wrapPhase(carrierPhase_ + dt);
+            didWrapThisSample_ = carrierPhase_ < phaseBefore;
             return dsp::flushIfNotFinite(sum * weightNorm_);
         }
 
+        [[nodiscard]] bool didWrapThisSample() const noexcept { return didWrapThisSample_; }
+
     private:
         static constexpr int kRenormalizeInterval = 512;
+        static constexpr int kSimdPartialWidth = 4;
+
+        [[nodiscard]] float renderPartialScalar(int i, float modCos, float modSin, bool hasPhaseMod) noexcept
+        {
+            const float nx = x_[i] * cosT_[i] - y_[i] * sinT_[i];
+            const float ny = x_[i] * sinT_[i] + y_[i] * cosT_[i];
+            x_[i] = nx;
+            y_[i] = ny;
+
+            const float sampleX = hasPhaseMod ? (x_[i] * modCos - y_[i] * modSin) : x_[i];
+            return sampleX * amplitude_[i];
+        }
+
+        [[nodiscard]] float renderPartialBatchNoPhaseMod(int count) noexcept
+        {
+            float sum = 0.0f;
+            int i = 0;
+
+#if defined(PW8_ADDITIVE_HAS_SSE)
+            for (; i + kSimdPartialWidth <= count; i += kSimdPartialWidth)
+            {
+                const __m128 x4 = _mm_loadu_ps(&x_[static_cast<std::size_t>(i)]);
+                const __m128 y4 = _mm_loadu_ps(&y_[static_cast<std::size_t>(i)]);
+                const __m128 cosT4 = _mm_loadu_ps(&cosT_[static_cast<std::size_t>(i)]);
+                const __m128 sinT4 = _mm_loadu_ps(&sinT_[static_cast<std::size_t>(i)]);
+
+                const __m128 nx = _mm_sub_ps(_mm_mul_ps(x4, cosT4), _mm_mul_ps(y4, sinT4));
+                const __m128 ny = _mm_add_ps(_mm_mul_ps(x4, sinT4), _mm_mul_ps(y4, cosT4));
+                _mm_storeu_ps(&x_[static_cast<std::size_t>(i)], nx);
+                _mm_storeu_ps(&y_[static_cast<std::size_t>(i)], ny);
+
+                const __m128 amp4 = _mm_loadu_ps(&amplitude_[static_cast<std::size_t>(i)]);
+                const __m128 prod = _mm_mul_ps(nx, amp4);
+                alignas(16) float lanes[4];
+                _mm_storeu_ps(lanes, prod);
+                sum += lanes[0] + lanes[1] + lanes[2] + lanes[3];
+            }
+#elif defined(PW8_ADDITIVE_HAS_NEON)
+            for (; i + kSimdPartialWidth <= count; i += kSimdPartialWidth)
+            {
+                const float32x4_t x4 = vld1q_f32(&x_[static_cast<std::size_t>(i)]);
+                const float32x4_t y4 = vld1q_f32(&y_[static_cast<std::size_t>(i)]);
+                const float32x4_t cosT4 = vld1q_f32(&cosT_[static_cast<std::size_t>(i)]);
+                const float32x4_t sinT4 = vld1q_f32(&sinT_[static_cast<std::size_t>(i)]);
+
+                const float32x4_t nx = vsubq_f32(vmulq_f32(x4, cosT4), vmulq_f32(y4, sinT4));
+                const float32x4_t ny = vaddq_f32(vmulq_f32(x4, sinT4), vmulq_f32(y4, cosT4));
+                vst1q_f32(&x_[static_cast<std::size_t>(i)], nx);
+                vst1q_f32(&y_[static_cast<std::size_t>(i)], ny);
+
+                const float32x4_t amp4 = vld1q_f32(&amplitude_[static_cast<std::size_t>(i)]);
+                const float32x4_t prod = vmulq_f32(nx, amp4);
+                sum += vaddvq_f32(prod);
+            }
+#endif
+
+            for (; i < count; ++i)
+                sum += renderPartialScalar(i, 1.0f, 0.0f, false);
+
+            return sum;
+        }
 
         void recomputeRotationCoefficients(int count, float stretch) noexcept
         {
@@ -203,6 +276,8 @@ namespace pw8::oscillator
         std::array<float, kMaxPartials> cosT_{};
         std::array<float, kMaxPartials> sinT_{};
         std::array<float, kMaxPartials> amplitude_{};
+        float carrierPhase_ = 0.0f;
+        bool didWrapThisSample_ = false;
     };
 
 } // namespace pw8::oscillator

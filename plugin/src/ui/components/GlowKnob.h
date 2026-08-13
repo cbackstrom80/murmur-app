@@ -6,6 +6,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "ModAssignmentController.h"
 #include "processor/PatchworkEightProcessor.h"
 
 // The one control primitive PLAY mode is built from: a rotary knob (painted by
@@ -52,12 +53,17 @@ namespace pw8::plugin::ui
         void enableModulationTarget(PatchworkEightProcessor& processor, modulation::ModDestination destination,
                                      std::uint8_t targetIndex = 0);
 
+        void setModAssignmentController(ModAssignmentController* controller);
+
         /// Overrides the name label set at construction -- e.g. MacroStrip calling
         /// this with a patch-authored macro name ("Growl") once one's loaded,
         /// instead of the generic "Macro 3" it starts with. Uppercased the same
         /// way the constructor's `name` already is, for the same reason (see the
         /// constructor's own label styling).
         void setDisplayName(const juce::String& name) { nameLabel_.setText(name.toUpperCase(), juce::dontSendNotification); }
+
+        /// Larger dial cap for BASIC performance layout (default 88 in Obsidian LAF).
+        void setMaxDialDiameter(int diameter);
 
         // -- juce::DragAndDropTarget --
         bool isInterestedInDragSource(const SourceDetails& details) override;
@@ -81,17 +87,27 @@ namespace pw8::plugin::ui
 
         void timerCallback() override;
         void mouseDown(const juce::MouseEvent& event) override;
+        void mouseDrag(const juce::MouseEvent& event) override;
+        void mouseUp(const juce::MouseEvent& event) override;
 
         FormattedSlider slider_;
         juce::Label nameLabel_;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> attachment_;
 
+        ModAssignmentController* modAssignment_ = nullptr;
         PatchworkEightProcessor* modProcessor_ = nullptr;
         modulation::ModDestination modDestination_ = modulation::ModDestination::None;
         std::uint8_t modTargetIndex_ = 0;
         modulation::ModSource ringSource_ = modulation::ModSource::None; ///< The route currently shown by ringColour_, so right-click-remove can identify it exactly.
         juce::Colour ringColour_ = juce::Colours::transparentBlack; ///< transparent == no route assigned.
+        float ringAmountNormalized_ = 0.0f;
         bool dragHover_ = false;
+        bool showDepthPopover_ = false;
+        juce::Rectangle<int> depthPopoverArea_;
+        bool depthDragActive_ = false;
+        float depthDragStartAmount_ = 0.0f;
+        float depthDragStartX_ = 0.0f;
+        int maxDialDiameter_ = 88;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GlowKnob)
     };

@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <optional>
 
 #include "pw8/core/Types.hpp"
 #include "pw8/voice/Voice.hpp"
@@ -15,14 +16,26 @@
 //   2. Among RELEASED voices (note-off already sent), the QUIETEST one.
 //   3. If none are released, the QUIETEST voice overall.
 //   4. Ties broken by OLDEST (lowest age counter).
-// Stealing does not crossfade in this pass (documented PLANNED) but a stolen voice's
-// envelope is retriggered from Delay rather than hard-reset, so a short shared-articulation
-// click is avoided in the common case; true stolen-voice ramping is tracked in
-// docs/ROADMAP.md Phase 7.
+// Actively-gated steals (all voices still held) are crossfaded in Voice::beginStealCrossfadeNoteOn()
+// so filter/operator resets and envelope retrigger don't click; released-voice reuse is quiet
+// enough to retrigger without a ramp.
 
 namespace pw8::voice
 {
     using VoicePool = std::array<Voice, core::kMaxVoices>;
+
+    enum class AllocateResult : std::uint8_t
+    {
+        Free,     ///< Voice was idle (noteNumber < 0, amp envelope finished).
+        Released, ///< Voice was in release (gate off) -- quietest released candidate.
+        Stolen,   ///< No released voice available; an actively-gated voice was taken.
+    };
+
+    struct VoiceAllocation
+    {
+        std::size_t index = 0;
+        AllocateResult result = AllocateResult::Free;
+    };
 
     class VoiceAllocator
     {
@@ -34,14 +47,14 @@ namespace pw8::voice
 
         [[nodiscard]] std::size_t getPolyphony() const noexcept { return polyphony_; }
 
-        /// Returns the index of the voice that should handle this note-on (assigned or stolen).
-        [[nodiscard]] std::size_t allocate(VoicePool& voices) noexcept
+        /// Returns the voice that should handle this note-on (assigned or stolen) and how it was obtained.
+        [[nodiscard]] VoiceAllocation allocate(VoicePool& voices) noexcept
         {
             ++ageCounter_;
 
             for (std::size_t i = 0; i < polyphony_; ++i)
                 if (voices[i].isFree())
-                    return i;
+                    return { i, AllocateResult::Free };
 
             std::size_t bestReleased = std::numeric_limits<std::size_t>::max();
             float bestReleasedAmp = 1.0e9f;
@@ -65,10 +78,24 @@ namespace pw8::voice
                 }
             }
 
-            return bestReleased != SIZE_MAX ? bestReleased : bestAny;
+            if (bestReleased != std::numeric_limits<std::size_t>::max())
+                return { bestReleased, AllocateResult::Released };
+            return { bestAny, AllocateResult::Stolen };
         }
 
         [[nodiscard]] std::uint64_t nextAge() const noexcept { return ageCounter_; }
+
+        /// Returns a gated voice playing `(note, channel)`, if any — used for same-note retrigger.
+        [[nodiscard]] std::optional<std::size_t> findGatedVoice(const VoicePool& voices, int note, int channel) const noexcept
+        {
+            for (std::size_t i = 0; i < polyphony_; ++i)
+            {
+                if (voices[i].gateOn && voices[i].noteNumber == note &&
+                    (channel < 0 || voices[i].midiChannel == channel))
+                    return i;
+            }
+            return std::nullopt;
+        }
 
         /// Sends note-off to every active, gated voice matching (note, channel).
         /// `channel < 0` matches any channel (used for omni / non-MPE mode).

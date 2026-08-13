@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdint>
+#include <memory>
 #include <optional>
 
 #include "pw8/algorithm/AlgorithmGraphCompiler.hpp"
@@ -9,6 +10,8 @@
 #include "pw8/effects/EffectChain.hpp"
 #include "pw8/oscillator/WavetableTable.hpp"
 #include "pw8/patch/Patch.hpp"
+#include "pw8/render/BlockMidi.hpp"
+#include "pw8/render/RenderTypes.hpp"
 #include "pw8/sequencer/Arpeggiator.hpp"
 #include "pw8/tuning/TuningService.hpp"
 #include "pw8/voice/VoiceAllocator.hpp"
@@ -117,14 +120,9 @@ namespace pw8::render
             return opIndex < core::kNodesPerLayer ? operatorParamsTemplateA_[opIndex] : op::OperatorParams{};
         }
 
-        /// `envIndex` in [0, kNumEnvelopesPerLayer). Out-of-range is a no-op. Takes
-        /// effect on the NEXT note-on (triggerNoteOnDirect() reads
-        /// `patch_.layerA.envelopes` fresh every trigger) -- an already-ringing
-        /// voice's envelope keeps the shape it was triggered with, since DahdsrEnvelope
-        /// captures its targets/coefficients once at noteOn() and has no live
-        /// mid-ramp-retarget API. Automating envelope times still works exactly as a
-        /// performer would expect between notes; it just isn't a glitch-free
-        /// mid-attack edit.
+        /// `envIndex` in [0, kNumEnvelopesPerLayer). Out-of-range is a no-op. Retargets
+        /// stage timing on currently-sustaining voices via DahdsrEnvelope::retargetParams()
+        /// so automating attack/decay on held notes takes effect without retriggering.
         void setEnvelopeLive(std::size_t envIndex, const envelope::DahdsrParams& params) noexcept;
         [[nodiscard]] envelope::DahdsrParams getEnvelopeParams(std::size_t envIndex) const noexcept
         {
@@ -196,9 +194,25 @@ namespace pw8::render
         void setArpeggiatorScalarLive(const sequencer::ArpeggiatorParams& params) noexcept;
         [[nodiscard]] const sequencer::ArpeggiatorParams& getArpeggiatorParams() const noexcept { return patch_.arpeggiator; }
 
+        /// Updates one arp step in the live patch (message-thread / audio-thread safe POD write).
+        void setArpStepLive(std::size_t stepIndex, const sequencer::ArpStep& step) noexcept;
+
+        [[nodiscard]] std::size_t getArpCurrentStepIndex() const noexcept { return arpeggiator_.getCurrentStepIndex(); }
+        [[nodiscard]] std::size_t getArpNoteSequenceIndex() const noexcept { return arpeggiator_.getNoteSequenceIndex(); }
+
+        /// Message-thread only: hot-swaps operator `opIndex`'s wavetable pointer without
+        /// a full engine rebuild. `table` may be nullptr (silence on Wavetable/Granular).
+        void setOperatorWavetableLive(std::size_t opIndex,
+                                       std::shared_ptr<const oscillator::WavetableTable> table) noexcept;
+
+        void setQualityMode(QualityMode mode) noexcept { qualityMode_ = mode; }
+        [[nodiscard]] QualityMode getQualityMode() const noexcept { return qualityMode_; }
+
         /// Renders `output.numFrames()` samples into `output`, accumulating from all
-        /// active voices. Audio-thread safe.
-        void process(core::StereoBlockView output) noexcept;
+        /// active voices. Audio-thread safe. Optional `blockMidi` events are dispatched
+        /// at their sampleOffset within this block (must be sorted ascending).
+        void process(core::StereoBlockView output,
+                      const BlockMidiEvent* blockMidi = nullptr, std::size_t blockMidiCount = 0) noexcept;
 
         [[nodiscard]] double getSampleRate() const noexcept { return sampleRate_; }
         [[nodiscard]] const algorithm::CompiledAlgorithm& getCompiledAlgorithm() const noexcept { return compiledLayerA_; }
@@ -222,10 +236,12 @@ namespace pw8::render
 
         void loadLayerResources(const patch::LayerPatch& layer, algorithm::CompiledAlgorithm& compiledOut,
                                  std::array<op::OperatorParams, core::kNodesPerLayer>& templatesOut,
-                                 std::array<std::optional<oscillator::WavetableTable>, core::kNodesPerLayer>& storageOut,
+                                 std::array<std::shared_ptr<const oscillator::WavetableTable>, core::kNodesPerLayer>& sharedOut,
                                  std::array<const oscillator::WavetableTable*, core::kNodesPerLayer>& tablesOut,
                                  std::array<lfo::Lfo, core::kNumLfosPerLayer>& lfosOut,
                                  voice::VoicePool& voices, algorithm::CompileStatus& statusOut) noexcept;
+
+        void dispatchBlockMidiEvent(const BlockMidiEvent& ev) noexcept;
 
         [[nodiscard]] bool isStackModeActive() const noexcept
         {
@@ -240,15 +256,11 @@ namespace pw8::render
         std::array<op::OperatorParams, core::kNodesPerLayer> operatorParamsTemplateA_{};
         std::array<op::OperatorParams, core::kNodesPerLayer> operatorParamsTemplateB_{};
 
-        /// Owns loaded wavetable content (control-path-populated in loadPatch(), which
-        /// treats `OperatorPatch::wavetableId` as a filesystem path -- see
-        /// docs/PATCH_FORMAT.md "Wavetable Resource Resolution" for the current, PARTIAL
-        /// resolution scheme). `wavetableTablesA_` holds read-only pointers into this
-        /// storage for the audio thread; rebuilt only in loadPatch(), never mutated
-        /// concurrently with process().
-        std::array<std::optional<oscillator::WavetableTable>, core::kNodesPerLayer> wavetableStorageA_{};
+        /// Owns loaded wavetable content (control-path-populated in loadPatch()).
+        /// `wavetableTablesA_` holds read-only pointers for the audio thread.
+        std::array<std::shared_ptr<const oscillator::WavetableTable>, core::kNodesPerLayer> wavetableSharedA_{};
         std::array<const oscillator::WavetableTable*, core::kNodesPerLayer> wavetableTablesA_{};
-        std::array<std::optional<oscillator::WavetableTable>, core::kNodesPerLayer> wavetableStorageB_{};
+        std::array<std::shared_ptr<const oscillator::WavetableTable>, core::kNodesPerLayer> wavetableSharedB_{};
         std::array<const oscillator::WavetableTable*, core::kNodesPerLayer> wavetableTablesB_{};
 
         voice::VoicePool voices_{};
@@ -280,6 +292,8 @@ namespace pw8::render
         double sampleRate_ = 48000.0;
         float bpm_ = 120.0f;
         std::uint64_t noteGenerationCounter_ = 0;
+        QualityMode qualityMode_ = QualityMode::Normal;
+        std::array<bool, 16> sustainPedalHeld_{};
     };
 
 } // namespace pw8::render

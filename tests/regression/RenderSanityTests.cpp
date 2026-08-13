@@ -595,3 +595,54 @@ TEST_CASE("Renderer: a master Compressor slot (no makeup gain) measurably lowers
 
     REQUIRE(withComp.metrics.peak < withoutComp.metrics.peak);
 }
+
+TEST_CASE("Renderer: chord change reuses released voices without large sample discontinuities",
+          "[render][regression][voice][declick]")
+{
+    patch::Patch p = patch::Patch::makeInit();
+    p.voiceSettings.polyphony = 2;
+    p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Sine;
+    p.layerA.envelopes[0].attackSeconds = 0.001f; // would click without the attack floor.
+    p.layerA.envelopes[0].decaySeconds = 0.05f;
+    p.layerA.envelopes[0].sustainLevel = 0.9f;
+    p.layerA.envelopes[0].releaseSeconds = 0.25f;
+
+    midi::MidiSequence seq;
+    constexpr double kChangeTime = 0.25;
+    // Two-note chord fills poly=2, then swap to a new chord at kChangeTime -- forces Released reuse.
+    seq.events.push_back(midi::MidiEvent{0.0, midi::EventType::NoteOn, 0, 60, 100, 0, 0});
+    seq.events.push_back(midi::MidiEvent{0.0, midi::EventType::NoteOn, 0, 64, 100, 0, 0});
+    seq.events.push_back(midi::MidiEvent{kChangeTime, midi::EventType::NoteOff, 0, 60, 0, 0, 0});
+    seq.events.push_back(midi::MidiEvent{kChangeTime, midi::EventType::NoteOff, 0, 64, 0, 0, 0});
+    seq.events.push_back(midi::MidiEvent{kChangeTime, midi::EventType::NoteOn, 0, 67, 100, 0, 0});
+    seq.events.push_back(midi::MidiEvent{kChangeTime, midi::EventType::NoteOn, 0, 71, 100, 0, 0});
+    seq.events.push_back(midi::MidiEvent{0.9, midi::EventType::NoteOff, 0, 67, 0, 0, 0});
+    seq.events.push_back(midi::MidiEvent{0.9, midi::EventType::NoteOff, 0, 71, 0, 0, 0});
+
+    render::RenderOptions options;
+    options.sampleRate = 48000.0;
+    options.durationSecondsOverride = 1.0;
+    options.blockSize = 64; // same-block noteOff+noteOn like a DAW buffer edge.
+
+    const auto result = render::render(p, seq, options);
+    REQUIRE(result.ok);
+    REQUIRE_FALSE(result.metrics.containsNaNOrInf);
+
+    const auto changeSample = static_cast<std::size_t>(kChangeTime * options.sampleRate);
+    const auto windowSamples = static_cast<std::size_t>(0.02 * options.sampleRate); // 20 ms around the change.
+    const auto start = changeSample > windowSamples / 2 ? changeSample - windowSamples / 2 : 1;
+    const auto end = std::min(result.interleavedStereo.size() / 2, start + windowSamples);
+
+    float maxStep = 0.0f;
+    for (std::size_t i = start + 1; i < end; ++i)
+    {
+        const float l0 = result.interleavedStereo[(i - 1) * 2];
+        const float l1 = result.interleavedStereo[i * 2];
+        const float r0 = result.interleavedStereo[(i - 1) * 2 + 1];
+        const float r1 = result.interleavedStereo[i * 2 + 1];
+        maxStep = std::max({maxStep, std::abs(l1 - l0), std::abs(r1 - r0)});
+    }
+
+    // Without crossfade-on-reuse this window routinely exceeds ~0.35 on a full-scale sine chord.
+    REQUIRE(maxStep < 0.2f);
+}

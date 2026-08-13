@@ -27,10 +27,22 @@ jobs:
       - name: Test
         run: ctest --preset dev --output-on-failure
 
+      - name: DSP quality measurement (non-blocking)
+        continue-on-error: true
+        run: |
+          python3 scripts/measure_dsp_quality.py --patch content/presets/init-saw.pw8 || true
+          python3 scripts/measure_dsp_quality.py --patch content/presets/fm-bell.pw8 || true
+
+      - name: Fuzz render (ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: ./build/dev/tools/pw8-fuzz-render --count 500 --seed 42 --duration 0.5
+
       - name: MVP content + MCP smoke
         run: |
           python3 scripts/validate_content_refs.py
           python3 mcp_server/smoke_test.py
+
+  build-and-test-windows:
     name: Build core + run tests (windows-latest)
     runs-on: windows-latest
     steps:

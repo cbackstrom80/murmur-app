@@ -106,11 +106,14 @@ namespace pw8::oscillator
                             ? renderMorphed(readPhase, dt, params)
                             : renderShape(params.waveform, readPhase, dt, params.pulseWidth);
 
+            const float phaseBefore = phase_;
             phase_ = dsp::wrapPhase(phase_ + dt);
+            didWrapThisSample_ = phase_ < phaseBefore;
             return out;
         }
 
         [[nodiscard]] float getPhase() const noexcept { return phase_; }
+        [[nodiscard]] bool didWrapThisSample() const noexcept { return didWrapThisSample_; }
 
     private:
         [[nodiscard]] float renderShape(ClassicWaveform shape, float t, float dt, float pulseWidth) noexcept
@@ -219,6 +222,7 @@ namespace pw8::oscillator
         float frequencyHz_ = 440.0f;
         float phase_ = 0.0f;
         float triangleIntegratorState_ = 0.0f;
+        bool didWrapThisSample_ = false;
     };
 
 } // namespace pw8::oscillator

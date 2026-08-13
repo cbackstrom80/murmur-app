@@ -1,5 +1,6 @@
 #include "PresetBrowserOverlay.h"
 
+#include "../theme/ObsidianDraw.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 
@@ -26,7 +27,9 @@ namespace pw8::plugin::ui
         favoritesToggle_.setClickingTogglesState(true);
         favoritesToggle_.setColour(juce::ToggleButton::textColourId, palette::kTextSecondary);
         favoritesToggle_.setColour(juce::ToggleButton::tickColourId, palette::kAccent);
-        favoritesToggle_.onClick = [this] { rebuildFacetsAndList(); };
+        favoritesToggle_.onClick = [this] {
+            juce::MessageManager::callAsync([this] { rebuildFacetsAndList(); });
+        };
         panel_.addAndMakeVisible(favoritesToggle_);
 
         for (auto* row : {&typeFacet_, &moodFacet_, &contextFacet_, &tagFacet_})
@@ -87,10 +90,8 @@ namespace pw8::plugin::ui
         g.fillAll(palette::kBackgroundTop.withAlpha(0.72f));
 
         auto panelBounds = panel_.getBounds().toFloat();
-        g.setColour(palette::kPanelRaised);
-        g.fillRoundedRectangle(panelBounds, 8.0f);
-        g.setColour(palette::kBorderBright);
-        g.drawRoundedRectangle(panelBounds, 8.0f, 1.0f);
+        draw::fillRecessedRoundedRect(g, panelBounds, 8.0f);
+        draw::strokeGlowPath(g, draw::roundedRectPath(panelBounds, 8.0f), 0.55f, 1.2f, false);
     }
 
     void PresetBrowserOverlay::resized()
@@ -165,7 +166,14 @@ namespace pw8::plugin::ui
 
         visibleEntries_ = presetIndex_.filtered(browseFilter(), favoritesOnly);
         listBox_.updateContent();
+        if (visibleEntries_.isEmpty())
+            listBox_.deselectAllRows();
+        else
+            listBox_.selectRow(0, false, true);
         listBox_.repaint();
+
+        if (onFiltersChanged)
+            onFiltersChanged();
     }
 
     juce::String PresetBrowserOverlay::formatEntrySubline(const content::PresetEntry& entry) const
@@ -191,8 +199,15 @@ namespace pw8::plugin::ui
             return;
 
         const auto& entry = visibleEntries_.getReference(row);
+        const auto rowBounds = juce::Rectangle<float>(4.0f, 1.0f, static_cast<float>(width) - 8.0f,
+                                                      static_cast<float>(height) - 2.0f);
         if (selected)
-            g.fillAll(palette::kAccent.withAlpha(0.22f));
+        {
+            draw::fillRecessedRoundedRect(g, rowBounds, 4.0f);
+            g.setColour(palette::kAccent.withAlpha(0.12f));
+            g.fillRoundedRectangle(rowBounds, 4.0f);
+            draw::strokeGlowPath(g, draw::roundedRectPath(rowBounds, 4.0f), 0.9f, 1.2f, true);
+        }
 
         auto bounds = juce::Rectangle<int>(0, 0, width, height).reduced(6, 2);
         g.setColour(palette::kTextPrimary);

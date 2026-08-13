@@ -1,14 +1,19 @@
 // STATUS: PARTIAL -- see PatchworkEightProcessor.h.
 
+#include <algorithm>
+#include <array>
+#include <bitset>
 #include <cstdlib>
 
 #include "processor/PatchworkEightProcessor.h"
 
-#include <algorithm>
-
+#include "pw8/content/ContentPaths.hpp"
+#include "pw8/content/WavetableCache.hpp"
 #include "pw8/core/AudioBlock.hpp"
 #include "pw8/patch/PatchSerializer.hpp"
-#include "pw8/content/ContentPaths.hpp"
+#include "pw8/render/BlockMidi.hpp"
+#include "pw8/sequencer/ArpeggiatorTypes.hpp"
+#include "processor/EffectLatency.hpp"
 #include "ui/PlayModeEditor.h"
 
 #include <juce_core/juce_core.h>
@@ -39,6 +44,7 @@ namespace pw8::plugin
           apvts(*this, nullptr, "PARAMETERS", createParameterLayout())
     {
         cacheParameterPointers();
+        registerParamListeners();
         syncAllParametersFromPatch(); // matches makeInit()'s defaults, in case those ever diverge from the AudioParameterFloat defaults above.
 
         engineStorageA_ = std::make_unique<render::Engine>();
@@ -107,13 +113,17 @@ namespace pw8::plugin
 
     void PatchworkEightProcessor::prepareToPlay(double sampleRate, int /*samplesPerBlock*/)
     {
+        currentSampleRate_ = sampleRate;
         // Rebuild both storage slots at the new sample rate and republish -- this always
         // runs on the message thread (JUCE guarantees prepareToPlay isn't concurrent with
         // processBlock), so a plain rebuild-then-swap is safe without extra locking.
         auto fresh = std::make_unique<render::Engine>();
         fresh->prepare(sampleRate);
+        fresh->setQualityMode(qualityMode_);
         fresh->loadPatch(currentPatch_);
         publishEngine(std::move(fresh));
+        paramChangeQueue_.pushAllGroups();
+        updateReportedLatency();
     }
 
     void PatchworkEightProcessor::releaseResources() {}
@@ -140,22 +150,64 @@ namespace pw8::plugin
 
         pushLiveParametersToEngine(*engine);
 
+        std::array<render::BlockMidiEvent, 256> blockMidi{};
+        std::size_t blockMidiCount = 0;
         for (const auto metadata : midiMessages)
         {
+            if (blockMidiCount >= blockMidi.size())
+                break;
+
             const auto msg = metadata.getMessage();
+            render::BlockMidiEvent ev{};
+            ev.sampleOffset = static_cast<std::size_t>(metadata.samplePosition);
+            ev.channel = msg.getChannel() - 1;
+
             if (msg.isNoteOn())
-                engine->noteOn(msg.getNoteNumber(), msg.getChannel() - 1, msg.getVelocity());
+            {
+                ev.type = render::BlockMidiType::NoteOn;
+                ev.note = msg.getNoteNumber();
+                ev.velocity = msg.getVelocity();
+            }
             else if (msg.isNoteOff())
-                engine->noteOff(msg.getNoteNumber(), msg.getChannel() - 1, msg.getVelocity());
+            {
+                ev.type = render::BlockMidiType::NoteOff;
+                ev.note = msg.getNoteNumber();
+                ev.velocity = msg.getVelocity();
+            }
             else if (msg.isPitchWheel())
-                engine->pitchBend(msg.getChannel() - 1, msg.getPitchWheelValue());
+            {
+                ev.type = render::BlockMidiType::PitchBend;
+                ev.value = msg.getPitchWheelValue();
+            }
             else if (msg.isController())
-                engine->controlChange(msg.getChannel() - 1, msg.getControllerNumber(), msg.getControllerValue());
+            {
+                ev.type = render::BlockMidiType::ControlChange;
+                ev.controller = msg.getControllerNumber();
+                ev.value = msg.getControllerValue();
+            }
             else if (msg.isChannelPressure())
-                engine->channelPressure(msg.getChannel() - 1, msg.getChannelPressureValue());
+            {
+                ev.type = render::BlockMidiType::ChannelPressure;
+                ev.value = msg.getChannelPressureValue();
+            }
             else if (msg.isAftertouch())
-                engine->polyAftertouch(msg.getChannel() - 1, msg.getNoteNumber(), msg.getAfterTouchValue());
+            {
+                ev.type = render::BlockMidiType::PolyAftertouch;
+                ev.note = msg.getNoteNumber();
+                ev.velocity = msg.getAfterTouchValue();
+            }
+            else
+            {
+                continue;
+            }
+
+            blockMidi[blockMidiCount++] = ev;
         }
+
+        std::sort(blockMidi.begin(), blockMidi.begin() + static_cast<std::ptrdiff_t>(blockMidiCount),
+                  [](const render::BlockMidiEvent& a, const render::BlockMidiEvent& b) {
+                      return a.sampleOffset < b.sampleOffset;
+                  });
 
         buffer.clear();
         if (buffer.getNumChannels() < 2)
@@ -163,7 +215,7 @@ namespace pw8::plugin
 
         core::StereoBlockView view(buffer.getWritePointer(0), buffer.getWritePointer(1),
                                     static_cast<std::size_t>(buffer.getNumSamples()));
-        engine->process(view);
+        engine->process(view, blockMidi.data(), blockMidiCount);
     }
 
     void PatchworkEightProcessor::pushLiveParametersToEngine(render::Engine& engine) noexcept
@@ -174,11 +226,28 @@ namespace pw8::plugin
         if (const auto* pendingRoutes = pendingModRoutes_.exchange(nullptr, std::memory_order_acquire))
             engine.setModRoutesLive(*pendingRoutes);
 
+        std::bitset<static_cast<std::size_t>(ParamGroup::Count)> dirtyGroups{};
+        ParamGroup queued{};
+        bool pushAll = true;
+        while (paramChangeQueue_.pop(queued))
+        {
+            dirtyGroups.set(static_cast<std::size_t>(queued));
+            pushAll = false;
+        }
+
+        const auto needs = [&](ParamGroup group) {
+            return pushAll || dirtyGroups.test(static_cast<std::size_t>(group));
+        };
+
         // Macros -- unchanged from before this pass, see Engine::setMacroValue().
-        for (std::size_t i = 0; i < macroParamPointers_.size(); ++i)
-            engine.setMacroValue(i, loadF(macroParamPointers_[i]));
+        if (needs(ParamGroup::Macros))
+        {
+            for (std::size_t i = 0; i < macroParamPointers_.size(); ++i)
+                engine.setMacroValue(i, loadF(macroParamPointers_[i]));
+        }
 
         // Filter1 -- field order matches kFilterFieldSpecs / filter::FilterParams.
+        if (needs(ParamGroup::Filter))
         {
             filter::FilterParams fp;
             fp.enabled = loadB(filterParamPointers_[0]);
@@ -194,6 +263,9 @@ namespace pw8::plugin
         // LAYER/GLOBAL scope (the shared layer-wide tick) -- see Engine::setLfoLive().
         for (std::size_t lfo = 0; lfo < kNumLfos; ++lfo)
         {
+            const auto group = static_cast<ParamGroup>(static_cast<std::uint16_t>(ParamGroup::Lfo0) + lfo);
+            if (!needs(group))
+                continue;
             const auto& ptrs = lfoParamPointers_[lfo];
             lfo::LfoParams lp;
             lp.waveform = static_cast<lfo::LfoWaveform>(loadI(ptrs[0]));
@@ -207,6 +279,9 @@ namespace pw8::plugin
         // 8 operators -- field order matches kOperatorFieldSpecs / op::OperatorParams.
         for (std::size_t op = 0; op < kNumOperators; ++op)
         {
+            const auto group = static_cast<ParamGroup>(static_cast<std::uint16_t>(ParamGroup::Op0) + op);
+            if (!needs(group))
+                continue;
             const auto& ptrs = operatorParamPointers_[op];
             op::OperatorParams params;
             params.engine = static_cast<algorithm::EngineType>(loadI(ptrs[0]));
@@ -254,11 +329,11 @@ namespace pw8::plugin
         }
 
         // 8 envelopes -- field order matches kEnvelopeFieldSpecs / envelope::DahdsrParams.
-        // envelopes[0] is the amp envelope; envelopes[1..7] are free-standing mod
-        // sources. Each takes effect on its owner's NEXT note-on -- see
-        // Engine::setEnvelopeLive().
         for (std::size_t env = 0; env < kNumEnvelopes; ++env)
         {
+            const auto group = static_cast<ParamGroup>(static_cast<std::uint16_t>(ParamGroup::Env0) + env);
+            if (!needs(group))
+                continue;
             const auto& ptrs = envelopeParamPointers_[env];
             envelope::DahdsrParams ep;
             ep.delaySeconds = loadF(ptrs[0]);
@@ -272,9 +347,13 @@ namespace pw8::plugin
             engine.setEnvelopeLive(env, ep);
         }
 
-        engine.setLayerGainLive(loadF(layerGainPointer_));
-        engine.setLayerPanLive(loadF(layerPanPointer_));
-        engine.setMasterGainLive(loadF(masterGainPointer_));
+        if (needs(ParamGroup::LayerGainPan))
+        {
+            engine.setLayerGainLive(loadF(layerGainPointer_));
+            engine.setLayerPanLive(loadF(layerPanPointer_));
+        }
+        if (needs(ParamGroup::MasterGain))
+            engine.setMasterGainLive(loadF(masterGainPointer_));
 
         // Insert/master FX slots -- field order matches kEffectSlotFieldSpecs /
         // effects::EffectSlotParams's scalar fields. Read-modify-write against the
@@ -283,6 +362,9 @@ namespace pw8::plugin
         // stomped with defaults every block.
         for (std::size_t slot = 0; slot < kNumInsertFxSlots; ++slot)
         {
+            const auto group = static_cast<ParamGroup>(static_cast<std::uint16_t>(ParamGroup::InsertFx0) + slot);
+            if (!needs(group))
+                continue;
             const auto& ptrs = insertFxParamPointers_[slot];
             effects::EffectSlotParams p = engine.getInsertEffectParams(slot);
             p.type = static_cast<effects::EffectType>(loadI(ptrs[0]));
@@ -347,6 +429,9 @@ namespace pw8::plugin
 
         for (std::size_t slot = 0; slot < kNumMasterFxSlots; ++slot)
         {
+            const auto group = static_cast<ParamGroup>(static_cast<std::uint16_t>(ParamGroup::MasterFx0) + slot);
+            if (!needs(group))
+                continue;
             const auto& ptrs = masterFxParamPointers_[slot];
             effects::EffectSlotParams p = engine.getMasterEffectParams(slot);
             p.type = static_cast<effects::EffectType>(loadI(ptrs[0]));
@@ -413,6 +498,7 @@ namespace pw8::plugin
         // default-constructed here; Engine::setArpeggiatorScalarLive() preserves the
         // actually-loaded pattern internally (see its doc comment), so we don't need
         // a read-modify-write here the way effects need one.
+        if (needs(ParamGroup::Arp))
         {
             sequencer::ArpeggiatorParams ap;
             ap.enabled = loadB(arpParamPointers_[0]);
@@ -517,11 +603,80 @@ namespace pw8::plugin
             return false;
 
         syncCurrentPatchFromApvts();
-        auto newPatch = currentPatch_;
         juce::File file(filePath);
         const juce::String storedPath = file.existsAsFile() ? file.getFullPathName() : filePath;
-        newPatch.layerA.operators[opIndex].wavetableId = storedPath.toStdString();
-        return loadPatch(newPatch);
+        currentPatch_.layerA.operators[opIndex].wavetableId = storedPath.toStdString();
+
+        const auto resolved = pw8::content::resolveWavetablePath(storedPath.toStdString());
+        const auto& pathToLoad = resolved.has_value() ? *resolved : storedPath.toStdString();
+        auto table = pw8::content::WavetableCache::instance().getOrLoad(pathToLoad);
+
+        if (auto* engine = activeEngine_.load(std::memory_order_acquire))
+            engine->setOperatorWavetableLive(opIndex, std::move(table));
+
+        return table != nullptr;
+    }
+
+    ParamGroup PatchworkEightProcessor::paramGroupForId(const juce::String& parameterID) const noexcept
+    {
+        if (parameterID.startsWith("macro"))
+            return ParamGroup::Macros;
+        if (parameterID.startsWith(kFilterIdPrefix))
+            return ParamGroup::Filter;
+        if (parameterID.startsWith(kLayerGainId) || parameterID.startsWith(kLayerPanId))
+            return ParamGroup::LayerGainPan;
+        if (parameterID.startsWith(kMasterGainId))
+            return ParamGroup::MasterGain;
+        if (parameterID.startsWith(kArpIdPrefix))
+            return ParamGroup::Arp;
+
+        for (std::size_t lfo = 0; lfo < kNumLfos; ++lfo)
+            if (parameterID.startsWith(lfoParamId(lfo, "")))
+                return static_cast<ParamGroup>(static_cast<std::uint16_t>(ParamGroup::Lfo0) + lfo);
+
+        for (std::size_t op = 0; op < kNumOperators; ++op)
+        {
+            if (parameterID.startsWith(operatorParamId(op, "")) || parameterID.startsWith(operatorFilterParamId(op, "")))
+                return static_cast<ParamGroup>(static_cast<std::uint16_t>(ParamGroup::Op0) + op);
+        }
+
+        for (std::size_t env = 0; env < kNumEnvelopes; ++env)
+            if (parameterID.startsWith(envelopeParamId(env, "")))
+                return static_cast<ParamGroup>(static_cast<std::uint16_t>(ParamGroup::Env0) + env);
+
+        for (std::size_t slot = 0; slot < kNumInsertFxSlots; ++slot)
+            if (parameterID.startsWith(insertFxParamId(slot, "")))
+                return static_cast<ParamGroup>(static_cast<std::uint16_t>(ParamGroup::InsertFx0) + slot);
+
+        for (std::size_t slot = 0; slot < kNumMasterFxSlots; ++slot)
+            if (parameterID.startsWith(masterFxParamId(slot, "")))
+                return static_cast<ParamGroup>(static_cast<std::uint16_t>(ParamGroup::MasterFx0) + slot);
+
+        return ParamGroup::Macros;
+    }
+
+    void PatchworkEightProcessor::registerParamListeners()
+    {
+        for (auto* param : getParameters())
+            apvts.addParameterListener(param->getName(512), this);
+    }
+
+    void PatchworkEightProcessor::parameterChanged(const juce::String& parameterID, float /*newValue*/)
+    {
+        paramChangeQueue_.push(paramGroupForId(parameterID));
+
+        if (parameterID.contains("tapeDelayMs") || parameterID.contains("DelayMs") ||
+            parameterID.contains("limiterLookaheadMs") || parameterID.contains("reverbPreDelayMs") ||
+            parameterID.contains("EffectType"))
+        {
+            updateReportedLatency();
+        }
+    }
+
+    void PatchworkEightProcessor::updateReportedLatency() noexcept
+    {
+        const int latency = computeTotalEffectLatencySamples(currentPatch_, currentSampleRate_, qualityMode_);
+        setLatencySamples(latency);
     }
 
     void PatchworkEightProcessor::publishModRoutesLive(
@@ -580,6 +735,28 @@ namespace pw8::plugin
 
         currentPatch_.layerA.modRoutes = routes;
         publishModRoutesLive(routes);
+    }
+
+    std::size_t PatchworkEightProcessor::getArpPlayheadStep() const noexcept
+    {
+        const auto* engine = activeEngine_.load(std::memory_order_acquire);
+        return engine != nullptr ? engine->getArpCurrentStepIndex() : 0;
+    }
+
+    std::size_t PatchworkEightProcessor::getArpNoteSequenceIndex() const noexcept
+    {
+        const auto* engine = activeEngine_.load(std::memory_order_acquire);
+        return engine != nullptr ? engine->getArpNoteSequenceIndex() : 0;
+    }
+
+    void PatchworkEightProcessor::toggleArpStepEnabled(std::size_t stepIndex) noexcept
+    {
+        if (stepIndex >= sequencer::kMaxArpSteps)
+            return;
+        auto& step = currentPatch_.arpeggiator.steps[stepIndex];
+        step.enabled = !step.enabled;
+        if (auto* engine = activeEngine_.load(std::memory_order_acquire))
+            engine->setArpStepLive(stepIndex, step);
     }
 
     void PatchworkEightProcessor::syncAllParametersFromPatch()

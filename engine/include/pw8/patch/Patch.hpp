@@ -205,6 +205,7 @@ namespace pw8::patch
         std::size_t polyphony = core::kDefaultVoices;
         float masterGain = 1.0f;
         float a4Hz = 440.0f; ///< tuning reference; full tuning service is PLANNED (docs/ROADMAP.md).
+        float portamentoSeconds = 0.0f; ///< 0 = off; glide pitch on legato note changes.
     };
 
     struct Macro
@@ -215,6 +216,29 @@ namespace pw8::patch
         float value = 0.0f; ///< 0..1
         // Macro routing (destinations) lands with the mod matrix -- Phase 5. A macro
         // with no routes is valid and simply does nothing yet.
+    };
+
+    enum class UiFocusKnobKind
+    {
+        Macro,
+        Param,
+    };
+
+    /// One performance knob shown in PLAY-mode "Knobs of Interest" (see docs/PATCH_FORMAT.md uiFocus).
+    struct UiFocusKnob
+    {
+        UiFocusKnobKind kind = UiFocusKnobKind::Macro;
+        std::size_t macroIndex = 0; ///< 0..7 when kind == Macro
+        std::string paramId;          ///< APVTS id when kind == Param (e.g. "filterCutoffHz")
+        std::string label;            ///< optional display override
+    };
+
+    /// Patch-authored performance controls. When `knobs` is non-empty, PLAY mode uses this list
+    /// instead of runtime inference from macro names / mod routes.
+    struct PatchUiFocus
+    {
+        std::size_t maxKnobs = 6;
+        std::vector<UiFocusKnob> knobs;
     };
 
     struct Patch
@@ -228,6 +252,7 @@ namespace pw8::patch
         GlobalVoiceSettings voiceSettings{};
         LockFlags locks{};
         std::array<Macro, 8> macros{};
+        PatchUiFocus uiFocus{};
         /// Performance-wide (not per-layer): intercepts noteOn/noteOff before they
         /// reach voices when enabled. See docs/ARPEGGIATOR.md.
         sequencer::ArpeggiatorParams arpeggiator{};

@@ -1,10 +1,10 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "metadata": {
-    "id": "pw8-factory-pad-2030016406",
+    "id": "pw8-factory-pad-2329553849",
     "name": "CLOUD DRIFT",
     "author": "Patchwork Eight Engineering",
-    "description": "Factory Pad patch #05. Engines: Classic, Wavetable, FM/PM. Procedurally generated (seed 2030016406) as part of the 250-patch factory content bank.",
+    "description": "Factory Pad patch #05. Engines: Classic, Wavetable, PhaseShape. Procedurally generated (seed 2329553849) as part of the 250-patch factory content bank. Archetype: detuned string ensemble.",
     "category": "pad",
     "moods": [
       "pads"
@@ -14,12 +14,13 @@
     ],
     "tags": [
       "factory",
-      "pad"
+      "pad",
+      "string-ensemble"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",
-    "schemaVersion": 1,
-    "seed": 2030016406,
+    "schemaVersion": 2,
+    "seed": 2329553849,
     "lineage": []
   },
   "layerMode": 0,
@@ -31,29 +32,28 @@
         "classicWaveform": 0,
         "frequencyRatio": 0.5,
         "keyTrack": true,
-        "level": 0.3440373052578152,
+        "level": 0.3252259685172056,
         "pan": 0.0
       },
       {
         "engine": 1,
-        "wavetableId": "content/wavetables/chord-octave-stack.json",
-        "wavetableFramePosition": 0.39741186454732763,
+        "wavetableId": "content/wavetables/formant-vowel-aa.json",
+        "wavetableFramePosition": 0.23443967271409152,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.616433595039554,
-        "pan": -0.026965181005540823
+        "level": 0.7060070232949054,
+        "pan": 0.1318047484210044
       },
       {
-        "engine": 2,
-        "classicWaveform": 0,
+        "engine": 4,
         "frequencyRatio": 2.0,
         "keyTrack": true,
-        "level": 0.2620099826176055,
-        "pan": -0.2805511294613723,
-        "fmModulatorRatio": 2.5753682148671877,
-        "fmModulatorIndex": 0.30777178455193066,
-        "fmModulatorFeedback": 0.0913406305014027,
-        "fmModulatorWaveform": 0
+        "level": 0.3991967055125324,
+        "pan": -0.2801372453600759,
+        "phaseBend": 0.11554785096448816,
+        "phaseFold": 0.39269839934070583,
+        "phaseAsymmetry": -0.0015828118840655603,
+        "phaseShape": 0.08329299285658638
       },
       {
         "engine": 0,
@@ -141,13 +141,85 @@
       ],
       "edges": []
     },
-    "ampEnvelope": {
-      "attackSeconds": 1.5806944947235804,
-      "decaySeconds": 1.292245259714554,
-      "sustainLevel": 0.8212738389681589,
-      "releaseSeconds": 4.560179456733,
-      "curveShape": 2.0
-    },
+    "envelopes": [
+      {
+        "attackSeconds": 2.238932022583502,
+        "decaySeconds": 1.9360270692877586,
+        "sustainLevel": 0.7513473697074953,
+        "releaseSeconds": 4.2950430153026025,
+        "curveShape": 2.0
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      }
+    ],
     "unison": {
       "mode": 0,
       "voices": 1
@@ -155,30 +227,74 @@
     "filter1": {
       "enabled": true,
       "mode": 0,
-      "cutoffHz": 3367.6425918066498,
-      "resonance": 0.2910341897585168,
-      "keyTrack": 0.1311054399147008
+      "cutoffHz": 2900.863659163748,
+      "resonance": 0.1374132309853926,
+      "keyTrack": 0.2593196759992268
     },
-    "lfo1": {
-      "waveform": 0,
-      "mode": 0,
-      "rateHz": 0.14247217089993386,
-      "syncDivisionIndex": 4,
-      "phaseOffset": 0.0
-    },
-    "lfo2": {
-      "waveform": 0,
-      "mode": 0,
-      "rateHz": 0.0771727981050319,
-      "syncDivisionIndex": 4,
-      "phaseOffset": 0.4
-    },
+    "lfos": [
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 0.1334404296028152,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 0.08674394301102994,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.4
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      }
+    ],
     "modRoutes": [
       {
         "source": 1,
         "destination": 1,
         "targetIndex": 0,
-        "amount": 8.93220681309825,
+        "amount": 7.593285704765767,
         "scope": 1
       }
     ],
@@ -189,9 +305,9 @@
     "insertEffects": [
       {
         "type": 3,
-        "mix": 0.13236755621328733,
-        "tapeDelayMs": 386.78087117025916,
-        "tapeFeedback": 0.2985343100865684,
+        "mix": 0.19789900917804715,
+        "tapeDelayMs": 360.98869485209417,
+        "tapeFeedback": 0.24688760337725102,
         "tapeDriveDb": 4.0,
         "tapeDuckAmount": 0.25,
         "tapeDriftDepthMs": 6.0,
@@ -280,12 +396,88 @@
       ],
       "edges": []
     },
-    "ampEnvelope": {
-      "attackSeconds": 0.002,
-      "decaySeconds": 0.15,
-      "sustainLevel": 0.0,
-      "releaseSeconds": 0.05
-    },
+    "envelopes": [
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      }
+    ],
     "gain": 1.0,
     "pan": 0.0,
     "width": 1.0,
@@ -301,49 +493,49 @@
     {
       "id": "m1",
       "name": "WARMTH",
-      "description": "Reserved -- not yet routed.",
+      "description": "Performance macro.",
       "value": 0.0
     },
     {
       "id": "m2",
       "name": "BLOOM",
-      "description": "Reserved -- not yet routed.",
+      "description": "Performance macro.",
       "value": 0.0
     },
     {
       "id": "m3",
       "name": "MOTION",
-      "description": "Reserved -- not yet routed.",
+      "description": "Performance macro.",
       "value": 0.0
     },
     {
       "id": "m4",
       "name": "SPACE",
-      "description": "Reserved -- not yet routed.",
+      "description": "Performance macro.",
       "value": 0.0
     },
     {
       "id": "m5",
       "name": "BODY",
-      "description": "Reserved -- not yet routed.",
+      "description": "Performance macro.",
       "value": 0.0
     },
     {
       "id": "m6",
       "name": "SHIMMER",
-      "description": "Reserved -- not yet routed.",
+      "description": "Performance macro.",
       "value": 0.0
     },
     {
       "id": "m7",
       "name": "AIR",
-      "description": "Reserved -- not yet routed.",
+      "description": "Performance macro.",
       "value": 0.0
     },
     {
       "id": "m8",
       "name": "MORPH",
-      "description": "Reserved -- not yet routed.",
+      "description": "Performance macro.",
       "value": 0.0
     }
   ],
@@ -355,18 +547,18 @@
       "type": 8,
       "mix": 1.0,
       "eqLowFreqHz": 100,
-      "eqLowGainDb": 1.3566548734750132,
+      "eqLowGainDb": 1.2106892073803324,
       "eqMidFreqHz": 600,
-      "eqMidGainDb": -1.3100613836941535,
+      "eqMidGainDb": -1.2558165638775345,
       "eqMidQ": 0.7,
       "eqHighFreqHz": 6000,
-      "eqHighGainDb": 0.23734234139195953
+      "eqHighGainDb": -0.2749817144027036
     },
     {
       "type": 7,
-      "mix": 0.3844871278818534,
-      "reverbSizeParam": 1.6555899792868582,
-      "reverbDecaySeconds": 6.7004415525298,
+      "mix": 0.44371519156754846,
+      "reverbSizeParam": 2.2513954107292484,
+      "reverbDecaySeconds": 8.79674152717935,
       "reverbPreDelayMs": 25.0,
       "reverbHighRatio": 0.55,
       "reverbHighCrossoverHz": 3200.0,
@@ -384,8 +576,8 @@
     {
       "type": 9,
       "mix": 1.0,
-      "compThresholdDb": -14.420409312132358,
-      "compRatio": 2.134319152305932,
+      "compThresholdDb": -17.046781787177167,
+      "compRatio": 2.6251384506442257,
       "compAttackMs": 15.0,
       "compReleaseMs": 180.0,
       "compKneeDb": 6.0,
@@ -398,5 +590,25 @@
       "limiterLookaheadMs": 4.0,
       "limiterReleaseMs": 60.0
     }
-  ]
+  ],
+  "uiFocus": {
+    "maxKnobs": 4,
+    "knobs": [
+      {
+        "kind": "macro",
+        "index": 0,
+        "label": "WARMTH"
+      },
+      {
+        "kind": "macro",
+        "index": 3,
+        "label": "SPACE"
+      },
+      {
+        "kind": "param",
+        "paramId": "filterCutoffHz",
+        "label": "Cutoff"
+      }
+    ]
+  }
 }

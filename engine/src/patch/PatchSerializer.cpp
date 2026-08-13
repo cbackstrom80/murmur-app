@@ -608,6 +608,62 @@ namespace pw8::patch
             m.value = clampNum(j.value("value", 0.0f), 0.0f, 1.0f);
         }
 
+        void toJson(json& j, const UiFocusKnob& knob)
+        {
+            j = json{{"kind", knob.kind == UiFocusKnobKind::Macro ? "macro" : "param"}};
+            if (knob.kind == UiFocusKnobKind::Macro)
+                j["index"] = knob.macroIndex;
+            else
+                j["paramId"] = knob.paramId;
+            if (!knob.label.empty())
+                j["label"] = knob.label;
+        }
+
+        void fromJson(const json& j, UiFocusKnob& knob)
+        {
+            const auto kindStr = j.value("kind", std::string{"macro"});
+            if (kindStr == "param")
+            {
+                knob.kind = UiFocusKnobKind::Param;
+                knob.paramId = j.value("paramId", std::string{});
+            }
+            else
+            {
+                knob.kind = UiFocusKnobKind::Macro;
+                knob.macroIndex = static_cast<std::size_t>(clampNum(j.value("index", 0), 0, 7));
+            }
+            knob.label = j.value("label", std::string{});
+        }
+
+        void toJson(json& j, const PatchUiFocus& focus)
+        {
+            j = json{{"maxKnobs", focus.maxKnobs}};
+            json knobs = json::array();
+            for (const auto& knob : focus.knobs)
+            {
+                json jk;
+                toJson(jk, knob);
+                knobs.push_back(jk);
+            }
+            j["knobs"] = knobs;
+        }
+
+        void fromJson(const json& j, PatchUiFocus& focus)
+        {
+            focus.maxKnobs = static_cast<std::size_t>(clampNum(j.value("maxKnobs", 6), 1, 8));
+            focus.knobs.clear();
+            if (!j.contains("knobs") || !j.at("knobs").is_array())
+                return;
+            for (const auto& jk : j.at("knobs"))
+            {
+                UiFocusKnob knob;
+                fromJson(jk, knob);
+                if (knob.kind == UiFocusKnobKind::Param && knob.paramId.empty())
+                    continue;
+                focus.knobs.push_back(knob);
+            }
+        }
+
         void toJson(json& j, const sequencer::ArpStep& s)
         {
             j = json{{"enabled", s.enabled},               {"octaveOffset", s.octaveOffset},
@@ -696,7 +752,8 @@ namespace pw8::patch
 
             j["voiceSettings"] = json{{"polyphony", patch.voiceSettings.polyphony},
                                        {"masterGain", patch.voiceSettings.masterGain},
-                                       {"a4Hz", patch.voiceSettings.a4Hz}};
+                                       {"a4Hz", patch.voiceSettings.a4Hz},
+                                       {"portamentoSeconds", patch.voiceSettings.portamentoSeconds}};
 
             j["locks"] = json{
                 {"lockSources", patch.locks.lockSources},       {"lockAlgorithm", patch.locks.lockAlgorithm},
@@ -712,6 +769,13 @@ namespace pw8::patch
                 macros.push_back(jm);
             }
             j["macros"] = macros;
+
+            if (!patch.uiFocus.knobs.empty() || patch.uiFocus.maxKnobs != 6)
+            {
+                json focus;
+                toJson(focus, patch.uiFocus);
+                j["uiFocus"] = focus;
+            }
 
             json arp;
             toJson(arp, patch.arpeggiator);
@@ -875,6 +939,7 @@ namespace pw8::patch
                              static_cast<int>(core::kMaxVoices)));
                 p.voiceSettings.masterGain = clampNum(vs.value("masterGain", 1.0f), 0.0f, 4.0f);
                 p.voiceSettings.a4Hz = clampNum(vs.value("a4Hz", 440.0f), 220.0f, 880.0f);
+                p.voiceSettings.portamentoSeconds = clampNum(vs.value("portamentoSeconds", 0.0f), 0.0f, 10.0f);
             }
 
             if (root.contains("locks"))
@@ -899,6 +964,9 @@ namespace pw8::patch
                     ++i;
                 }
             }
+
+            if (root.contains("uiFocus"))
+                fromJson(root.at("uiFocus"), p.uiFocus);
 
             if (root.contains("arpeggiator"))
                 fromJson(root.at("arpeggiator"), p.arpeggiator);

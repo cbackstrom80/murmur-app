@@ -38,7 +38,8 @@ namespace pw8::algorithm
                                            const std::array<filter::FilterParams, core::kNodesPerLayer>& operatorFilterParams,
                                            std::array<filter::StateVariableFilter, core::kNodesPerLayer>& operatorFilters,
                                            const std::array<float, core::kNodesPerLayer>& operatorFilterCutoffSemitones,
-                                           const std::array<float, core::kNodesPerLayer>& operatorFilterResonanceOffset) noexcept
+                                           const std::array<float, core::kNodesPerLayer>& operatorFilterResonanceOffset,
+                                           int nonlinearOsFactor = 1) noexcept
         {
             if (!compiled.isValid)
                 return 0.0f;
@@ -64,10 +65,9 @@ namespace pw8::algorithm
                 const auto src = edge.source.get();
                 const auto dst = edge.destination.get();
                 const float prev = states[src].lastOutput;
-                // Soft-saturate the feedback contribution so a large depth can't blow up
-                // into non-finite territory (feedback gain guard, see docs/ALGORITHM_GRAPH.md).
-                const float fed = std::tanh(prev * edge.amount);
-                phaseModAcc[dst] += dsp::flushIfNotFinite(fed);
+                const float prevPrev = states[src].prevLastOutput;
+                const float fed = dsp::tanhFeedbackOs(prev, prevPrev, edge.amount, nonlinearOsFactor);
+                phaseModAcc[dst] += fed;
             }
 
             std::array<float, core::kNodesPerLayer> finalOutputs{};
@@ -81,7 +81,7 @@ namespace pw8::algorithm
                     states[i].reset(0.0f);
 
                 const float raw = states[i].render(params[i], wavetableTables[i], baseFrequencyHz,
-                                                     phaseModAcc[i], freqModAcc[i]);
+                                                     phaseModAcc[i], freqModAcc[i], nonlinearOsFactor);
 
                 float shaped = raw * ampMulAcc[i] * ringMulAcc[i];
                 shaped = dsp::clamp(dsp::flushIfNotFinite(shaped), -16.0f, 16.0f);
@@ -98,6 +98,7 @@ namespace pw8::algorithm
                 }
 
                 const float finalOut = dsp::clamp(dsp::flushIfNotFinite(shaped + audioAcc[i]), -16.0f, 16.0f);
+                states[i].prevLastOutput = states[i].lastOutput;
                 finalOutputs[i] = finalOut;
                 states[i].lastOutput = finalOut;
 
@@ -126,7 +127,8 @@ namespace pw8::algorithm
                             ringMulAcc[d] *= (finalOut * edge.amount);
                             break;
                         case EdgeType::Sync:
-                            pendingSyncReset[d] = true;
+                            if (states[i].didWrapThisSample(params[i].engine))
+                                pendingSyncReset[d] = true;
                             break;
                         case EdgeType::Feedback:
                             break; // handled separately, above, before this loop.

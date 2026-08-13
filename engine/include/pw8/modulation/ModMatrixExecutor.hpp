@@ -60,6 +60,60 @@ namespace pw8::modulation
     {
     public:
         template <typename RouteContainer>
+        [[nodiscard]] static bool hasActiveVoiceLfoRoutes(const RouteContainer& routes) noexcept
+        {
+            for (const auto& route : routes)
+            {
+                if (!route.isActive() || route.scope != ModScope::Voice)
+                    continue;
+                if (route.source >= ModSource::Lfo1 && route.source <= ModSource::Lfo8)
+                    return true;
+            }
+            return false;
+        }
+
+        template <typename RouteContainer>
+        [[nodiscard]] static bool hasActiveLayerLfoRoutes(const RouteContainer& routes) noexcept
+        {
+            for (const auto& route : routes)
+            {
+                if (!route.isActive() || route.scope == ModScope::Voice)
+                    continue;
+                if (route.source >= ModSource::Lfo1 && route.source <= ModSource::Lfo8)
+                    return true;
+            }
+            return false;
+        }
+
+        template <typename RouteContainer>
+        [[nodiscard]] static bool hasAudioRateModRoutes(const RouteContainer& routes) noexcept
+        {
+            for (const auto& route : routes)
+            {
+                if (!route.isActive())
+                    continue;
+                if (route.source >= ModSource::Lfo1 && route.source <= ModSource::Lfo8)
+                    return true;
+                if (route.source >= ModSource::Env1 && route.source <= ModSource::Env8)
+                    return true;
+            }
+            return false;
+        }
+
+        template <typename RouteContainer>
+        [[nodiscard]] static ModOutputs applyControlRateOnly(const RouteContainer& routes,
+                                                              const ModSourceValues& sources) noexcept
+        {
+            ModSourceValues controlRateSources;
+            controlRateSources.velocity = sources.velocity;
+            controlRateSources.channelPressure = sources.channelPressure;
+            controlRateSources.polyAftertouch = sources.polyAftertouch;
+            controlRateSources.mpeSlide = sources.mpeSlide;
+            controlRateSources.macros = sources.macros;
+            return apply(routes, controlRateSources);
+        }
+
+        template <typename RouteContainer>
         [[nodiscard]] static ModOutputs apply(const RouteContainer& routes, const ModSourceValues& sources) noexcept
         {
             ModOutputs out;

@@ -36,6 +36,28 @@ TEST_CASE("Patch roundtrips through JSON", "[patch][serialization]")
     REQUIRE(result.patch.schemaVersion == pw8::core::kPatchSchemaVersion);
 }
 
+TEST_CASE("uiFocus roundtrips through JSON", "[patch][serialization]")
+{
+    Patch p = Patch::makeInit();
+    p.uiFocus.maxKnobs = 4;
+    p.uiFocus.knobs.push_back({UiFocusKnobKind::Macro, 0, {}, {}});
+    p.uiFocus.knobs.push_back({UiFocusKnobKind::Macro, 2, {}, "Motion"});
+    p.uiFocus.knobs.push_back({UiFocusKnobKind::Param, 0, "filterCutoffHz", "Brightness"});
+
+    const auto json = savePatchToJson(p);
+    REQUIRE_FALSE(json.empty());
+
+    const auto result = loadPatchFromJson(json);
+    REQUIRE(result.ok);
+    REQUIRE(result.patch.uiFocus.maxKnobs == 4);
+    REQUIRE(result.patch.uiFocus.knobs.size() == 3);
+    REQUIRE(result.patch.uiFocus.knobs[0].kind == UiFocusKnobKind::Macro);
+    REQUIRE(result.patch.uiFocus.knobs[0].macroIndex == 0);
+    REQUIRE(result.patch.uiFocus.knobs[1].label == "Motion");
+    REQUIRE(result.patch.uiFocus.knobs[2].paramId == "filterCutoffHz");
+    REQUIRE(result.patch.uiFocus.knobs[2].label == "Brightness");
+}
+
 TEST_CASE("A v1 document's singular ampEnvelope/lfo1 migrate into envelopes[0]/lfos[0]",
           "[patch][serialization][migration]")
 {

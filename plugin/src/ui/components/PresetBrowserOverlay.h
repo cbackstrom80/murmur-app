@@ -20,6 +20,7 @@ namespace pw8::plugin::ui
                              content::FavoritesStore& favoritesStore);
 
         std::function<void()> onClosed;
+        std::function<void()> onFiltersChanged;
 
         void showOverlay();
         void dismiss();

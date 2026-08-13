@@ -69,6 +69,9 @@ namespace pw8::sequencer
         /// between one tick and the next. See docs/PLUGIN_ARCHITECTURE.md "Automation".
         void setLiveParams(const ArpeggiatorParams& params) noexcept { params_ = params; }
 
+        [[nodiscard]] std::size_t getCurrentStepIndex() const noexcept { return currentStepIndex_; }
+        [[nodiscard]] std::size_t getNoteSequenceIndex() const noexcept { return noteSequenceIndex_; }
+
         void prepare(double sampleRate) noexcept { sampleRate_ = sampleRate > 0.0 ? sampleRate : 48000.0; }
 
         void noteHeld(int note, int channel, float velocityUnit) noexcept

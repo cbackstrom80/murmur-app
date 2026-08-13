@@ -25,6 +25,7 @@ Top-level shape:
   "voiceSettings": { "polyphony", "masterGain", "a4Hz" },
   "locks": { "lockSources", "lockAlgorithm", "lockFilters", "lockModulation", "lockEffects", "lockSequence" },
   "macros": [ /* 8x {"id","name","description","value"} */ ],
+  "uiFocus": { /* optional — patch-authored PLAY-mode "Knobs of Interest", see below */ },
   "arpeggiator": { /* ArpeggiatorParams -- performance-wide, see ARPEGGIATOR.md */ },
   "masterEffects": [ /* 4x EffectSlotParams -- final mixed bus, see FX_BANK.md */ ],
   "seed": 0
@@ -82,6 +83,33 @@ sliding-window-minimum gain).
 
 See `content/presets/*.pw8` for complete, real, loadable examples, and
 `tests/serialization/PatchSerializerTests.cpp` for the roundtrip contract.
+
+## `uiFocus` (PLAY-mode performance knobs)
+
+**IMPLEMENTED (optional).** Authors can declare which controls appear in the PLAY
+editor's persistent **Knobs of Interest** strip (above the OSC/FILTER/ENV/MOD/FX tabs).
+When `uiFocus.knobs` is non-empty, the UI uses this list exclusively (no runtime
+inference). When omitted or empty, PLAY mode infers knobs from named macros, macro
+mod routes, and active mod-route destinations.
+
+```jsonc
+"uiFocus": {
+  "maxKnobs": 6,
+  "knobs": [
+    { "kind": "macro", "index": 0 },
+    { "kind": "macro", "index": 2, "label": "Motion" },
+    { "kind": "param", "paramId": "filterCutoffHz", "label": "Brightness" },
+    { "kind": "param", "paramId": "layerPan", "label": "Width" }
+  ]
+}
+```
+
+- `kind`: `"macro"` (0–7 index into `macros[]`) or `"param"` (APVTS parameter id)
+- `paramId`: must match a plugin parameter id (e.g. `"filterCutoffHz"`, `"macro1"`, `"layerPan"`)
+- `label`: optional display override
+- `maxKnobs`: optional cap (default 6, clamped 1–8)
+
+See `content/presets/factory/Pads/06-velvet-glow.pw8` for a factory example.
 
 ## `LayerMode`
 

@@ -75,4 +75,68 @@ namespace pw8::dsp
         return flushIfNotFinite(std::tanh(x * drive) / norm);
     }
 
+    /// 3-tap half-band kernel for one 2× decimation stage (symmetric, sum = 1).
+    [[nodiscard]] inline float halfBandDecimate3Tap(float x0, float x1, float x2) noexcept
+    {
+        return 0.25f * x0 + 0.5f * x1 + 0.25f * x2;
+    }
+
+    /// One-sample-delayed tanh feedback with optional oversampling (evenly spaced
+    /// sub-positions between previous and current input, half-band downsample). Used by
+    /// FM self-feedback and algorithm-graph FEEDBACK edges when quality >= High.
+    [[nodiscard]] inline float tanhFeedbackOs(float current, float previous, float amount,
+                                              int osFactor) noexcept
+    {
+        if (osFactor <= 1)
+            return flushIfNotFinite(std::tanh(current * amount));
+
+        if (osFactor == 2)
+        {
+            const float y0 = std::tanh(previous * amount);
+            const float y1 = std::tanh(dsp::lerp(previous, current, 0.5f) * amount);
+            const float y2 = std::tanh(current * amount);
+            return flushIfNotFinite(halfBandDecimate3Tap(y0, y1, y2));
+        }
+
+        // 4×: evaluate at boundaries + three interior sub-positions, two half-band stages.
+        const float y0 = std::tanh(previous * amount);
+        const float y1 = std::tanh(dsp::lerp(previous, current, 0.25f) * amount);
+        const float y2 = std::tanh(dsp::lerp(previous, current, 0.5f) * amount);
+        const float y3 = std::tanh(dsp::lerp(previous, current, 0.75f) * amount);
+        const float y4 = std::tanh(current * amount);
+        const float z0 = halfBandDecimate3Tap(y0, y1, y2);
+        const float z1 = halfBandDecimate3Tap(y1, y2, y3);
+        const float z2 = halfBandDecimate3Tap(y2, y3, y4);
+        return flushIfNotFinite(halfBandDecimate3Tap(z0, z1, z2));
+    }
+
+    /// Back-compat wrapper: bool true == 2× oversampling.
+    [[nodiscard]] inline float tanhFeedback2x(float current, float previous, float amount,
+                                             bool oversample) noexcept
+    {
+        return tanhFeedbackOs(current, previous, amount, oversample ? 2 : 1);
+    }
+
+    /// Decimate folded nonlinear sub-samples produced at osFactor interior positions.
+    [[nodiscard]] inline float decimateHalfBandFold(float previousFolded, float currentFolded, int osFactor,
+                                                   const float* interiorFolded) noexcept
+    {
+        if (osFactor <= 1)
+            return currentFolded;
+
+        if (osFactor == 2)
+        {
+            const float mid = interiorFolded != nullptr ? interiorFolded[0] : currentFolded;
+            return halfBandDecimate3Tap(previousFolded, mid, currentFolded);
+        }
+
+        const float s1 = interiorFolded[0];
+        const float s2 = interiorFolded[1];
+        const float s3 = interiorFolded[2];
+        const float y0 = halfBandDecimate3Tap(previousFolded, s1, s2);
+        const float y1 = halfBandDecimate3Tap(s1, s2, s3);
+        const float y2 = halfBandDecimate3Tap(s2, s3, currentFolded);
+        return halfBandDecimate3Tap(y0, y1, y2);
+    }
+
 } // namespace pw8::dsp

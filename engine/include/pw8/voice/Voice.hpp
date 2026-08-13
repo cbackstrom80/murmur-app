@@ -8,11 +8,13 @@
 #include "pw8/algorithm/AlgorithmGraphCompiler.hpp"
 #include "pw8/dsp/Math.hpp"
 #include "pw8/dsp/Random.hpp"
+#include "pw8/dsp/Smoother.hpp"
 #include "pw8/envelope/DahdsrEnvelope.hpp"
 #include "pw8/filter/StateVariableFilter.hpp"
 #include "pw8/lfo/Lfo.hpp"
 #include "pw8/modulation/ModMatrixExecutor.hpp"
 #include "pw8/operator/OperatorNode.hpp"
+#include "pw8/render/RenderTypes.hpp"
 
 // A single polyphonic voice: 8 operator nodes routed through a (shared, precompiled)
 // algorithm graph, 8 envelopes, 8 LFOs, a mod matrix, Filter 1, and the per-note
@@ -62,43 +64,47 @@ namespace pw8::voice
             for (auto& f : operatorFilters_)
                 f.prepare(sampleRate);
             sampleRate_ = sampleRate;
+            stealFadeSamples_ = static_cast<int>(sampleRate * 0.008); // ~8 ms steal crossfade
+            if (stealFadeSamples_ < 64)
+                stealFadeSamples_ = 64;
+            else if (stealFadeSamples_ > 512)
+                stealFadeSamples_ = 512;
+            stealGainRamp_.setLengthSamples(stealFadeSamples_);
         }
 
         void noteOn(int note, int channel, float velocityUnit, float baseFreqHz,
                     const std::array<envelope::DahdsrParams, core::kNumEnvelopesPerLayer>& envParams,
-                    std::uint64_t ageCounter, std::uint64_t noteGenerationId, std::uint64_t voiceSeed) noexcept
+                    std::uint64_t ageCounter, std::uint64_t noteGenerationId, std::uint64_t voiceSeed,
+                    float portamentoSeconds = 0.0f) noexcept
         {
-            noteNumber = note;
-            midiChannel = channel;
-            velocity = dsp::clamp(velocityUnit, 0.0f, 1.0f);
-            gateOn = true;
-            age = ageCounter;
-            noteGenId = noteGenerationId;
-            baseFrequencyHz = baseFreqHz;
-            expression = NoteExpression{};
+            applyNoteOnInternal(note, channel, velocityUnit, baseFreqHz, envParams, ageCounter, noteGenerationId,
+                                voiceSeed, portamentoSeconds);
+            stealPhase_ = StealPhase::None;
+            pendingNoteOn_.valid = false;
+        }
 
-            // Deterministic, seeded per-voice phase variation (see docs/DSP_ENGINE.md
-            // "Voice Variation"): small, controlled, reproducible -- not free-running RNG.
-            // The same seeded stream that randomizes operator phase also seeds each of
-            // the 8 LFOs (consumed in order, one nextU64() per LFO) so every LFO gets a
-            // decorrelated-but-reproducible seed rather than 8 copies of the same one.
-            const auto seed = dsp::DeterministicRng::deriveSeed(voiceSeed, id, voiceSeed ^ noteGenerationId);
-            dsp::DeterministicRng rng(seed);
-            for (auto& s : operatorStates)
+        /// When the allocator had to take an actively-gated voice, fade the old note out,
+        /// retrigger cleanly at zero gain, then fade the new note in (~8 ms by default).
+        void beginStealCrossfadeNoteOn(int note, int channel, float velocityUnit, float baseFreqHz,
+                                       const std::array<envelope::DahdsrParams, core::kNumEnvelopesPerLayer>& envParams,
+                                       std::uint64_t ageCounter, std::uint64_t noteGenerationId,
+                                       std::uint64_t voiceSeed, float portamentoSeconds = 0.0f) noexcept
+        {
+            // Released voices still in their amp tail have gateOn=false but are audibly
+            // active -- crossfade them too, otherwise filter/envelope retrigger clicks.
+            if (!envelopes[0].isActive())
             {
-                s.reset(rng.nextFloat());
-                s.seedNoise(rng.nextU64());
-                s.seedResonator(rng.nextU64());
-                s.seedGranular(rng.nextU64());
+                noteOn(note, channel, velocityUnit, baseFreqHz, envParams, ageCounter, noteGenerationId, voiceSeed,
+                       portamentoSeconds);
+                return;
             }
 
-            for (std::size_t i = 0; i < core::kNumEnvelopesPerLayer; ++i)
-                envelopes[i].noteOn(envParams[i]);
-            filter1.reset();
-            for (auto& f : operatorFilters_)
-                f.reset();
-            for (std::size_t i = 0; i < core::kNumLfosPerLayer; ++i)
-                lfos[i].noteOn(lfoParams[i], rng.nextU64());
+            pendingNoteOn_ = PendingNoteOn{ note,          channel,     velocityUnit, baseFreqHz,
+                                              envParams,     ageCounter,  noteGenerationId,
+                                              voiceSeed,     portamentoSeconds, true };
+            stealPhase_ = StealPhase::FadeOut;
+            stealGainRamp_.setLengthSamples(stealFadeSamples_);
+            stealGainRamp_.startFromCurrent(1.0f, 0.0f);
         }
 
         void noteOff(float releaseVelocityUnit) noexcept
@@ -109,10 +115,12 @@ namespace pw8::voice
                 e.noteOff();
         }
 
-        /// Immediately silences the voice with no release tail -- used only when a
-        /// crossfaded steal isn't available and a hard reset is unavoidable.
+        /// Immediately silences the voice with no release tail -- used at the end of a
+        /// steal fade-out (gain already at zero) before retriggering the voice.
         void hardKill() noexcept
         {
+            stealPhase_ = StealPhase::None;
+            pendingNoteOn_.valid = false;
             for (auto& e : envelopes)
                 e.reset();
             noteNumber = -1;
@@ -139,6 +147,7 @@ namespace pw8::voice
                            const std::array<const oscillator::WavetableTable*, core::kNodesPerLayer>& wavetableTables,
                            float bpm, const std::array<float, core::kNumLfosPerLayer>& layerLfoValues,
                            const core::FixedVector<modulation::ModRoute, core::kMaxModRoutes>& liveModRoutes,
+                           render::QualityMode qualityMode,
                            float& outLeft, float& outRight) noexcept
         {
             if (noteNumber < 0 && !envelopes[0].isActive())
@@ -148,16 +157,20 @@ namespace pw8::voice
                 return;
             }
 
-            const float pitchBendHz = baseFrequencyHz *
+            const float pitchBendHz = currentFrequencyHz_ *
                                        (std::pow(2.0f, (expression.pitchBendSemitones + expression.mpePitch) / 12.0f) - 1.0f);
-            const float effectiveFreq = baseFrequencyHz + pitchBendHz;
+            const float effectiveFreq = currentFrequencyHz_ + pitchBendHz;
 
             // Mod sources that don't depend on this sample's algorithm-graph output are
             // rendered first, so their values can modulate the operators that ARE about
             // to run this sample (e.g. LFO -> operator level tremolo).
             modulation::ModSourceValues sourceValues;
-            for (std::size_t i = 0; i < core::kNumLfosPerLayer; ++i)
-                sourceValues.voiceLfos[i] = lfos[i].renderSample(lfoParams[i], bpm);
+            const bool voiceLfoRoutesActive = modulation::ModMatrixExecutor::hasActiveVoiceLfoRoutes(liveModRoutes);
+            if (voiceLfoRoutesActive)
+            {
+                for (std::size_t i = 0; i < core::kNumLfosPerLayer; ++i)
+                    sourceValues.voiceLfos[i] = lfos[i].renderSample(lfoParams[i], bpm);
+            }
             sourceValues.layerLfos = layerLfoValues;
             for (std::size_t i = 0; i < core::kNumEnvelopesPerLayer; ++i)
                 sourceValues.envelopes[i] = envelopes[i].renderSample();
@@ -168,7 +181,11 @@ namespace pw8::voice
             sourceValues.mpeSlide = expression.mpeSlide;
             sourceValues.macros = macroValues;
 
-            const auto modOut = modulation::ModMatrixExecutor::apply(liveModRoutes, sourceValues);
+            const auto modOut = modulation::ModMatrixExecutor::hasAudioRateModRoutes(liveModRoutes)
+                                    ? modulation::ModMatrixExecutor::apply(liveModRoutes, sourceValues)
+                                    : modulation::ModMatrixExecutor::applyControlRateOnly(liveModRoutes, sourceValues);
+
+            const int nonlinearOsFactor = render::nonlinearOversamplingFactor(qualityMode);
 
             // Operator-level modulation needs a per-sample-modified params copy; the
             // multiplier defaults to 1.0 per operator when no route targets it, so this
@@ -185,7 +202,7 @@ namespace pw8::voice
             const float raw = executor.processSample(compiled, modulatedParams, operatorStates, wavetableTables,
                                                       effectiveFreq, operatorFilterParams_, operatorFilters_,
                                                       modOut.operatorFilterCutoffSemitones,
-                                                      modOut.operatorFilterResonanceOffset);
+                                                      modOut.operatorFilterResonanceOffset, nonlinearOsFactor);
 
             float filtered = raw;
             if (filterParams.enabled)
@@ -197,15 +214,152 @@ namespace pw8::voice
                 filtered = filter1.renderSample(raw, filterParams.mode, cutoffHz, resonance);
             }
 
-            const float amp = dsp::clamp(filtered * env * velocity * outputGain, -16.0f, 16.0f);
+            const float amp = dsp::clamp(filtered * env * velocity * outputGain * stealOutputGain_, -16.0f, 16.0f);
 
             const float panClamped = dsp::clamp(pan + modOut.panOffset, -1.0f, 1.0f);
             const float panRad = (panClamped * 0.5f + 0.5f) * (dsp::kPi * 0.5f);
             outLeft = amp * std::cos(panRad);
             outRight = amp * std::sin(panRad);
 
+            advanceStealCrossfade();
+            advancePortamentoGlide();
+
             if (!envelopes[0].isActive())
                 noteNumber = -1; // fully released -- free for reuse next allocation pass.
+        }
+
+        enum class StealPhase : std::uint8_t
+        {
+            None = 0,
+            FadeOut,
+            FadeIn,
+        };
+
+        struct PendingNoteOn
+        {
+            int note = -1;
+            int channel = 0;
+            float velocityUnit = 0.0f;
+            float baseFreqHz = 440.0f;
+            std::array<envelope::DahdsrParams, core::kNumEnvelopesPerLayer> envParams{};
+            std::uint64_t ageCounter = 0;
+            std::uint64_t noteGenerationId = 0;
+            std::uint64_t voiceSeed = 0;
+            float portamentoSeconds = 0.0f;
+            bool valid = false;
+        };
+
+        [[nodiscard]] float computePortamentoCoeff(float portamentoSeconds) const noexcept
+        {
+            if (portamentoSeconds <= 0.0f || sampleRate_ <= 0.0)
+                return 0.0f;
+            const float tau = static_cast<float>(portamentoSeconds * sampleRate_);
+            return tau > 1.0f ? 1.0f - std::exp(-1.0f / tau) : 1.0f;
+        }
+
+        void advancePortamentoGlide() noexcept
+        {
+            if (portamentoCoeff_ <= 0.0f)
+                return;
+            currentFrequencyHz_ += (glideTargetHz_ - currentFrequencyHz_) * portamentoCoeff_;
+            if (std::abs(glideTargetHz_ - currentFrequencyHz_) < 0.01f)
+            {
+                currentFrequencyHz_ = glideTargetHz_;
+                portamentoCoeff_ = 0.0f;
+            }
+        }
+
+        void applyNoteOnInternal(int note, int channel, float velocityUnit, float baseFreqHz,
+                                 const std::array<envelope::DahdsrParams, core::kNumEnvelopesPerLayer>& envParams,
+                                 std::uint64_t ageCounter, std::uint64_t noteGenerationId,
+                                 std::uint64_t voiceSeed, float portamentoSeconds) noexcept
+        {
+            const bool legatoGlide = portamentoSeconds > 0.0f && gateOn && envelopes[0].isActive() &&
+                                     note != noteNumber && baseFreqHz != currentFrequencyHz_;
+
+            noteNumber = note;
+            midiChannel = channel;
+            velocity = dsp::clamp(velocityUnit, 0.0f, 1.0f);
+            gateOn = true;
+            sustainPendingRelease = false;
+            age = ageCounter;
+            noteGenId = noteGenerationId;
+
+            if (legatoGlide)
+            {
+                glideTargetHz_ = baseFreqHz;
+                portamentoCoeff_ = computePortamentoCoeff(portamentoSeconds);
+                auto legatoParams = envParams;
+                legatoParams[0].legato = true;
+                envelopes[0].noteOn(legatoParams[0]);
+                return;
+            }
+
+            baseFrequencyHz = baseFreqHz;
+            currentFrequencyHz_ = baseFreqHz;
+            glideTargetHz_ = baseFreqHz;
+            portamentoCoeff_ = 0.0f;
+            expression = NoteExpression{};
+
+            // Deterministic, seeded per-voice phase variation (see docs/DSP_ENGINE.md
+            // "Voice Variation"): small, controlled, reproducible -- not free-running RNG.
+            // The same seeded stream that randomizes operator phase also seeds each of
+            // the 8 LFOs (consumed in order, one nextU64() per LFO) so every LFO gets a
+            // decorrelated-but-reproducible seed rather than 8 copies of the same one.
+            const auto seed = dsp::DeterministicRng::deriveSeed(voiceSeed, id, voiceSeed ^ noteGenerationId);
+            dsp::DeterministicRng rng(seed);
+            for (auto& s : operatorStates)
+            {
+                s.reset(rng.nextFloat());
+                s.seedNoise(rng.nextU64());
+                s.seedResonator(rng.nextU64());
+                s.seedGranular(rng.nextU64());
+            }
+
+            for (std::size_t i = 0; i < core::kNumEnvelopesPerLayer; ++i)
+                envelopes[i].noteOn(envParams[i]);
+            filter1.reset();
+            for (auto& f : operatorFilters_)
+                f.reset();
+            for (std::size_t i = 0; i < core::kNumLfosPerLayer; ++i)
+                lfos[i].noteOn(lfoParams[i], rng.nextU64());
+        }
+
+        void commitPendingNoteOn() noexcept
+        {
+            if (!pendingNoteOn_.valid)
+                return;
+
+            const auto pending = pendingNoteOn_;
+            pendingNoteOn_.valid = false;
+            hardKill(); // amp tail already faded to zero -- clear filter/envelope state before retrigger.
+            applyNoteOnInternal(pending.note, pending.channel, pending.velocityUnit, pending.baseFreqHz,
+                                pending.envParams, pending.ageCounter, pending.noteGenerationId, pending.voiceSeed,
+                                pending.portamentoSeconds);
+            stealPhase_ = StealPhase::FadeIn;
+            stealGainRamp_.setLengthSamples(stealFadeSamples_);
+            stealGainRamp_.startFromCurrent(0.0f, 1.0f);
+            stealOutputGain_ = 0.0f;
+        }
+
+        void advanceStealCrossfade() noexcept
+        {
+            switch (stealPhase_)
+            {
+                case StealPhase::None:
+                    stealOutputGain_ = 1.0f;
+                    break;
+                case StealPhase::FadeOut:
+                    stealOutputGain_ = stealGainRamp_.getNext();
+                    if (stealGainRamp_.isFinished())
+                        commitPendingNoteOn();
+                    break;
+                case StealPhase::FadeIn:
+                    stealOutputGain_ = stealGainRamp_.getNext();
+                    if (stealGainRamp_.isFinished())
+                        stealPhase_ = StealPhase::None;
+                    break;
+            }
         }
 
         std::uint32_t id = 0;
@@ -214,10 +368,14 @@ namespace pw8::voice
         float velocity = 0.0f;
         float releaseVelocity = 0.0f;
         bool gateOn = false;
+        bool sustainPendingRelease = false;
         std::uint64_t age = 0;
         std::uint64_t noteGenId = 0;
 
         float baseFrequencyHz = 440.0f;
+        float currentFrequencyHz_ = 440.0f;
+        float glideTargetHz_ = 440.0f;
+        float portamentoCoeff_ = 0.0f;
         float pan = 0.0f;
         float outputGain = 1.0f;
 
@@ -241,6 +399,11 @@ namespace pw8::voice
 
     private:
         double sampleRate_ = 48000.0;
+        StealPhase stealPhase_ = StealPhase::None;
+        float stealOutputGain_ = 1.0f;
+        int stealFadeSamples_ = 384;
+        dsp::LinearRamp stealGainRamp_{};
+        PendingNoteOn pendingNoteOn_{};
     };
 
 } // namespace pw8::voice

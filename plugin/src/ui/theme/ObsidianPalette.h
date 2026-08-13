@@ -77,6 +77,7 @@ namespace pw8::plugin::ui::palette
     inline const juce::Colour kModLfo{0xffb08fe8};
     inline const juce::Colour kModEnv{0xff8fd4e8};
     inline const juce::Colour kModVelocity{0xffe88f9e};
+    inline const juce::Colour kModMacro{0xffe8c08f};
 
     /// `source` is a raw `modulation::ModSource` ordinal (kept as `int` here so this
     /// header doesn't need to include ModMatrixTypes.hpp just for one enum). Shared
@@ -88,7 +89,8 @@ namespace pw8::plugin::ui::palette
         if (source >= 1 && source <= 8) return kModLfo;   // Lfo1..Lfo8
         if (source >= 9 && source <= 16) return kModEnv;  // Env1..Env8
         if (source == 17) return kModVelocity;            // Velocity
-        return kTextDim; // None, or a performance/macro source this UI doesn't offer as a drag chip yet.
+        if (source >= 21 && source <= 28) return kModMacro; // Macro1..Macro8
+        return kTextDim;
     }
 
 } // namespace pw8::plugin::ui::palette

@@ -175,6 +175,66 @@ TEST_CASE("PhaseShapeOscillator: reset() reproduces the exact same output as a f
         REQUIRE(a.renderSample(params) == b.renderSample(params));
 }
 
+TEST_CASE("PhaseShapeOscillator 2x oversampling reduces fold aliasing at High quality", "[phaseshape][quality][measured]")
+{
+    constexpr std::size_t n = 8192;
+    constexpr std::size_t warmup = 512;
+    constexpr float freqHz = 40.0f * 48000.0f / static_cast<float>(n);
+    constexpr std::size_t fundamentalBin = 40;
+
+    PhaseShapeParams withFold;
+    withFold.phaseFold = 1.0f;
+
+    const auto render = [&](int osFactor) {
+        PhaseShapeOscillator osc;
+        osc.prepare(48000.0);
+        osc.reset();
+        osc.setFrequency(freqHz);
+        for (std::size_t i = 0; i < warmup; ++i)
+            static_cast<void>(osc.renderSample(withFold, 0.0f, osFactor));
+        std::vector<float> out(n);
+        for (std::size_t i = 0; i < n; ++i)
+            out[i] = osc.renderSample(withFold, 0.0f, osFactor);
+        return out;
+    };
+
+    const double plainRatio = nonFundamentalEnergyRatio(render(1), fundamentalBin);
+    const double os2Ratio = nonFundamentalEnergyRatio(render(2), fundamentalBin);
+
+    REQUIRE(plainRatio > 0.05);
+    REQUIRE(os2Ratio < plainRatio * 0.85);
+}
+
+TEST_CASE("PhaseShapeOscillator 4x oversampling further reduces fold aliasing at Ultra quality",
+          "[phaseshape][quality][measured]")
+{
+    constexpr std::size_t n = 8192;
+    constexpr std::size_t warmup = 512;
+    constexpr float freqHz = 40.0f * 48000.0f / static_cast<float>(n);
+    constexpr std::size_t fundamentalBin = 40;
+
+    PhaseShapeParams withFold;
+    withFold.phaseFold = 1.0f;
+
+    const auto render = [&](int osFactor) {
+        PhaseShapeOscillator osc;
+        osc.prepare(48000.0);
+        osc.reset();
+        osc.setFrequency(freqHz);
+        for (std::size_t i = 0; i < warmup; ++i)
+            static_cast<void>(osc.renderSample(withFold, 0.0f, osFactor));
+        std::vector<float> out(n);
+        for (std::size_t i = 0; i < n; ++i)
+            out[i] = osc.renderSample(withFold, 0.0f, osFactor);
+        return out;
+    };
+
+    const double os2Ratio = nonFundamentalEnergyRatio(render(2), fundamentalBin);
+    const double os4Ratio = nonFundamentalEnergyRatio(render(4), fundamentalBin);
+
+    REQUIRE(os4Ratio < os2Ratio * 0.95);
+}
+
 TEST_CASE("OperatorState renders PhaseShape through the full operator path", "[phaseshape][operator]")
 {
     op::OperatorState state;

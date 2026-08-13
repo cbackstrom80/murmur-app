@@ -104,12 +104,35 @@ namespace pw8::op
         oscillator::WavetableOscillator waveOsc;
         oscillator::ClassicOscillator fmModulatorOsc; ///< Engine Type 3 (FM/PM) only.
         float fmModulatorLastOutput = 0.0f;            ///< For the modulator's own self-feedback.
+        float fmModulatorPrevOutput = 0.0f;            ///< Previous sample for 2x OS on FM feedback.
         noise::NoiseSource noiseSource;
         oscillator::PhaseShapeOscillator phaseShapeOsc;
         oscillator::AdditiveOscillator additiveOsc;
         oscillator::ResonatorOscillator resonatorOsc;
         oscillator::GranularOscillator granularOsc;
         float lastOutput = 0.0f; ///< previous-sample output, used by Feedback edges.
+        float prevLastOutput = 0.0f; ///< two samples ago, for 2x OS on graph feedback edges.
+
+        /// True when this operator's primary phase-based oscillator wrapped its cycle
+        /// on the most recent render() call -- used by algorithm-graph SYNC edges.
+        [[nodiscard]] bool didWrapThisSample(algorithm::EngineType engine) const noexcept
+        {
+            switch (engine)
+            {
+                case algorithm::EngineType::Classic:
+                    return classicOsc.didWrapThisSample();
+                case algorithm::EngineType::Wavetable:
+                    return waveOsc.didWrapThisSample();
+                case algorithm::EngineType::FmPm:
+                    return classicOsc.didWrapThisSample();
+                case algorithm::EngineType::PhaseShape:
+                    return phaseShapeOsc.didWrapThisSample();
+                case algorithm::EngineType::Additive:
+                    return additiveOsc.didWrapThisSample();
+                default:
+                    return false;
+            }
+        }
 
         void prepare(double sampleRate) noexcept
         {
@@ -130,6 +153,7 @@ namespace pw8::op
             waveOsc.reset(initialPhase);
             fmModulatorOsc.reset(initialPhase);
             fmModulatorLastOutput = 0.0f;
+            fmModulatorPrevOutput = 0.0f;
             phaseShapeOsc.reset(initialPhase);
             additiveOsc.reset(initialPhase);
             // A fixed, non-randomized seed: this path also runs on a mid-note
@@ -143,6 +167,7 @@ namespace pw8::op
             // seed; seedGranular() below is the real per-note-random reseed.
             granularOsc.reset(0);
             lastOutput = 0.0f;
+            prevLastOutput = 0.0f;
         }
 
         /// Reseeds this node's noise source. Separate from reset() (which only
@@ -175,7 +200,8 @@ namespace pw8::op
         /// based on this sample's carrier frequency (see WavetableTable::viewForFrequency,
         /// a cheap linear scan, no allocation -- safe on the audio thread).
         [[nodiscard]] float render(const OperatorParams& params, const oscillator::WavetableTable* wavetableTable,
-                                    float baseFrequencyHz, float phaseMod, float freqModHz) noexcept
+                                    float baseFrequencyHz, float phaseMod, float freqModHz,
+                                    int nonlinearOsFactor = 1) noexcept
         {
             const float carrierHz = (params.keyTrack ? baseFrequencyHz * params.frequencyRatio
                                                        : params.fixedFrequencyHz) +
@@ -210,14 +236,15 @@ namespace pw8::op
 
                     // One-sample-delayed self-feedback, soft-saturated -- the exact same
                     // technique AlgorithmExecutor.hpp's Feedback edges already use
-                    // (std::tanh(prev * amount), flushIfNotFinite), applied here to the
-                    // modulator instead of a whole graph edge.
-                    const float feedbackPhaseMod =
-                        dsp::flushIfNotFinite(std::tanh(fmModulatorLastOutput * params.fmModulatorFeedback));
+                    // (tanhFeedback2x, flushIfNotFinite), applied here to the modulator
+                    // instead of a whole graph edge.
+                    const float feedbackPhaseMod = dsp::tanhFeedbackOs(
+                        fmModulatorLastOutput, fmModulatorPrevOutput, params.fmModulatorFeedback, nonlinearOsFactor);
 
                     oscillator::ClassicOscillatorParams modulatorParams;
                     modulatorParams.waveform = params.fmModulatorWaveform;
                     const float modulatorOut = fmModulatorOsc.renderSample(modulatorParams, feedbackPhaseMod);
+                    fmModulatorPrevOutput = fmModulatorLastOutput;
                     fmModulatorLastOutput = modulatorOut;
 
                     // Modulator output phase-modulates the carrier. Same units/convention
@@ -254,7 +281,7 @@ namespace pw8::op
                     shapeParams.phaseFold = params.phaseFold;
                     shapeParams.phaseAsymmetry = params.phaseAsymmetry;
                     shapeParams.phaseShape = params.phaseShape;
-                    out = phaseShapeOsc.renderSample(shapeParams, phaseMod);
+                    out = phaseShapeOsc.renderSample(shapeParams, phaseMod, nonlinearOsFactor);
                     break;
                 }
 
@@ -297,16 +324,11 @@ namespace pw8::op
                     granularParams.grainSizeMs = params.grainSizeMs;
                     granularParams.positionJitter = params.grainPositionJitter;
                     granularParams.pitchJitter = params.grainPitchJitter;
-                    // Grains read the full-bandwidth mip directly (mips[0], ordered
-                    // highest-fidelity first) rather than viewForFrequency()'s
-                    // pitch-dependent mip selection -- that selection exists to
-                    // band-limit a *cycle-looping* oscillator against a target
-                    // pitch, which doesn't apply to one-shot grain playback.
+                    // Band-limited mip selected from the current carrier frequency so
+                    // grain spawn reads the same anti-aliased table the Wavetable engine uses.
                     const oscillator::WavetableView sourceView =
-                        (wavetableTable != nullptr && !wavetableTable->mips.empty())
-                            ? oscillator::WavetableView{wavetableTable->mips.front().samples.data(),
-                                                         wavetableTable->numFrames, wavetableTable->samplesPerFrame}
-                            : oscillator::WavetableView{};
+                        wavetableTable != nullptr ? wavetableTable->viewForFrequency(carrierHz, sampleRate_)
+                                                   : oscillator::WavetableView{};
                     out = granularOsc.renderSample(granularParams, sourceView);
                     break;
                 }

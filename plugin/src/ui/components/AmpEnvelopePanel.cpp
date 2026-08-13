@@ -7,11 +7,11 @@
 namespace pw8::plugin::ui
 {
     AmpEnvelopePanel::AmpEnvelopePanel(PatchworkEightProcessor& processor)
-        : curveView_(processor.apvts, 0)
+        : visualizer_(processor.apvts, 0)
     {
         auto& apvts = processor.apvts;
         addAndMakeVisible(panel_);
-        panel_.addAndMakeVisible(curveView_);
+        panel_.addAndMakeVisible(visualizer_);
 
         delay_ = std::make_unique<GlowKnob>(apvts, envelopeParamId(0, "Delay"), "Delay");
         attack_ = std::make_unique<GlowKnob>(apvts, envelopeParamId(0, "Attack"), "Attack");
@@ -56,8 +56,8 @@ namespace pw8::plugin::ui
         panel_.setBounds(getLocalBounds().withTrimmedTop(34));
         auto content = panel_.getContentBounds();
 
-        auto curveBounds = content.removeFromLeft(static_cast<int>(content.getWidth() * 0.45f)).reduced(0, 2);
-        curveView_.setBounds(curveBounds);
+        auto visualizerBounds = content.removeFromLeft(static_cast<int>(content.getWidth() * 0.60f)).reduced(0, 2);
+        visualizer_.setBounds(visualizerBounds);
 
         content = content.reduced(6, 0);
         legato_.setBounds(content.removeFromTop(22).removeFromLeft(90));

@@ -2,46 +2,23 @@
 
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
+#include "ModRoutingUi.h"
 #include "ModSourceChip.h"
 
 namespace pw8::plugin::ui
 {
     namespace
     {
-        constexpr int kMaxKnobDiameter = 88;
         constexpr int kNameLabelHeight = 14;
         constexpr int kTextBoxHeight = 16;
+        constexpr int kDepthPopoverHeight = 22;
 
-        /// The modulation depth a fresh drop is assigned -- destination-specific
-        /// since the two real PLAY-mode destinations have very different natural
-        /// units (see ModMatrixExecutor.hpp's destination-semantics doc comment).
-        /// Deliberately generous enough to be obviously audible on drop (the whole
-        /// point of drag-to-modulate is instant, undeniable feedback), not tuned to
-        /// taste -- adjusting the exact depth afterward is the mod-matrix's job
-        /// once it exists (docs/UI.md "What's PLANNED"), not this gesture's.
-        float defaultModAmountFor(modulation::ModDestination destination) noexcept
-        {
-            switch (destination)
-            {
-                case modulation::ModDestination::FilterCutoff: return 36.0f;
-                case modulation::ModDestination::FilterResonance: return 0.4f;
-                case modulation::ModDestination::OperatorFilterCutoff: return 36.0f;
-                case modulation::ModDestination::OperatorFilterResonance: return 0.4f;
-                default: return 0.0f;
-            }
-        }
     } // namespace
 
     juce::String GlowKnob::FormattedSlider::getTextFromValue(double value)
     {
         if (valueToText)
             return valueToText(static_cast<float>(value));
-        // Deliberately not delegating to juce::Slider::getTextFromValue() here --
-        // its default decimal-place count is derived from the parameter's step
-        // interval in a way that's easy to fight with (setNumDecimalPlacesToDisplay
-        // needs to survive SliderAttachment's own range setup), and this is simple
-        // enough to just own directly: fixed 2-decimal display for every continuous
-        // (non-formatter) knob.
         return juce::String(value, 2);
     }
 
@@ -60,16 +37,17 @@ namespace pw8::plugin::ui
         if (!accentColour.isTransparent())
             slider_.setColour(juce::Slider::rotarySliderFillColourId, accentColour);
         addAndMakeVisible(slider_);
-        slider_.addMouseListener(this, false); // so this->mouseDown() also sees right-clicks landing on the knob.
+        slider_.addMouseListener(this, false);
 
         nameLabel_.setText(name.toUpperCase(), juce::dontSendNotification);
         nameLabel_.setJustificationType(juce::Justification::centred);
-        nameLabel_.setColour(juce::Label::textColourId, palette::kTextSecondary);
-        nameLabel_.setFont(fonts::label(10.5f));
+        nameLabel_.setColour(juce::Label::textColourId, palette::kTextPrimary);
+        nameLabel_.setFont(fonts::label(11.0f));
         addAndMakeVisible(nameLabel_);
 
         attachment_ = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, paramId,
                                                                                                slider_);
+        slider_.getProperties().set("maxDialDiameter", maxDialDiameter_);
     }
 
     GlowKnob::~GlowKnob()
@@ -83,14 +61,28 @@ namespace pw8::plugin::ui
         modProcessor_ = &processor;
         modDestination_ = destination;
         modTargetIndex_ = targetIndex;
+        setHelpText("Click after selecting a mod source, drag a source chip here, or right-click to remove.");
         startTimerHz(8);
         timerCallback();
+    }
+
+    void GlowKnob::setModAssignmentController(ModAssignmentController* controller)
+    {
+        modAssignment_ = controller;
+    }
+
+    void GlowKnob::setMaxDialDiameter(int diameter)
+    {
+        maxDialDiameter_ = diameter;
+        slider_.getProperties().set("maxDialDiameter", diameter);
+        resized();
     }
 
     void GlowKnob::timerCallback()
     {
         juce::Colour next = juce::Colours::transparentBlack;
         auto nextSource = modulation::ModSource::None;
+        float nextAmountNorm = 0.0f;
         if (modProcessor_ != nullptr)
         {
             for (const auto& route : modProcessor_->getCurrentPatch().layerA.modRoutes)
@@ -99,31 +91,94 @@ namespace pw8::plugin::ui
                 {
                     next = palette::modSourceColour(static_cast<int>(route.source));
                     nextSource = route.source;
+                    const auto range = modAmountRangeFor(route.destination);
+                    const float def = defaultModAmountFor(route.destination);
+                    const float span = juce::jmax(0.001f, range.max - range.min);
+                    nextAmountNorm = juce::jlimit(0.0f, 1.0f, std::abs(route.amount) / juce::jmax(0.001f, std::abs(def)));
                     break;
                 }
             }
         }
-        if (next != ringColour_)
+        if (next != ringColour_ || nextAmountNorm != ringAmountNormalized_ || nextSource != ringSource_)
         {
             ringColour_ = next;
             ringSource_ = nextSource;
+            ringAmountNormalized_ = nextAmountNorm;
             repaint();
         }
     }
 
     void GlowKnob::mouseDown(const juce::MouseEvent& event)
     {
+        if (showDepthPopover_ && depthPopoverArea_.contains(event.getPosition()))
+        {
+            depthDragActive_ = true;
+            depthDragStartX_ = static_cast<float>(event.position.x);
+            for (const auto& route : modProcessor_->getCurrentPatch().layerA.modRoutes)
+            {
+                if (route.isActive() && route.destination == modDestination_ && route.targetIndex == modTargetIndex_)
+                {
+                    depthDragStartAmount_ = route.amount;
+                    break;
+                }
+            }
+            return;
+        }
+
         if (modDestination_ == modulation::ModDestination::None || modProcessor_ == nullptr)
             return;
+
+        if (event.mods.isLeftButtonDown() && modAssignment_ != nullptr && modAssignment_->isArmed())
+        {
+            const auto source = modAssignment_->armedSource();
+            if (source.has_value())
+            {
+                assignModRoute(*modProcessor_, *source, modDestination_, modTargetIndex_);
+                ringColour_ = palette::modSourceColour(static_cast<int>(*source));
+                ringSource_ = *source;
+                ringAmountNormalized_ = 1.0f;
+                modAssignment_->disarm();
+                showDepthPopover_ = true;
+                repaint();
+            }
+            return;
+        }
+
         if (!event.mods.isRightButtonDown())
             return;
         if (ringColour_.isTransparent())
-            return; // Nothing assigned -- nothing to remove.
+            return;
 
         modProcessor_->removeModRouteLive(ringSource_, modDestination_, modTargetIndex_);
         ringColour_ = juce::Colours::transparentBlack;
         ringSource_ = modulation::ModSource::None;
+        ringAmountNormalized_ = 0.0f;
+        showDepthPopover_ = false;
         repaint();
+    }
+
+    void GlowKnob::mouseDrag(const juce::MouseEvent& event)
+    {
+        if (!depthDragActive_ || modProcessor_ == nullptr)
+            return;
+
+        const auto range = modAmountRangeFor(modDestination_);
+        const float span = range.max - range.min;
+        const float delta = (static_cast<float>(event.position.x) - depthDragStartX_) * (span / 100.0f);
+        for (const auto& route : modProcessor_->getCurrentPatch().layerA.modRoutes)
+        {
+            if (route.isActive() && route.destination == modDestination_ && route.targetIndex == modTargetIndex_)
+            {
+                updateModRouteAmount(*modProcessor_, route, depthDragStartAmount_ + delta);
+                break;
+            }
+        }
+        timerCallback();
+    }
+
+    void GlowKnob::mouseUp(const juce::MouseEvent&)
+    {
+        depthDragActive_ = false;
     }
 
     bool GlowKnob::isInterestedInDragSource(const SourceDetails& details)
@@ -150,9 +205,13 @@ namespace pw8::plugin::ui
         const auto source = parseModSourceDragDescription(details.description.toString());
         if (source.has_value() && modProcessor_ != nullptr)
         {
-            modProcessor_->setOrReplaceModRouteLive(*source, modDestination_, modTargetIndex_,
-                                                      defaultModAmountFor(modDestination_));
-            ringColour_ = palette::modSourceColour(static_cast<int>(*source)); // Immediate, don't wait for the next poll.
+            assignModRoute(*modProcessor_, *source, modDestination_, modTargetIndex_);
+            ringColour_ = palette::modSourceColour(static_cast<int>(*source));
+            ringSource_ = *source;
+            ringAmountNormalized_ = 1.0f;
+            showDepthPopover_ = true;
+            if (modAssignment_ != nullptr)
+                modAssignment_->disarm();
         }
         repaint();
     }
@@ -162,8 +221,11 @@ namespace pw8::plugin::ui
         auto bounds = getLocalBounds().reduced(4);
         nameLabel_.setBounds(bounds.removeFromBottom(kNameLabelHeight));
 
-        const int dialDiameter =
-            juce::jmin(kMaxKnobDiameter, bounds.getWidth(), juce::jmax(32, bounds.getHeight() - kTextBoxHeight));
+        if (showDepthPopover_ && modProcessor_ != nullptr)
+            depthPopoverArea_ = bounds.removeFromBottom(kDepthPopoverHeight).reduced(8, 2);
+
+        const int dialDiameter = juce::jmin(maxDialDiameter_, bounds.getWidth(),
+                                           juce::jmax(32, bounds.getHeight() - kTextBoxHeight));
         const int textBoxWidth = juce::jmin(72, juce::jmax(44, bounds.getWidth() - 4));
         slider_.setTextBoxStyle(juce::Slider::TextBoxBelow, false, textBoxWidth, kTextBoxHeight);
         slider_.setBounds(bounds.withSizeKeepingCentre(bounds.getWidth(), dialDiameter + kTextBoxHeight));
@@ -171,12 +233,23 @@ namespace pw8::plugin::ui
 
     void GlowKnob::paintOverChildren(juce::Graphics& g)
     {
+        if (showDepthPopover_ && !depthPopoverArea_.isEmpty())
+        {
+            auto pop = depthPopoverArea_.toFloat();
+            g.setColour(palette::kPanelRaised);
+            g.fillRoundedRectangle(pop, 3.0f);
+            auto fill = pop.reduced(2.0f);
+            fill.setWidth(fill.getWidth() * ringAmountNormalized_);
+            g.setColour(ringColour_.isTransparent() ? palette::kAccent : ringColour_.withAlpha(0.75f));
+            g.fillRoundedRectangle(fill, 2.0f);
+            g.setColour(palette::kTextDim);
+            g.setFont(fonts::label(9.0f));
+            g.drawText("DEPTH", depthPopoverArea_, juce::Justification::centred);
+        }
+
         if (ringColour_.isTransparent() && !dragHover_)
             return;
 
-        // Matches ObsidianLookAndFeel::drawRotarySlider's own geometry (bounds
-        // reduced by 4, diameter = min(w,h)) so this ring sits flush around the
-        // knob body it belongs to regardless of this GlowKnob's exact cell size.
         auto sliderBounds = slider_.getBounds().toFloat().reduced(4.0f);
         const float diameter = juce::jmax(16.0f, juce::jmin(sliderBounds.getWidth(), sliderBounds.getHeight()));
         const auto knobBounds =
@@ -189,8 +262,13 @@ namespace pw8::plugin::ui
         }
         if (!ringColour_.isTransparent())
         {
+            const float startAngle = juce::MathConstants<float>::pi * 1.2f;
+            const float endAngle = startAngle + (juce::MathConstants<float>::pi * 1.6f) * ringAmountNormalized_;
+            juce::Path arc;
+            arc.addCentredArc(knobBounds.getCentreX(), knobBounds.getCentreY(), knobBounds.getWidth() * 0.5f,
+                              knobBounds.getHeight() * 0.5f, 0.0f, startAngle, endAngle, true);
             g.setColour(ringColour_.withAlpha(0.85f));
-            g.drawEllipse(knobBounds, 2.0f);
+            g.strokePath(arc, juce::PathStrokeType(2.2f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
         }
     }
 

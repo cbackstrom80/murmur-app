@@ -5,6 +5,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "../../theme/ObsidianDraw.h"
 #include "../../theme/ObsidianPalette.h"
 
 // Shared pseudo-3D wireframe mesh projection and glow stroke used by every OSC
@@ -45,12 +46,7 @@ namespace pw8::plugin::ui::wireframe
 
     inline void strokeGlowPath(juce::Graphics& g, const juce::Path& path, float alpha, float strokeWidth, bool live)
     {
-        g.setColour(palette::kAccent.withAlpha(alpha * 0.25f));
-        g.strokePath(path, juce::PathStrokeType(strokeWidth * 2.2f, juce::PathStrokeType::curved,
-                                                   juce::PathStrokeType::rounded));
-        g.setColour((live ? palette::kAccent : palette::kBorderBright).withAlpha(alpha));
-        g.strokePath(path, juce::PathStrokeType(strokeWidth, juce::PathStrokeType::curved,
-                                                 juce::PathStrokeType::rounded));
+        draw::strokeGlowPath(g, path, alpha, strokeWidth, live);
     }
 
     /// Paint a depth stack where row `r` samples `sampleAt(r, p)` in [-1, 1].
@@ -182,8 +178,14 @@ namespace pw8::plugin::ui::wireframe
 
             g.setColour(palette::kAccent.withAlpha(alpha * 0.12f));
             g.fillPath(bar);
-            g.setColour((i == 0 ? palette::kAccent : palette::kBorderBright).withAlpha(alpha));
-            g.strokePath(bar, juce::PathStrokeType(i == 0 ? 1.8f : 1.0f));
+
+            juce::Path topEdge;
+            topEdge.startNewSubPath(x - barWidth * 0.25f, yBase - towerH);
+            topEdge.lineTo(x + barWidth * 0.25f, yBase - towerH);
+            strokeGlowPath(g, topEdge, alpha, i == 0 ? 1.8f : 1.1f, i == 0);
+
+            g.setColour((i == 0 ? palette::kAccent : palette::kBorderBright).withAlpha(alpha * 0.55f));
+            g.strokePath(bar, juce::PathStrokeType(0.9f));
         }
     }
 

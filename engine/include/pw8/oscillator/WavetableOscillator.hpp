@@ -63,9 +63,13 @@ namespace pw8::oscillator
             const float out = readTable(table, dsp::clamp(framePosition01, 0.0f, 1.0f), readPhase);
 
             const float dt = static_cast<float>(frequencyHz_ / sampleRate_);
+            const float phaseBefore = phase_;
             phase_ = dsp::wrapPhase(phase_ + dt);
+            didWrapThisSample_ = phase_ < phaseBefore;
             return out;
         }
+
+        [[nodiscard]] bool didWrapThisSample() const noexcept { return didWrapThisSample_; }
 
     private:
         [[nodiscard]] static float readTable(const WavetableView& table, float framePosition01, float phase) noexcept
@@ -88,6 +92,7 @@ namespace pw8::oscillator
         double sampleRate_ = 48000.0;
         float frequencyHz_ = 440.0f;
         float phase_ = 0.0f;
+        bool didWrapThisSample_ = false;
     };
 
 } // namespace pw8::oscillator

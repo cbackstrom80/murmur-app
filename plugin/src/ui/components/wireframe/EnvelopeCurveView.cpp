@@ -2,6 +2,7 @@
 
 #include "../../theme/ObsidianFonts.h"
 #include "../../theme/ObsidianPalette.h"
+#include "EnvelopePathBuilder.h"
 #include "WireframeProjection.h"
 #include "state/PluginState.h"
 
@@ -15,90 +16,6 @@ namespace pw8::plugin::ui::wireframe
             if (auto* raw = apvts.getRawParameterValue(id))
                 return raw->load();
             return fallback;
-        }
-
-        void appendCurvedSegment(juce::Path& path, float x0, float x1, float y0, float y1, float curveShape,
-                                  bool shapeUp, int steps)
-        {
-            path.lineTo(x0, y0);
-            for (int i = 1; i <= steps; ++i)
-            {
-                const float t = static_cast<float>(i) / static_cast<float>(steps);
-                const float shaped = shapeUp ? envelopeShapeUp(t, curveShape) : envelopeShapeDown(t, curveShape);
-                const float y = y0 + (y1 - y0) * shaped;
-                const float x = x0 + (x1 - x0) * t;
-                path.lineTo(x, y);
-            }
-        }
-
-        void buildEnvelopePath(const EnvelopePreviewParams& params, juce::Rectangle<float> bounds, juce::Path& outline,
-                                juce::Path& fillPath, float& sustainEndX)
-        {
-            const float minStage = 0.06f;
-            const float sustainDisplay = juce::jmax(0.18f, minStage);
-            const float delayW = params.delaySeconds > 0.0f ? juce::jmax(minStage, params.delaySeconds) : 0.0f;
-            const float attackW = juce::jmax(minStage, params.attackSeconds);
-            const float holdW = params.holdSeconds > 0.0f ? juce::jmax(minStage, params.holdSeconds) : 0.0f;
-            const float decayW = juce::jmax(minStage, params.decaySeconds);
-            const float releaseW = juce::jmax(minStage, params.releaseSeconds);
-            const float totalW = delayW + attackW + holdW + decayW + sustainDisplay + releaseW;
-
-            auto xFor = [&](float stageStart) { return bounds.getX() + (stageStart / totalW) * bounds.getWidth(); };
-            auto yFor = [&](float level)
-            {
-                return bounds.getBottom() - level * bounds.getHeight() * 0.88f - bounds.getHeight() * 0.06f;
-            };
-
-            outline.clear();
-            fillPath.clear();
-
-            float cursor = 0.0f;
-            const float yZero = yFor(0.0f);
-            outline.startNewSubPath(xFor(cursor), yZero);
-
-            if (delayW > 0.0f)
-            {
-                const float x1 = xFor(cursor + delayW);
-                outline.lineTo(x1, yZero);
-                cursor += delayW;
-            }
-
-            {
-                const float x0 = xFor(cursor);
-                const float x1 = xFor(cursor + attackW);
-                appendCurvedSegment(outline, x0, x1, yFor(0.0f), yFor(1.0f), params.curveShape, true, 32);
-                cursor += attackW;
-            }
-
-            if (holdW > 0.0f)
-            {
-                const float x1 = xFor(cursor + holdW);
-                outline.lineTo(x1, yFor(1.0f));
-                cursor += holdW;
-            }
-
-            {
-                const float x0 = xFor(cursor);
-                const float x1 = xFor(cursor + decayW);
-                appendCurvedSegment(outline, x0, x1, yFor(1.0f), yFor(params.sustainLevel), params.curveShape, false,
-                                    32);
-                cursor += decayW;
-            }
-
-            sustainEndX = xFor(cursor + sustainDisplay);
-            outline.lineTo(sustainEndX, yFor(params.sustainLevel));
-
-            {
-                const float x0 = sustainEndX;
-                const float x1 = xFor(cursor + sustainDisplay + releaseW);
-                appendCurvedSegment(outline, x0, x1, yFor(params.sustainLevel), yFor(0.0f), params.curveShape, false,
-                                    32);
-            }
-
-            fillPath = outline;
-            fillPath.lineTo(outline.getBounds().getRight(), bounds.getBottom());
-            fillPath.lineTo(bounds.getX(), bounds.getBottom());
-            fillPath.closeSubPath();
         }
     } // namespace
 

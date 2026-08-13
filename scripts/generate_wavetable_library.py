@@ -268,6 +268,55 @@ MANIFEST = [
 
 assert len(MANIFEST) == 50, f"expected 50 manifest entries, got {len(MANIFEST)}"
 
+# ---------------------------------------------------------------------------
+# Granular-engine source tables (engine type 6). Longer frame counts give the
+# grain pool more distinct material to scrub through; category is always
+# "granular" so factory preset generation can pick from WT["gran"] exclusively.
+# ---------------------------------------------------------------------------
+
+GRAN_MANIFEST = [
+    ("gran-cloud-drift", "granular", ["evolving", "airy"], 24,
+     lambda: morph(24, lambda t, i: mix_frames(
+         noise_spectrum_frame(N, seed=900 + i, brightness=0.25 + 0.55 * t),
+         additive_frame(N, saw_amps(6)), 0.08 + 0.12 * t))),
+    ("gran-glass-spray", "granular", ["glassy", "bright"], 16,
+     lambda: morph(16, lambda t, i: bell_frame(N, spread=1.2 + 3.0 * t, decay=0.55 + 0.25 * t,
+                                                 base_ratios=(1, 2, 3, 5, 8, 13), count=6))),
+    ("gran-vocal-dust", "granular", ["organic", "evolving"], 12,
+     lambda: morph(12, lambda t, i: mix_frames(
+         formant_frame(N, lerp_formants(VOWEL_AA, VOWEL_OO, t)),
+         noise_spectrum_frame(N, seed=1000 + i, brightness=0.35 + 0.4 * t), 0.2 + 0.35 * t))),
+    ("gran-tape-warmth", "granular", ["dark", "warm"], 12,
+     lambda: morph(12, lambda t, i: mix_frames(
+         noise_spectrum_frame(N, seed=1100 + i, brightness=0.08 + 0.2 * t),
+         fold_frame(additive_frame(N, saw_amps(4)), amount=0.05 + 0.12 * t), 0.35))),
+    ("gran-crystal-burst", "granular", ["airy", "bright"], 16,
+     lambda: morph(16, lambda t, i: sparse_harmonics_frame(N, {
+         h: (0.85 ** j) * (0.4 + 0.6 * t) for j, h in enumerate([3, 5, 8, 13, 21, 34, 55][:4 + i % 4])}))),
+    ("gran-sub-rumble", "granular", ["dark", "ambient"], 12,
+     lambda: morph(12, lambda t, i: additive_frame(N, [1.0, 0.45 - 0.2 * t, 0.25 - 0.1 * t, 0.12, 0.06]))),
+    ("gran-digital-glitch", "granular", ["digital", "gritty"], 12,
+     lambda: morph(12, lambda t, i: quantize_frame(
+         mix_frames(noise_spectrum_frame(N, seed=1200 + i, brightness=0.5 + 0.45 * t),
+                    pulse_frame(N, 0.15 + 0.6 * t, num_harmonics=24), 0.25 + 0.35 * t),
+         levels=max(4, round(8 + 10 * t))))),
+    ("gran-ocean-swell", "granular", ["evolving", "lush"], 32,
+     lambda: morph(32, lambda t, i: mix_frames(
+         fold_frame(additive_frame(N, lerp_amps(sine_amps(12), saw_amps(12), 0.3 + 0.4 * math.sin(t * math.pi))),
+                    amount=0.08 + 0.18 * t),
+         noise_spectrum_frame(N, seed=1300 + i, brightness=0.2 + 0.5 * t), 0.18 + 0.22 * t))),
+    ("gran-frozen-grit", "granular", ["gritty", "dark"], 8,
+     lambda: morph(8, lambda t, i: mix_frames(
+         noise_spectrum_frame(N, seed=1400 + i, brightness=0.12 + 0.35 * t),
+         chebyshev_frame(N, [0, 0.5, 0.25 * t, 0.15 * t]), 0.3 + 0.25 * t))),
+    ("gran-shimmer-voice", "granular", ["evolving", "organic"], 16,
+     lambda: morph(16, lambda t, i: mix_frames(
+         formant_frame(N, lerp_formants(VOWEL_EE, VOWEL_OH, t)),
+         bell_frame(N, spread=2.0 + 2.5 * t, decay=0.7, count=5), 0.15 + 0.2 * t))),
+]
+
+ALL_MANIFEST = MANIFEST + GRAN_MANIFEST
+
 
 # ---------------------------------------------------------------------------
 # Generation
@@ -280,7 +329,7 @@ def generate() -> list[dict]:
 
     SOURCES_DIR.mkdir(parents=True, exist_ok=True)
     results = []
-    for name, category, moods, frame_count, build_fn in MANIFEST:
+    for name, category, moods, frame_count, build_fn in ALL_MANIFEST:
         frames = build_fn()
         assert len(frames) == frame_count, f"{name}: expected {frame_count} frames, got {len(frames)}"
 
@@ -314,7 +363,8 @@ def write_manifest_doc(results: list[dict]) -> None:
         "Factory wavetable data, built with `pw8-wavetable-builder`"
         " (see `tools/wavetable_builder/`) via `scripts/generate_wavetable_library.py`.",
         "",
-        f"{len(results)} tables, all at {SAMPLES_PER_FRAME} samples/frame, {MIP_LEVELS} mip levels"
+        f"{len(MANIFEST)} classic tables + {len(GRAN_MANIFEST)} granular-engine tables,"
+        f" all at {SAMPLES_PER_FRAME} samples/frame, {MIP_LEVELS} mip levels"
         " (only frame count varies per table). Source WAVs (used to regenerate the JSON tables"
         " if the builder ever changes) live under `sources/`.",
         "",
@@ -323,6 +373,9 @@ def write_manifest_doc(results: list[dict]) -> None:
     ]
     for r in results:
         lines.append(f"| `{r['name']}.json` | {r['category']} | {', '.join(r['moods'])} | {r['frames']} |")
+    lines.append("")
+    lines.append(f"Granular-engine tables (`gran-*`) are authored for Engine Type 6 — long frame counts"
+                  f" so grain position jitter has rich material to scan.")
     lines.append("")
     lines.append("Plus `basic_harmonic.json` (the original UI-GATE-5-era example, kept as-is)"
                   " and `basic_harmonic_source.wav`.")
@@ -416,7 +469,7 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.skip_generate:
-        results = [{"name": name, "category": c, "moods": m, "frames": f} for name, c, m, f, _ in MANIFEST]
+        results = [{"name": name, "category": c, "moods": m, "frames": f} for name, c, m, f, _ in ALL_MANIFEST]
     else:
         results = generate()
         write_manifest_doc(results)

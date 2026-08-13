@@ -1,0 +1,717 @@
+{
+  "presets": [
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/init-saw.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "f2bc8d87589da04462db09af74576d9f1c28351aee7f39bb249b45ecf255e6be"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/fm-bell.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "448f8500660eed157bba6056e17bc20a95f6b337426ea01b6d1be33f7e506068"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/wt-morph.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "4f6fb04ea94701bd989e57562b0847c2c9f2c6a32322a6ad476a8043e3e2435a"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/arp-pluck.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "0d7183e8892eedbdcc19bc9a476522338aa204790efe50d2aa9a01093b6d313c"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Basses/01-slack-drive.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "0056f78561ebff5f16b0d52e6978f064caea0a33d3efb30d80e4d047fbf78819"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Basses/04-ratio-pulse.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "61d37df290405413932af07d2855b8e4ea9ab6d031d9609fa744c2a9121c5012"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Basses/07-coil-low.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "463942f0eebfc5840526b453fbc97c844f305e158f887aeb14947e93012a2c0d"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Basses/10-ladder-low.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "465b918b44d81ca3c7a07838d31bb5db188c28ca191e1280e3cc4e0dac1e4577"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Basses/13-bronze-line.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "1032840b406c2e9207b6bb5790deef1dd657dd119ef6e64e6c3f03c4b77291b9"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Basses/16-sludge-depth.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "1e66a67c3e112b8dda67a20c75ab7dd343f87e4faa779628fb3f61c6a65c4d5e"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Basses/19-slack-bass.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "342e7cf1467e297301318a146a89b9fc24b19977c24eec6dd9ceda0510c8e829"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Basses/22-trench-sub.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "7e8c75b1693d6e57dcf900b30f16b3c337f1de87bcd94740ea76ee6ab14cb4f5"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Basses/25-squelch-line.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "343d1d0d1ef5d6fe27bccc9c8dcef0a69b846a11cbc6571ffac2cfb6a247451f"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Basses/28-growl-drive.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "b7dacfb767c24a9b3efde19547126c35884182490209adaab68d05b07d055806"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Basses/31-fathom-low.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "726abfc777d4aeb8875e321f53a088e7a5deb88459609ffda5e875dcfc28464a"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Basses/34-accent-sub.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "2cdcb8a36912dc7da71ab6ce96774e1bdc91aced553d237b05f502b40a0f4fce"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Basses/37-accent-low.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "b0d02fb272c6e3fe3782a582d6ea55006f94ff2f4d1623e9e79a35e39b68b1fc"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Basses/40-grind-drive.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "78e7faf23e0989e2da03e11035d7266fcdd79a78d91ebf31e9b4566b0f49cf90"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Basses/43-thud-bass.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "96989618b63fc3f27d29722e5289ec27585f76f72b0e70f05e60798d7706abb9"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Basses/46-bronze-growl.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "b38965385fd501f26490ce507155d117509b4a304bf757ca468f57f7a9848c03"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Basses/49-root-low.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "cf53feb60c584b3cbbf9bd1d64dbcf1dd56d755cd22ff8d1bf8d8f6cc2407171"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Leads/01-comet-spike.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "2a857365c59ac159ff4c181532b7d85be4f66994113523aa4f9a844249e46e14"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Leads/04-pixel-sync.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "ebc36344a90d85e4454bc807595387fdc755db2410bbef30fcf9482bf4462ae2"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Leads/07-prism-cut.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "b3856d1ec781d763d521682a2036e8c2993cc55c51669577c6cbf467bde89cb7"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Leads/10-glass-line.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "f950e67d9573e63805918201a8cd16a8404365e672489488668964b685029e21"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Leads/13-flare-sync.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "e91e4b51883bf6154627b6105ac80f67d41a17f1c5bb651c32e6b1225f2a4ec6"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Leads/16-comet-edge.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "b85812479d3cd37b5341c41ac63b0ba75d0bbcb766203d0e1912401083bee1bf"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Leads/19-vector-lead.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "ab2717e58374a3a25588cfab7a97a0554829f494d10510be11f141fedd20dc50"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Leads/22-blade-spike.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "b84fcdc611aa2639228c0380d8732699c9b6757714ff57680933b27cb7fbd6df"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Leads/25-solar-wave.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "b91cfc84b7c5bdf477ac45ceeecd4b7d1e8ce4455740722412c67c03474132cf"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Leads/28-glass-beam.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "a595644cc85fef74fb0c247d2dfcf93cbaf4e069f8c3d06319ea4fee5824ad0a"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Leads/31-spike-line.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "93ca27582d5ea014c2ec5622ffa1706fd24cdf105c30b42f8c6e521f0135e37a"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Leads/34-pixel-beam.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "91530c7a0caaf507cf7fc580dcc455f9b4eb8bf7d4342a7d744baf3528d76b20"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Leads/37-fifth-section.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "f6431d51ddcc1b6e126693f53bd73298fad7e32190daff003e31018ab631d18c"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Leads/40-voltage-wave.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "6c4f5b7b138bf48977fdfc3ebfee6cd05a83724806750b0244973a3b384b2314"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Leads/43-voltage-sync.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "784f726f8efe75e082ab49983023a8ec72eaac186b9c19ef8766a16110995f60"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Leads/46-vector-wave.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "aead22c5080d678da79d445abc27f0f7ef79894a78b9dbc68375655350cc00a8"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Leads/49-voltage-line.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "18559e0afe2892742bd6015755e4c1bc5c3afa75e0b80d4d265baa13dfc8f291"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Pads/01-amber-pad.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "0cc97db8ba31140a20d84e1d1d0b0629e725b5eab06503c7abc3325421a11724"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Pads/04-feather-drift.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "887900ddef07cc98b6c2f93a5776fc80e5f83a6d8522f88a5955750542b20f28"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Pads/07-pale-sky.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "17ecbd611ed5881c2d0882be132e1677bef1df19b24bc2477f79250fea2f51dc"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Pads/10-velvet-veil.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "80cc59226b6220eff20338a5a268e1b56fb17a2e3dbe49ce650ed6c4484d4ff5"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Pads/13-wistful-pad.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "cf9b042b0f0e5f85bba7daf0f10541aa3c727d3c10bdad865d63004603aa40e8"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Pads/16-halcyon-field.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "612a5d4cdb496960e96ad118a14bb71d0a8438161ac47d2664efc2039ed594af"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Pads/19-dawn-pad.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "79c59da306fe59944c18341f306ba9e452c44b75daa9ea3776758c2722096a22"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Pads/22-faded-pad.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "04e6f14b4f65f274affc4c79ccfd7eb4becad335a3061c3af8eba3332207e216"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Pads/25-swell-wash.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "73956e8347467aa79c4f59b366618c08e053fe48d5ea1f57ad69b1c8e0d954fc"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Pads/28-bucket-glow.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "91d9633d17287497ebe16c01fdcf80750e1bef703cfb8e422fe8ec26bc57bbe2"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Pads/31-quiet-glow.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "0cc26231184a792cef6d5c69d93cda7e0d09a6e43b09d115c8bc7c74d81530d8"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Pads/34-quiet-bloom.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "b1cad36ef11aef54bf97a483cc84b19d8996026d6ac3e461d879bcd0a94e3a47"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Pads/37-distant-sky.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "727e08a771c6dae4fc686f54ba9b3b26cac524a0e1879d524ba2a67e4c1dbc90"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Pads/40-chorus-stack.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "33461ec6882a795a50d11c5cc0b03835f308762551074aeaf7663c3b9bb541f6"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Pads/43-feather-bloom.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "8c3b136d3eb2fb57b7f2d5d662106a58de68c5c84b1283d2febf31dace362fa1"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Pads/46-marble-hymn.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "ab3f6a4f741a56e304ded52edcdffc6769931982a49928223c5da26a3a04e9f3"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Pads/49-haze-stack.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "02fbcf4c34e63d2cc199d04a3504d7a64c766b7ff4182177905b29109bb66906"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Ambient/01-nebula-expanse.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "608ebb8510cdbcf65520cbf8200d6bab8d380854fbe5cc0d0c009995954ec6c6"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Ambient/04-ash-wash.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "c483f9d2d9a3f92ca096958efd304e1a44cc17e6d2fb89dd4b93d85f5d460764"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Ambient/07-drift-cloud.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "0fe68d357b486e9d01014e8d455090a713b68c2e9f351e3ce7a033263d9437b1"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Ambient/10-sietch-drone.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "57773288a609b3f36e9cbf9f8abdad079bd35b3b8b2816262646385603448158"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Ambient/13-resonant-drift.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "d47cfdd9d5a4cde0fa0dc667246cce3d17acb38f12811c752a6f5b47f9ed74c7"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Ambient/16-nebula-drift.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "95acf0ffa2669590a5050dc989611cba7bce1ad4a63e3533f74b4731ddd4156e"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Ambient/19-sietch-hymn.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "879a81e039177ffeddc7c72416e9f7a1edfd508be23a52b0fb982f7e2379bb08"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Ambient/22-sere-echo.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "ab9d743533bf3526c3691eec8a0c86f54fd6258025f9f826776dee99b258686e"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Ambient/25-threnody-hymn.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "d85b77c501594981bd7fc5a91f1d0b00977f7fb6597e3a74cbc77e7e65085f71"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Ambient/28-fen-hymn.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "8c5c224895e4730b552a50170267416fc1af7c21f43e318b733b095619e76a4b"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Ambient/31-ochre-expanse.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "bb6c3efed2a7ec96920b6df93ff9e651f399ce8c31b72ff707e5b1310b2c06b2"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Ambient/34-resonant-riser.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "cd3e0adbefaac0a9e0e66e78b04f872bae7724be4593ef61379e357836bbd154"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Ambient/37-sietch-echo.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "d0a4d0f35b18dbf32d68d81e95e29dc51e4681b92d533d74751e6c110b7d3955"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Ambient/40-fen-drone.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "c2c8db2979038f4918b8992f3618621b9c3dfa113f7b3fa59449a976fafb013c"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Ambient/43-vapor-echo.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "b91dd73c94e96ab3cd05fb80619a99b166a1845b926b8f863ec858c75c927f3b"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Ambient/46-fen-drift.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "a4b3a61740112a0ad39b24c185fb0ba0eb4868c9ae12a32399dc54174d1e9a7b"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Ambient/49-resonant-cave.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "999c57c46783c69bf7eab8cfc71b540f60aa88db9dbfda23d572ad00ebc60f1b"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Sequences/01-stutter-motif.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "6a11dfec7a197374876b627c0fee09f22f325d8808d31614819b7d3fbcb3c683"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Sequences/04-loom-cycle.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "c45e397d517740b9b1160b837dc66083e2eda08560055b57754183ad4028c4ef"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Sequences/07-glass-cycle.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "a0e007749388a0dff2863a0b87d51c98229840d5cdd15444aea8aeda3fd59ec1"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Sequences/10-relay-step.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "b690bdea20faea0810c2dc4e8d2244fd6799d4925ebe29ac4778947a4d49b5f0"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Sequences/13-motor-motor.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "a6cb309323891c1e46cc8cdc3106c707256f663c87967f0f01da6eaa81906fdd"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Sequences/16-stab-chime.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "2f8f5156ebe207de6ee39d439c253a74df8d6499c78f4e957b401e01c716fde3"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Sequences/19-stutter-loop.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "9d38c785ac0ce8939b8feadbc3a75a6c2a933bd50494b4eb9c8c3b0fc7de6dc9"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Sequences/22-pendulum-sequence.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "8753a6b6709bab2e669834a1808b2e6b769db6972e46f7dab73cff15100be4d3"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Sequences/25-chime-motor.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "3d0164a3483e8d275438c3fb0ccca4e9b81aa29a0cb8ce2f5b69395cb0ecc618"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Sequences/28-ratchet-motor.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "2aec7441b5fc55764c437724a4fb736c6d4fef1fac51cb4d866881769f17aec1"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Sequences/31-gate-step.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "c18f57c43d2243b6a671920171373bd21567250de9e36f4eadfcdd2e2c384567"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Sequences/34-tumble-sequence.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "3c8ce8d7c1916661cbc5f742e88a112b1c652b2a105d98f8caa2139f886a9cd7"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Sequences/37-accent-step.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "e24ab938ed24a28aee23c5c986f12b5eae32fc3225789f8a811a68a618f2d212"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Sequences/40-ratchet-sequence.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "d02c79e43769919a51638ce694cbb8830b95ba97d72f2952d80faebba7a37be7"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Sequences/43-tine-step.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "99d344ef446e75383990673cc62c25789c4d2797ba63b61f6b8cb781584743d1"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Sequences/46-chime-step.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "c2605d58eacd0785456d870e764d5bc2b74d95a08710404043f3b974078ba8d4"
+    },
+    {
+      "durationSeconds": 1.5,
+      "path": "content/presets/factory/Sequences/49-loom-run.pw8",
+      "quality": "offline",
+      "sampleRate": 48000.0,
+      "seed": 5273400,
+      "sha256": "0a610eb964e401b4b69df8cee799efd045d7ce3ff9093324961e020c27512ba6"
+    }
+  ],
+  "schemaVersion": 1
+}

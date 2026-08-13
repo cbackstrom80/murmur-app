@@ -1,5 +1,6 @@
 #include "ModSourceChip.h"
 
+#include "../theme/ObsidianDraw.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 
@@ -7,9 +8,6 @@ namespace pw8::plugin::ui
 {
     namespace
     {
-        // The shared prefix every GlowKnob drop target checks for in
-        // isInterestedInDragSource -- keeps the encoding in exactly two places
-        // (here and GlowKnob.cpp) rather than a magic string repeated everywhere.
         constexpr const char* kDragDescriptionPrefix = "pw8modsource:";
     } // namespace
 
@@ -42,7 +40,7 @@ namespace pw8::plugin::ui
             case ModSource::Lfo6: return "LFO 6";
             case ModSource::Lfo7: return "LFO 7";
             case ModSource::Lfo8: return "LFO 8";
-            case ModSource::Env1: return "AMP ENV"; // Matches this chip's own label -- see header doc comment.
+            case ModSource::Env1: return "AMP ENV";
             case ModSource::Env2: return "ENV 2";
             case ModSource::Env3: return "ENV 3";
             case ModSource::Env4: return "ENV 4";
@@ -86,19 +84,31 @@ namespace pw8::plugin::ui
         return "-";
     }
 
-    ModSourceChip::ModSourceChip(modulation::ModSource source, const juce::String& label, juce::Colour colour)
-        : source_(source), label_(label), colour_(colour)
+    ModSourceChip::ModSourceChip(ModAssignmentController& controller, modulation::ModSource source,
+                                 const juce::String& label, juce::Colour colour)
+        : controller_(controller), source_(source), label_(label), colour_(colour)
     {
-        setMouseCursor(juce::MouseCursor::DraggingHandCursor);
+        setMouseCursor(juce::MouseCursor::PointingHandCursor);
+        setHelpText("Click to select, then click a Cutoff/Resonance knob. Or drag onto a ringed knob.");
     }
 
     void ModSourceChip::paint(juce::Graphics& g)
     {
+        const bool armed = controller_.armedSource() == source_;
         const auto bounds = getLocalBounds().toFloat().reduced(1.0f);
-        g.setColour(colour_.withAlpha(0.16f));
-        g.fillRoundedRectangle(bounds, bounds.getHeight() * 0.5f);
-        g.setColour(colour_);
-        g.drawRoundedRectangle(bounds.reduced(0.5f), bounds.getHeight() * 0.5f, 1.2f);
+
+        if (armed)
+        {
+            g.setColour(colour_.withAlpha(0.35f));
+            g.fillRoundedRectangle(bounds, bounds.getHeight() * 0.5f);
+            draw::strokeGlowPath(g, draw::roundedRectPath(bounds, bounds.getHeight() * 0.5f), 0.95f, 1.5f, true);
+        }
+        else
+        {
+            draw::fillRecessedRoundedRect(g, bounds, bounds.getHeight() * 0.5f);
+            g.setColour(colour_);
+            g.drawRoundedRectangle(bounds.reduced(0.5f), bounds.getHeight() * 0.5f, 1.0f);
+        }
 
         g.setColour(colour_);
         g.fillEllipse(bounds.getX() + 7.0f, bounds.getCentreY() - 3.0f, 6.0f, 6.0f);
@@ -113,6 +123,14 @@ namespace pw8::plugin::ui
         dragStarted_ = false;
     }
 
+    void ModSourceChip::mouseUp(const juce::MouseEvent& event)
+    {
+        if (dragStarted_ || event.getDistanceFromDragStart() >= 6)
+            return;
+        controller_.arm(source_);
+        repaint();
+    }
+
     void ModSourceChip::mouseDrag(const juce::MouseEvent& event)
     {
         if (dragStarted_ || event.getDistanceFromDragStart() < 6)
@@ -121,6 +139,7 @@ namespace pw8::plugin::ui
         if (auto* container = juce::DragAndDropContainer::findParentDragContainerFor(this))
         {
             dragStarted_ = true;
+            controller_.disarm();
             container->startDragging(modSourceDragDescription(source_), this);
         }
     }

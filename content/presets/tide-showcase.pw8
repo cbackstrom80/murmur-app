@@ -65,7 +65,7 @@
       },
       {
         "engine": 5,
-        "wavetableId": "content/wavetables/texture-granular-shimmer.json",
+        "wavetableId": "content/wavetables/gran-ocean-swell.json",
         "wavetableFramePosition": 0.2,
         "frequencyRatio": 1.0,
         "keyTrack": true,

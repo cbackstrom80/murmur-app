@@ -22,6 +22,7 @@ add_library(pw8_core STATIC
     src/patch/PatchSerializer.cpp
     src/midi/StandardMidiFile.cpp
     src/oscillator/WavetableTableLoader.cpp
+    src/content/WavetableCache.cpp
     src/render/Engine.cpp
     src/render/Renderer.cpp
     src/render/WavWriter.cpp

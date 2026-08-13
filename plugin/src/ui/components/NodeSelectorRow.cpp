@@ -1,5 +1,6 @@
 #include "NodeSelectorRow.h"
 
+#include "../theme/ObsidianDraw.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "pw8/algorithm/AlgorithmTypes.hpp"
@@ -68,13 +69,22 @@ namespace pw8::plugin::ui
         {
             const auto bounds = pillBounds(i);
             const auto engine = patch.layerA.operators[static_cast<std::size_t>(i)].engine;
+            const auto boundsF = bounds.toFloat();
             const bool selected = !globalScope_ && i == selectedNode_;
             const bool implemented = algorithm::isEngineImplemented(engine);
 
-            g.setColour(selected ? palette::kAccent.withAlpha(0.25f) : palette::kPanelRaised);
-            g.fillRoundedRectangle(bounds.toFloat(), 4.0f);
-            g.setColour(selected ? palette::kAccent : palette::kBorderBright);
-            g.drawRoundedRectangle(bounds.toFloat(), 4.0f, selected ? 1.5f : 1.0f);
+            if (selected)
+            {
+                g.setColour(palette::kAccent.withAlpha(0.18f));
+                g.fillRoundedRectangle(boundsF, 4.0f);
+                draw::strokeGlowPath(g, draw::roundedRectPath(boundsF.reduced(0.5f), 4.0f), 0.95f, 1.3f, true);
+            }
+            else
+            {
+                draw::fillRecessedRoundedRect(g, boundsF.reduced(0.5f), 4.0f);
+                g.setColour(palette::kBorder);
+                g.drawRoundedRectangle(boundsF.reduced(0.5f), 4.0f, 1.0f);
+            }
 
             g.setColour(implemented ? palette::kTextPrimary : palette::kTextDim);
             g.setFont(fonts::label(10.0f));
@@ -84,11 +94,25 @@ namespace pw8::plugin::ui
 
         {
             const auto bounds = globalPillBounds();
+            const auto boundsF = bounds.toFloat();
             const bool selected = globalScope_;
-            g.setColour(selected ? palette::kAccentWarm.withAlpha(0.28f) : palette::kPanelRaised);
-            g.fillRoundedRectangle(bounds.toFloat(), 4.0f);
-            g.setColour(selected ? palette::kAccentWarm : palette::kBorderBright);
-            g.drawRoundedRectangle(bounds.toFloat(), 4.0f, selected ? 1.5f : 1.0f);
+            if (selected)
+            {
+                g.setColour(palette::kAccentWarm.withAlpha(0.2f));
+                g.fillRoundedRectangle(boundsF, 4.0f);
+                juce::Path outline;
+                outline.addRoundedRectangle(boundsF.reduced(0.5f), 4.0f);
+                g.setColour(palette::kAccentWarm.withAlpha(0.25f));
+                g.strokePath(outline, juce::PathStrokeType(2.6f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+                g.setColour(palette::kAccentWarm.withAlpha(0.95f));
+                g.strokePath(outline, juce::PathStrokeType(1.2f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+            }
+            else
+            {
+                draw::fillRecessedRoundedRect(g, boundsF.reduced(0.5f), 4.0f);
+                g.setColour(palette::kBorder);
+                g.drawRoundedRectangle(boundsF.reduced(0.5f), 4.0f, 1.0f);
+            }
             g.setColour(selected ? palette::kTextPrimary : palette::kTextSecondary);
             g.setFont(fonts::label(10.0f));
             g.drawText("GLOBAL", bounds, juce::Justification::centred);

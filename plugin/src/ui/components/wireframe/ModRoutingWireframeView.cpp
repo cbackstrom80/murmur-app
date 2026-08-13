@@ -2,6 +2,8 @@
 
 #include "../../theme/ObsidianFonts.h"
 #include "../../theme/ObsidianPalette.h"
+#include "../ModRoutingUi.h"
+#include "EnvelopePathBuilder.h"
 #include "WireframeProjection.h"
 #include "state/PluginState.h"
 
@@ -20,52 +22,7 @@ namespace pw8::plugin::ui::wireframe
         void appendEnvSegment(juce::Path& path, float x0, float x1, float y0, float y1, float curveShape, bool shapeUp,
                                int steps)
         {
-            path.lineTo(x0, y0);
-            for (int i = 1; i <= steps; ++i)
-            {
-                const float t = static_cast<float>(i) / static_cast<float>(steps);
-                const float shaped = shapeUp ? envelopeShapeUp(t, curveShape) : envelopeShapeDown(t, curveShape);
-                path.lineTo(x0 + (x1 - x0) * t, y0 + (y1 - y0) * shaped);
-            }
-        }
-
-        void buildCompactEnvelopePath(const EnvelopePreviewParams& params, juce::Rectangle<float> bounds,
-                                       juce::Path& path)
-        {
-            const float minStage = 0.08f;
-            const float sustainDisplay = 0.22f;
-            const float delayW = params.delaySeconds > 0.0f ? juce::jmax(minStage, params.delaySeconds * 0.02f) : 0.0f;
-            const float attackW = juce::jmax(minStage, params.attackSeconds * 0.15f);
-            const float holdW = params.holdSeconds > 0.0f ? minStage : 0.0f;
-            const float decayW = juce::jmax(minStage, params.decaySeconds * 0.08f);
-            const float releaseW = juce::jmax(minStage, params.releaseSeconds * 0.08f);
-            const float totalW = delayW + attackW + holdW + decayW + sustainDisplay + releaseW;
-
-            auto xFor = [&](float start) { return bounds.getX() + (start / totalW) * bounds.getWidth(); };
-            auto yFor = [&](float level) { return bounds.getBottom() - level * bounds.getHeight() * 0.85f; };
-
-            path.clear();
-            float cursor = 0.0f;
-            path.startNewSubPath(xFor(cursor), yFor(0.0f));
-            if (delayW > 0.0f)
-            {
-                path.lineTo(xFor(cursor + delayW), yFor(0.0f));
-                cursor += delayW;
-            }
-            appendEnvSegment(path, xFor(cursor), xFor(cursor + attackW), yFor(0.0f), yFor(1.0f), params.curveShape,
-                             true, 16);
-            cursor += attackW;
-            if (holdW > 0.0f)
-            {
-                path.lineTo(xFor(cursor + holdW), yFor(1.0f));
-                cursor += holdW;
-            }
-            appendEnvSegment(path, xFor(cursor), xFor(cursor + decayW), yFor(1.0f), yFor(params.sustainLevel),
-                             params.curveShape, false, 16);
-            cursor += decayW;
-            path.lineTo(xFor(cursor + sustainDisplay), yFor(params.sustainLevel));
-            appendEnvSegment(path, xFor(cursor + sustainDisplay), xFor(cursor + sustainDisplay + releaseW),
-                             yFor(params.sustainLevel), yFor(0.0f), params.curveShape, false, 16);
+            wireframe::appendCurvedSegment(path, x0, x1, y0, y1, curveShape, shapeUp, steps);
         }
 
         [[nodiscard]] juce::Point<float> sourceAnchor(int sourceIndex, juce::Rectangle<float> area) noexcept
@@ -113,7 +70,7 @@ namespace pw8::plugin::ui::wireframe
     {
         setCaption("MOD ROUTING · LIVE");
         setSubCaption("Drag sources onto ringed filter knobs");
-        startTimerHz(10);
+        startTimerHz(15);
     }
 
     ModRoutingWireframeView::~ModRoutingWireframeView() { stopTimer(); }
@@ -166,7 +123,9 @@ namespace pw8::plugin::ui::wireframe
         g.setColour(palette::kTextDim);
         g.drawText("AMP ENV", envArea.removeFromTop(10.0f), juce::Justification::centredLeft);
         juce::Path envPath;
-        buildCompactEnvelopePath(envParams_, envArea, envPath);
+        juce::Path envFill;
+        float sustainEndX = 0.0f;
+        buildEnvelopePath(envParams_, envArea, envPath, envFill, sustainEndX);
         strokeGlowPath(g, envPath, 0.85f, 1.6f, false);
 
         g.setColour(palette::kTextDim);
@@ -211,16 +170,21 @@ namespace pw8::plugin::ui::wireframe
             const auto from = sourceAnchor(src, routeArea);
             const auto to = destinationAnchor(dst, routeArea);
             const auto colour = palette::modSourceColour(static_cast<int>(route.source));
+            const auto range = modAmountRangeFor(route.destination);
+            const float def = defaultModAmountFor(route.destination);
+            const float norm = juce::jlimit(0.0f, 1.0f, std::abs(route.amount) / juce::jmax(0.001f, std::abs(def)));
+            const float strokeW = 1.2f + norm * 3.0f;
 
             juce::Path link;
             link.startNewSubPath(from);
             const float cx = (from.x + to.x) * 0.5f;
             link.quadraticTo(cx, from.y, to.x, to.y);
 
-            g.setColour(colour.withAlpha(0.2f));
-            g.strokePath(link, juce::PathStrokeType(4.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
-            g.setColour(colour);
-            g.strokePath(link, juce::PathStrokeType(1.6f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+            g.setColour(colour.withAlpha(0.15f + norm * 0.25f));
+            g.strokePath(link, juce::PathStrokeType(strokeW + 2.0f, juce::PathStrokeType::curved,
+                                                     juce::PathStrokeType::rounded));
+            g.setColour(colour.withAlpha(0.65f + norm * 0.35f));
+            g.strokePath(link, juce::PathStrokeType(strokeW, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
         }
 
         if (activeRoutes == 0)

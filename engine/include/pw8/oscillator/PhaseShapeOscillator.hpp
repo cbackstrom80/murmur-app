@@ -66,7 +66,8 @@ namespace pw8::oscillator
 
         /// Advance one sample and return the output in [-1, 1]. `externalPhaseModulation`
         /// is an additional phase offset in cycles (algorithm-graph PHASE_MOD edges).
-        [[nodiscard]] float renderSample(const PhaseShapeParams& params, float externalPhaseModulation = 0.0f) noexcept
+        [[nodiscard]] float renderSample(const PhaseShapeParams& params, float externalPhaseModulation = 0.0f,
+                                          int osFactor = 2) noexcept
         {
             const float dt = static_cast<float>(frequencyHz_ / sampleRate_);
             const float t = dsp::wrapPhase(phase_ + externalPhaseModulation);
@@ -74,11 +75,15 @@ namespace pw8::oscillator
             const float warpedT = warpPhase(t, params);
             const float carrierRaw = std::sin(dsp::kTwoPi * warpedT);
 
-            const float out = applyFold(carrierRaw, params.phaseFold);
+            const float out = applyFold(carrierRaw, params.phaseFold, osFactor);
 
+            const float phaseBefore = phase_;
             phase_ = dsp::wrapPhase(phase_ + dt);
+            didWrapThisSample_ = phase_ < phaseBefore;
             return out;
         }
+
+        [[nodiscard]] bool didWrapThisSample() const noexcept { return didWrapThisSample_; }
 
     private:
         [[nodiscard]] static float warpPhase(float t, const PhaseShapeParams& params) noexcept
@@ -125,16 +130,36 @@ namespace pw8::oscillator
         /// downsample) followed by a light one-pole smoother, per this file's
         /// class doc comment on why this is the pragmatic v1 rather than a full
         /// polyphase halfband filter.
-        [[nodiscard]] float applyFold(float carrierRaw, float amount) noexcept
+        [[nodiscard]] float applyFold(float carrierRaw, float amount, int osFactor) noexcept
         {
-            const float midCarrier = 0.5f * (prevCarrierRaw_ + carrierRaw);
-            const float foldedMid = foldShape(midCarrier, amount);
-            const float foldedNow = foldShape(carrierRaw, amount);
-            const float combined = 0.5f * (foldedMid + foldedNow);
+            const float direct = foldShape(carrierRaw, amount);
+            if (osFactor <= 1 || amount <= 0.0f)
+            {
+                prevCarrierRaw_ = carrierRaw;
+                return dsp::flushIfNotFinite(direct);
+            }
 
-            constexpr float kSmoothCoeff = 0.35f;
+            if (osFactor == 2)
+            {
+                const float midCarrier = dsp::lerp(prevCarrierRaw_, carrierRaw, 0.5f);
+                const float y0 = foldShape(prevCarrierRaw_, amount);
+                const float y1 = foldShape(midCarrier, amount);
+                const float y2 = direct;
+                const float combined = dsp::halfBandDecimate3Tap(y0, y1, y2);
+                const float kSmoothCoeff = 0.35f;
+                foldSmoothState_ += (combined - foldSmoothState_) * kSmoothCoeff;
+                prevCarrierRaw_ = carrierRaw;
+                return dsp::flushIfNotFinite(foldSmoothState_);
+            }
+
+            const float c1 = dsp::lerp(prevCarrierRaw_, carrierRaw, 0.25f);
+            const float c2 = dsp::lerp(prevCarrierRaw_, carrierRaw, 0.5f);
+            const float c3 = dsp::lerp(prevCarrierRaw_, carrierRaw, 0.75f);
+            const float interior[3] = {foldShape(c1, amount), foldShape(c2, amount), foldShape(c3, amount)};
+            const float combined =
+                dsp::decimateHalfBandFold(foldShape(prevCarrierRaw_, amount), direct, osFactor, interior);
+            const float kSmoothCoeff = osFactor >= 4 ? 0.25f : 0.35f;
             foldSmoothState_ += (combined - foldSmoothState_) * kSmoothCoeff;
-
             prevCarrierRaw_ = carrierRaw;
             return dsp::flushIfNotFinite(foldSmoothState_);
         }
@@ -144,6 +169,7 @@ namespace pw8::oscillator
         float phase_ = 0.0f;
         float prevCarrierRaw_ = 0.0f;
         float foldSmoothState_ = 0.0f;
+        bool didWrapThisSample_ = false;
     };
 
 } // namespace pw8::oscillator

@@ -23,11 +23,13 @@
 
 #include "pw8/patch/Patch.hpp"
 #include "pw8/render/Engine.hpp"
+#include "state/ParamChangeQueue.hpp"
 #include "state/PluginState.h"
 
 namespace pw8::plugin
 {
-    class PatchworkEightProcessor : public juce::AudioProcessor
+    class PatchworkEightProcessor : public juce::AudioProcessor,
+                                     private juce::AudioProcessorValueTreeState::Listener
     {
     public:
         PatchworkEightProcessor();
@@ -131,6 +133,13 @@ namespace pw8::plugin
         void removeModRouteLive(modulation::ModSource source, modulation::ModDestination destination,
                                  std::uint8_t targetIndex);
 
+        /// Message-thread only: live arp playhead for UI visualization.
+        [[nodiscard]] std::size_t getArpPlayheadStep() const noexcept;
+        [[nodiscard]] std::size_t getArpNoteSequenceIndex() const noexcept;
+
+        /// Message-thread only: toggle step enabled/rest and push to live engine.
+        void toggleArpStepEnabled(std::size_t stepIndex) noexcept;
+
         /// Message-thread only (a UI-thread poll, same pattern as every other
         /// GATE-3/UI_GATE-4 timer-driven read of live engine state). Reads node
         /// `opIndex`'s currently-loaded wavetable table through the SAME atomic
@@ -177,12 +186,17 @@ namespace pw8::plugin
         /// divergent store of the same 361 values.
         void syncPatchFromAllParameters();
 
-        /// Audio-thread only, called once per block from processBlock(): pushes every
-        /// cached parameter's current value into the live Engine via its POD-only
-        /// "Live parameter API" (Engine::setFilterLive/setOperatorLive/...). This is
-        /// what makes automating, say, filter cutoff or an effect's mix audible on a
-        /// currently-sustaining voice, not just the next note-on.
+        /// Audio-thread only, called once per block from processBlock(): pushes changed
+        /// parameter groups into the live Engine. Falls back to a full push when the
+        /// queue is empty (first block after prepare).
         void pushLiveParametersToEngine(render::Engine& engine) noexcept;
+
+        void parameterChanged(const juce::String& parameterID, float newValue) override;
+
+        [[nodiscard]] ParamGroup paramGroupForId(const juce::String& parameterID) const noexcept;
+
+        void registerParamListeners();
+        void updateReportedLatency() noexcept;
 
         /// Message-thread only: writes `routes` into whichever of the two
         /// `modRoutesStorage_` slots wasn't published last, then atomically publishes
@@ -231,6 +245,10 @@ namespace pw8::plugin
         // See hasUserCreatedModRouteLive()'s doc comment above -- set once, the
         // first time setOrReplaceModRouteLive() runs, and never cleared.
         bool hasUserCreatedModRouteLive_ = false;
+
+        ParamChangeQueue paramChangeQueue_{};
+        double currentSampleRate_ = 48000.0;
+        render::QualityMode qualityMode_ = render::QualityMode::Normal;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PatchworkEightProcessor)
     };

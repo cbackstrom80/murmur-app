@@ -28,6 +28,38 @@ namespace pw8::render
         return "unknown";
     }
 
+    /// Oversampling factor for nonlinear stages (wavefold, tanh feedback): 1 = none,
+    /// 2 = High, 4 = Ultra/Offline. Evaluated at evenly spaced sub-positions between
+    /// the previous and current sample with boxcar downsample.
+    [[nodiscard]] inline int nonlinearOversamplingFactor(QualityMode q) noexcept
+    {
+        switch (q)
+        {
+            case QualityMode::Eco:
+            case QualityMode::Normal: return 1;
+            case QualityMode::High: return 2;
+            case QualityMode::Ultra:
+            case QualityMode::Offline: return 4;
+        }
+        return 1;
+    }
+
+    [[nodiscard]] inline bool useNonlinearOversampling(QualityMode q) noexcept
+    {
+        return nonlinearOversamplingFactor(q) > 1;
+    }
+
+    /// Group delay from the fold/feedback smoother (one sample at 2×, two at 4×).
+    [[nodiscard]] inline int nonlinearOversamplingLatencySamples(QualityMode q) noexcept
+    {
+        switch (nonlinearOversamplingFactor(q))
+        {
+            case 4: return 2;
+            case 2: return 1;
+            default: return 0;
+        }
+    }
+
     struct RenderOptions
     {
         double sampleRate = 48000.0;

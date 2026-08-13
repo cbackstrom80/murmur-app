@@ -71,8 +71,17 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/MetadataFacetRow.cpp
     src/ui/components/PresetBrowserOverlay.cpp
     src/ui/components/AmpEnvelopePanel.cpp
+    src/ui/components/ObsidianEnvelopeVisualizer.cpp
     src/ui/components/ModSourceChip.cpp
+    src/ui/components/ModRoutingUi.cpp
+    src/ui/components/ModSourcePalette.cpp
+    src/ui/components/PatchFocusPanel.cpp
+    src/ui/components/ModLauncherPanel.cpp
+    src/ui/components/ModRoutingOverlay.cpp
     src/ui/components/ModSourceStrip.cpp
+    src/ui/components/ArpStepStrip.cpp
+    src/ui/components/ArpLauncherChip.cpp
+    src/ui/components/ArpPanelOverlay.cpp
     src/ui/components/WavetableStackView.cpp
     src/ui/components/wireframe/WireframeCanvas.cpp
     src/ui/components/wireframe/OscPreviewSampler.cpp

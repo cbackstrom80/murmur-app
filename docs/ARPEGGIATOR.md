@@ -72,6 +72,21 @@ Up mode tempo-synced to 1/16 notes across 2 octaves, latch on, an 8-step pattern
 with a real accent, a ratcheted double-hit, and a deliberate rest -- not a plain
 uniform up-arp.
 
+## PLAY UI (P0)
+
+**IMPLEMENTED** in PLAY mode (Basic + Advanced):
+
+- **Arp launcher chip** (`ArpLauncherChip`) — beside the Basic/Advanced toggle: ARP
+  on/off (`arpEnabled`), live rate readout (sync division or Hz), cyan pulse when
+  active. Click opens the drawer; keyboard **`A`** also opens it.
+- **Arp drawer** (`ArpPanelOverlay`) — right-side panel (`layout::kArpDrawerWidth` =
+  420px): scalar GlowKnobs for mode, rate mode, rate Hz, sync division, octave
+  range, step count, latch; read-only **step strip** (`ArpStepStrip`) shows
+  rest/tie/ratchet/accent/probability glyphs from the loaded patch. Esc or
+  click-outside dismisses.
+
+Step editing, playhead position, and per-step APVTS remain **PLANNED** (P1+).
+
 ## What's PLANNED, not implemented
 
 - **Global/LFO-style free-running arps unsynced to note-on** -- today the pattern
