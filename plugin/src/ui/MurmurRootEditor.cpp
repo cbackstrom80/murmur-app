@@ -103,6 +103,9 @@ namespace pw8::plugin::ui
         playModeEditor_.setVisible(mode == AppMode::Play);
         designModeEditor_.setVisible(mode == AppMode::Design);
 
+        if (mode == AppMode::Design)
+            designModeEditor_.refreshFromPatch();
+
         syncChromeVisibility();
         applyWindowConstraints();
         resized();

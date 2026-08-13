@@ -629,3 +629,18 @@ Concrete tasks to start **Monday** — assignable per engineer.
 | **Decisions** | D5 closed (PLAY warp surface); D1 stub — **Open Builder…** on DESIGN Wavetable tab |
 
 **Deferred to Week 4–5:** Sync/Formant warp DSP and PLAY knobs. **Out of scope:** ModMatrixDesignPanel, FX detail panels, golden render refresh.
+
+---
+
+## Week 7 status (Aug 2026 — DESIGN wavetable warp panel)
+
+**Goal:** DESIGN Wavetable tab ships full warp authoring UI; pluginval soak path documented; Ben Logic checklist for sign-off prep.
+
+| Stream | Delivered |
+|---|---|
+| **DESIGN** | `WavetableWarpPanel` — operator selector, `WavetableStackView` preview, WT Pos + Bend/Asym/Sync Ratio/Sync Amt/Formant knobs; sync ratio DESIGN-only per [ADR](adr/play-warp-knobs.md) |
+| **Polish** | PLAY ↔ DESIGN switch refreshes DESIGN panels; warp params in APVTS + patch JSON (preset save round-trip) |
+| **QA** | `scripts/run_pluginval.sh` (strictness 5); [WEEK7_DAW_SOAK_CHECKLIST.md](WEEK7_DAW_SOAK_CHECKLIST.md) for Logic verification |
+| **Tests** | `WavetableWarpParamTests.cpp` — warp scalar patch round-trip + JSON key presence |
+
+**Deferred to Week 8+:** v2 mirror/fold warps, embedded wavetable builder, Ben human sign-off, mode-switch accessibility pass.

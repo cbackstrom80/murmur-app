@@ -30,6 +30,7 @@ add_executable(pw8_tests
     unit/ContentPathsTests.cpp
     unit/DeterministicRngTests.cpp
     unit/ModMatrixTests.cpp
+    unit/WavetableWarpParamTests.cpp
     unit/FftTests.cpp
     unit/WavetableTableTests.cpp
     unit/ArpeggiatorTests.cpp

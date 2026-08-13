@@ -66,6 +66,7 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/AlgorithmGraphEditor.cpp
     src/ui/components/ModMatrixDesignPanel.cpp
     src/ui/components/DesignFxDetailPanel.cpp
+    src/ui/components/WavetableWarpPanel.cpp
     src/ui/components/NodeSelectorRow.cpp
     src/ui/components/ContextStrip.cpp
     src/ui/components/OperatorEditorPanel.cpp

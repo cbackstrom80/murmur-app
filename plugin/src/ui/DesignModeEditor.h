@@ -10,6 +10,7 @@
 #include "components/DesignFxDetailPanel.h"
 #include "components/ModMatrixDesignPanel.h"
 #include "components/SectionPanel.h"
+#include "components/WavetableWarpPanel.h"
 #include "processor/PatchworkEightProcessor.h"
 #include "theme/ObsidianLookAndFeel.h"
 
@@ -60,7 +61,7 @@ namespace pw8::plugin::ui
         std::unique_ptr<AlgorithmGraphEditor> graphEditor_;
         std::unique_ptr<ModMatrixDesignPanel> matrixEditor_;
         std::unique_ptr<DesignFxDetailPanel> fxEditor_;
-        juce::Label wavetablePlaceholder_{"", "Wavetable warp panel — Week 7"};
+        std::unique_ptr<WavetableWarpPanel> wavetableEditor_;
         juce::TextButton openBuilderButton_{"Open Builder…"};
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DesignModeEditor)

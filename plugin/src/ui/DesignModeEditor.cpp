@@ -45,6 +45,9 @@ namespace pw8::plugin::ui
         fxEditor_ = std::make_unique<DesignFxDetailPanel>(processor_);
         fxPanel_.addAndMakeVisible(*fxEditor_);
 
+        wavetableEditor_ = std::make_unique<WavetableWarpPanel>(processor_);
+        wavetablePanel_.addAndMakeVisible(*wavetableEditor_);
+
         openBuilderButton_.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
         openBuilderButton_.setColour(juce::TextButton::textColourOffId, palette::kAccent);
         openBuilderButton_.onClick = [] {
@@ -54,13 +57,6 @@ namespace pw8::plugin::ui
                 "Use tools/wavetable_builder for now.");
         };
 
-        for (auto* label : {&wavetablePlaceholder_})
-        {
-            label->setJustificationType(juce::Justification::centred);
-            label->setColour(juce::Label::textColourId, palette::kTextDim);
-        }
-
-        wavetablePanel_.addAndMakeVisible(wavetablePlaceholder_);
         wavetablePanel_.addAndMakeVisible(openBuilderButton_);
 
         showPage(Page::Graph);
@@ -72,6 +68,8 @@ namespace pw8::plugin::ui
             graphEditor_->refreshFromPatch();
         if (matrixEditor_ != nullptr)
             matrixEditor_->refreshFromPatch();
+        if (wavetableEditor_ != nullptr)
+            wavetableEditor_->refreshFromPatch();
     }
 
     void DesignModeEditor::showPage(Page page)
@@ -125,11 +123,14 @@ namespace pw8::plugin::ui
         if (fxEditor_ != nullptr)
             fxEditor_->setBounds(fxPanel_.getContentBounds());
 
-        auto wtBounds = wavetablePanel_.getContentBounds();
-        auto builderRow = wtBounds.removeFromBottom(36);
-        builderRow = builderRow.withSizeKeepingCentre(160, 28);
-        openBuilderButton_.setBounds(builderRow);
-        wavetablePlaceholder_.setBounds(wtBounds);
+        if (wavetableEditor_ != nullptr)
+        {
+            auto wtBounds = wavetablePanel_.getContentBounds();
+            auto builderRow = wtBounds.removeFromBottom(36);
+            builderRow = builderRow.withSizeKeepingCentre(160, 28);
+            openBuilderButton_.setBounds(builderRow);
+            wavetableEditor_->setBounds(wtBounds);
+        }
     }
 
 } // namespace pw8::plugin::ui
