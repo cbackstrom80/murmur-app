@@ -10,14 +10,16 @@ namespace pw8::plugin::ui
     {
         hintLabel_.setText("Sources:", juce::dontSendNotification);
         hintLabel_.setJustificationType(juce::Justification::centredRight);
-        hintLabel_.setFont(fonts::label(10.0f));
-        hintLabel_.setColour(juce::Label::textColourId, palette::kTextDim);
+        hintLabel_.setFont(fonts::label(fonts::kBodyLabelSize));
+        hintLabel_.setColour(juce::Label::textColourId, palette::kTextSecondary);
         addAndMakeVisible(hintLabel_);
 
         const std::vector<ChipSpec> specs = {
             {modulation::ModSource::Lfo1, "LFO 1", palette::kModLfo},
             {modulation::ModSource::Env1, "AMP ENV", palette::kModEnv},
             {modulation::ModSource::Velocity, "VEL", palette::kModVelocity},
+            {modulation::ModSource::ModWheel, "MW", palette::kModModWheel},
+            {modulation::ModSource::Expression, "EXP", palette::kModExpression},
             {modulation::ModSource::Macro1, "M1", palette::kModMacro},
             {modulation::ModSource::Macro2, "M2", palette::kModMacro},
             {modulation::ModSource::Macro3, "M3", palette::kModMacro},

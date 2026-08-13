@@ -18,6 +18,12 @@
 // Linux builds are a real target -- see docs/UI.md.
 namespace pw8::plugin::ui::fonts
 {
+    // Minimum readable sizes for dark Obsidian panels (see docs/UI.md).
+    inline constexpr float kCaptionSize = 10.0f;
+    inline constexpr float kLabelMinSize = 10.5f;
+    inline constexpr float kSectionTitleSize = 12.5f;
+    inline constexpr float kBodyLabelSize = 11.0f;
+
     [[nodiscard]] inline const juce::String& preferredFamily() noexcept
     {
         static const juce::String family = [] {
@@ -37,13 +43,18 @@ namespace pw8::plugin::ui::fonts
 
     [[nodiscard]] inline juce::Font label(float size) noexcept
     {
-        return juce::Font(juce::FontOptions(preferredFamily(), size, juce::Font::plain))
+        return juce::Font(juce::FontOptions(preferredFamily(), juce::jmax(kLabelMinSize, size), juce::Font::plain))
             .withExtraKerningFactor(0.06f);
     }
 
     [[nodiscard]] inline juce::Font value(float size) noexcept
     {
-        return juce::Font(juce::FontOptions(preferredFamily(), size, juce::Font::plain));
+        return juce::Font(juce::FontOptions(preferredFamily(), juce::jmax(kCaptionSize, size), juce::Font::plain));
+    }
+
+    [[nodiscard]] inline juce::Font caption(float size) noexcept
+    {
+        return value(juce::jmax(kCaptionSize, size));
     }
 
 } // namespace pw8::plugin::ui::fonts

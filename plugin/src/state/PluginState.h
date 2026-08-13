@@ -127,6 +127,10 @@ namespace pw8::plugin
 
     inline constexpr const char* kFilterIdPrefix = "filter";
     inline constexpr const char* kArpIdPrefix = "arp";
+    inline constexpr const char* kModWheelId = "modWheel";
+    inline constexpr const char* kModWheelName = "Mod Wheel (CC1)";
+    inline constexpr const char* kExpressionId = "expression";
+    inline constexpr const char* kExpressionName = "Expression (CC11)";
     inline constexpr const char* kLayerGainId = "layerGain";
     inline constexpr const char* kLayerPanId = "layerPan";
     inline constexpr const char* kMasterGainId = "masterGain";

@@ -6,7 +6,11 @@
 
 #include "content/FavoritesStore.h"
 #include "content/PresetIndex.h"
+#include "GlowKnob.h"
+#include "HeaderSpectrumScope.h"
+#include "ScopeModeToggle.h"
 #include "processor/PatchworkEightProcessor.h"
+#include "state/PluginState.h"
 
 namespace pw8::plugin::ui
 {
@@ -44,6 +48,9 @@ namespace pw8::plugin::ui
         juce::TextButton nextButton_{">"};
         juce::TextButton browseButton_{"BROWSE"};
         juce::TextButton loadButton_{"LOAD..."};
+        HeaderSpectrumScope spectrumScope_;
+        ScopeModeToggle scopeModeToggle_;
+        std::unique_ptr<GlowKnob> masterVolumeKnob_;
         content::PresetMetadataFilter browseFilter_;
         content::FavoritesStore* favoritesStore_ = nullptr;
         std::unique_ptr<juce::FileChooser> fileChooser_;

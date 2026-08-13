@@ -21,7 +21,7 @@ namespace pw8::plugin::ui
         if (!description.startsWith(kDragDescriptionPrefix))
             return std::nullopt;
         const int ordinal = description.substring(static_cast<int>(std::char_traits<char>::length(kDragDescriptionPrefix))).getIntValue();
-        if (ordinal < 0 || ordinal > 28)
+        if (ordinal < 0 || ordinal > 29)
             return std::nullopt;
         return static_cast<modulation::ModSource>(ordinal);
     }
@@ -52,6 +52,8 @@ namespace pw8::plugin::ui
             case ModSource::ChannelPressure: return "CHANNEL PRESSURE";
             case ModSource::PolyAftertouch: return "AFTERTOUCH";
             case ModSource::MpeSlide: return "MPE SLIDE";
+            case ModSource::ModWheel: return "MOD WHEEL";
+            case ModSource::Expression: return "EXPRESSION";
             case ModSource::Macro1: return "MACRO 1";
             case ModSource::Macro2: return "MACRO 2";
             case ModSource::Macro3: return "MACRO 3";

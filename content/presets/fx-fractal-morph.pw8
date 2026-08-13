@@ -6,9 +6,18 @@
     "author": "Patchwork Eight Engineering",
     "description": "A slow, sustained saw pad through FractalEcho -- this project's own invented FX algorithm (docs/FX_BANK.md 'The invented algorithm'), not modeled on any researched plugin. Instead of a manually patched delay tree, FractalEcho procedurally generates a small self-similar 6-node delay tree from a 64-bit seed (deeper nodes get proportionally shorter, self-similar delay times), and continuously morphs between TWO such generated topologies (seedA=101, seedB=909) via a single `fractalMorph` parameter -- interpolated in COEFFICIENT space at audio rate, not a signal-domain crossfade. This preset parks morph at a fixed 0.35 (a static snapshot partway between the two topologies); a host with per-parameter automation could sweep it live to hear the whole delay network's rhythm and stereo image continuously reshape, not just its wet/dry balance.",
     "category": "pad",
-    "moods": ["evolving", "spacious", "otherworldly"],
+    "moods": [
+      "evolving",
+      "spacious",
+      "otherworldly"
+    ],
     "genres": [],
-    "tags": ["engineering", "effects", "fractalecho", "invented"],
+    "tags": [
+      "engineering",
+      "effects",
+      "fractalecho",
+      "invented"
+    ],
     "createdAt": "2026-08-10T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 1,
@@ -19,56 +28,310 @@
   "layerMorph": 0.0,
   "layerA": {
     "operators": [
-      {"engine": 0, "classicWaveform": 2, "frequencyRatio": 1.0, "keyTrack": true, "level": 0.7, "pan": -0.15},
-      {"engine": 0, "classicWaveform": 2, "frequencyRatio": 1.003, "keyTrack": true, "level": 0.7, "pan": 0.15},
-      {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0},
-      {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}
+      {
+        "engine": 0,
+        "classicWaveform": 2,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.7,
+        "pan": -0.15
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 2,
+        "frequencyRatio": 1.003,
+        "keyTrack": true,
+        "level": 0.7,
+        "pan": 0.15
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      }
     ],
     "algorithm": {
       "nodes": [
-        {"id": 0, "engine": 0, "isOutput": true}, {"id": 1, "engine": 0, "isOutput": true},
-        {"id": 2, "engine": 0, "isOutput": true}, {"id": 3, "engine": 0, "isOutput": true},
-        {"id": 4, "engine": 0, "isOutput": true}, {"id": 5, "engine": 0, "isOutput": true},
-        {"id": 6, "engine": 0, "isOutput": true}, {"id": 7, "engine": 0, "isOutput": true}
+        {
+          "id": 0,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 1,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 2,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 3,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 4,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 5,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 6,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 7,
+          "engine": 0,
+          "isOutput": true
+        }
       ],
       "edges": []
     },
-    "ampEnvelope": {"attackSeconds": 1.2, "decaySeconds": 0.6, "sustainLevel": 0.75, "releaseSeconds": 2.0, "curveShape": 1.5},
-    "unison": {"mode": 0, "voices": 1},
-    "filter1": {"enabled": true, "mode": 0, "cutoffHz": 4000.0, "resonance": 0.15, "keyTrack": 0.4},
-    "gain": 0.55, "pan": 0.0, "width": 1.0, "centerGravity": 0.5,
-    "insertEffects": []
+    "ampEnvelope": {
+      "attackSeconds": 1.2,
+      "decaySeconds": 0.6,
+      "sustainLevel": 0.75,
+      "releaseSeconds": 2.0,
+      "curveShape": 1.5
+    },
+    "unison": {
+      "mode": 0,
+      "voices": 1
+    },
+    "filter1": {
+      "enabled": true,
+      "mode": 0,
+      "cutoffHz": 4000.0,
+      "resonance": 0.15,
+      "keyTrack": 0.4
+    },
+    "gain": 0.55,
+    "pan": 0.0,
+    "width": 1.0,
+    "centerGravity": 0.5,
+    "insertEffects": [],
+    "modRoutes": [
+      {
+        "source": 29,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 18.0,
+        "scope": 0
+      },
+      {
+        "source": 17,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 18,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 8.0,
+        "scope": 0
+      },
+      {
+        "source": 30,
+        "destination": 3,
+        "targetIndex": 0,
+        "amount": 0.25,
+        "scope": 0
+      },
+      {
+        "source": 20,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 12.0,
+        "scope": 0
+      }
+    ]
   },
   "layerB": {
     "operators": [
-      {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0},
-      {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      }
     ],
     "algorithm": {
       "nodes": [
-        {"id": 0, "engine": 0, "isOutput": true}, {"id": 1, "engine": 0, "isOutput": false},
-        {"id": 2, "engine": 0, "isOutput": false}, {"id": 3, "engine": 0, "isOutput": false},
-        {"id": 4, "engine": 0, "isOutput": false}, {"id": 5, "engine": 0, "isOutput": false},
-        {"id": 6, "engine": 0, "isOutput": false}, {"id": 7, "engine": 0, "isOutput": false}
+        {
+          "id": 0,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 1,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 2,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 3,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 4,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 5,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 6,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 7,
+          "engine": 0,
+          "isOutput": false
+        }
       ],
       "edges": []
     },
-    "ampEnvelope": {"attackSeconds": 0.002, "decaySeconds": 0.15, "sustainLevel": 0.0, "releaseSeconds": 0.05},
-    "gain": 1.0, "pan": 0.0, "width": 1.0, "centerGravity": 0.5
+    "ampEnvelope": {
+      "attackSeconds": 0.002,
+      "decaySeconds": 0.15,
+      "sustainLevel": 0.0,
+      "releaseSeconds": 0.05
+    },
+    "gain": 1.0,
+    "pan": 0.0,
+    "width": 1.0,
+    "centerGravity": 0.5
   },
-  "voiceSettings": {"polyphony": 8, "masterGain": 0.55, "a4Hz": 440.0},
+  "voiceSettings": {
+    "polyphony": 16,
+    "masterGain": 0.55,
+    "a4Hz": 440.0
+  },
   "locks": {},
   "macros": [
-    {"id": "m1", "name": "DARKNESS", "description": "Reserved -- not yet routed.", "value": 0.0},
-    {"id": "m2", "name": "IMPACT", "description": "Reserved -- not yet routed.", "value": 0.0},
-    {"id": "m3", "name": "MOTION", "description": "Reserved -- not yet routed.", "value": 0.0},
-    {"id": "m4", "name": "SPACE", "description": "Reserved -- not yet routed.", "value": 0.0},
-    {"id": "m5", "name": "BODY", "description": "Reserved -- not yet routed.", "value": 0.0},
-    {"id": "m6", "name": "METAL", "description": "Reserved -- not yet routed.", "value": 0.0},
-    {"id": "m7", "name": "CHAOS", "description": "Reserved -- not yet routed.", "value": 0.0},
-    {"id": "m8", "name": "MORPH", "description": "Reserved -- not yet routed.", "value": 0.0}
+    {
+      "id": "m1",
+      "name": "DARKNESS",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    },
+    {
+      "id": "m2",
+      "name": "IMPACT",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    },
+    {
+      "id": "m3",
+      "name": "MOTION",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    },
+    {
+      "id": "m4",
+      "name": "SPACE",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    },
+    {
+      "id": "m5",
+      "name": "BODY",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    },
+    {
+      "id": "m6",
+      "name": "METAL",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    },
+    {
+      "id": "m7",
+      "name": "CHAOS",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    },
+    {
+      "id": "m8",
+      "name": "MORPH",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    }
   ],
-  "arpeggiator": {"enabled": false},
+  "arpeggiator": {
+    "enabled": false
+  },
   "masterEffects": [
     {
       "type": 6,
@@ -80,7 +343,50 @@
       "fractalRatio": 0.58,
       "fractalSpreadMs": 20.0
     },
-    {"type": 0}, {"type": 0}, {"type": 0}
+    {
+      "type": 0
+    },
+    {
+      "type": 0
+    },
+    {
+      "type": 0
+    }
   ],
-  "seed": 2002
+  "seed": 2002,
+  "uiFocus": {
+    "maxKnobs": 6,
+    "knobs": [
+      {
+        "kind": "macro",
+        "index": 0,
+        "label": "DARKNESS"
+      },
+      {
+        "kind": "param",
+        "paramId": "filterCutoffHz",
+        "label": "Cutoff"
+      },
+      {
+        "kind": "param",
+        "paramId": "op1WavetablePos",
+        "label": "WT Pos"
+      },
+      {
+        "kind": "param",
+        "paramId": "filterResonance",
+        "label": "Reso"
+      },
+      {
+        "kind": "param",
+        "paramId": "layerGain",
+        "label": "Layer"
+      },
+      {
+        "kind": "param",
+        "paramId": "layerPan",
+        "label": "Pan"
+      }
+    ]
+  }
 }

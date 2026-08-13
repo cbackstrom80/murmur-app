@@ -17,7 +17,18 @@ namespace pw8::plugin::ui
         titleLabel_.setColour(juce::Label::textColourId, palette::kTextPrimary);
         titleLabel_.setJustificationType(juce::Justification::centredLeft);
 
-        searchField_.setTextToShowWhenEmpty("Search presets...", palette::kTextDim);
+        countLabel_.setFont(fonts::label(fonts::kCaptionSize));
+        countLabel_.setColour(juce::Label::textColourId, palette::kTextSecondary);
+        countLabel_.setJustificationType(juce::Justification::centredRight);
+        panel_.addAndMakeVisible(countLabel_);
+
+        clearFiltersButton_.onClick = [this] { clearAllFilters(); };
+        clearFiltersButton_.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
+        clearFiltersButton_.setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
+        clearFiltersButton_.setVisible(false);
+        panel_.addAndMakeVisible(clearFiltersButton_);
+
+        searchField_.setTextToShowWhenEmpty("Search presets...", palette::kTextSecondary);
         searchField_.setColour(juce::TextEditor::backgroundColourId, palette::kPanelRaised);
         searchField_.setColour(juce::TextEditor::textColourId, palette::kTextPrimary);
         searchField_.setColour(juce::TextEditor::outlineColourId, palette::kBorderBright);
@@ -42,6 +53,13 @@ namespace pw8::plugin::ui
         listBox_.setOutlineThickness(0);
         panel_.addAndMakeVisible(listBox_);
 
+        emptyStateLabel_.setText("No presets match — widen filters", juce::dontSendNotification);
+        emptyStateLabel_.setFont(fonts::label(fonts::kBodyLabelSize));
+        emptyStateLabel_.setColour(juce::Label::textColourId, palette::kTextDim);
+        emptyStateLabel_.setJustificationType(juce::Justification::centred);
+        emptyStateLabel_.setVisible(false);
+        panel_.addAndMakeVisible(emptyStateLabel_);
+
         closeButton_.onClick = [this] { dismiss(); };
         closeButton_.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
         closeButton_.setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
@@ -60,9 +78,13 @@ namespace pw8::plugin::ui
         return filter;
     }
 
-    void PresetBrowserOverlay::showOverlay()
+    bool PresetBrowserOverlay::isFunnelNarrowed() const
     {
-        presetIndex_.rescan();
+        return browseFilter().isNarrowed();
+    }
+
+    void PresetBrowserOverlay::clearAllFilters()
+    {
         searchField_.setText({}, juce::dontSendNotification);
         favoritesToggle_.setToggleState(false, juce::dontSendNotification);
         typeFacet_.setSelectedValue({});
@@ -70,6 +92,12 @@ namespace pw8::plugin::ui
         contextFacet_.setSelectedValue({});
         tagFacet_.setSelectedValue({});
         rebuildFacetsAndList();
+    }
+
+    void PresetBrowserOverlay::showOverlay()
+    {
+        presetIndex_.rescan();
+        clearAllFilters();
         setVisible(true);
         setInterceptsMouseClicks(true, true);
         panel_.setVisible(true);
@@ -94,14 +122,38 @@ namespace pw8::plugin::ui
         draw::strokeGlowPath(g, draw::roundedRectPath(panelBounds, 8.0f), 0.55f, 1.2f, false);
     }
 
+    void PresetBrowserOverlay::layoutFacetRows(juce::Rectangle<int>& bounds)
+    {
+        constexpr int kFacetRowHeight = 24;
+        constexpr int kFacetRowGap = 2;
+
+        auto placeRow = [&](MetadataFacetRow& row) {
+            if (!row.isVisible())
+                return;
+            row.setBounds(bounds.removeFromTop(kFacetRowHeight));
+            bounds.removeFromTop(kFacetRowGap);
+        };
+
+        placeRow(typeFacet_);
+        placeRow(moodFacet_);
+        placeRow(contextFacet_);
+        placeRow(tagFacet_);
+    }
+
     void PresetBrowserOverlay::resized()
     {
         panel_.setBounds(getLocalBounds().reduced(40, 56));
         auto bounds = panel_.getLocalBounds().reduced(14);
 
-        titleLabel_.setBounds(bounds.removeFromTop(24));
+        auto titleRow = bounds.removeFromTop(24);
+        titleLabel_.setBounds(titleRow.removeFromLeft(96));
+        countLabel_.setBounds(titleRow.removeFromRight(120));
         bounds.removeFromTop(6);
-        closeButton_.setBounds(bounds.removeFromTop(28).removeFromRight(72));
+
+        auto closeRow = bounds.removeFromTop(28);
+        clearFiltersButton_.setBounds(closeRow.removeFromLeft(72));
+        closeRow.removeFromLeft(8);
+        closeButton_.setBounds(closeRow.removeFromRight(72));
         bounds.removeFromTop(6);
 
         auto searchRow = bounds.removeFromTop(28);
@@ -110,17 +162,11 @@ namespace pw8::plugin::ui
         searchField_.setBounds(searchRow);
         bounds.removeFromTop(6);
 
-        constexpr int kFacetRowHeight = 24;
-        typeFacet_.setBounds(bounds.removeFromTop(kFacetRowHeight));
-        bounds.removeFromTop(2);
-        moodFacet_.setBounds(bounds.removeFromTop(kFacetRowHeight));
-        bounds.removeFromTop(2);
-        contextFacet_.setBounds(bounds.removeFromTop(kFacetRowHeight));
-        bounds.removeFromTop(2);
-        tagFacet_.setBounds(bounds.removeFromTop(kFacetRowHeight));
-        bounds.removeFromTop(8);
+        layoutFacetRows(bounds);
+        bounds.removeFromTop(6);
 
         listBox_.setBounds(bounds);
+        emptyStateLabel_.setBounds(bounds);
     }
 
     void PresetBrowserOverlay::mouseDown(const juce::MouseEvent& event)
@@ -145,6 +191,19 @@ namespace pw8::plugin::ui
         dismiss();
     }
 
+    void PresetBrowserOverlay::updateFunnelChrome()
+    {
+        const int count = visibleEntries_.size();
+        countLabel_.setText(juce::String(count) + (count == 1 ? " preset" : " presets"), juce::dontSendNotification);
+
+        const bool narrowed = isFunnelNarrowed();
+        clearFiltersButton_.setVisible(narrowed);
+
+        const bool empty = visibleEntries_.isEmpty();
+        emptyStateLabel_.setVisible(empty);
+        listBox_.setVisible(!empty);
+    }
+
     void PresetBrowserOverlay::rebuildFacetsAndList()
     {
         const auto filter = browseFilter();
@@ -157,6 +216,7 @@ namespace pw8::plugin::ui
                 selected = {};
             row.setValues(values);
             row.setSelectedValue(selected);
+            row.setVisible(row.hasFacetValues());
         };
 
         refreshFacet(typeFacet_, content::PresetFacet::Category);
@@ -165,6 +225,10 @@ namespace pw8::plugin::ui
         refreshFacet(tagFacet_, content::PresetFacet::Tag);
 
         visibleEntries_ = presetIndex_.filtered(browseFilter(), favoritesOnly);
+        refreshAmbiguousDisplayNames();
+        updateFunnelChrome();
+        resized();
+
         listBox_.updateContent();
         if (visibleEntries_.isEmpty())
             listBox_.deselectAllRows();
@@ -179,13 +243,40 @@ namespace pw8::plugin::ui
     juce::String PresetBrowserOverlay::formatEntrySubline(const content::PresetEntry& entry) const
     {
         juce::StringArray parts;
-        if (entry.category.isNotEmpty())
+        if (entry.category.isNotEmpty() && ambiguousDisplayNames_.contains(entry.name.trim(), true))
             parts.add(entry.category);
         if (entry.moods.size() > 0)
             parts.add(entry.moods.joinIntoString(", "));
         if (entry.genres.size() > 0)
             parts.add(entry.genres.joinIntoString(", "));
         return parts.joinIntoString(" · ");
+    }
+
+    juce::String PresetBrowserOverlay::formatEntryTitle(const content::PresetEntry& entry) const
+    {
+        if (ambiguousDisplayNames_.contains(entry.name.trim(), true) && entry.category.isNotEmpty())
+            return entry.category.toUpperCase() + " · " + entry.name;
+        return entry.name;
+    }
+
+    void PresetBrowserOverlay::refreshAmbiguousDisplayNames()
+    {
+        ambiguousDisplayNames_.clear();
+        for (int i = 0; i < visibleEntries_.size(); ++i)
+        {
+            const auto name = visibleEntries_.getReference(i).name.trim();
+            if (name.isEmpty())
+                continue;
+
+            for (int j = i + 1; j < visibleEntries_.size(); ++j)
+            {
+                if (visibleEntries_.getReference(j).name.trim().equalsIgnoreCase(name))
+                {
+                    ambiguousDisplayNames_.addIfNotAlreadyThere(name);
+                    break;
+                }
+            }
+        }
     }
 
     int PresetBrowserOverlay::getNumRows()
@@ -212,14 +303,14 @@ namespace pw8::plugin::ui
         auto bounds = juce::Rectangle<int>(0, 0, width, height).reduced(6, 2);
         g.setColour(palette::kTextPrimary);
         g.setFont(fonts::title(13.0f));
-        g.drawText(entry.name, bounds.removeFromTop(16), juce::Justification::centredLeft, true);
+        g.drawText(formatEntryTitle(entry), bounds.removeFromTop(16), juce::Justification::centredLeft, true);
 
-        g.setColour(palette::kTextDim);
-        g.setFont(fonts::label(10.0f));
+        g.setColour(palette::kTextSecondary);
+        g.setFont(fonts::label(fonts::kBodyLabelSize));
         g.drawText(formatEntrySubline(entry), bounds, juce::Justification::centredLeft, true);
 
         const bool starred = favoritesStore_.isFavorite(entry.absolutePath);
-        g.setColour(starred ? palette::kAccent : palette::kTextDim);
+        g.setColour(starred ? palette::kAccent : palette::kTextSecondary);
         g.setFont(fonts::title(14.0f));
         g.drawText(starred ? "*" : "o", width - 24, 0, 20, height, juce::Justification::centred, false);
     }

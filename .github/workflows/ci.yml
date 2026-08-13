@@ -99,10 +99,10 @@ jobs:
       - name: Validate AU with auval
         run: |
           set -e
-          COMPONENT="build/plugin/plugin/pw8_plugin_artefacts/Debug/AU/Patchwork Eight.component"
+          COMPONENT="build/plugin/plugin/pw8_plugin_artefacts/Debug/AU/MURMUR.component"
           cp -R "$COMPONENT" ~/Library/Audio/Plug-Ins/Components/
           killall -9 AudioComponentRegistrar || true
-          auval -v aumu Pwe8 Pwei
+          auval -v aumu Murm Murr
 
       - name: Install pluginval
         run: brew install --cask pluginval
@@ -116,14 +116,14 @@ jobs:
         run: |
           set -e
           PLUGINVAL="/Applications/pluginval.app/Contents/MacOS/pluginval"
-          VST3="build/plugin/plugin/pw8_plugin_artefacts/Debug/VST3/Patchwork Eight.vst3"
+          VST3="build/plugin/plugin/pw8_plugin_artefacts/Debug/VST3/MURMUR.vst3"
           # AU validation here relies on the AU bundle already being registered with
           # the system -- the preceding "Validate AU with auval" step above does that
           # (copies the .component into ~/Library/Audio/Plug-Ins/Components/ and
           # force-rescans via `killall AudioComponentRegistrar`). If these steps are
           # ever reordered or the auval step is skipped, this AU validation will start
           # failing for that reason, not a real plugin regression.
-          AU="build/plugin/plugin/pw8_plugin_artefacts/Debug/AU/Patchwork Eight.component"
+          AU="build/plugin/plugin/pw8_plugin_artefacts/Debug/AU/MURMUR.component"
           "$PLUGINVAL" --strictness-level 5 --validate "$VST3"
           "$PLUGINVAL" --strictness-level 5 --validate "$AU"
 

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Sparkle appcast template — Standalone MURMUR.app only (future).
+
+  Sparkle is not wired into the plugin yet. When ready:
+    1. Add Sparkle as a dependency to the Standalone target only.
+    2. Host this file at a stable HTTPS URL (e.g. GitHub Pages or raw.githubusercontent.com).
+    3. Sign updates with Sparkle's generate_appcast / generate_keys workflow.
+    4. Set SUFeedURL in the Standalone app's Info.plist.
+
+  AU/VST3 updates should remain "download new .pkg from GitHub Releases" because
+  DAWs cache plug-in bundles and rarely support in-place upgrades safely.
+-->
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>MURMUR Updates</title>
+    <link>https://github.com/patchwork-eight/patchwork-eight/releases</link>
+    <description>MURMUR Standalone app updates</description>
+    <language>en</language>
+    <item>
+      <title>Version {{VERSION}}</title>
+      <sparkle:version>{{BUILD_NUMBER}}</sparkle:version>
+      <sparkle:shortVersionString>{{VERSION}}</sparkle:shortVersionString>
+      <pubDate>{{RFC822_DATE}}</pubDate>
+      <enclosure
+        url="https://github.com/patchwork-eight/patchwork-eight/releases/download/v{{VERSION}}/MURMUR-{{VERSION}}-macOS-arm64.pkg"
+        sparkle:edSignature="{{ED_SIGNATURE}}"
+        length="{{FILE_SIZE_BYTES}}"
+        type="application/octet-stream"/>
+      <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+      <description><![CDATA[
+        <h2>MURMUR {{VERSION}}</h2>
+        <ul>
+          <li>Replace with release notes</li>
+        </ul>
+        <p>Full plug-in install (AU/VST3) is still via the .pkg from GitHub Releases.</p>
+      ]]></description>
+    </item>
+  </channel>
+</rss>

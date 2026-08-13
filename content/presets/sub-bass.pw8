@@ -6,9 +6,16 @@
     "author": "Patchwork Eight Engineering",
     "description": "Centered sub-oscillator (OP0, sine, keyed) plus a quiet upper triangle harmonic (OP1, +1 octave) for definition on small speakers. Fast, punchy envelope.",
     "category": "bass",
-    "moods": ["warm", "punchy"],
+    "moods": [
+      "warm",
+      "punchy"
+    ],
     "genres": [],
-    "tags": ["engineering", "bass", "sub"],
+    "tags": [
+      "engineering",
+      "bass",
+      "sub"
+    ],
     "createdAt": "2026-08-10T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 1,
@@ -19,52 +26,326 @@
   "layerMorph": 0.0,
   "layerA": {
     "operators": [
-      {"engine": 0, "classicWaveform": 0, "frequencyRatio": 1.0, "keyTrack": true, "level": 1.0, "pan": 0.0},
-      {"engine": 0, "classicWaveform": 1, "frequencyRatio": 2.0, "keyTrack": true, "level": 0.18, "pan": 0.0},
-      {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0},
-      {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 1.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 1,
+        "frequencyRatio": 2.0,
+        "keyTrack": true,
+        "level": 0.18,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      }
     ],
     "algorithm": {
       "nodes": [
-        {"id": 0, "engine": 0, "isOutput": true}, {"id": 1, "engine": 0, "isOutput": true},
-        {"id": 2, "engine": 0, "isOutput": true}, {"id": 3, "engine": 0, "isOutput": true},
-        {"id": 4, "engine": 0, "isOutput": true}, {"id": 5, "engine": 0, "isOutput": true},
-        {"id": 6, "engine": 0, "isOutput": true}, {"id": 7, "engine": 0, "isOutput": true}
+        {
+          "id": 0,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 1,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 2,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 3,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 4,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 5,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 6,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 7,
+          "engine": 0,
+          "isOutput": true
+        }
       ],
       "edges": []
     },
-    "ampEnvelope": {"attackSeconds": 0.002, "decaySeconds": 0.12, "sustainLevel": 0.9, "releaseSeconds": 0.12, "curveShape": 3.0},
-    "unison": {"mode": 0, "voices": 1},
-    "gain": 0.95, "pan": 0.0, "width": 0.3, "centerGravity": 0.95
+    "ampEnvelope": {
+      "attackSeconds": 0.002,
+      "decaySeconds": 0.12,
+      "sustainLevel": 0.9,
+      "releaseSeconds": 0.12,
+      "curveShape": 3.0
+    },
+    "unison": {
+      "mode": 0,
+      "voices": 1
+    },
+    "gain": 0.95,
+    "pan": 0.0,
+    "width": 0.3,
+    "centerGravity": 0.95,
+    "modRoutes": [
+      {
+        "source": 29,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 24.0,
+        "scope": 0
+      },
+      {
+        "source": 17,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 12.0,
+        "scope": 1
+      },
+      {
+        "source": 30,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.35,
+        "scope": 0
+      },
+      {
+        "source": 20,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 12.0,
+        "scope": 0
+      }
+    ]
   },
   "layerB": {
     "operators": [
-      {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0},
-      {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}, {"engine": 0, "level": 0.0}
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      }
     ],
     "algorithm": {
       "nodes": [
-        {"id": 0, "engine": 0, "isOutput": true}, {"id": 1, "engine": 0, "isOutput": false},
-        {"id": 2, "engine": 0, "isOutput": false}, {"id": 3, "engine": 0, "isOutput": false},
-        {"id": 4, "engine": 0, "isOutput": false}, {"id": 5, "engine": 0, "isOutput": false},
-        {"id": 6, "engine": 0, "isOutput": false}, {"id": 7, "engine": 0, "isOutput": false}
+        {
+          "id": 0,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 1,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 2,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 3,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 4,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 5,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 6,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 7,
+          "engine": 0,
+          "isOutput": false
+        }
       ],
       "edges": []
     },
-    "ampEnvelope": {"attackSeconds": 0.002, "decaySeconds": 0.12, "sustainLevel": 0.9, "releaseSeconds": 0.12},
-    "gain": 1.0, "pan": 0.0, "width": 1.0, "centerGravity": 0.5
+    "ampEnvelope": {
+      "attackSeconds": 0.002,
+      "decaySeconds": 0.12,
+      "sustainLevel": 0.9,
+      "releaseSeconds": 0.12
+    },
+    "gain": 1.0,
+    "pan": 0.0,
+    "width": 1.0,
+    "centerGravity": 0.5
   },
-  "voiceSettings": {"polyphony": 8, "masterGain": 0.65, "a4Hz": 440.0},
+  "voiceSettings": {
+    "polyphony": 8,
+    "masterGain": 0.65,
+    "a4Hz": 440.0
+  },
   "locks": {},
   "macros": [
-    {"id": "m1", "name": "DARKNESS", "description": "Reserved -- not yet routed.", "value": 0.0},
-    {"id": "m2", "name": "IMPACT", "description": "Reserved -- not yet routed.", "value": 0.0},
-    {"id": "m3", "name": "MOTION", "description": "Reserved -- not yet routed.", "value": 0.0},
-    {"id": "m4", "name": "SPACE", "description": "Reserved -- not yet routed.", "value": 0.0},
-    {"id": "m5", "name": "BODY", "description": "Reserved -- not yet routed.", "value": 0.0},
-    {"id": "m6", "name": "METAL", "description": "Reserved -- not yet routed.", "value": 0.0},
-    {"id": "m7", "name": "CHAOS", "description": "Reserved -- not yet routed.", "value": 0.0},
-    {"id": "m8", "name": "MORPH", "description": "Reserved -- not yet routed.", "value": 0.0}
+    {
+      "id": "m1",
+      "name": "DARKNESS",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    },
+    {
+      "id": "m2",
+      "name": "IMPACT",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    },
+    {
+      "id": "m3",
+      "name": "MOTION",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    },
+    {
+      "id": "m4",
+      "name": "SPACE",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    },
+    {
+      "id": "m5",
+      "name": "BODY",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    },
+    {
+      "id": "m6",
+      "name": "METAL",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    },
+    {
+      "id": "m7",
+      "name": "CHAOS",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    },
+    {
+      "id": "m8",
+      "name": "MORPH",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    }
   ],
-  "seed": 1004
+  "seed": 1004,
+  "uiFocus": {
+    "maxKnobs": 6,
+    "knobs": [
+      {
+        "kind": "macro",
+        "index": 0,
+        "label": "DARKNESS"
+      },
+      {
+        "kind": "param",
+        "paramId": "filterCutoffHz",
+        "label": "Cutoff"
+      },
+      {
+        "kind": "param",
+        "paramId": "filterResonance",
+        "label": "Reso"
+      },
+      {
+        "kind": "param",
+        "paramId": "layerGain",
+        "label": "Layer"
+      },
+      {
+        "kind": "param",
+        "paramId": "layerPan",
+        "label": "Pan"
+      },
+      {
+        "kind": "param",
+        "paramId": "masterGain",
+        "label": "Master"
+      }
+    ]
+  }
 }

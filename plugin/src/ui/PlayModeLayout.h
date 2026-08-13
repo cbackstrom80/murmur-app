@@ -28,4 +28,16 @@ namespace pw8::plugin::ui::layout
     /// Right-side arpeggiator drawer width (PLAY UI P0).
     inline constexpr int kArpDrawerWidth = 420;
 
+    /// Compact mode — fixed 320px width, resizable height.
+    inline constexpr int kCompactWidth = 320;
+    inline constexpr int kCompactMinHeight = 480;
+    inline constexpr int kCompactMaxHeight = 1200;
+    inline constexpr int kCompactDefaultHeight = 560;
+    inline constexpr int kCompactOuterMargin = 8;
+    inline constexpr int kCompactHeaderHeight = 28;
+    inline constexpr int kCompactScopeSize = 148;
+    inline constexpr int kCompactVolumeHeight = 72;
+    inline constexpr int kCompactVolumeKnobWidth = 64;
+    inline constexpr int kCompactBlockGap = 6;
+
 } // namespace pw8::plugin::ui::layout

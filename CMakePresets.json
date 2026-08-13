@@ -87,10 +87,11 @@
     {
       "name": "plugin-release",
       "displayName": "Plugin (JUCE) -- Release",
-      "description": "Optimized VST3/AU/Standalone build, the configuration scripts/package_macos.sh packages into an installer. See docs/PLUGIN_ARCHITECTURE.md.",
+      "description": "Optimized arm64 VST3/AU/Standalone build for scripts/build_release_pkg.sh. See docs/INSTALL.md.",
       "binaryDir": "${sourceDir}/build/plugin-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_OSX_ARCHITECTURES": "arm64",
         "PW8_BUILD_TESTS": "OFF",
         "PW8_BUILD_TOOLS": "OFF",
         "PW8_BUILD_PLUGIN": "ON"

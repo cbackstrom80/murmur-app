@@ -34,9 +34,13 @@ namespace pw8::content
             }
 
 #if defined(__APPLE__)
+            extraRoots.push_back(fs::path("/Library/Application Support/MURMUR"));
             extraRoots.push_back(fs::path("/Library/Application Support/Patchwork Eight"));
             if (const char* home = std::getenv("HOME"))
+            {
+                extraRoots.push_back(fs::path(home) / "Library/Application Support/MURMUR");
                 extraRoots.push_back(fs::path(home) / "Library/Application Support/Patchwork Eight");
+            }
 #endif
 
             // Dev convenience: if cwd or its parents contain content/wavetables/, use that tree.

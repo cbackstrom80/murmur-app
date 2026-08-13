@@ -180,6 +180,8 @@ namespace pw8::render
     bool Engine::loadPatch(const patch::Patch& patchToLoad) noexcept
     {
         patch_ = patchToLoad;
+        patch::ensureDefaultModWheelRoute(patch_.layerA);
+        patch::ensureDefaultExpressionRoute(patch_.layerA);
 
         // Only SingleA and Stack are rendered today; other layer modes stay clamped.
         if (patch_.layerMode != patch::LayerMode::SingleA && patch_.layerMode != patch::LayerMode::Stack)
@@ -282,6 +284,10 @@ namespace pw8::render
             else
                 v.noteOn(note, channel, velUnit, detunedHz, layer.envelopes, age, noteGen, voiceSeed,
                          portamentoSeconds);
+            if (channel >= 0 && channel < static_cast<int>(channelModWheel_.size()))
+                v.expression.modWheel = channelModWheel_[static_cast<std::size_t>(channel)];
+            if (channel >= 0 && channel < static_cast<int>(channelExpression_.size()))
+                v.expression.expression = channelExpression_[static_cast<std::size_t>(channel)];
             v.outputGain = layerOutputGain(layer, patch_.voiceSettings.masterGain);
             v.pan = dsp::clamp(layer.pan + unisonPan, -1.0f, 1.0f);
         }
@@ -436,6 +442,84 @@ namespace pw8::render
             return;
         }
 
+        // CC120 All Sound Off — immediate silence on this channel.
+        if (controller == 120)
+        {
+            allSoundOff(channel);
+            return;
+        }
+
+        // CC121 Reset All Controllers — clear sustain latch (common on transport stop).
+        if (controller == 121)
+        {
+            sustainPedalHeld_[static_cast<std::size_t>(channel)] = false;
+            for (std::size_t i = 0; i < allocator_.getPolyphony(); ++i)
+            {
+                auto& v = voices_[i];
+                if (v.sustainPendingRelease && v.midiChannel == channel)
+                {
+                    v.sustainPendingRelease = false;
+                    v.noteOff(v.releaseVelocity);
+                }
+            }
+            if (isStackModeActive())
+            {
+                for (std::size_t i = 0; i < allocatorB_.getPolyphony(); ++i)
+                {
+                    auto& v = voicesB_[i];
+                    if (v.sustainPendingRelease && v.midiChannel == channel)
+                    {
+                        v.sustainPendingRelease = false;
+                        v.noteOff(v.releaseVelocity);
+                    }
+                }
+            }
+            return;
+        }
+
+        // CC123 All Notes Off — enter release on this channel.
+        if (controller == 123)
+        {
+            allNotesOff(channel);
+            return;
+        }
+
+        // CC1 Mod Wheel — channel-wide, latched; affects new notes via channelModWheel_ at note-on.
+        if (controller == 1)
+        {
+            const float v = static_cast<float>(value7) / 127.0f;
+            if (channel >= 0 && channel < static_cast<int>(channelModWheel_.size()))
+                channelModWheel_[static_cast<std::size_t>(channel)] = v;
+            for (std::size_t i = 0; i < allocator_.getPolyphony(); ++i)
+                if (voices_[i].gateOn && voices_[i].midiChannel == channel)
+                    voices_[i].expression.modWheel = v;
+            if (isStackModeActive())
+            {
+                for (std::size_t i = 0; i < allocatorB_.getPolyphony(); ++i)
+                    if (voicesB_[i].gateOn && voicesB_[i].midiChannel == channel)
+                        voicesB_[i].expression.modWheel = v;
+            }
+            return;
+        }
+
+        // CC11 Expression — expression pedal / assignable knob (Kawai MP11SE default).
+        if (controller == 11)
+        {
+            const float v = static_cast<float>(value7) / 127.0f;
+            if (channel >= 0 && channel < static_cast<int>(channelExpression_.size()))
+                channelExpression_[static_cast<std::size_t>(channel)] = v;
+            for (std::size_t i = 0; i < allocator_.getPolyphony(); ++i)
+                if (voices_[i].gateOn && voices_[i].midiChannel == channel)
+                    voices_[i].expression.expression = v;
+            if (isStackModeActive())
+            {
+                for (std::size_t i = 0; i < allocatorB_.getPolyphony(); ++i)
+                    if (voicesB_[i].gateOn && voicesB_[i].midiChannel == channel)
+                        voicesB_[i].expression.expression = v;
+            }
+            return;
+        }
+
         // CC74 (MPE slide/timbre).
         if (controller == 74)
         {
@@ -480,11 +564,64 @@ namespace pw8::render
         }
     }
 
-    void Engine::allNotesOff() noexcept
+    void Engine::allNotesOff(int channel) noexcept
     {
-        allocator_.releaseAll(voices_, 0.5f);
+        if (channel < 0)
+            sustainPedalHeld_.fill(false);
+        else if (channel < static_cast<int>(sustainPedalHeld_.size()))
+            sustainPedalHeld_[static_cast<std::size_t>(channel)] = false;
+
+        const auto releasePool = [&](voice::VoicePool& voices, voice::VoiceAllocator& allocator) {
+            if (channel < 0)
+            {
+                for (auto& v : voices)
+                    v.sustainPendingRelease = false;
+                allocator.releaseAll(voices, 0.5f);
+                return;
+            }
+
+            for (std::size_t i = 0; i < allocator.getPolyphony(); ++i)
+            {
+                auto& v = voices[i];
+                if (v.gateOn && v.midiChannel == channel)
+                {
+                    v.sustainPendingRelease = false;
+                    v.noteOff(v.releaseVelocity);
+                }
+            }
+        };
+
+        releasePool(voices_, allocator_);
         if (isStackModeActive())
-            allocatorB_.releaseAll(voicesB_, 0.5f);
+            releasePool(voicesB_, allocatorB_);
+
+        arpeggiator_.reset();
+    }
+
+    void Engine::allSoundOff(int channel) noexcept
+    {
+        if (channel < 0)
+            sustainPedalHeld_.fill(false);
+        else if (channel < static_cast<int>(sustainPedalHeld_.size()))
+            sustainPedalHeld_[static_cast<std::size_t>(channel)] = false;
+
+        const auto killPool = [&](voice::VoicePool& voices, voice::VoiceAllocator& allocator) {
+            for (std::size_t i = 0; i < allocator.getPolyphony(); ++i)
+            {
+                auto& v = voices[i];
+                if (channel >= 0 && v.midiChannel != channel)
+                    continue;
+                v.sustainPendingRelease = false;
+                if (v.isSounding() || v.gateOn)
+                    v.hardKill();
+            }
+        };
+
+        killPool(voices_, allocator_);
+        if (isStackModeActive())
+            killPool(voicesB_, allocatorB_);
+
+        arpeggiator_.reset();
     }
 
     void Engine::setMacroValue(std::size_t index, float value) noexcept

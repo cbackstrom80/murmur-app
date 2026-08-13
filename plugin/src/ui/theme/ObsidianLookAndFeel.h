@@ -34,6 +34,10 @@ namespace pw8::plugin::ui
                            bool isMouseDown) override;
 
         juce::Font getLabelFont(juce::Label& label) override;
+
+        juce::Font getPopupMenuFont() override;
+
+        juce::Font getComboBoxFont(juce::ComboBox& box) override;
     };
 
 } // namespace pw8::plugin::ui

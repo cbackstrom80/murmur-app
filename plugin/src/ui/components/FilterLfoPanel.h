@@ -5,6 +5,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "ConcentricGlowKnob.h"
 #include "GlowKnob.h"
 #include "GlowRingButton.h"
 #include "ModAssignmentController.h"
@@ -55,8 +56,7 @@ namespace pw8::plugin::ui
         std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> filterEnabledAttachment_;
 
         std::unique_ptr<GlowKnob> filterMode_;
-        std::unique_ptr<GlowKnob> filterCutoff_;
-        std::unique_ptr<GlowKnob> filterResonance_;
+        std::unique_ptr<ConcentricGlowKnob> filterToneKnob_;
         std::unique_ptr<GlowKnob> filterKeyTrack_;
 
         std::unique_ptr<GlowKnob> lfoWaveform_;

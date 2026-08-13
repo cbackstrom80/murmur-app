@@ -27,16 +27,16 @@ FetchContent_MakeAvailable(JUCE)
 
 juce_add_binary_data(pw8_branding_data
     SOURCES
-        resources/branding/starfighter_logo_full.png
-        resources/branding/starfighter_logo_mark.png
+        resources/branding/murmur_mark_512.png
 )
 
 juce_add_plugin(pw8_plugin
-    PRODUCT_NAME "Patchwork Eight"
-    COMPANY_NAME "Patchwork"
-    BUNDLE_ID "com.patchwork.patchworkeight"
-    PLUGIN_MANUFACTURER_CODE Pwei
-    PLUGIN_CODE Pwe8
+    PRODUCT_NAME "MURMUR"
+    COMPANY_NAME "Murmur"
+    BUNDLE_ID "com.patchwork.murmur"
+    PLUGIN_MANUFACTURER_CODE Murr
+    PLUGIN_CODE Murm
+    ICON_BIG resources/branding/murmur_mark_512.png
     FORMATS VST3 AU Standalone
     IS_SYNTH TRUE
     NEEDS_MIDI_INPUT TRUE
@@ -57,6 +57,7 @@ target_sources(pw8_plugin PRIVATE
     src/ui/theme/ObsidianLookAndFeel.cpp
     src/ui/theme/BrandingAssets.cpp
     src/ui/components/GlowKnob.cpp
+    src/ui/components/ConcentricGlowKnob.cpp
     src/ui/components/GlowRingButton.cpp
     src/ui/components/SectionPanel.cpp
     src/ui/components/AlgorithmGraphView.cpp
@@ -68,6 +69,10 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/FilterLfoPanel.cpp
     src/ui/components/FxChainStrip.cpp
     src/ui/components/PatchBrowserBar.cpp
+    src/ui/components/HeaderSpectrumScope.cpp
+    src/ui/components/CircularSpectrumScope.cpp
+    src/ui/components/ScopeModeToggle.cpp
+    src/ui/components/CompactModeEditor.cpp
     src/ui/components/MetadataFacetRow.cpp
     src/ui/components/PresetBrowserOverlay.cpp
     src/ui/components/AmpEnvelopePanel.cpp

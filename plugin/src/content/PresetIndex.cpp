@@ -39,12 +39,18 @@ namespace pw8::plugin::content
             }
             return false;
         }
+
+        [[nodiscard]] juce::String displayDedupKey(const PresetEntry& entry)
+        {
+            return entry.category.trim().toLowerCase() + "|" + entry.name.trim().toLowerCase();
+        }
     } // namespace
 
     void PresetIndex::rescan()
     {
         entries_.clear();
         juce::StringArray seenPaths;
+        juce::StringArray seenDisplayKeys;
 
         for (const auto& rootStr : pw8::content::presetSearchRoots())
         {
@@ -56,8 +62,15 @@ namespace pw8::plugin::content
             {
                 if (seenPaths.contains(file.getFullPathName()))
                     continue;
+
+                auto entry = parsePresetFile(file);
+                const auto displayKey = displayDedupKey(entry);
+                if (seenDisplayKeys.contains(displayKey))
+                    continue;
+
                 seenPaths.add(file.getFullPathName());
-                entries_.add(parsePresetFile(file));
+                seenDisplayKeys.add(displayKey);
+                entries_.add(std::move(entry));
             }
         }
 

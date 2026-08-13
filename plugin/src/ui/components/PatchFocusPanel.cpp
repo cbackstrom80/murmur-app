@@ -10,18 +10,31 @@ namespace pw8::plugin::ui
     PatchFocusPanel::PatchFocusPanel(PatchworkEightProcessor& processor) : processor_(processor)
     {
         addAndMakeVisible(panel_);
+        panel_.setInterceptsMouseClicks(false, true);
 
         introLabel_.setText("This patch's main controls — turn these while you play.",
                             juce::dontSendNotification);
         introLabel_.setJustificationType(juce::Justification::centredLeft);
-        introLabel_.setFont(fonts::value(11.5f));
+        introLabel_.setFont(fonts::value(fonts::kBodyLabelSize));
         introLabel_.setColour(juce::Label::textColourId, palette::kTextSecondary);
         panel_.addAndMakeVisible(introLabel_);
 
         panel_.addAndMakeVisible(subtitleLabel_);
         subtitleLabel_.setJustificationType(juce::Justification::centredLeft);
-        subtitleLabel_.setFont(fonts::value(11.0f));
-        subtitleLabel_.setColour(juce::Label::textColourId, palette::kTextSecondary);
+        subtitleLabel_.setFont(fonts::value(fonts::kBodyLabelSize));
+        subtitleLabel_.setColour(juce::Label::textColourId, palette::kTextPrimary);
+
+        modWheelBadge_.setJustificationType(juce::Justification::centredLeft);
+        modWheelBadge_.setFont(fonts::label(11.0f));
+        modWheelBadge_.setColour(juce::Label::textColourId, palette::kModModWheel);
+        modWheelBadge_.setColour(juce::Label::backgroundColourId, palette::kModModWheel.withAlpha(0.12f));
+        panel_.addAndMakeVisible(modWheelBadge_);
+
+        expressionBadge_.setJustificationType(juce::Justification::centredLeft);
+        expressionBadge_.setFont(fonts::label(11.0f));
+        expressionBadge_.setColour(juce::Label::textColourId, palette::kModExpression);
+        expressionBadge_.setColour(juce::Label::backgroundColourId, palette::kModExpression.withAlpha(0.12f));
+        panel_.addAndMakeVisible(expressionBadge_);
 
         advancedButton_.setButtonText("Mod Matrix (M)");
         advancedButton_.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
@@ -46,28 +59,61 @@ namespace pw8::plugin::ui
     void PatchFocusPanel::setBasicPerformanceLayout(bool basicLayout)
     {
         basicLayout_ = basicLayout;
-        introLabel_.setVisible(basicLayout);
+        if (basicLayout)
+            compactLayout_ = false;
+        introLabel_.setVisible(basicLayout && !compactLayout_);
+        if (!compactLayout_)
+        {
+            panel_.setVisible(true);
+            if (panel_.getParentComponent() == nullptr)
+                addAndMakeVisible(panel_);
+        }
+        applyLayoutMode();
+        resized();
+    }
+
+    void PatchFocusPanel::setCompactLayout(bool compactLayout)
+    {
+        compactLayout_ = compactLayout;
+        if (compactLayout)
+            basicLayout_ = false;
+        introLabel_.setVisible(basicLayout_ && !compactLayout_);
+        panel_.setVisible(!compactLayout_);
         applyLayoutMode();
         resized();
     }
 
     void PatchFocusPanel::applyLayoutMode()
     {
-        const int dialCap = basicLayout_ ? 120 : 72;
+        const int dialCap = compactLayout_ ? 56 : (basicLayout_ ? 120 : 72);
         for (auto& knob : knobs_)
             knob->setMaxDialDiameter(dialCap);
+    }
+
+    void PatchFocusPanel::refreshFromPatch()
+    {
+        lastSpecs_.clear();
+        timerCallback();
     }
 
     void PatchFocusPanel::timerCallback()
     {
         const auto& patch = processor_.getCurrentPatch();
-        const auto specs = inferPatchFocusKnobs(patch, basicLayout_ ? 8 : 6);
+        const std::size_t maxKnobs = compactLayout_ ? 4 : kStandardKoinCount;
+        const auto specs = inferPatchFocusKnobs(patch, maxKnobs, &processor_.apvts);
 
         const auto patchName = patch.metadata.name.empty() ? juce::String("Init") : juce::String(patch.metadata.name);
         const bool authored = !patch.uiFocus.knobs.empty();
-        subtitleLabel_.setText("Playing " + patchName + " — " + juce::String(static_cast<int>(specs.size())) +
-                                   (authored ? " patch-authored controls" : " inferred controls"),
-                               juce::dontSendNotification);
+        if (compactLayout_)
+        {
+            subtitleLabel_.setText(authored ? "Patch controls" : "Focus controls", juce::dontSendNotification);
+        }
+        else
+        {
+            subtitleLabel_.setText("Playing " + patchName + " — " + juce::String(static_cast<int>(specs.size())) +
+                                       (authored ? " patch-authored controls" : " focus controls"),
+                                   juce::dontSendNotification);
+        }
 
         if (specs != lastSpecs_)
         {
@@ -76,15 +122,33 @@ namespace pw8::plugin::ui
             applyLayoutMode();
             resized();
         }
+
+        const auto wheelText = formatModWheelStatus(patch, processor_.getModWheelValue());
+        modWheelBadge_.setText(wheelText, juce::dontSendNotification);
+        modWheelBadge_.setVisible(!wheelText.isEmpty());
+
+        const auto exprText = formatExpressionStatus(patch, processor_.getExpressionValue());
+        expressionBadge_.setText(exprText, juce::dontSendNotification);
+        expressionBadge_.setVisible(!exprText.isEmpty());
     }
 
     void PatchFocusPanel::rebuildKnobs(const std::vector<PatchFocusKnobSpec>& specs)
     {
         knobs_.clear();
-        panel_.removeAllChildren();
-        panel_.addAndMakeVisible(introLabel_);
-        panel_.addAndMakeVisible(subtitleLabel_);
-        panel_.addAndMakeVisible(advancedButton_);
+        if (!compactLayout_)
+        {
+            panel_.removeAllChildren();
+            panel_.addAndMakeVisible(introLabel_);
+            panel_.addAndMakeVisible(subtitleLabel_);
+            panel_.addAndMakeVisible(modWheelBadge_);
+            panel_.addAndMakeVisible(expressionBadge_);
+            panel_.addAndMakeVisible(advancedButton_);
+        }
+        else
+        {
+            removeAllChildren();
+            addAndMakeVisible(subtitleLabel_);
+        }
 
         for (const auto& spec : specs)
         {
@@ -96,15 +160,45 @@ namespace pw8::plugin::ui
             }
             else
             {
+                if (processor_.apvts.getParameter(spec.paramId) == nullptr)
+                    continue;
                 knob = std::make_unique<GlowKnob>(processor_.apvts, spec.paramId, spec.label);
             }
-            panel_.addAndMakeVisible(*knob);
+            if (compactLayout_)
+                addAndMakeVisible(*knob);
+            else
+                panel_.addAndMakeVisible(*knob);
             knobs_.push_back(std::move(knob));
         }
     }
 
     void PatchFocusPanel::resized()
     {
+        if (compactLayout_)
+        {
+            auto bounds = getLocalBounds().reduced(2, 0);
+            subtitleLabel_.setBounds(bounds.removeFromTop(16));
+            bounds.removeFromTop(4);
+
+            if (knobs_.empty())
+                return;
+
+            const int columns = static_cast<int>(knobs_.size()) <= 2 ? static_cast<int>(knobs_.size()) : 2;
+            const int rows = static_cast<int>((knobs_.size() + static_cast<std::size_t>(columns) - 1) /
+                                              static_cast<std::size_t>(columns));
+            const int cellWidth = bounds.getWidth() / juce::jmax(1, columns);
+            const int cellHeight = bounds.getHeight() / juce::jmax(1, rows);
+
+            for (std::size_t i = 0; i < knobs_.size(); ++i)
+            {
+                const int col = static_cast<int>(i) % columns;
+                const int row = static_cast<int>(i) / columns;
+                knobs_[i]->setBounds(bounds.getX() + col * cellWidth, bounds.getY() + row * cellHeight, cellWidth,
+                                     cellHeight);
+            }
+            return;
+        }
+
         panel_.setBounds(getLocalBounds());
 
         auto bounds = panel_.getContentBounds().reduced(4, 0);
@@ -116,6 +210,18 @@ namespace pw8::plugin::ui
 
         auto header = bounds.removeFromTop(22);
         subtitleLabel_.setBounds(header);
+
+        if (modWheelBadge_.isVisible())
+        {
+            bounds.removeFromTop(4);
+            modWheelBadge_.setBounds(bounds.removeFromTop(18));
+        }
+
+        if (expressionBadge_.isVisible())
+        {
+            bounds.removeFromTop(4);
+            expressionBadge_.setBounds(bounds.removeFromTop(18));
+        }
 
         bounds.removeFromTop(basicLayout_ ? 8 : 4);
 

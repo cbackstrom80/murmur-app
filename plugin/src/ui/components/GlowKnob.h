@@ -65,6 +65,9 @@ namespace pw8::plugin::ui
         /// Larger dial cap for BASIC performance layout (default 88 in Obsidian LAF).
         void setMaxDialDiameter(int diameter);
 
+        /// Compact header layout: smaller dial, hidden value readout.
+        void setHeaderCompactMode(bool compact);
+
         // -- juce::DragAndDropTarget --
         bool isInterestedInDragSource(const SourceDetails& details) override;
         void itemDragEnter(const SourceDetails& details) override;
@@ -108,6 +111,7 @@ namespace pw8::plugin::ui
         float depthDragStartAmount_ = 0.0f;
         float depthDragStartX_ = 0.0f;
         int maxDialDiameter_ = 88;
+        bool headerCompactMode_ = false;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GlowKnob)
     };

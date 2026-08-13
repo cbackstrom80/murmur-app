@@ -1,1252 +1,4002 @@
 [
   {
+    "category": "Ambient",
+    "file": "factory/Ambient/01-vapor-drone.pw8",
+    "name": "VAPOR DRONE"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/02-ash-field.pw8",
+    "name": "ASH FIELD"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/03-cavern-drift.pw8",
+    "name": "CAVERN DRIFT"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/04-swell-drift.pw8",
+    "name": "SWELL DRIFT"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/05-threnody-echo.pw8",
+    "name": "THRENODY ECHO"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/06-vellum-wash.pw8",
+    "name": "VELLUM WASH"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/061-prime-crown-23.pw8",
+    "name": "PRIME CROWN 23"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/062-apex-forge-78.pw8",
+    "name": "APEX FORGE 78"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/063-nova-storm-48.pw8",
+    "name": "NOVA STORM 48"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/064-oracle-arc-27.pw8",
+    "name": "ORACLE ARC 27"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/065-nova-fall-56.pw8",
+    "name": "NOVA FALL 56"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/066-horizon-tide-13.pw8",
+    "name": "HORIZON TIDE 13"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/067-nova-pulse-20.pw8",
+    "name": "NOVA PULSE 20"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/068-oracle-forge-89.pw8",
+    "name": "ORACLE FORGE 89"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/069-trailer-tide-84.pw8",
+    "name": "TRAILER TIDE 84"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/07-hollow-wash.pw8",
+    "name": "HOLLOW WASH"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/070-vast-storm-51.pw8",
+    "name": "VAST STORM 51"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/071-prime-crown-95.pw8",
+    "name": "PRIME CROWN 95"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/072-vast-tide-46.pw8",
+    "name": "VAST TIDE 46"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/073-horizon-tide-17.pw8",
+    "name": "HORIZON TIDE 17"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/074-vast-storm-67.pw8",
+    "name": "VAST STORM 67"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/075-oracle-fall-78.pw8",
+    "name": "ORACLE FALL 78"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/076-nova-forge-15.pw8",
+    "name": "NOVA FORGE 15"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/077-titan-pulse-2.pw8",
+    "name": "TITAN PULSE 2"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/078-trailer-storm-79.pw8",
+    "name": "TRAILER STORM 79"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/079-epic-crown-24.pw8",
+    "name": "EPIC CROWN 24"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/08-tundra-hymn.pw8",
+    "name": "TUNDRA HYMN"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/080-score-storm-95.pw8",
+    "name": "SCORE STORM 95"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/081-prime-rise-16.pw8",
+    "name": "PRIME RISE 16"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/082-epic-forge-71.pw8",
+    "name": "EPIC FORGE 71"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/083-vast-rise-93.pw8",
+    "name": "VAST RISE 93"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/084-horizon-forge-91.pw8",
+    "name": "HORIZON FORGE 91"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/085-nova-storm-69.pw8",
+    "name": "NOVA STORM 69"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/086-horizon-forge-88.pw8",
+    "name": "HORIZON FORGE 88"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/087-vast-forge-30.pw8",
+    "name": "VAST FORGE 30"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/088-vast-arc-73.pw8",
+    "name": "VAST ARC 73"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/089-horizon-pulse-22.pw8",
+    "name": "HORIZON PULSE 22"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/09-fathomless-hymn.pw8",
+    "name": "FATHOMLESS HYMN"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/090-prime-forge-14.pw8",
+    "name": "PRIME FORGE 14"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/091-nova-expanse-36.pw8",
+    "name": "NOVA EXPANSE 36"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/092-prime-arc-96.pw8",
+    "name": "PRIME ARC 96"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/093-nova-tide-82.pw8",
+    "name": "NOVA TIDE 82"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/094-oracle-crown-2.pw8",
+    "name": "ORACLE CROWN 2"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/095-oracle-rise-37.pw8",
+    "name": "ORACLE RISE 37"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/096-epic-rise-61.pw8",
+    "name": "EPIC RISE 61"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/097-vast-rise-49.pw8",
+    "name": "VAST RISE 49"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/098-apex-dawn-9.pw8",
+    "name": "APEX DAWN 9"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/099-apex-pulse-67.pw8",
+    "name": "APEX PULSE 67"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/10-sere-field.pw8",
+    "name": "SERE FIELD"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/100-horizon-forge-30.pw8",
+    "name": "HORIZON FORGE 30"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/101-nova-rise-90.pw8",
+    "name": "NOVA RISE 90"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/102-apex-forge-57.pw8",
+    "name": "APEX FORGE 57"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/103-shimmer-drift-35.pw8",
+    "name": "SHIMMER DRIFT 35"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/104-glass-wash-52.pw8",
+    "name": "GLASS WASH 52"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/105-glass-veil-85.pw8",
+    "name": "GLASS VEIL 85"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/106-glass-bloom-78.pw8",
+    "name": "GLASS BLOOM 78"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/107-neon-echo-45.pw8",
+    "name": "NEON ECHO 45"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/108-dream-bloom-49.pw8",
+    "name": "DREAM BLOOM 49"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/109-haze-drift-38.pw8",
+    "name": "HAZE DRIFT 38"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/11-nebula-expanse.pw8",
+    "name": "NEBULA EXPANSE"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/110-velvet-beam-63.pw8",
+    "name": "VELVET BEAM 63"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/111-dream-swell-24.pw8",
+    "name": "DREAM SWELL 24"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/112-aurora-veil-82.pw8",
+    "name": "AURORA VEIL 82"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/113-glass-beam-39.pw8",
+    "name": "GLASS BEAM 39"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/114-velvet-beam-50.pw8",
+    "name": "VELVET BEAM 50"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/115-midnight-beam-6.pw8",
+    "name": "MIDNIGHT BEAM 6"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/116-shimmer-wash-88.pw8",
+    "name": "SHIMMER WASH 88"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/117-glass-swell-34.pw8",
+    "name": "GLASS SWELL 34"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/118-cascade-swell-55.pw8",
+    "name": "CASCADE SWELL 55"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/119-glass-veil-2.pw8",
+    "name": "GLASS VEIL 2"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/12-vellum-field.pw8",
+    "name": "VELLUM FIELD"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/120-neon-field-31.pw8",
+    "name": "NEON FIELD 31"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/121-comfort-veil-83.pw8",
+    "name": "COMFORT VEIL 83"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/122-neon-field-3.pw8",
+    "name": "NEON FIELD 3"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/123-neon-swell-85.pw8",
+    "name": "NEON SWELL 85"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/124-dream-beam-92.pw8",
+    "name": "DREAM BEAM 92"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/125-dream-field-88.pw8",
+    "name": "DREAM FIELD 88"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/126-velvet-beam-34.pw8",
+    "name": "VELVET BEAM 34"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/127-cascade-echo-98.pw8",
+    "name": "CASCADE ECHO 98"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/128-haze-hymn-11.pw8",
+    "name": "HAZE HYMN 11"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/129-cascade-echo-56.pw8",
+    "name": "CASCADE ECHO 56"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/13-vellum-echo.pw8",
+    "name": "VELLUM ECHO"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/130-dream-drift-24.pw8",
+    "name": "DREAM DRIFT 24"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/131-dream-beam-25.pw8",
+    "name": "DREAM BEAM 25"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/132-cascade-bloom-85.pw8",
+    "name": "CASCADE BLOOM 85"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/133-neon-hymn-7.pw8",
+    "name": "NEON HYMN 7"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/134-neon-swell-33.pw8",
+    "name": "NEON SWELL 33"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/135-comfort-swell-7.pw8",
+    "name": "COMFORT SWELL 7"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/136-pulse-groove-91.pw8",
+    "name": "PULSE GROOVE 91"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/137-pump-pulse-95.pw8",
+    "name": "PUMP PULSE 95"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/138-garage-pulse-23.pw8",
+    "name": "GARAGE PULSE 23"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/139-floor-run-74.pw8",
+    "name": "FLOOR RUN 74"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/14-swell-riser.pw8",
+    "name": "SWELL RISER"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/140-pulse-kick-74.pw8",
+    "name": "PULSE KICK 74"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/141-pulse-drive-48.pw8",
+    "name": "PULSE DRIVE 48"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/142-club-zone-64.pw8",
+    "name": "CLUB ZONE 64"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/143-pulse-loop-39.pw8",
+    "name": "PULSE LOOP 39"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/144-pulse-run-55.pw8",
+    "name": "PULSE RUN 55"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/145-deep-pulse-41.pw8",
+    "name": "DEEP PULSE 41"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/146-pulse-house-97.pw8",
+    "name": "PULSE HOUSE 97"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/147-motor-groove-83.pw8",
+    "name": "MOTOR GROOVE 83"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/148-grid-line-15.pw8",
+    "name": "GRID LINE 15"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/149-neon-drive-77.pw8",
+    "name": "NEON DRIVE 77"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/15-fen-bloom.pw8",
+    "name": "FEN BLOOM"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/150-night-run-99.pw8",
+    "name": "NIGHT RUN 99"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/151-club-kick-56.pw8",
+    "name": "CLUB KICK 56"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/152-floor-drive-44.pw8",
+    "name": "FLOOR DRIVE 44"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/153-floor-drive-42.pw8",
+    "name": "FLOOR DRIVE 42"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/154-floor-kick-34.pw8",
+    "name": "FLOOR KICK 34"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/155-grid-loop-61.pw8",
+    "name": "GRID LOOP 61"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/156-grid-step-12.pw8",
+    "name": "GRID STEP 12"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/157-night-kick-38.pw8",
+    "name": "NIGHT KICK 38"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/158-pulse-loop-76.pw8",
+    "name": "PULSE LOOP 76"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/159-club-kick-11.pw8",
+    "name": "CLUB KICK 11"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/16-vapor-echo.pw8",
+    "name": "VAPOR ECHO"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/160-motor-step-62.pw8",
+    "name": "MOTOR STEP 62"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/17-fathomless-wash.pw8",
+    "name": "FATHOMLESS WASH"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/18-glacier-drift.pw8",
+    "name": "GLACIER DRIFT"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/19-fen-echo.pw8",
+    "name": "FEN ECHO"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/20-fen-wash.pw8",
+    "name": "FEN WASH"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/21-ochre-bloom.pw8",
+    "name": "OCHRE BLOOM"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/22-abyssal-echo.pw8",
+    "name": "ABYSSAL ECHO"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/23-basin-drift.pw8",
+    "name": "BASIN DRIFT"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/24-photon-wash.pw8",
+    "name": "PHOTON WASH"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/25-cavern-bloom.pw8",
+    "name": "CAVERN BLOOM"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/26-fen-hymn.pw8",
+    "name": "FEN HYMN"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/27-threnody-drone.pw8",
+    "name": "THRENODY DRONE"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/28-hollow-hymn.pw8",
+    "name": "HOLLOW HYMN"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/29-hymn-drift.pw8",
+    "name": "HYMN DRIFT"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/30-fathomless-bloom.pw8",
+    "name": "FATHOMLESS BLOOM"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/31-shale-bloom.pw8",
+    "name": "SHALE BLOOM"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/32-ash-hymn.pw8",
+    "name": "ASH HYMN"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/33-wraith-expanse.pw8",
+    "name": "WRAITH EXPANSE"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/34-mist-hymn.pw8",
+    "name": "MIST HYMN"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/35-sere-echo.pw8",
+    "name": "SERE ECHO"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/36-photon-riser.pw8",
+    "name": "PHOTON RISER"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/37-hymn-cloud.pw8",
+    "name": "HYMN CLOUD"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/38-abyssal-hymn.pw8",
+    "name": "ABYSSAL HYMN"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/39-hollow-cloud.pw8",
+    "name": "HOLLOW CLOUD"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/40-photon-field.pw8",
+    "name": "PHOTON FIELD"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/41-photon-expanse.pw8",
+    "name": "PHOTON EXPANSE"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/42-resonant-drift.pw8",
+    "name": "RESONANT DRIFT"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/43-resonant-riser.pw8",
+    "name": "RESONANT RISER"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/44-fen-expanse.pw8",
+    "name": "FEN EXPANSE"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/45-drift-hymn.pw8",
+    "name": "DRIFT HYMN"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/46-mist-wash.pw8",
+    "name": "MIST WASH"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/47-abyssal-bloom.pw8",
+    "name": "ABYSSAL BLOOM"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/48-shale-wash.pw8",
+    "name": "SHALE WASH"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/49-ochre-wash.pw8",
+    "name": "OCHRE WASH"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/50-lichen-drift.pw8",
+    "name": "LICHEN DRIFT"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/51-shimmer-wash.pw8",
+    "name": "SHIMMER WASH"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/52-comfort-drift.pw8",
+    "name": "COMFORT DRIFT"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/53-neon-expanse.pw8",
+    "name": "NEON EXPANSE"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/54-glass-cloud.pw8",
+    "name": "GLASS CLOUD"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/55-hymn-swell.pw8",
+    "name": "HYMN SWELL"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/56-aurora-field.pw8",
+    "name": "AURORA FIELD"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/57-midnight-haze.pw8",
+    "name": "MIDNIGHT HAZE"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/58-cascade-echo.pw8",
+    "name": "CASCADE ECHO"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/59-dream-riser.pw8",
+    "name": "DREAM RISER"
+  },
+  {
+    "category": "Ambient",
+    "file": "factory/Ambient/60-velvet-hymn-alt.pw8",
+    "name": "VELVET HYMN ALT"
+  },
+  {
     "category": "Basses",
     "file": "factory/Basses/01-slack-drive.pw8",
     "name": "SLACK DRIVE"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/02-fang-low.pw8",
-    "name": "FANG LOW"
+    "file": "factory/Basses/02-slack-low.pw8",
+    "name": "SLACK LOW"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/03-grind-bass.pw8",
-    "name": "GRIND BASS"
+    "file": "factory/Basses/03-coil-line.pw8",
+    "name": "COIL LINE"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/04-ratio-pulse.pw8",
-    "name": "RATIO PULSE"
+    "file": "factory/Basses/04-grind-weight.pw8",
+    "name": "GRIND WEIGHT"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/05-undertow-sub.pw8",
-    "name": "UNDERTOW SUB"
+    "file": "factory/Basses/05-growl-growl.pw8",
+    "name": "GROWL GROWL"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/06-anchor-sub.pw8",
-    "name": "ANCHOR SUB"
+    "file": "factory/Basses/06-crawl-drive.pw8",
+    "name": "CRAWL DRIVE"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/07-coil-low.pw8",
-    "name": "COIL LOW"
+    "file": "factory/Basses/061-warp-roar.pw8",
+    "name": "WARP ROAR"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/08-sub-low.pw8",
-    "name": "SUB LOW"
+    "file": "factory/Basses/062-blast-wail.pw8",
+    "name": "BLAST WAIL"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/09-fifth-sub.pw8",
-    "name": "FIFTH SUB"
+    "file": "factory/Basses/063-warp-rush.pw8",
+    "name": "WARP RUSH"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/10-ladder-low.pw8",
-    "name": "LADDER LOW"
+    "file": "factory/Basses/064-rave-wail.pw8",
+    "name": "RAVE WAIL"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/11-rubber-sub.pw8",
-    "name": "RUBBER SUB"
+    "file": "factory/Basses/065-club-wail.pw8",
+    "name": "CLUB WAIL"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/12-root-bass.pw8",
-    "name": "ROOT BASS"
+    "file": "factory/Basses/066-pump-drive.pw8",
+    "name": "PUMP DRIVE"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/13-bronze-line.pw8",
-    "name": "BRONZE LINE"
+    "file": "factory/Basses/067-vault-blast.pw8",
+    "name": "VAULT BLAST"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/14-trench-bass.pw8",
-    "name": "TRENCH BASS"
+    "file": "factory/Basses/068-blast-roar.pw8",
+    "name": "BLAST ROAR"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/15-fathom-bass.pw8",
-    "name": "FATHOM BASS"
+    "file": "factory/Basses/069-rave-hoover.pw8",
+    "name": "RAVE HOOVER"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/16-sludge-depth.pw8",
-    "name": "SLUDGE DEPTH"
-  },
-  {
-    "category": "Basses",
-    "file": "factory/Basses/17-growl-depth.pw8",
-    "name": "GROWL DEPTH"
-  },
-  {
-    "category": "Basses",
-    "file": "factory/Basses/18-rumble-weight.pw8",
+    "file": "factory/Basses/07-rumble-weight.pw8",
     "name": "RUMBLE WEIGHT"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/19-slack-bass.pw8",
-    "name": "SLACK BASS"
+    "file": "factory/Basses/070-acid-surge.pw8",
+    "name": "ACID SURGE"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/20-sub-depth.pw8",
-    "name": "SUB DEPTH"
+    "file": "factory/Basses/071-club-growl.pw8",
+    "name": "CLUB GROWL"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/21-coil-drive.pw8",
-    "name": "COIL DRIVE"
+    "file": "factory/Basses/072-blast-growl.pw8",
+    "name": "BLAST GROWL"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/22-trench-sub.pw8",
-    "name": "TRENCH SUB"
+    "file": "factory/Basses/073-vault-horn.pw8",
+    "name": "VAULT HORN"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/23-undertow-bass.pw8",
-    "name": "UNDERTOW BASS"
+    "file": "factory/Basses/074-turbine-surge.pw8",
+    "name": "TURBINE SURGE"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/24-rubber-low.pw8",
-    "name": "RUBBER LOW"
+    "file": "factory/Basses/075-roller-surge.pw8",
+    "name": "ROLLER SURGE"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/25-squelch-line.pw8",
+    "file": "factory/Basses/076-turbine-hoover.pw8",
+    "name": "TURBINE HOOVER"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/077-turbine-horn.pw8",
+    "name": "TURBINE HORN"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/078-acid-hoover.pw8",
+    "name": "ACID HOOVER"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/079-blast-sweep.pw8",
+    "name": "BLAST SWEEP"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/08-root-drive.pw8",
+    "name": "ROOT DRIVE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/080-roller-drive.pw8",
+    "name": "ROLLER DRIVE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/081-blast-rush.pw8",
+    "name": "BLAST RUSH"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/082-peak-horn.pw8",
+    "name": "PEAK HORN"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/083-blast-hoover.pw8",
+    "name": "BLAST HOOVER"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/084-acid-horn.pw8",
+    "name": "ACID HORN"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/085-turbine-blast.pw8",
+    "name": "TURBINE BLAST"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/086-club-sweep.pw8",
+    "name": "CLUB SWEEP"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/087-vault-wail.pw8",
+    "name": "VAULT WAIL"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/088-peak-hoover.pw8",
+    "name": "PEAK HOOVER"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/089-neon-run.pw8",
+    "name": "NEON RUN"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/09-anchor-sub.pw8",
+    "name": "ANCHOR SUB"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/090-night-groove.pw8",
+    "name": "NIGHT GROOVE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/091-neon-drive.pw8",
+    "name": "NEON DRIVE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/092-garage-groove.pw8",
+    "name": "GARAGE GROOVE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/093-neon-loop.pw8",
+    "name": "NEON LOOP"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/094-club-groove.pw8",
+    "name": "CLUB GROOVE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/095-deep-zone.pw8",
+    "name": "DEEP ZONE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/096-pulse-run.pw8",
+    "name": "PULSE RUN"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/097-deep-kick.pw8",
+    "name": "DEEP KICK"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/098-club-zone.pw8",
+    "name": "CLUB ZONE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/099-floor-house.pw8",
+    "name": "FLOOR HOUSE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/10-broad-low.pw8",
+    "name": "BROAD LOW"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/100-floor-step.pw8",
+    "name": "FLOOR STEP"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/101-deep-line.pw8",
+    "name": "DEEP LINE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/102-garage-run.pw8",
+    "name": "GARAGE RUN"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/103-night-loop.pw8",
+    "name": "NIGHT LOOP"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/104-floor-pulse.pw8",
+    "name": "FLOOR PULSE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/105-club-loop.pw8",
+    "name": "CLUB LOOP"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/106-pump-step.pw8",
+    "name": "PUMP STEP"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/107-pump-run.pw8",
+    "name": "PUMP RUN"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/108-floor-kick.pw8",
+    "name": "FLOOR KICK"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/109-grid-line.pw8",
+    "name": "GRID LINE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/11-accent-depth.pw8",
+    "name": "ACCENT DEPTH"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/110-pulse-drive.pw8",
+    "name": "PULSE DRIVE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/111-motor-step.pw8",
+    "name": "MOTOR STEP"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/112-neon-house.pw8",
+    "name": "NEON HOUSE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/113-deep-pulse.pw8",
+    "name": "DEEP PULSE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/114-pulse-house.pw8",
+    "name": "PULSE HOUSE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/115-neon-groove.pw8",
+    "name": "NEON GROOVE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/116-pulse-groove.pw8",
+    "name": "PULSE GROOVE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/117-aurora-wash.pw8",
+    "name": "AURORA WASH"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/118-haze-bloom.pw8",
+    "name": "HAZE BLOOM"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/119-neon-hymn.pw8",
+    "name": "NEON HYMN"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/12-basalt-low.pw8",
+    "name": "BASALT LOW"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/120-haze-swell.pw8",
+    "name": "HAZE SWELL"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/121-haze-beam.pw8",
+    "name": "HAZE BEAM"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/122-cascade-swell.pw8",
+    "name": "CASCADE SWELL"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/123-dream-hymn.pw8",
+    "name": "DREAM HYMN"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/124-aurora-beam.pw8",
+    "name": "AURORA BEAM"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/125-dream-bloom.pw8",
+    "name": "DREAM BLOOM"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/126-cascade-bloom.pw8",
+    "name": "CASCADE BLOOM"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/127-midnight-beam.pw8",
+    "name": "MIDNIGHT BEAM"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/128-comfort-echo.pw8",
+    "name": "COMFORT ECHO"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/129-comfort-swell.pw8",
+    "name": "COMFORT SWELL"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/13-ratio-pulse.pw8",
+    "name": "RATIO PULSE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/130-dream-swell.pw8",
+    "name": "DREAM SWELL"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/131-glass-drift.pw8",
+    "name": "GLASS DRIFT"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/132-velvet-field.pw8",
+    "name": "VELVET FIELD"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/133-aurora-echo.pw8",
+    "name": "AURORA ECHO"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/134-neon-bloom.pw8",
+    "name": "NEON BLOOM"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/135-comfort-field.pw8",
+    "name": "COMFORT FIELD"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/136-shimmer-veil.pw8",
+    "name": "SHIMMER VEIL"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/137-cascade-field.pw8",
+    "name": "CASCADE FIELD"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/138-shimmer-echo.pw8",
+    "name": "SHIMMER ECHO"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/139-trailer-storm.pw8",
+    "name": "TRAILER STORM"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/14-thud-pulse.pw8",
+    "name": "THUD PULSE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/140-horizon-crown.pw8",
+    "name": "HORIZON CROWN"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/141-trailer-arc.pw8",
+    "name": "TRAILER ARC"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/142-horizon-arc.pw8",
+    "name": "HORIZON ARC"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/143-epic-expanse.pw8",
+    "name": "EPIC EXPANSE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/144-oracle-pulse.pw8",
+    "name": "ORACLE PULSE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/145-horizon-tide.pw8",
+    "name": "HORIZON TIDE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/146-apex-rise.pw8",
+    "name": "APEX RISE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/147-nova-rise.pw8",
+    "name": "NOVA RISE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/148-vast-dawn.pw8",
+    "name": "VAST DAWN"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/149-prime-crown.pw8",
+    "name": "PRIME CROWN"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/15-bronze-pulse.pw8",
+    "name": "BRONZE PULSE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/150-prime-arc.pw8",
+    "name": "PRIME ARC"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/151-prime-tide.pw8",
+    "name": "PRIME TIDE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/152-prime-fall.pw8",
+    "name": "PRIME FALL"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/153-prime-forge.pw8",
+    "name": "PRIME FORGE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/154-trailer-pulse.pw8",
+    "name": "TRAILER PULSE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/155-apex-pulse.pw8",
+    "name": "APEX PULSE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/156-titan-dawn.pw8",
+    "name": "TITAN DAWN"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/157-vast-tide.pw8",
+    "name": "VAST TIDE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/158-apex-arc.pw8",
+    "name": "APEX ARC"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/159-vast-fall.pw8",
+    "name": "VAST FALL"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/16-basalt-growl.pw8",
+    "name": "BASALT GROWL"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/160-nova-pulse.pw8",
+    "name": "NOVA PULSE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/17-rubber-depth.pw8",
+    "name": "RUBBER DEPTH"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/18-anchor-growl.pw8",
+    "name": "ANCHOR GROWL"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/19-trench-bass.pw8",
+    "name": "TRENCH BASS"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/20-sub-pulse.pw8",
+    "name": "SUB PULSE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/21-fifth-pulse.pw8",
+    "name": "FIFTH PULSE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/22-sludge-depth.pw8",
+    "name": "SLUDGE DEPTH"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/23-sludge-drive.pw8",
+    "name": "SLUDGE DRIVE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/24-accent-line.pw8",
+    "name": "ACCENT LINE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/25-mono-drive.pw8",
+    "name": "MONO DRIVE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/26-squelch-line.pw8",
     "name": "SQUELCH LINE"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/26-ladder-squelch.pw8",
-    "name": "LADDER SQUELCH"
+    "file": "factory/Basses/27-rubber-low.pw8",
+    "name": "RUBBER LOW"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/27-grind-pulse.pw8",
-    "name": "GRIND PULSE"
+    "file": "factory/Basses/28-wobble-drive.pw8",
+    "name": "WOBBLE DRIVE"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/28-growl-drive.pw8",
-    "name": "GROWL DRIVE"
+    "file": "factory/Basses/29-basalt-pulse.pw8",
+    "name": "BASALT PULSE"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/29-trench-low.pw8",
-    "name": "TRENCH LOW"
+    "file": "factory/Basses/30-fang-weight.pw8",
+    "name": "FANG WEIGHT"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/30-crawl-depth.pw8",
-    "name": "CRAWL DEPTH"
+    "file": "factory/Basses/31-sub-depth.pw8",
+    "name": "SUB DEPTH"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/31-fathom-low.pw8",
-    "name": "FATHOM LOW"
+    "file": "factory/Basses/32-wobble-weight.pw8",
+    "name": "WOBBLE WEIGHT"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/32-fathom-growl.pw8",
-    "name": "FATHOM GROWL"
+    "file": "factory/Basses/33-squelch-squelch.pw8",
+    "name": "SQUELCH SQUELCH"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/33-trench-depth.pw8",
-    "name": "TRENCH DEPTH"
+    "file": "factory/Basses/34-wobble-low.pw8",
+    "name": "WOBBLE LOW"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/34-accent-sub.pw8",
-    "name": "ACCENT SUB"
+    "file": "factory/Basses/35-iron-sub.pw8",
+    "name": "IRON SUB"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/35-metallic-drive.pw8",
-    "name": "METALLIC DRIVE"
+    "file": "factory/Basses/36-undertow-low.pw8",
+    "name": "UNDERTOW LOW"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/36-thud-growl.pw8",
-    "name": "THUD GROWL"
+    "file": "factory/Basses/37-rumble-growl.pw8",
+    "name": "RUMBLE GROWL"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/37-accent-low.pw8",
-    "name": "ACCENT LOW"
+    "file": "factory/Basses/38-iron-low.pw8",
+    "name": "IRON LOW"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/38-sub-drive.pw8",
-    "name": "SUB DRIVE"
+    "file": "factory/Basses/39-crawl-bass.pw8",
+    "name": "CRAWL BASS"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/39-coil-weight.pw8",
-    "name": "COIL WEIGHT"
+    "file": "factory/Basses/40-coil-drive.pw8",
+    "name": "COIL DRIVE"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/40-grind-drive.pw8",
-    "name": "GRIND DRIVE"
-  },
-  {
-    "category": "Basses",
-    "file": "factory/Basses/41-sludge-sub.pw8",
-    "name": "SLUDGE SUB"
-  },
-  {
-    "category": "Basses",
-    "file": "factory/Basses/42-accent-pulse.pw8",
-    "name": "ACCENT PULSE"
-  },
-  {
-    "category": "Basses",
-    "file": "factory/Basses/43-thud-bass.pw8",
-    "name": "THUD BASS"
-  },
-  {
-    "category": "Basses",
-    "file": "factory/Basses/44-thud-drive.pw8",
-    "name": "THUD DRIVE"
-  },
-  {
-    "category": "Basses",
-    "file": "factory/Basses/45-anchor-low.pw8",
-    "name": "ANCHOR LOW"
-  },
-  {
-    "category": "Basses",
-    "file": "factory/Basses/46-bronze-growl.pw8",
-    "name": "BRONZE GROWL"
-  },
-  {
-    "category": "Basses",
-    "file": "factory/Basses/47-fifth-depth.pw8",
+    "file": "factory/Basses/41-fifth-depth.pw8",
     "name": "FIFTH DEPTH"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/48-coil-growl.pw8",
-    "name": "COIL GROWL"
+    "file": "factory/Basses/42-broad-bass.pw8",
+    "name": "BROAD BASS"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/49-root-low.pw8",
-    "name": "ROOT LOW"
+    "file": "factory/Basses/43-rubber-squelch.pw8",
+    "name": "RUBBER SQUELCH"
   },
   {
     "category": "Basses",
-    "file": "factory/Basses/50-broad-low.pw8",
-    "name": "BROAD LOW"
+    "file": "factory/Basses/44-undertow-drive.pw8",
+    "name": "UNDERTOW DRIVE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/45-sub-low.pw8",
+    "name": "SUB LOW"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/46-broad-sub.pw8",
+    "name": "BROAD SUB"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/47-metallic-growl.pw8",
+    "name": "METALLIC GROWL"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/48-rubber-line.pw8",
+    "name": "RUBBER LINE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/49-grind-growl.pw8",
+    "name": "GRIND GROWL"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/50-anchor-low.pw8",
+    "name": "ANCHOR LOW"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/51-neon-motor.pw8",
+    "name": "NEON MOTOR"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/52-midnight-pulse.pw8",
+    "name": "MIDNIGHT PULSE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/53-comfort-sub.pw8",
+    "name": "COMFORT SUB"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/54-shimmer-low.pw8",
+    "name": "SHIMMER LOW"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/55-glass-drive.pw8",
+    "name": "GLASS DRIVE"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/56-velvet-depth.pw8",
+    "name": "VELVET DEPTH"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/57-motor-funk.pw8",
+    "name": "MOTOR FUNK"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/58-beam-weight.pw8",
+    "name": "BEAM WEIGHT"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/59-glow-bass.pw8",
+    "name": "GLOW BASS"
+  },
+  {
+    "category": "Basses",
+    "file": "factory/Basses/60-horizon-sub.pw8",
+    "name": "HORIZON SUB"
   },
   {
     "category": "Leads",
-    "file": "factory/Leads/01-comet-spike.pw8",
-    "name": "COMET SPIKE"
+    "file": "factory/Leads/01-fifth-stab.pw8",
+    "name": "FIFTH STAB"
   },
   {
     "category": "Leads",
-    "file": "factory/Leads/02-pixel-tear.pw8",
-    "name": "PIXEL TEAR"
+    "file": "factory/Leads/02-pixel-line.pw8",
+    "name": "PIXEL LINE"
   },
   {
     "category": "Leads",
-    "file": "factory/Leads/03-blade-cut.pw8",
-    "name": "BLADE CUT"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/04-pixel-sync.pw8",
-    "name": "PIXEL SYNC"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/05-voltage-tear.pw8",
-    "name": "VOLTAGE TEAR"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/06-fifth-line.pw8",
-    "name": "FIFTH LINE"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/07-prism-cut.pw8",
-    "name": "PRISM CUT"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/08-glass-scream.pw8",
-    "name": "GLASS SCREAM"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/09-solar-sync.pw8",
-    "name": "SOLAR SYNC"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/10-glass-line.pw8",
-    "name": "GLASS LINE"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/11-tine-scream.pw8",
-    "name": "TINE SCREAM"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/12-bronze-tear.pw8",
-    "name": "BRONZE TEAR"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/13-flare-sync.pw8",
-    "name": "FLARE SYNC"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/14-neon-spike.pw8",
-    "name": "NEON SPIKE"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/15-ion-cut.pw8",
-    "name": "ION CUT"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/16-comet-edge.pw8",
-    "name": "COMET EDGE"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/17-rip-stab.pw8",
-    "name": "RIP STAB"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/18-razor-sync.pw8",
-    "name": "RAZOR SYNC"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/19-vector-lead.pw8",
-    "name": "VECTOR LEAD"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/20-flare-lead.pw8",
-    "name": "FLARE LEAD"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/21-prism-spike.pw8",
-    "name": "PRISM SPIKE"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/22-blade-spike.pw8",
-    "name": "BLADE SPIKE"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/23-glass-stab.pw8",
-    "name": "GLASS STAB"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/24-signal-line.pw8",
-    "name": "SIGNAL LINE"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/25-solar-wave.pw8",
-    "name": "SOLAR WAVE"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/26-ion-lead.pw8",
-    "name": "ION LEAD"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/27-wire-beam.pw8",
-    "name": "WIRE BEAM"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/28-glass-beam.pw8",
-    "name": "GLASS BEAM"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/29-glass-lead.pw8",
-    "name": "GLASS LEAD"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/30-solar-spike.pw8",
-    "name": "SOLAR SPIKE"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/31-spike-line.pw8",
-    "name": "SPIKE LINE"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/32-blade-wave.pw8",
-    "name": "BLADE WAVE"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/33-tine-line.pw8",
-    "name": "TINE LINE"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/34-pixel-beam.pw8",
-    "name": "PIXEL BEAM"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/35-nova-beam.pw8",
-    "name": "NOVA BEAM"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/36-flare-line.pw8",
-    "name": "FLARE LINE"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/37-fifth-section.pw8",
-    "name": "FIFTH SECTION"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/38-nova-edge.pw8",
-    "name": "NOVA EDGE"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/39-razor-lead.pw8",
-    "name": "RAZOR LEAD"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/40-voltage-wave.pw8",
-    "name": "VOLTAGE WAVE"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/41-spark-spike.pw8",
-    "name": "SPARK SPIKE"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/42-static-cut.pw8",
-    "name": "STATIC CUT"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/43-voltage-sync.pw8",
-    "name": "VOLTAGE SYNC"
-  },
-  {
-    "category": "Leads",
-    "file": "factory/Leads/44-glass-cut.pw8",
+    "file": "factory/Leads/03-glass-cut.pw8",
     "name": "GLASS CUT"
   },
   {
     "category": "Leads",
-    "file": "factory/Leads/45-wire-sync.pw8",
-    "name": "WIRE SYNC"
+    "file": "factory/Leads/04-blade-spike.pw8",
+    "name": "BLADE SPIKE"
   },
   {
     "category": "Leads",
-    "file": "factory/Leads/46-vector-wave.pw8",
-    "name": "VECTOR WAVE"
+    "file": "factory/Leads/05-pixel-beam.pw8",
+    "name": "PIXEL BEAM"
   },
   {
     "category": "Leads",
-    "file": "factory/Leads/47-neon-edge.pw8",
-    "name": "NEON EDGE"
+    "file": "factory/Leads/06-halo-edge.pw8",
+    "name": "HALO EDGE"
   },
   {
     "category": "Leads",
-    "file": "factory/Leads/48-chrome-spike.pw8",
-    "name": "CHROME SPIKE"
+    "file": "factory/Leads/061-glass-swell.pw8",
+    "name": "GLASS SWELL"
   },
   {
     "category": "Leads",
-    "file": "factory/Leads/49-voltage-line.pw8",
+    "file": "factory/Leads/062-velvet-veil.pw8",
+    "name": "VELVET VEIL"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/063-haze-field.pw8",
+    "name": "HAZE FIELD"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/064-neon-echo.pw8",
+    "name": "NEON ECHO"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/065-cascade-hymn.pw8",
+    "name": "CASCADE HYMN"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/066-dream-beam.pw8",
+    "name": "DREAM BEAM"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/067-midnight-drift.pw8",
+    "name": "MIDNIGHT DRIFT"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/068-aurora-drift.pw8",
+    "name": "AURORA DRIFT"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/069-shimmer-swell.pw8",
+    "name": "SHIMMER SWELL"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/07-signal-lead.pw8",
+    "name": "SIGNAL LEAD"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/070-comfort-bloom.pw8",
+    "name": "COMFORT BLOOM"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/071-shimmer-drift.pw8",
+    "name": "SHIMMER DRIFT"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/072-comfort-glow.pw8",
+    "name": "COMFORT GLOW"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/073-midnight-glow.pw8",
+    "name": "MIDNIGHT GLOW"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/074-midnight-hymn.pw8",
+    "name": "MIDNIGHT HYMN"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/075-comfort-beam.pw8",
+    "name": "COMFORT BEAM"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/076-shimmer-bloom.pw8",
+    "name": "SHIMMER BLOOM"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/077-cascade-beam.pw8",
+    "name": "CASCADE BEAM"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/078-glass-echo.pw8",
+    "name": "GLASS ECHO"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/079-neon-wash.pw8",
+    "name": "NEON WASH"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/08-rip-sync.pw8",
+    "name": "RIP SYNC"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/080-dream-wash.pw8",
+    "name": "DREAM WASH"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/081-shimmer-field.pw8",
+    "name": "SHIMMER FIELD"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/082-cascade-wash.pw8",
+    "name": "CASCADE WASH"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/083-comfort-veil.pw8",
+    "name": "COMFORT VEIL"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/084-glass-veil.pw8",
+    "name": "GLASS VEIL"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/085-midnight-bloom.pw8",
+    "name": "MIDNIGHT BLOOM"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/086-neon-beam.pw8",
+    "name": "NEON BEAM"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/087-cascade-veil.pw8",
+    "name": "CASCADE VEIL"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/088-aurora-glow.pw8",
+    "name": "AURORA GLOW"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/089-haze-drift.pw8",
+    "name": "HAZE DRIFT"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/09-glass-line.pw8",
+    "name": "GLASS LINE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/090-comfort-wash.pw8",
+    "name": "COMFORT WASH"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/091-motor-drive.pw8",
+    "name": "MOTOR DRIVE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/092-pump-zone.pw8",
+    "name": "PUMP ZONE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/093-club-line.pw8",
+    "name": "CLUB LINE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/094-motor-pulse.pw8",
+    "name": "MOTOR PULSE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/095-pulse-kick.pw8",
+    "name": "PULSE KICK"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/096-club-kick.pw8",
+    "name": "CLUB KICK"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/097-floor-groove.pw8",
+    "name": "FLOOR GROOVE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/098-grid-step.pw8",
+    "name": "GRID STEP"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/099-pump-pulse.pw8",
+    "name": "PUMP PULSE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/10-voltage-line.pw8",
     "name": "VOLTAGE LINE"
   },
   {
     "category": "Leads",
-    "file": "factory/Leads/50-fifth-tear.pw8",
-    "name": "FIFTH TEAR"
+    "file": "factory/Leads/100-neon-zone.pw8",
+    "name": "NEON ZONE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/101-club-pulse.pw8",
+    "name": "CLUB PULSE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/102-night-line.pw8",
+    "name": "NIGHT LINE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/103-deep-drive.pw8",
+    "name": "DEEP DRIVE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/104-pulse-pulse.pw8",
+    "name": "PULSE PULSE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/105-grid-pulse.pw8",
+    "name": "GRID PULSE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/106-pump-house.pw8",
+    "name": "PUMP HOUSE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/107-night-house.pw8",
+    "name": "NIGHT HOUSE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/108-club-drive.pw8",
+    "name": "CLUB DRIVE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/109-floor-loop.pw8",
+    "name": "FLOOR LOOP"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/11-neon-cut.pw8",
+    "name": "NEON CUT"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/110-night-zone.pw8",
+    "name": "NIGHT ZONE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/111-garage-drive.pw8",
+    "name": "GARAGE DRIVE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/112-neon-step.pw8",
+    "name": "NEON STEP"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/113-grid-groove.pw8",
+    "name": "GRID GROOVE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/114-grid-loop.pw8",
+    "name": "GRID LOOP"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/115-club-step.pw8",
+    "name": "CLUB STEP"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/116-trailer-dawn.pw8",
+    "name": "TRAILER DAWN"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/117-titan-rise.pw8",
+    "name": "TITAN RISE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/118-nova-expanse.pw8",
+    "name": "NOVA EXPANSE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/119-apex-fall.pw8",
+    "name": "APEX FALL"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/12-bronze-sync.pw8",
+    "name": "BRONZE SYNC"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/120-oracle-crown.pw8",
+    "name": "ORACLE CROWN"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/121-oracle-expanse.pw8",
+    "name": "ORACLE EXPANSE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/122-score-expanse.pw8",
+    "name": "SCORE EXPANSE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/123-apex-storm.pw8",
+    "name": "APEX STORM"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/124-prime-pulse.pw8",
+    "name": "PRIME PULSE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/125-score-arc.pw8",
+    "name": "SCORE ARC"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/126-horizon-forge.pw8",
+    "name": "HORIZON FORGE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/127-score-forge.pw8",
+    "name": "SCORE FORGE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/128-prime-storm.pw8",
+    "name": "PRIME STORM"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/129-vast-expanse.pw8",
+    "name": "VAST EXPANSE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/13-neon-edge.pw8",
+    "name": "NEON EDGE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/130-titan-arc.pw8",
+    "name": "TITAN ARC"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/131-titan-fall.pw8",
+    "name": "TITAN FALL"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/132-oracle-rise.pw8",
+    "name": "ORACLE RISE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/133-trailer-rise.pw8",
+    "name": "TRAILER RISE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/134-score-dawn.pw8",
+    "name": "SCORE DAWN"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/135-epic-arc.pw8",
+    "name": "EPIC ARC"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/136-vast-arc.pw8",
+    "name": "VAST ARC"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/137-score-crown.pw8",
+    "name": "SCORE CROWN"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/138-apex-expanse.pw8",
+    "name": "APEX EXPANSE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/139-titan-expanse.pw8",
+    "name": "TITAN EXPANSE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/14-razor-sync.pw8",
+    "name": "RAZOR SYNC"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/140-horizon-expanse.pw8",
+    "name": "HORIZON EXPANSE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/141-epic-crown.pw8",
+    "name": "EPIC CROWN"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/142-vast-forge.pw8",
+    "name": "VAST FORGE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/143-nova-crown.pw8",
+    "name": "NOVA CROWN"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/144-horizon-rise.pw8",
+    "name": "HORIZON RISE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/145-epic-rise.pw8",
+    "name": "EPIC RISE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/146-neon-field.pw8",
+    "name": "NEON FIELD"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/147-velvet-glow.pw8",
+    "name": "VELVET GLOW"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/148-neon-veil.pw8",
+    "name": "NEON VEIL"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/149-midnight-echo.pw8",
+    "name": "MIDNIGHT ECHO"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/15-flare-cut.pw8",
+    "name": "FLARE CUT"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/150-neon-drift.pw8",
+    "name": "NEON DRIFT"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/151-dream-veil.pw8",
+    "name": "DREAM VEIL"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/152-shimmer-glow.pw8",
+    "name": "SHIMMER GLOW"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/153-cascade-glow.pw8",
+    "name": "CASCADE GLOW"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/154-glass-beam.pw8",
+    "name": "GLASS BEAM"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/155-dream-echo.pw8",
+    "name": "DREAM ECHO"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/156-velvet-beam.pw8",
+    "name": "VELVET BEAM"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/157-dream-drift.pw8",
+    "name": "DREAM DRIFT"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/158-cascade-drift.pw8",
+    "name": "CASCADE DRIFT"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/159-aurora-hymn.pw8",
+    "name": "AURORA HYMN"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/16-formant-scream.pw8",
+    "name": "FORMANT SCREAM"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/160-aurora-bloom.pw8",
+    "name": "AURORA BLOOM"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/17-spark-line.pw8",
+    "name": "SPARK LINE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/18-fifth-section.pw8",
+    "name": "FIFTH SECTION"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/19-glass-edge.pw8",
+    "name": "GLASS EDGE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/20-chrome-cut.pw8",
+    "name": "CHROME CUT"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/21-bronze-tear.pw8",
+    "name": "BRONZE TEAR"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/22-halo-beam.pw8",
+    "name": "HALO BEAM"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/23-razor-lead.pw8",
+    "name": "RAZOR LEAD"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/24-razor-edge.pw8",
+    "name": "RAZOR EDGE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/25-wire-cut.pw8",
+    "name": "WIRE CUT"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/26-spark-cut.pw8",
+    "name": "SPARK CUT"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/27-ion-sync.pw8",
+    "name": "ION SYNC"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/28-glass-lead.pw8",
+    "name": "GLASS LEAD"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/29-spike-beam.pw8",
+    "name": "SPIKE BEAM"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/30-bronze-stab.pw8",
+    "name": "BRONZE STAB"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/31-blade-edge.pw8",
+    "name": "BLADE EDGE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/32-pixel-sync.pw8",
+    "name": "PIXEL SYNC"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/33-glass-sync.pw8",
+    "name": "GLASS SYNC"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/34-chrome-beam.pw8",
+    "name": "CHROME BEAM"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/35-bronze-stack.pw8",
+    "name": "BRONZE STACK"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/36-sync-stack.pw8",
+    "name": "SYNC STACK"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/37-comet-cut.pw8",
+    "name": "COMET CUT"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/38-flare-sync.pw8",
+    "name": "FLARE SYNC"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/39-razor-beam.pw8",
+    "name": "RAZOR BEAM"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/40-voltage-beam.pw8",
+    "name": "VOLTAGE BEAM"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/41-glass-stack.pw8",
+    "name": "GLASS STACK"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/42-chrome-sync.pw8",
+    "name": "CHROME SYNC"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/43-pixel-cut.pw8",
+    "name": "PIXEL CUT"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/44-voltage-tear.pw8",
+    "name": "VOLTAGE TEAR"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/45-chrome-edge.pw8",
+    "name": "CHROME EDGE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/46-wire-line.pw8",
+    "name": "WIRE LINE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/47-solar-edge.pw8",
+    "name": "SOLAR EDGE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/48-nova-cut.pw8",
+    "name": "NOVA CUT"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/49-neon-lead.pw8",
+    "name": "NEON LEAD"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/50-wire-beam.pw8",
+    "name": "WIRE BEAM"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/51-shimmer-beam.pw8",
+    "name": "SHIMMER BEAM"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/52-anthem-stack.pw8",
+    "name": "ANTHEM STACK"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/53-prism-lead.pw8",
+    "name": "PRISM LEAD"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/54-neon-sync.pw8",
+    "name": "NEON SYNC"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/55-comfort-line.pw8",
+    "name": "COMFORT LINE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/56-aurora-fifth.pw8",
+    "name": "AURORA FIFTH"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/57-cascade-wave.pw8",
+    "name": "CASCADE WAVE"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/58-dream-portamento.pw8",
+    "name": "DREAM PORTAMENTO"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/59-pulse-horizon.pw8",
+    "name": "PULSE HORIZON"
+  },
+  {
+    "category": "Leads",
+    "file": "factory/Leads/60-velvet-chime.pw8",
+    "name": "VELVET CHIME"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/01-amber-pad.pw8",
-    "name": "AMBER PAD"
+    "file": "factory/Pads/01-pale-glow.pw8",
+    "name": "PALE GLOW"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/02-marble-chord.pw8",
-    "name": "MARBLE CHORD"
+    "file": "factory/Pads/02-marble-bloom.pw8",
+    "name": "MARBLE BLOOM"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/03-bucket-swell.pw8",
-    "name": "BUCKET SWELL"
+    "file": "factory/Pads/03-haze-glow.pw8",
+    "name": "HAZE GLOW"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/04-feather-drift.pw8",
-    "name": "FEATHER DRIFT"
+    "file": "factory/Pads/04-velvet-hymn.pw8",
+    "name": "VELVET HYMN"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/05-cloud-drift.pw8",
-    "name": "CLOUD DRIFT"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/06-bucket-chord.pw8",
-    "name": "BUCKET CHORD"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/07-pale-sky.pw8",
-    "name": "PALE SKY"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/08-chorus-veil.pw8",
-    "name": "CHORUS VEIL"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/09-wistful-bloom.pw8",
-    "name": "WISTFUL BLOOM"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/10-velvet-veil.pw8",
-    "name": "VELVET VEIL"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/11-amber-field.pw8",
-    "name": "AMBER FIELD"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/12-bucket-hymn.pw8",
-    "name": "BUCKET HYMN"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/13-wistful-pad.pw8",
-    "name": "WISTFUL PAD"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/14-feather-pad.pw8",
-    "name": "FEATHER PAD"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/15-distant-field.pw8",
-    "name": "DISTANT FIELD"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/16-halcyon-field.pw8",
-    "name": "HALCYON FIELD"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/17-ensemble-chord.pw8",
-    "name": "ENSEMBLE CHORD"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/18-velvet-drift.pw8",
-    "name": "VELVET DRIFT"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/19-dawn-pad.pw8",
-    "name": "DAWN PAD"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/20-feather-sway.pw8",
-    "name": "FEATHER SWAY"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/21-drawbar-veil.pw8",
-    "name": "DRAWBAR VEIL"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/22-faded-pad.pw8",
-    "name": "FADED PAD"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/23-feather-sky.pw8",
-    "name": "FEATHER SKY"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/24-velvet-stack.pw8",
-    "name": "VELVET STACK"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/25-swell-wash.pw8",
-    "name": "SWELL WASH"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/26-halcyon-sway.pw8",
-    "name": "HALCYON SWAY"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/27-distant-glow.pw8",
-    "name": "DISTANT GLOW"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/28-bucket-glow.pw8",
-    "name": "BUCKET GLOW"
-  },
-  {
-    "category": "Pads",
-    "file": "factory/Pads/29-mist-glow.pw8",
+    "file": "factory/Pads/05-mist-glow.pw8",
     "name": "MIST GLOW"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/30-faded-drift.pw8",
-    "name": "FADED DRIFT"
+    "file": "factory/Pads/06-distant-drift.pw8",
+    "name": "DISTANT DRIFT"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/31-quiet-glow.pw8",
-    "name": "QUIET GLOW"
+    "file": "factory/Pads/061-glass-hymn.pw8",
+    "name": "GLASS HYMN"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/32-bucket-stack.pw8",
-    "name": "BUCKET STACK"
+    "file": "factory/Pads/062-velvet-swell.pw8",
+    "name": "VELVET SWELL"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/33-aurora-bloom.pw8",
-    "name": "AURORA BLOOM"
+    "file": "factory/Pads/063-midnight-wash.pw8",
+    "name": "MIDNIGHT WASH"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/34-quiet-bloom.pw8",
-    "name": "QUIET BLOOM"
+    "file": "factory/Pads/064-dream-field.pw8",
+    "name": "DREAM FIELD"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/35-dusk-veil.pw8",
+    "file": "factory/Pads/065-neon-glow.pw8",
+    "name": "NEON GLOW"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/066-shimmer-hymn.pw8",
+    "name": "SHIMMER HYMN"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/067-glass-wash.pw8",
+    "name": "GLASS WASH"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/068-glass-glow.pw8",
+    "name": "GLASS GLOW"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/069-velvet-echo.pw8",
+    "name": "VELVET ECHO"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/07-cloud-glow.pw8",
+    "name": "CLOUD GLOW"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/070-midnight-field.pw8",
+    "name": "MIDNIGHT FIELD"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/071-midnight-swell.pw8",
+    "name": "MIDNIGHT SWELL"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/072-aurora-swell.pw8",
+    "name": "AURORA SWELL"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/073-haze-veil.pw8",
+    "name": "HAZE VEIL"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/074-glass-field.pw8",
+    "name": "GLASS FIELD"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/075-haze-echo.pw8",
+    "name": "HAZE ECHO"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/076-aurora-field-9.pw8",
+    "name": "AURORA FIELD 9"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/077-velvet-veil-93.pw8",
+    "name": "VELVET VEIL 93"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/078-shimmer-glow-85.pw8",
+    "name": "SHIMMER GLOW 85"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/079-shimmer-echo-60.pw8",
+    "name": "SHIMMER ECHO 60"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/08-velvet-chord.pw8",
+    "name": "VELVET CHORD"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/080-comfort-glow-26.pw8",
+    "name": "COMFORT GLOW 26"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/081-dream-veil-30.pw8",
+    "name": "DREAM VEIL 30"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/082-comfort-bloom-86.pw8",
+    "name": "COMFORT BLOOM 86"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/083-shimmer-field-51.pw8",
+    "name": "SHIMMER FIELD 51"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/084-comfort-wash-99.pw8",
+    "name": "COMFORT WASH 99"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/085-velvet-drift-33.pw8",
+    "name": "VELVET DRIFT 33"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/086-aurora-veil-73.pw8",
+    "name": "AURORA VEIL 73"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/087-glass-glow-14.pw8",
+    "name": "GLASS GLOW 14"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/088-haze-bloom-50.pw8",
+    "name": "HAZE BLOOM 50"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/089-comfort-veil-80.pw8",
+    "name": "COMFORT VEIL 80"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/09-bucket-veil.pw8",
+    "name": "BUCKET VEIL"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/090-dream-bloom-27.pw8",
+    "name": "DREAM BLOOM 27"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/091-aurora-glow-74.pw8",
+    "name": "AURORA GLOW 74"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/092-glass-echo-3.pw8",
+    "name": "GLASS ECHO 3"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/093-haze-echo-40.pw8",
+    "name": "HAZE ECHO 40"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/094-dream-glow-57.pw8",
+    "name": "DREAM GLOW 57"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/095-aurora-hymn-33.pw8",
+    "name": "AURORA HYMN 33"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/096-titan-storm.pw8",
+    "name": "TITAN STORM"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/097-oracle-dawn.pw8",
+    "name": "ORACLE DAWN"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/098-trailer-forge.pw8",
+    "name": "TRAILER FORGE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/099-prime-expanse.pw8",
+    "name": "PRIME EXPANSE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/10-gentle-glow.pw8",
+    "name": "GENTLE GLOW"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/100-trailer-crown.pw8",
+    "name": "TRAILER CROWN"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/101-titan-tide.pw8",
+    "name": "TITAN TIDE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/102-prime-dawn.pw8",
+    "name": "PRIME DAWN"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/103-epic-tide.pw8",
+    "name": "EPIC TIDE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/104-apex-dawn.pw8",
+    "name": "APEX DAWN"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/105-oracle-forge.pw8",
+    "name": "ORACLE FORGE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/106-score-storm.pw8",
+    "name": "SCORE STORM"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/107-nova-tide.pw8",
+    "name": "NOVA TIDE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/108-horizon-pulse.pw8",
+    "name": "HORIZON PULSE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/109-trailer-fall.pw8",
+    "name": "TRAILER FALL"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/11-velvet-drift.pw8",
+    "name": "VELVET DRIFT"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/110-prime-rise.pw8",
+    "name": "PRIME RISE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/111-epic-storm.pw8",
+    "name": "EPIC STORM"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/112-horizon-dawn.pw8",
+    "name": "HORIZON DAWN"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/113-vast-pulse.pw8",
+    "name": "VAST PULSE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/114-oracle-fall.pw8",
+    "name": "ORACLE FALL"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/115-titan-crown.pw8",
+    "name": "TITAN CROWN"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/116-score-pulse.pw8",
+    "name": "SCORE PULSE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/117-vast-rise.pw8",
+    "name": "VAST RISE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/118-epic-dawn.pw8",
+    "name": "EPIC DAWN"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/119-oracle-tide.pw8",
+    "name": "ORACLE TIDE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/12-dusk-veil.pw8",
     "name": "DUSK VEIL"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/36-dusk-sway.pw8",
-    "name": "DUSK SWAY"
+    "file": "factory/Pads/120-apex-tide.pw8",
+    "name": "APEX TIDE"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/37-distant-sky.pw8",
-    "name": "DISTANT SKY"
+    "file": "factory/Pads/121-epic-forge.pw8",
+    "name": "EPIC FORGE"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/38-hollow-glow.pw8",
-    "name": "HOLLOW GLOW"
+    "file": "factory/Pads/122-vast-crown.pw8",
+    "name": "VAST CROWN"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/39-wistful-sky.pw8",
-    "name": "WISTFUL SKY"
+    "file": "factory/Pads/123-oracle-storm.pw8",
+    "name": "ORACLE STORM"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/40-chorus-stack.pw8",
-    "name": "CHORUS STACK"
+    "file": "factory/Pads/124-apex-crown.pw8",
+    "name": "APEX CROWN"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/41-faded-sway.pw8",
-    "name": "FADED SWAY"
+    "file": "factory/Pads/125-apex-forge.pw8",
+    "name": "APEX FORGE"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/42-velvet-pad.pw8",
-    "name": "VELVET PAD"
+    "file": "factory/Pads/126-horizon-storm.pw8",
+    "name": "HORIZON STORM"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/43-feather-bloom.pw8",
-    "name": "FEATHER BLOOM"
+    "file": "factory/Pads/127-nova-forge.pw8",
+    "name": "NOVA FORGE"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/44-chorus-ensemble.pw8",
-    "name": "CHORUS ENSEMBLE"
+    "file": "factory/Pads/128-vast-storm.pw8",
+    "name": "VAST STORM"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/45-distant-pad.pw8",
-    "name": "DISTANT PAD"
+    "file": "factory/Pads/129-nova-storm.pw8",
+    "name": "NOVA STORM"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/46-marble-hymn.pw8",
-    "name": "MARBLE HYMN"
+    "file": "factory/Pads/13-hollow-bloom.pw8",
+    "name": "HOLLOW BLOOM"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/47-aurora-glow.pw8",
-    "name": "AURORA GLOW"
+    "file": "factory/Pads/130-titan-forge.pw8",
+    "name": "TITAN FORGE"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/48-swell-ensemble.pw8",
-    "name": "SWELL ENSEMBLE"
+    "file": "factory/Pads/131-pump-loop.pw8",
+    "name": "PUMP LOOP"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/49-haze-stack.pw8",
-    "name": "HAZE STACK"
+    "file": "factory/Pads/132-night-pulse.pw8",
+    "name": "NIGHT PULSE"
   },
   {
     "category": "Pads",
-    "file": "factory/Pads/50-quiet-drift.pw8",
-    "name": "QUIET DRIFT"
+    "file": "factory/Pads/133-motor-groove.pw8",
+    "name": "MOTOR GROOVE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/134-night-run.pw8",
+    "name": "NIGHT RUN"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/135-floor-run.pw8",
+    "name": "FLOOR RUN"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/136-deep-loop.pw8",
+    "name": "DEEP LOOP"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/137-deep-groove.pw8",
+    "name": "DEEP GROOVE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/138-garage-line.pw8",
+    "name": "GARAGE LINE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/139-garage-pulse.pw8",
+    "name": "GARAGE PULSE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/14-amber-pad.pw8",
+    "name": "AMBER PAD"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/140-night-step.pw8",
+    "name": "NIGHT STEP"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/141-grid-kick.pw8",
+    "name": "GRID KICK"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/142-garage-house.pw8",
+    "name": "GARAGE HOUSE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/143-neon-line.pw8",
+    "name": "NEON LINE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/144-deep-run.pw8",
+    "name": "DEEP RUN"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/145-garage-kick.pw8",
+    "name": "GARAGE KICK"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/146-motor-kick.pw8",
+    "name": "MOTOR KICK"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/147-garage-zone.pw8",
+    "name": "GARAGE ZONE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/148-motor-loop.pw8",
+    "name": "MOTOR LOOP"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/149-neon-kick.pw8",
+    "name": "NEON KICK"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/15-dusk-sky.pw8",
+    "name": "DUSK SKY"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/150-motor-line.pw8",
+    "name": "MOTOR LINE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/151-floor-line.pw8",
+    "name": "FLOOR LINE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/152-deep-step.pw8",
+    "name": "DEEP STEP"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/153-grid-house.pw8",
+    "name": "GRID HOUSE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/154-pulse-line.pw8",
+    "name": "PULSE LINE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/155-grid-drive.pw8",
+    "name": "GRID DRIVE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/156-floor-drive.pw8",
+    "name": "FLOOR DRIVE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/157-night-kick.pw8",
+    "name": "NIGHT KICK"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/158-floor-zone.pw8",
+    "name": "FLOOR ZONE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/159-night-drive.pw8",
+    "name": "NIGHT DRIVE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/16-quiet-pad.pw8",
+    "name": "QUIET PAD"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/160-pump-groove.pw8",
+    "name": "PUMP GROOVE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/17-swell-glow.pw8",
+    "name": "SWELL GLOW"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/18-gentle-sway.pw8",
+    "name": "GENTLE SWAY"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/19-chorus-swell.pw8",
+    "name": "CHORUS SWELL"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/20-pale-sky.pw8",
+    "name": "PALE SKY"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/21-opal-pad.pw8",
+    "name": "OPAL PAD"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/22-ensemble-glow.pw8",
+    "name": "ENSEMBLE GLOW"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/23-amber-drift.pw8",
+    "name": "AMBER DRIFT"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/24-haze-hymn.pw8",
+    "name": "HAZE HYMN"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/25-dusk-bloom.pw8",
+    "name": "DUSK BLOOM"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/26-ensemble-hymn.pw8",
+    "name": "ENSEMBLE HYMN"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/27-velvet-wash.pw8",
+    "name": "VELVET WASH"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/28-halcyon-sway.pw8",
+    "name": "HALCYON SWAY"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/29-distant-veil.pw8",
+    "name": "DISTANT VEIL"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/30-pale-bloom.pw8",
+    "name": "PALE BLOOM"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/31-feather-pad.pw8",
+    "name": "FEATHER PAD"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/32-aurora-veil.pw8",
+    "name": "AURORA VEIL"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/33-vast-glow.pw8",
+    "name": "VAST GLOW"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/34-ensemble-wash.pw8",
+    "name": "ENSEMBLE WASH"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/35-cloud-bloom.pw8",
+    "name": "CLOUD BLOOM"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/36-mist-drift.pw8",
+    "name": "MIST DRIFT"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/37-marble-veil.pw8",
+    "name": "MARBLE VEIL"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/38-halcyon-drift.pw8",
+    "name": "HALCYON DRIFT"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/39-drawbar-hymn.pw8",
+    "name": "DRAWBAR HYMN"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/40-gentle-pad.pw8",
+    "name": "GENTLE PAD"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/41-chorus-hymn.pw8",
+    "name": "CHORUS HYMN"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/42-dual-swell.pw8",
+    "name": "DUAL SWELL"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/43-dawn-veil.pw8",
+    "name": "DAWN VEIL"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/44-dawn-sky.pw8",
+    "name": "DAWN SKY"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/45-swell-swell.pw8",
+    "name": "SWELL SWELL"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/46-dual-stack.pw8",
+    "name": "DUAL STACK"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/47-marble-pad.pw8",
+    "name": "MARBLE PAD"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/48-amber-veil.pw8",
+    "name": "AMBER VEIL"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/49-velvet-bloom.pw8",
+    "name": "VELVET BLOOM"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/50-velvet-ensemble.pw8",
+    "name": "VELVET ENSEMBLE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/51-neon-swell.pw8",
+    "name": "NEON SWELL"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/52-midnight-veil.pw8",
+    "name": "MIDNIGHT VEIL"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/53-comfort-hymn.pw8",
+    "name": "COMFORT HYMN"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/54-shimmer-ensemble.pw8",
+    "name": "SHIMMER ENSEMBLE"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/55-glass-bloom.pw8",
+    "name": "GLASS BLOOM"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/56-aurora-stack.pw8",
+    "name": "AURORA STACK"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/57-haze-wash.pw8",
+    "name": "HAZE WASH"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/58-dream-glow.pw8",
+    "name": "DREAM GLOW"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/59-velvet-horizon.pw8",
+    "name": "VELVET HORIZON"
+  },
+  {
+    "category": "Pads",
+    "file": "factory/Pads/60-cascade-pad.pw8",
+    "name": "CASCADE PAD"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/01-stutter-motif.pw8",
-    "name": "STUTTER MOTIF"
+    "file": "factory/Sequences/01-stab-step.pw8",
+    "name": "STAB STEP"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/02-tine-line.pw8",
-    "name": "TINE LINE"
+    "file": "factory/Sequences/02-ratchet-cycle.pw8",
+    "name": "RATCHET CYCLE"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/03-gear-motif.pw8",
-    "name": "GEAR MOTIF"
+    "file": "factory/Sequences/03-pendulum-step.pw8",
+    "name": "PENDULUM STEP"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/04-loom-cycle.pw8",
-    "name": "LOOM CYCLE"
+    "file": "factory/Sequences/04-bounce-pulse.pw8",
+    "name": "BOUNCE PULSE"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/05-bounce-step.pw8",
-    "name": "BOUNCE STEP"
+    "file": "factory/Sequences/05-cascade-motif.pw8",
+    "name": "CASCADE MOTIF"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/06-stutter-cycle.pw8",
-    "name": "STUTTER CYCLE"
+    "file": "factory/Sequences/06-ticker-cycle.pw8",
+    "name": "TICKER CYCLE"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/07-glass-cycle.pw8",
-    "name": "GLASS CYCLE"
+    "file": "factory/Sequences/061-garage-loop.pw8",
+    "name": "GARAGE LOOP"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/08-cascade-loop.pw8",
-    "name": "CASCADE LOOP"
+    "file": "factory/Sequences/062-motor-house.pw8",
+    "name": "MOTOR HOUSE"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/09-tine-motor.pw8",
-    "name": "TINE MOTOR"
+    "file": "factory/Sequences/063-motor-zone.pw8",
+    "name": "MOTOR ZONE"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/10-relay-step.pw8",
-    "name": "RELAY STEP"
+    "file": "factory/Sequences/064-grid-run.pw8",
+    "name": "GRID RUN"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/11-mosaic-pattern.pw8",
-    "name": "MOSAIC PATTERN"
+    "file": "factory/Sequences/065-pulse-zone.pw8",
+    "name": "PULSE ZONE"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/12-tine-chime.pw8",
-    "name": "TINE CHIME"
+    "file": "factory/Sequences/066-grid-zone.pw8",
+    "name": "GRID ZONE"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/13-motor-motor.pw8",
-    "name": "MOTOR MOTOR"
+    "file": "factory/Sequences/067-club-run.pw8",
+    "name": "CLUB RUN"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/14-bounce-loop.pw8",
-    "name": "BOUNCE LOOP"
+    "file": "factory/Sequences/068-pump-kick.pw8",
+    "name": "PUMP KICK"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/15-orbit-run.pw8",
-    "name": "ORBIT RUN"
+    "file": "factory/Sequences/069-deep-house.pw8",
+    "name": "DEEP HOUSE"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/16-stab-chime.pw8",
-    "name": "STAB CHIME"
+    "file": "factory/Sequences/07-ripple-run.pw8",
+    "name": "RIPPLE RUN"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/17-loom-pulse.pw8",
-    "name": "LOOM PULSE"
+    "file": "factory/Sequences/070-neon-pulse.pw8",
+    "name": "NEON PULSE"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/18-loom-loop.pw8",
-    "name": "LOOM LOOP"
+    "file": "factory/Sequences/071-garage-step.pw8",
+    "name": "GARAGE STEP"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/19-stutter-loop.pw8",
-    "name": "STUTTER LOOP"
+    "file": "factory/Sequences/072-pump-line.pw8",
+    "name": "PUMP LINE"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/20-chime-stab.pw8",
-    "name": "CHIME STAB"
+    "file": "factory/Sequences/073-pulse-step.pw8",
+    "name": "PULSE STEP"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/21-circuit-run.pw8",
-    "name": "CIRCUIT RUN"
+    "file": "factory/Sequences/074-club-house.pw8",
+    "name": "CLUB HOUSE"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/22-pendulum-sequence.pw8",
-    "name": "PENDULUM SEQUENCE"
+    "file": "factory/Sequences/075-pulse-loop.pw8",
+    "name": "PULSE LOOP"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/23-ripple-pulse.pw8",
+    "file": "factory/Sequences/076-deep-groove-39.pw8",
+    "name": "DEEP GROOVE 39"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/077-grid-pulse-31.pw8",
+    "name": "GRID PULSE 31"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/078-motor-step-47.pw8",
+    "name": "MOTOR STEP 47"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/079-motor-kick-77.pw8",
+    "name": "MOTOR KICK 77"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/08-stutter-sequence.pw8",
+    "name": "STUTTER SEQUENCE"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/080-floor-run-26.pw8",
+    "name": "FLOOR RUN 26"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/081-pulse-groove-68.pw8",
+    "name": "PULSE GROOVE 68"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/082-neon-groove-2.pw8",
+    "name": "NEON GROOVE 2"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/083-pulse-step-19.pw8",
+    "name": "PULSE STEP 19"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/084-pump-zone-48.pw8",
+    "name": "PUMP ZONE 48"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/085-pump-pulse-41.pw8",
+    "name": "PUMP PULSE 41"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/086-neon-pulse-79.pw8",
+    "name": "NEON PULSE 79"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/087-pulse-step-70.pw8",
+    "name": "PULSE STEP 70"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/088-club-zone-25.pw8",
+    "name": "CLUB ZONE 25"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/089-pulse-drive-35.pw8",
+    "name": "PULSE DRIVE 35"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/09-bounce-pattern.pw8",
+    "name": "BOUNCE PATTERN"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/090-night-zone-81.pw8",
+    "name": "NIGHT ZONE 81"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/091-neon-groove-7.pw8",
+    "name": "NEON GROOVE 7"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/092-floor-drive-57.pw8",
+    "name": "FLOOR DRIVE 57"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/093-pulse-step-10.pw8",
+    "name": "PULSE STEP 10"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/094-floor-groove-51.pw8",
+    "name": "FLOOR GROOVE 51"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/095-grid-run-44.pw8",
+    "name": "GRID RUN 44"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/096-garage-pulse-35.pw8",
+    "name": "GARAGE PULSE 35"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/097-neon-drive-13.pw8",
+    "name": "NEON DRIVE 13"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/098-pulse-zone-98.pw8",
+    "name": "PULSE ZONE 98"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/099-shimmer-drift-26.pw8",
+    "name": "SHIMMER DRIFT 26"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/10-relay-pulse.pw8",
+    "name": "RELAY PULSE"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/100-midnight-glow-45.pw8",
+    "name": "MIDNIGHT GLOW 45"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/101-glass-beam-15.pw8",
+    "name": "GLASS BEAM 15"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/102-comfort-wash-17.pw8",
+    "name": "COMFORT WASH 17"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/103-cascade-bloom-38.pw8",
+    "name": "CASCADE BLOOM 38"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/104-neon-bloom-32.pw8",
+    "name": "NEON BLOOM 32"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/105-haze-wash-60.pw8",
+    "name": "HAZE WASH 60"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/106-dream-wash-7.pw8",
+    "name": "DREAM WASH 7"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/107-shimmer-echo-99.pw8",
+    "name": "SHIMMER ECHO 99"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/108-aurora-field-42.pw8",
+    "name": "AURORA FIELD 42"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/109-haze-hymn-42.pw8",
+    "name": "HAZE HYMN 42"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/11-weave-pulse.pw8",
+    "name": "WEAVE PULSE"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/110-shimmer-swell-93.pw8",
+    "name": "SHIMMER SWELL 93"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/111-haze-field-96.pw8",
+    "name": "HAZE FIELD 96"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/112-neon-bloom-14.pw8",
+    "name": "NEON BLOOM 14"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/113-aurora-hymn-50.pw8",
+    "name": "AURORA HYMN 50"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/114-glass-field-71.pw8",
+    "name": "GLASS FIELD 71"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/115-glass-bloom-90.pw8",
+    "name": "GLASS BLOOM 90"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/116-shimmer-wash-15.pw8",
+    "name": "SHIMMER WASH 15"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/117-velvet-hymn-2.pw8",
+    "name": "VELVET HYMN 2"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/118-neon-wash-67.pw8",
+    "name": "NEON WASH 67"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/119-neon-beam-9.pw8",
+    "name": "NEON BEAM 9"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/12-ripple-pulse.pw8",
     "name": "RIPPLE PULSE"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/24-ticker-run.pw8",
-    "name": "TICKER RUN"
+    "file": "factory/Sequences/120-dream-veil-90.pw8",
+    "name": "DREAM VEIL 90"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/25-chime-motor.pw8",
-    "name": "CHIME MOTOR"
+    "file": "factory/Sequences/121-velvet-echo-34.pw8",
+    "name": "VELVET ECHO 34"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/26-circuit-pulse.pw8",
-    "name": "CIRCUIT PULSE"
+    "file": "factory/Sequences/122-dream-veil-57.pw8",
+    "name": "DREAM VEIL 57"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/27-mosaic-sequence.pw8",
-    "name": "MOSAIC SEQUENCE"
+    "file": "factory/Sequences/123-cascade-hymn-54.pw8",
+    "name": "CASCADE HYMN 54"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/28-ratchet-motor.pw8",
-    "name": "RATCHET MOTOR"
+    "file": "factory/Sequences/124-glass-veil-43.pw8",
+    "name": "GLASS VEIL 43"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/29-skitter-loop.pw8",
+    "file": "factory/Sequences/125-cascade-glow-69.pw8",
+    "name": "CASCADE GLOW 69"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/126-midnight-beam-96.pw8",
+    "name": "MIDNIGHT BEAM 96"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/127-titan-pulse.pw8",
+    "name": "TITAN PULSE"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/128-score-fall.pw8",
+    "name": "SCORE FALL"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/129-nova-arc.pw8",
+    "name": "NOVA ARC"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/13-cascade-run.pw8",
+    "name": "CASCADE RUN"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/130-nova-dawn.pw8",
+    "name": "NOVA DAWN"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/131-trailer-tide.pw8",
+    "name": "TRAILER TIDE"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/132-nova-fall.pw8",
+    "name": "NOVA FALL"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/133-epic-pulse.pw8",
+    "name": "EPIC PULSE"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/134-oracle-arc.pw8",
+    "name": "ORACLE ARC"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/135-score-rise.pw8",
+    "name": "SCORE RISE"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/136-epic-fall.pw8",
+    "name": "EPIC FALL"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/137-horizon-fall.pw8",
+    "name": "HORIZON FALL"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/138-score-tide.pw8",
+    "name": "SCORE TIDE"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/139-trailer-expanse.pw8",
+    "name": "TRAILER EXPANSE"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/14-gear-step.pw8",
+    "name": "GEAR STEP"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/140-trailer-arc-43.pw8",
+    "name": "TRAILER ARC 43"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/141-epic-forge-49.pw8",
+    "name": "EPIC FORGE 49"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/142-epic-crown-19.pw8",
+    "name": "EPIC CROWN 19"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/143-horizon-rise-91.pw8",
+    "name": "HORIZON RISE 91"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/144-epic-expanse-4.pw8",
+    "name": "EPIC EXPANSE 4"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/145-titan-pulse-89.pw8",
+    "name": "TITAN PULSE 89"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/146-nova-tide-17.pw8",
+    "name": "NOVA TIDE 17"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/147-nova-crown-99.pw8",
+    "name": "NOVA CROWN 99"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/148-apex-fall-50.pw8",
+    "name": "APEX FALL 50"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/149-night-groove-15.pw8",
+    "name": "NIGHT GROOVE 15"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/15-relay-cycle.pw8",
+    "name": "RELAY CYCLE"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/150-night-kick-13.pw8",
+    "name": "NIGHT KICK 13"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/151-deep-kick-62.pw8",
+    "name": "DEEP KICK 62"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/152-grid-step-28.pw8",
+    "name": "GRID STEP 28"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/153-grid-groove-62.pw8",
+    "name": "GRID GROOVE 62"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/154-floor-run-92.pw8",
+    "name": "FLOOR RUN 92"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/155-club-step-58.pw8",
+    "name": "CLUB STEP 58"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/156-night-zone-15.pw8",
+    "name": "NIGHT ZONE 15"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/157-club-loop-40.pw8",
+    "name": "CLUB LOOP 40"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/158-deep-pulse-77.pw8",
+    "name": "DEEP PULSE 77"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/159-neon-drive-57.pw8",
+    "name": "NEON DRIVE 57"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/16-gate-cycle.pw8",
+    "name": "GATE CYCLE"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/160-garage-step-85.pw8",
+    "name": "GARAGE STEP 85"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/17-skitter-loop.pw8",
     "name": "SKITTER LOOP"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/30-chime-motif.pw8",
-    "name": "CHIME MOTIF"
-  },
-  {
-    "category": "Sequences",
-    "file": "factory/Sequences/31-gate-step.pw8",
-    "name": "GATE STEP"
-  },
-  {
-    "category": "Sequences",
-    "file": "factory/Sequences/32-weave-loop.pw8",
-    "name": "WEAVE LOOP"
-  },
-  {
-    "category": "Sequences",
-    "file": "factory/Sequences/33-glass-chime.pw8",
-    "name": "GLASS CHIME"
-  },
-  {
-    "category": "Sequences",
-    "file": "factory/Sequences/34-tumble-sequence.pw8",
-    "name": "TUMBLE SEQUENCE"
-  },
-  {
-    "category": "Sequences",
-    "file": "factory/Sequences/35-stab-line.pw8",
-    "name": "STAB LINE"
-  },
-  {
-    "category": "Sequences",
-    "file": "factory/Sequences/36-gear-cycle.pw8",
-    "name": "GEAR CYCLE"
-  },
-  {
-    "category": "Sequences",
-    "file": "factory/Sequences/37-accent-step.pw8",
-    "name": "ACCENT STEP"
-  },
-  {
-    "category": "Sequences",
-    "file": "factory/Sequences/38-glass-step.pw8",
-    "name": "GLASS STEP"
-  },
-  {
-    "category": "Sequences",
-    "file": "factory/Sequences/39-ratchet-step.pw8",
-    "name": "RATCHET STEP"
-  },
-  {
-    "category": "Sequences",
-    "file": "factory/Sequences/40-ratchet-sequence.pw8",
-    "name": "RATCHET SEQUENCE"
-  },
-  {
-    "category": "Sequences",
-    "file": "factory/Sequences/41-pendulum-pulse.pw8",
-    "name": "PENDULUM PULSE"
-  },
-  {
-    "category": "Sequences",
-    "file": "factory/Sequences/42-gate-stab.pw8",
-    "name": "GATE STAB"
-  },
-  {
-    "category": "Sequences",
-    "file": "factory/Sequences/43-tine-step.pw8",
-    "name": "TINE STEP"
-  },
-  {
-    "category": "Sequences",
-    "file": "factory/Sequences/44-chime-pulse.pw8",
-    "name": "CHIME PULSE"
-  },
-  {
-    "category": "Sequences",
-    "file": "factory/Sequences/45-tine-pattern.pw8",
-    "name": "TINE PATTERN"
-  },
-  {
-    "category": "Sequences",
-    "file": "factory/Sequences/46-chime-step.pw8",
-    "name": "CHIME STEP"
-  },
-  {
-    "category": "Sequences",
-    "file": "factory/Sequences/47-stab-cycle.pw8",
-    "name": "STAB CYCLE"
-  },
-  {
-    "category": "Sequences",
-    "file": "factory/Sequences/48-chime-pattern.pw8",
+    "file": "factory/Sequences/18-chime-pattern.pw8",
     "name": "CHIME PATTERN"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/49-loom-run.pw8",
+    "file": "factory/Sequences/19-relay-loop.pw8",
+    "name": "RELAY LOOP"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/20-gate-pattern.pw8",
+    "name": "GATE PATTERN"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/21-ripple-pattern.pw8",
+    "name": "RIPPLE PATTERN"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/22-trellis-cycle.pw8",
+    "name": "TRELLIS CYCLE"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/23-squelch-motif.pw8",
+    "name": "SQUELCH MOTIF"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/24-accent-motor.pw8",
+    "name": "ACCENT MOTOR"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/25-orbit-pulse.pw8",
+    "name": "ORBIT PULSE"
+  },
+  {
+    "category": "Sequences",
+    "file": "factory/Sequences/26-loom-run.pw8",
     "name": "LOOM RUN"
   },
   {
     "category": "Sequences",
-    "file": "factory/Sequences/50-clockwork-sequence.pw8",
-    "name": "CLOCKWORK SEQUENCE"
+    "file": "factory/Sequences/27-stab-stab.pw8",
+    "name": "STAB STAB"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/01-nebula-expanse.pw8",
-    "name": "NEBULA EXPANSE"
+    "category": "Sequences",
+    "file": "factory/Sequences/28-stab-cycle.pw8",
+    "name": "STAB CYCLE"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/02-abyssal-field.pw8",
-    "name": "ABYSSAL FIELD"
+    "category": "Sequences",
+    "file": "factory/Sequences/29-ticker-sequence.pw8",
+    "name": "TICKER SEQUENCE"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/03-ochre-bloom.pw8",
-    "name": "OCHRE BLOOM"
+    "category": "Sequences",
+    "file": "factory/Sequences/30-motor-stab.pw8",
+    "name": "MOTOR STAB"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/04-ash-wash.pw8",
-    "name": "ASH WASH"
+    "category": "Sequences",
+    "file": "factory/Sequences/31-stutter-step.pw8",
+    "name": "STUTTER STEP"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/05-ash-hymn.pw8",
-    "name": "ASH HYMN"
+    "category": "Sequences",
+    "file": "factory/Sequences/32-clockwork-cycle.pw8",
+    "name": "CLOCKWORK CYCLE"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/06-shale-echo.pw8",
-    "name": "SHALE ECHO"
+    "category": "Sequences",
+    "file": "factory/Sequences/33-chime-motif.pw8",
+    "name": "CHIME MOTIF"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/07-drift-cloud.pw8",
-    "name": "DRIFT CLOUD"
+    "category": "Sequences",
+    "file": "factory/Sequences/34-orbit-cycle.pw8",
+    "name": "ORBIT CYCLE"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/08-glacier-field.pw8",
-    "name": "GLACIER FIELD"
+    "category": "Sequences",
+    "file": "factory/Sequences/35-pixel-loop.pw8",
+    "name": "PIXEL LOOP"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/09-hollow-expanse.pw8",
-    "name": "HOLLOW EXPANSE"
+    "category": "Sequences",
+    "file": "factory/Sequences/36-ratchet-loop.pw8",
+    "name": "RATCHET LOOP"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/10-sietch-drone.pw8",
-    "name": "SIETCH DRONE"
+    "category": "Sequences",
+    "file": "factory/Sequences/37-ticker-step.pw8",
+    "name": "TICKER STEP"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/11-hollow-drift.pw8",
-    "name": "HOLLOW DRIFT"
+    "category": "Sequences",
+    "file": "factory/Sequences/38-ratchet-pattern.pw8",
+    "name": "RATCHET PATTERN"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/12-void-cloud.pw8",
-    "name": "VOID CLOUD"
+    "category": "Sequences",
+    "file": "factory/Sequences/39-tumble-pulse.pw8",
+    "name": "TUMBLE PULSE"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/13-resonant-drift.pw8",
-    "name": "RESONANT DRIFT"
+    "category": "Sequences",
+    "file": "factory/Sequences/40-mosaic-pattern.pw8",
+    "name": "MOSAIC PATTERN"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/14-tundra-field.pw8",
-    "name": "TUNDRA FIELD"
+    "category": "Sequences",
+    "file": "factory/Sequences/41-orbit-sequence.pw8",
+    "name": "ORBIT SEQUENCE"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/15-ember-bloom.pw8",
-    "name": "EMBER BLOOM"
+    "category": "Sequences",
+    "file": "factory/Sequences/42-circuit-step.pw8",
+    "name": "CIRCUIT STEP"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/16-nebula-drift.pw8",
-    "name": "NEBULA DRIFT"
+    "category": "Sequences",
+    "file": "factory/Sequences/43-relay-motif.pw8",
+    "name": "RELAY MOTIF"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/17-vapor-drone.pw8",
-    "name": "VAPOR DRONE"
+    "category": "Sequences",
+    "file": "factory/Sequences/44-trellis-pulse.pw8",
+    "name": "TRELLIS PULSE"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/18-abyssal-expanse.pw8",
-    "name": "ABYSSAL EXPANSE"
+    "category": "Sequences",
+    "file": "factory/Sequences/45-pixel-step.pw8",
+    "name": "PIXEL STEP"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/19-sietch-hymn.pw8",
-    "name": "SIETCH HYMN"
+    "category": "Sequences",
+    "file": "factory/Sequences/46-orbit-run.pw8",
+    "name": "ORBIT RUN"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/20-ochre-hymn.pw8",
-    "name": "OCHRE HYMN"
+    "category": "Sequences",
+    "file": "factory/Sequences/47-ripple-cycle.pw8",
+    "name": "RIPPLE CYCLE"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/21-lichen-echo.pw8",
-    "name": "LICHEN ECHO"
+    "category": "Sequences",
+    "file": "factory/Sequences/48-stab-motif.pw8",
+    "name": "STAB MOTIF"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/22-sere-echo.pw8",
-    "name": "SERE ECHO"
+    "category": "Sequences",
+    "file": "factory/Sequences/49-chime-step.pw8",
+    "name": "CHIME STEP"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/23-vellum-echo.pw8",
-    "name": "VELLUM ECHO"
+    "category": "Sequences",
+    "file": "factory/Sequences/50-skitter-cycle.pw8",
+    "name": "SKITTER CYCLE"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/24-fathomless-field.pw8",
-    "name": "FATHOMLESS FIELD"
+    "category": "Sequences",
+    "file": "factory/Sequences/51-midnight-arp.pw8",
+    "name": "MIDNIGHT ARP"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/25-threnody-hymn.pw8",
-    "name": "THRENODY HYMN"
+    "category": "Sequences",
+    "file": "factory/Sequences/52-neon-chime.pw8",
+    "name": "NEON CHIME"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/26-nebula-field.pw8",
-    "name": "NEBULA FIELD"
+    "category": "Sequences",
+    "file": "factory/Sequences/53-gated-pulse.pw8",
+    "name": "GATED PULSE"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/27-mist-riser.pw8",
-    "name": "MIST RISER"
+    "category": "Sequences",
+    "file": "factory/Sequences/54-glass-sequence.pw8",
+    "name": "GLASS SEQUENCE"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/28-fen-hymn.pw8",
-    "name": "FEN HYMN"
+    "category": "Sequences",
+    "file": "factory/Sequences/55-motor-run.pw8",
+    "name": "MOTOR RUN"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/29-tundra-echo.pw8",
-    "name": "TUNDRA ECHO"
+    "category": "Sequences",
+    "file": "factory/Sequences/56-beam-cascade.pw8",
+    "name": "BEAM CASCADE"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/30-vapor-wash.pw8",
-    "name": "VAPOR WASH"
+    "category": "Sequences",
+    "file": "factory/Sequences/57-comfort-motif.pw8",
+    "name": "COMFORT MOTIF"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/31-ochre-expanse.pw8",
-    "name": "OCHRE EXPANSE"
+    "category": "Sequences",
+    "file": "factory/Sequences/58-shimmer-step.pw8",
+    "name": "SHIMMER STEP"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/32-hollow-wash.pw8",
-    "name": "HOLLOW WASH"
+    "category": "Sequences",
+    "file": "factory/Sequences/59-aurora-cycle.pw8",
+    "name": "AURORA CYCLE"
   },
   {
-    "category": "Ambient",
-    "file": "factory/Ambient/33-shale-drift.pw8",
-    "name": "SHALE DRIFT"
-  },
-  {
-    "category": "Ambient",
-    "file": "factory/Ambient/34-resonant-riser.pw8",
-    "name": "RESONANT RISER"
-  },
-  {
-    "category": "Ambient",
-    "file": "factory/Ambient/35-basin-expanse.pw8",
-    "name": "BASIN EXPANSE"
-  },
-  {
-    "category": "Ambient",
-    "file": "factory/Ambient/36-hollow-hymn.pw8",
-    "name": "HOLLOW HYMN"
-  },
-  {
-    "category": "Ambient",
-    "file": "factory/Ambient/37-sietch-echo.pw8",
-    "name": "SIETCH ECHO"
-  },
-  {
-    "category": "Ambient",
-    "file": "factory/Ambient/38-threnody-bloom.pw8",
-    "name": "THRENODY BLOOM"
-  },
-  {
-    "category": "Ambient",
-    "file": "factory/Ambient/39-vapor-field.pw8",
-    "name": "VAPOR FIELD"
-  },
-  {
-    "category": "Ambient",
-    "file": "factory/Ambient/40-fen-drone.pw8",
-    "name": "FEN DRONE"
-  },
-  {
-    "category": "Ambient",
-    "file": "factory/Ambient/41-fen-expanse.pw8",
-    "name": "FEN EXPANSE"
-  },
-  {
-    "category": "Ambient",
-    "file": "factory/Ambient/42-tundra-bloom.pw8",
-    "name": "TUNDRA BLOOM"
-  },
-  {
-    "category": "Ambient",
-    "file": "factory/Ambient/43-vapor-echo.pw8",
-    "name": "VAPOR ECHO"
-  },
-  {
-    "category": "Ambient",
-    "file": "factory/Ambient/44-shale-bloom.pw8",
-    "name": "SHALE BLOOM"
-  },
-  {
-    "category": "Ambient",
-    "file": "factory/Ambient/45-vapor-hymn.pw8",
-    "name": "VAPOR HYMN"
-  },
-  {
-    "category": "Ambient",
-    "file": "factory/Ambient/46-fen-drift.pw8",
-    "name": "FEN DRIFT"
-  },
-  {
-    "category": "Ambient",
-    "file": "factory/Ambient/47-wraith-wash.pw8",
-    "name": "WRAITH WASH"
-  },
-  {
-    "category": "Ambient",
-    "file": "factory/Ambient/48-ash-echo.pw8",
-    "name": "ASH ECHO"
-  },
-  {
-    "category": "Ambient",
-    "file": "factory/Ambient/49-resonant-cave.pw8",
-    "name": "RESONANT CAVE"
-  },
-  {
-    "category": "Ambient",
-    "file": "factory/Ambient/50-void-expanse.pw8",
-    "name": "VOID EXPANSE"
+    "category": "Sequences",
+    "file": "factory/Sequences/60-velvet-gate.pw8",
+    "name": "VELVET GATE"
   }
 ]

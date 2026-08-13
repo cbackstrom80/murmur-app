@@ -4,15 +4,15 @@
 
 namespace pw8::plugin::ui::branding
 {
-    /// Electric blue pulled from the Starfighter logo art — used for glow accents.
+    /// Soft violet from the Murmur brand kit — used for glow accents.
     [[nodiscard]] juce::Colour glowColour() noexcept;
 
-    /// Ship + targeting ring (top crop of mark logo, black keyed out).
-    [[nodiscard]] juce::Image getShipIcon();
+    /// Organic M / eight-node mark (black keyed out).
+    [[nodiscard]] juce::Image getMarkIcon();
 
     [[nodiscard]] int wordmarkWidth() noexcept;
     [[nodiscard]] int headerBarHeight() noexcept;
 
-    void paintShipGlow(juce::Graphics& g, const juce::Image& ship, juce::Rectangle<float> bounds) noexcept;
+    void paintMarkGlow(juce::Graphics& g, const juce::Image& mark, juce::Rectangle<float> bounds) noexcept;
 
 } // namespace pw8::plugin::ui::branding

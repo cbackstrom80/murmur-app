@@ -54,14 +54,27 @@ namespace pw8::plugin::ui
     void ModLauncherPanel::timerCallback()
     {
         int routeCount = 0;
+        bool hasModWheel = false;
         for (const auto& route : processor_.getCurrentPatch().layerA.modRoutes)
-            if (route.isActive())
-                ++routeCount;
+        {
+            if (!route.isActive())
+                continue;
+            ++routeCount;
+            if (route.source == modulation::ModSource::ModWheel)
+                hasModWheel = true;
+        }
 
-        summaryLabel_.setText(routeCount == 0
-                                  ? "No automatic movement wired — assign sources below, or open full screen."
-                                  : juce::String(routeCount) + " active route" + (routeCount == 1 ? "" : "s") + ".",
-                              juce::dontSendNotification);
+        juce::String summary;
+        if (routeCount == 0)
+            summary = "No automatic movement wired — assign sources below, or open full screen.";
+        else
+        {
+            summary = juce::String(routeCount) + " active route" + (routeCount == 1 ? "" : "s");
+            if (hasModWheel)
+                summary += " · Mod Wheel wired";
+            summary += ".";
+        }
+        summaryLabel_.setText(summary, juce::dontSendNotification);
         repaint();
     }
 

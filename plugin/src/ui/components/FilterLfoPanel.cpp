@@ -99,8 +99,7 @@ namespace pw8::plugin::ui
     {
         filterEnabledAttachment_.reset();
         filterMode_.reset();
-        filterCutoff_.reset();
-        filterResonance_.reset();
+        filterToneKnob_.reset();
         filterKeyTrack_.reset();
 
         auto& apvts = processor_.apvts;
@@ -141,20 +140,19 @@ namespace pw8::plugin::ui
             std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, enabledId, *filterEnabledButton_);
 
         filterMode_ = std::make_unique<GlowKnob>(apvts, modeId, "Mode", filterModeToText);
-        filterCutoff_ = std::make_unique<GlowKnob>(apvts, cutoffId, "Cutoff");
-        filterResonance_ = std::make_unique<GlowKnob>(apvts, resonanceId, "Resonance");
+        filterToneKnob_ = std::make_unique<ConcentricGlowKnob>(apvts, cutoffId, resonanceId, "Cutoff", "Reso");
         filterKeyTrack_ = std::make_unique<GlowKnob>(apvts, keyTrackId, "Key Trk");
-        filterCutoff_->enableModulationTarget(processor_, cutoffDest, modTarget);
-        filterResonance_->enableModulationTarget(processor_, resonanceDest, modTarget);
-        filterCutoff_->setModAssignmentController(&assignmentController_);
-        filterResonance_->setModAssignmentController(&assignmentController_);
+        filterToneKnob_->enableInnerModulationTarget(processor_, cutoffDest, modTarget);
+        filterToneKnob_->enableOuterModulationTarget(processor_, resonanceDest, modTarget);
+        filterToneKnob_->setModAssignmentController(&assignmentController_);
 
         filterPanel_.removeAllChildren();
         filterPanel_.addAndMakeVisible(filterWireframe_);
         filterPanel_.addAndMakeVisible(*filterEnabledButton_);
         filterPanel_.addAndMakeVisible(filterEnabledLabel_);
-        for (auto* k : {filterMode_.get(), filterCutoff_.get(), filterResonance_.get(), filterKeyTrack_.get()})
-            filterPanel_.addAndMakeVisible(*k);
+        filterPanel_.addAndMakeVisible(*filterMode_);
+        filterPanel_.addAndMakeVisible(*filterToneKnob_);
+        filterPanel_.addAndMakeVisible(*filterKeyTrack_);
     }
 
     void FilterLfoPanel::paint(juce::Graphics& g)
@@ -196,10 +194,9 @@ namespace pw8::plugin::ui
             filterEnabledButton_->setBounds(enableRow.removeFromLeft(ringSize + 6).withSizeKeepingCentre(ringSize, ringSize));
             filterEnabledLabel_.setBounds(enableRow.removeFromLeft(70));
 
-            const int knobWidth = content.getWidth() / 4;
+            const int knobWidth = content.getWidth() / 3;
             filterMode_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
-            filterCutoff_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
-            filterResonance_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            filterToneKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             filterKeyTrack_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
         }
         if (scope_ == FilterPanelScope::Global)

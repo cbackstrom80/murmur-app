@@ -41,9 +41,15 @@ namespace pw8::plugin::ui
         void listBoxItemClicked(int row, const juce::MouseEvent& event) override;
 
         void rebuildFacetsAndList();
+        void layoutFacetRows(juce::Rectangle<int>& bounds);
+        void updateFunnelChrome();
+        void clearAllFilters();
+        [[nodiscard]] bool isFunnelNarrowed() const;
         void loadRow(int row);
         void toggleFavoriteRow(int row);
         [[nodiscard]] juce::String formatEntrySubline(const content::PresetEntry& entry) const;
+        [[nodiscard]] juce::String formatEntryTitle(const content::PresetEntry& entry) const;
+        void refreshAmbiguousDisplayNames();
 
         PatchworkEightProcessor& processor_;
         content::PresetIndex& presetIndex_;
@@ -51,6 +57,8 @@ namespace pw8::plugin::ui
 
         juce::Component panel_;
         juce::Label titleLabel_{"", "PRESETS"};
+        juce::Label countLabel_;
+        juce::TextButton clearFiltersButton_{"CLEAR"};
         juce::TextEditor searchField_;
         juce::ToggleButton favoritesToggle_{"★ FAV"};
         MetadataFacetRow typeFacet_{"TYPE"};
@@ -58,9 +66,11 @@ namespace pw8::plugin::ui
         MetadataFacetRow contextFacet_{"CONTEXT"};
         MetadataFacetRow tagFacet_{"TAG"};
         juce::ListBox listBox_{"Presets", this};
+        juce::Label emptyStateLabel_;
         juce::TextButton closeButton_{"CLOSE"};
 
         juce::Array<content::PresetEntry> visibleEntries_;
+        juce::StringArray ambiguousDisplayNames_;
     };
 
 } // namespace pw8::plugin::ui

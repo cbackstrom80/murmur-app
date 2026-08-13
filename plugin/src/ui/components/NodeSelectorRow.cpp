@@ -60,8 +60,8 @@ namespace pw8::plugin::ui
 
     void NodeSelectorRow::paint(juce::Graphics& g)
     {
-        g.setColour(palette::kTextDim);
-        g.setFont(fonts::label(9.0f));
+        g.setColour(palette::kTextSecondary);
+        g.setFont(fonts::label(fonts::kBodyLabelSize));
         g.drawText("OPERATORS", getLocalBounds().removeFromLeft(72), juce::Justification::centredLeft);
 
         const auto& patch = processor_.getCurrentPatch();

@@ -8,8 +8,8 @@ namespace pw8::plugin::ui
     MetadataFacetRow::MetadataFacetRow(const juce::String& rowLabel) : rowLabel_(rowLabel)
     {
         label_.setText(rowLabel, juce::dontSendNotification);
-        label_.setFont(fonts::label(9.0f));
-        label_.setColour(juce::Label::textColourId, palette::kTextDim);
+        label_.setFont(fonts::label(fonts::kBodyLabelSize));
+        label_.setColour(juce::Label::textColourId, palette::kTextSecondary);
         label_.setJustificationType(juce::Justification::centredLeft);
         addAndMakeVisible(label_);
 
@@ -42,8 +42,11 @@ namespace pw8::plugin::ui
             const bool on = isAll ? selectedValue_.isEmpty() : chip->getButtonText().equalsIgnoreCase(selectedValue_);
             chip->setToggleState(on, juce::dontSendNotification);
             chip->setColour(juce::TextButton::buttonOnColourId,
-                            on ? palette::kAccent.withAlpha(0.35f) : palette::kPanelRaised);
-            chip->setColour(juce::TextButton::textColourOnId, palette::kTextPrimary);
+                            on ? palette::kAccent.withAlpha(0.42f) : palette::kPanelRaised);
+            chip->setColour(juce::TextButton::buttonColourId,
+                            on ? palette::kAccentDim.withAlpha(0.55f) : palette::kPanelRaised);
+            chip->setColour(juce::TextButton::textColourOnId,
+                            on ? palette::kTextPrimary : palette::kTextSecondary);
             chip->setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
         }
         if (notify && onChange)

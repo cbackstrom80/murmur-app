@@ -1,0 +1,687 @@
+{
+  "schemaVersion": 2,
+  "metadata": {
+    "id": "pw8-factory-pad-931141604",
+    "name": "DAWN SKY",
+    "author": "Patchwork Eight Engineering",
+    "description": "Factory Pad patch #44. Engines: Classic, FM/PM, Additive, PhaseShape, NoiseChaos. Procedurally generated (seed 931141604) as part of the 250-patch factory content bank. Archetype: evolving wavetable pad with dual-layer swell pad character.",
+    "category": "pad",
+    "moods": [
+      "pads"
+    ],
+    "genres": [
+      "factory"
+    ],
+    "tags": [
+      "factory",
+      "pad",
+      "wt-evolve",
+      "dual-layer"
+    ],
+    "createdAt": "2026-08-12T00:00:00Z",
+    "engineVersion": "0.1.0",
+    "schemaVersion": 2,
+    "seed": 931141604,
+    "lineage": []
+  },
+  "layerMode": 0,
+  "layerMorph": 0.0,
+  "layerA": {
+    "operators": [
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 0.5,
+        "keyTrack": true,
+        "level": 0.4365755274485183,
+        "pan": 0.0
+      },
+      {
+        "engine": 3,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.6340576911020767,
+        "pan": 0.0,
+        "additivePartialCount": 55,
+        "additiveTilt": 0.06704344495496073,
+        "additiveOddEven": 0.6140060523332604,
+        "additiveStretch": -0.014903152483002701
+      },
+      {
+        "engine": 4,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.31085560058196415,
+        "pan": -0.053547022328094246,
+        "phaseBend": -0.239548046918049,
+        "phaseFold": 0.22795171609345313,
+        "phaseAsymmetry": -0.14179272774711948,
+        "phaseShape": 0.49078955545574626
+      },
+      {
+        "engine": 2,
+        "classicWaveform": 0,
+        "frequencyRatio": 2.0,
+        "keyTrack": true,
+        "level": 0.3182360074982542,
+        "pan": -0.2191087318824183,
+        "fmModulatorRatio": 2.978690727497322,
+        "fmModulatorIndex": 0.27903563785608976,
+        "fmModulatorFeedback": 0.04764209027462424,
+        "fmModulatorWaveform": 0
+      },
+      {
+        "engine": 6,
+        "frequencyRatio": 1.0,
+        "keyTrack": false,
+        "level": 0.05162143313353642,
+        "pan": 0.0,
+        "noiseVariant": 1,
+        "noiseRate": 43.30860308062695
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      }
+    ],
+    "algorithm": {
+      "nodes": [
+        {
+          "id": 0,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 1,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 2,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 3,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 4,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 5,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 6,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 7,
+          "engine": 0,
+          "isOutput": true
+        }
+      ],
+      "edges": []
+    },
+    "envelopes": [
+      {
+        "attackSeconds": 1.3026518225807522,
+        "decaySeconds": 1.7016886588597124,
+        "sustainLevel": 0.8569426243352463,
+        "releaseSeconds": 2.249209162962474,
+        "curveShape": 2.0,
+        "legato": true
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      }
+    ],
+    "unison": {
+      "mode": 0,
+      "voices": 1
+    },
+    "filter1": {
+      "enabled": true,
+      "mode": 0,
+      "cutoffHz": 2229.0762406276176,
+      "resonance": 0.26407627444453396,
+      "keyTrack": 0.3262406218882381
+    },
+    "lfos": [
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 0.09736798236337785,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 0.04979142152425191,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.4
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      }
+    ],
+    "modRoutes": [
+      {
+        "source": 1,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 5.601953914526727,
+        "scope": 1
+      },
+      {
+        "source": 2,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.3374070026209979,
+        "scope": 1
+      },
+      {
+        "source": 29,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 18.0,
+        "scope": 0
+      },
+      {
+        "source": 17,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 18,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 8.0,
+        "scope": 0
+      },
+      {
+        "source": 30,
+        "destination": 3,
+        "targetIndex": 0,
+        "amount": 0.25,
+        "scope": 0
+      },
+      {
+        "source": 20,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 12.0,
+        "scope": 0
+      }
+    ],
+    "gain": 1.0,
+    "pan": 0.0,
+    "width": 1.0,
+    "centerGravity": 0.5,
+    "insertEffects": [
+      {
+        "type": 3,
+        "mix": 0.14183074433591822,
+        "tapeDelayMs": 328.70464211109226,
+        "tapeFeedback": 0.33071153693679584,
+        "tapeDriveDb": 4.0,
+        "tapeDuckAmount": 0.25,
+        "tapeDriftDepthMs": 6.0,
+        "tapeDriftRateHz": 0.12,
+        "tapePanMode": 2
+      }
+    ]
+  },
+  "layerB": {
+    "operators": [
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      }
+    ],
+    "algorithm": {
+      "nodes": [
+        {
+          "id": 0,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 1,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 2,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 3,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 4,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 5,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 6,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 7,
+          "engine": 0,
+          "isOutput": false
+        }
+      ],
+      "edges": []
+    },
+    "envelopes": [
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      }
+    ],
+    "gain": 1.0,
+    "pan": 0.0,
+    "width": 1.0,
+    "centerGravity": 0.5
+  },
+  "voiceSettings": {
+    "polyphony": 16,
+    "masterGain": 1.0,
+    "a4Hz": 440.0
+  },
+  "locks": {},
+  "macros": [
+    {
+      "id": "m1",
+      "name": "WARMTH",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m2",
+      "name": "BLOOM",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m3",
+      "name": "MOTION",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m4",
+      "name": "SPACE",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m5",
+      "name": "BODY",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m6",
+      "name": "SHIMMER",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m7",
+      "name": "AIR",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m8",
+      "name": "MORPH",
+      "description": "Performance macro.",
+      "value": 0.0
+    }
+  ],
+  "arpeggiator": {
+    "enabled": false
+  },
+  "masterEffects": [
+    {
+      "type": 8,
+      "mix": 1.0,
+      "eqLowFreqHz": 100,
+      "eqLowGainDb": 0.7152779117551951,
+      "eqMidFreqHz": 600,
+      "eqMidGainDb": -0.817618145398745,
+      "eqMidQ": 0.7,
+      "eqHighFreqHz": 6000,
+      "eqHighGainDb": -1.2517056188798703
+    },
+    {
+      "type": 7,
+      "mix": 0.48821551331523455,
+      "reverbSizeParam": 2.3923389917636073,
+      "reverbDecaySeconds": 5.314135480809628,
+      "reverbPreDelayMs": 25.0,
+      "reverbHighRatio": 0.55,
+      "reverbHighCrossoverHz": 3200.0,
+      "reverbLowRatio": 1.4,
+      "reverbLowCrossoverHz": 300.0,
+      "reverbDiffusion": 0.8,
+      "reverbDensity": 0.85,
+      "reverbModDepth": 0.3,
+      "reverbModRateHz": 0.15,
+      "reverbEarlyLevel": 0.5,
+      "reverbLateLevel": 0.85,
+      "reverbRollOffHz": 9000.0,
+      "reverbVlfCutDb": -6.0
+    },
+    {
+      "type": 9,
+      "mix": 1.0,
+      "compThresholdDb": -17.323751010068683,
+      "compRatio": 2.3895576514895125,
+      "compAttackMs": 15.0,
+      "compReleaseMs": 180.0,
+      "compKneeDb": 6.0,
+      "compMakeupDb": 3.0
+    },
+    {
+      "type": 10,
+      "mix": 1.0,
+      "limiterCeilingDb": -0.8,
+      "limiterLookaheadMs": 4.0,
+      "limiterReleaseMs": 60.0
+    }
+  ],
+  "uiFocus": {
+    "maxKnobs": 6,
+    "knobs": [
+      {
+        "kind": "macro",
+        "index": 0,
+        "label": "WARMTH"
+      },
+      {
+        "kind": "param",
+        "paramId": "filterCutoffHz",
+        "label": "Cutoff"
+      },
+      {
+        "kind": "param",
+        "paramId": "op1WavetablePos",
+        "label": "WT Pos"
+      },
+      {
+        "kind": "param",
+        "paramId": "filterResonance",
+        "label": "Reso"
+      },
+      {
+        "kind": "param",
+        "paramId": "layerGain",
+        "label": "Layer"
+      },
+      {
+        "kind": "param",
+        "paramId": "layerPan",
+        "label": "Pan"
+      }
+    ]
+  }
+}

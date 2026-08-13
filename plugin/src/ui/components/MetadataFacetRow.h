@@ -16,6 +16,7 @@ namespace pw8::plugin::ui
         void setValues(const juce::StringArray& values);
         void setSelectedValue(const juce::String& value);
         [[nodiscard]] juce::String getSelectedValue() const { return selectedValue_; }
+        [[nodiscard]] bool hasFacetValues() const noexcept { return !values_.isEmpty(); }
 
         std::function<void()> onChange;
 

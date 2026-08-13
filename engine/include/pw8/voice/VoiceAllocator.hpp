@@ -117,6 +117,14 @@ namespace pw8::voice
                     voices[i].noteOff(releaseVelocity);
         }
 
+        /// Immediately silences every sounding voice (MIDI all-sound-off / transport stop).
+        void killAll(VoicePool& voices) noexcept
+        {
+            for (std::size_t i = 0; i < polyphony_; ++i)
+                if (voices[i].isSounding() || voices[i].gateOn)
+                    voices[i].hardKill();
+        }
+
     private:
         std::size_t polyphony_ = core::kDefaultVoices;
         std::uint64_t ageCounter_ = 0;

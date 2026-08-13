@@ -25,6 +25,8 @@ namespace pw8::modulation
         PolyAftertouch,
         MpeSlide,
         Macro1, Macro2, Macro3, Macro4, Macro5, Macro6, Macro7, Macro8,
+        ModWheel,   ///< MIDI CC1 (0..1), channel-wide performance source.
+        Expression, ///< MIDI CC11 (0..1), channel-wide — expression pedal / knob.
     };
 
     enum class ModDestination : std::uint8_t

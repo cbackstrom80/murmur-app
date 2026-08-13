@@ -9,6 +9,7 @@
 #include "pw8/core/AudioBlock.hpp"
 #include "pw8/effects/EffectChain.hpp"
 #include "pw8/oscillator/WavetableTable.hpp"
+#include "pw8/patch/PatchModDefaults.hpp"
 #include "pw8/patch/Patch.hpp"
 #include "pw8/render/BlockMidi.hpp"
 #include "pw8/render/RenderTypes.hpp"
@@ -50,7 +51,11 @@ namespace pw8::render
         void controlChange(int channel, int controller, int value7) noexcept;
         void channelPressure(int channel, int value7) noexcept;
         void polyAftertouch(int channel, int note, int value7) noexcept;
-        void allNotesOff() noexcept;
+        /// MIDI all-notes-off (CC123). `channel < 0` applies to every channel.
+        void allNotesOff(int channel = -1) noexcept;
+
+        /// MIDI all-sound-off (CC120) / host transport stop — immediate silence.
+        void allSoundOff(int channel = -1) noexcept;
 
         /// Sets the tempo used by tempo-synced LFOs. Audio-thread safe (a plain float
         /// store) -- call once per block from whatever knows the host/render tempo.
@@ -69,6 +74,21 @@ namespace pw8::render
         [[nodiscard]] float getMacroValue(std::size_t index) const noexcept
         {
             return index < patch_.macros.size() ? patch_.macros[index].value : 0.0f;
+        }
+
+        /// Channel-wide mod wheel (MIDI CC1), 0..1. `channel` is 0-based MIDI channel index.
+        [[nodiscard]] float getChannelModWheel(int channel) const noexcept
+        {
+            if (channel < 0 || channel >= static_cast<int>(channelModWheel_.size()))
+                return 0.0f;
+            return channelModWheel_[static_cast<std::size_t>(channel)];
+        }
+
+        [[nodiscard]] float getChannelExpression(int channel) const noexcept
+        {
+            if (channel < 0 || channel >= static_cast<int>(channelExpression_.size()))
+                return 0.0f;
+            return channelExpression_[static_cast<std::size_t>(channel)];
         }
 
         // --- Live parameter API (docs/PLUGIN_ARCHITECTURE.md "Automation") ---
@@ -294,6 +314,8 @@ namespace pw8::render
         std::uint64_t noteGenerationCounter_ = 0;
         QualityMode qualityMode_ = QualityMode::Normal;
         std::array<bool, 16> sustainPedalHeld_{};
+        std::array<float, 16> channelModWheel_{};
+        std::array<float, 16> channelExpression_{};
     };
 
 } // namespace pw8::render

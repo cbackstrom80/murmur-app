@@ -2,14 +2,15 @@
 
 #include <algorithm>
 #include <array>
-#include <bitset>
 #include <cstdlib>
 
 #include "processor/PatchworkEightProcessor.h"
+#include "processor/PerformanceMidiMap.hpp"
 
 #include "pw8/content/ContentPaths.hpp"
 #include "pw8/content/WavetableCache.hpp"
 #include "pw8/core/AudioBlock.hpp"
+#include "pw8/patch/PatchModDefaults.hpp"
 #include "pw8/patch/PatchSerializer.hpp"
 #include "pw8/render/BlockMidi.hpp"
 #include "pw8/sequencer/ArpeggiatorTypes.hpp"
@@ -52,9 +53,13 @@ namespace pw8::plugin
         activeEngine_.store(engineStorageA_.get(), std::memory_order_release);
 
 #if defined(__APPLE__)
+        pw8::content::addSearchRoot("/Library/Application Support/MURMUR");
         pw8::content::addSearchRoot("/Library/Application Support/Patchwork Eight");
         if (const char* home = std::getenv("HOME"))
+        {
+            pw8::content::addSearchRoot(std::string(home) + "/Library/Application Support/MURMUR");
             pw8::content::addSearchRoot(std::string(home) + "/Library/Application Support/Patchwork Eight");
+        }
 #endif
         if (const char* envRoot = std::getenv("PW8_CONTENT_ROOT"))
         {
@@ -109,11 +114,14 @@ namespace pw8::plugin
         layerGainPointer_ = apvts.getRawParameterValue(kLayerGainId);
         layerPanPointer_ = apvts.getRawParameterValue(kLayerPanId);
         masterGainPointer_ = apvts.getRawParameterValue(kMasterGainId);
+        modWheelParamPointer_ = apvts.getRawParameterValue(kModWheelId);
+        expressionParamPointer_ = apvts.getRawParameterValue(kExpressionId);
     }
 
     void PatchworkEightProcessor::prepareToPlay(double sampleRate, int /*samplesPerBlock*/)
     {
         currentSampleRate_ = sampleRate;
+        scopeAudioTap_.reset();
         // Rebuild both storage slots at the new sample rate and republish -- this always
         // runs on the message thread (JUCE guarantees prepareToPlay isn't concurrent with
         // processBlock), so a plain rebuild-then-swap is safe without extra locking.
@@ -140,13 +148,32 @@ namespace pw8::plugin
         // Tempo-synced LFOs need the host tempo; default to 120 BPM when unavailable
         // (e.g. no playhead, or a host that doesn't report it).
         float bpm = 120.0f;
+        bool hostIsPlaying = false;
         if (auto* playHead = getPlayHead())
         {
             if (const auto position = playHead->getPosition(); position.hasValue())
+            {
                 if (const auto hostBpm = position->getBpm())
                     bpm = static_cast<float>(*hostBpm);
+                hostIsPlaying = position->getIsPlaying();
+            }
         }
         engine->setTempo(bpm);
+
+        // Logic and many hosts do not send note-offs when transport stops — silence voices
+        // and reset the arpeggiator so notes do not hang indefinitely.
+        if (hostWasPlaying_ && !hostIsPlaying)
+            engine->allSoundOff();
+        hostWasPlaying_ = hostIsPlaying;
+
+        // Map performance CCs to macros/master before pushing APVTS → engine (MP11SE layout).
+        for (const auto metadata : midiMessages)
+        {
+            const auto msg = metadata.getMessage();
+            if (msg.isController())
+                applyPerformanceCcToApvts(msg.getControllerNumber(), msg.getControllerValue(), macroParamPointers_,
+                                          masterGainPointer_);
+        }
 
         pushLiveParametersToEngine(*engine);
 
@@ -216,6 +243,19 @@ namespace pw8::plugin
         core::StereoBlockView view(buffer.getWritePointer(0), buffer.getWritePointer(1),
                                     static_cast<std::size_t>(buffer.getNumSamples()));
         engine->process(view, blockMidi.data(), blockMidiCount);
+        if (modWheelParamPointer_ != nullptr)
+        {
+            const float wheel = engine->getChannelModWheel(0);
+            modWheelParamPointer_->store(wheel, std::memory_order_relaxed);
+            mirroredModWheel_.store(wheel, std::memory_order_relaxed);
+        }
+        if (expressionParamPointer_ != nullptr)
+        {
+            const float expr = engine->getChannelExpression(0);
+            expressionParamPointer_->store(expr, std::memory_order_relaxed);
+            mirroredExpression_.store(expr, std::memory_order_relaxed);
+        }
+        scopeAudioTap_.pushStereoBlock(buffer.getReadPointer(0), buffer.getReadPointer(1), buffer.getNumSamples());
     }
 
     void PatchworkEightProcessor::pushLiveParametersToEngine(render::Engine& engine) noexcept
@@ -226,18 +266,13 @@ namespace pw8::plugin
         if (const auto* pendingRoutes = pendingModRoutes_.exchange(nullptr, std::memory_order_acquire))
             engine.setModRoutesLive(*pendingRoutes);
 
-        std::bitset<static_cast<std::size_t>(ParamGroup::Count)> dirtyGroups{};
+        // Drain APVTS change notifications (also used by updateReportedLatency side paths).
+        // Always push every live group: ParamChangeQueue is lossy (256-capacity drops) and
+        // focus-panel knob drags must reach the engine even when their group was dropped.
         ParamGroup queued{};
-        bool pushAll = true;
-        while (paramChangeQueue_.pop(queued))
-        {
-            dirtyGroups.set(static_cast<std::size_t>(queued));
-            pushAll = false;
-        }
+        while (paramChangeQueue_.pop(queued)) {}
 
-        const auto needs = [&](ParamGroup group) {
-            return pushAll || dirtyGroups.test(static_cast<std::size_t>(group));
-        };
+        const auto needs = [&](ParamGroup /*group*/) { return true; };
 
         // Macros -- unchanged from before this pass, see Engine::setMacroValue().
         if (needs(ParamGroup::Macros))
@@ -543,6 +578,8 @@ namespace pw8::plugin
     bool PatchworkEightProcessor::loadPatch(const patch::Patch& newPatch)
     {
         currentPatch_ = newPatch;
+        patch::ensureDefaultModWheelRoute(currentPatch_.layerA);
+        patch::ensureDefaultExpressionRoute(currentPatch_.layerA);
         syncAllParametersFromPatch();
         auto fresh = std::make_unique<render::Engine>();
         fresh->prepare(getSampleRate() > 0.0 ? getSampleRate() : 48000.0);
@@ -556,6 +593,9 @@ namespace pw8::plugin
         // pre-reload ones. `fresh` was already built from newPatch's real routes,
         // so there's nothing useful left for a stale publish to contribute.
         pendingModRoutes_.store(nullptr, std::memory_order_release);
+        paramChangeQueue_.pushAllGroups();
+        if (onPatchLoaded)
+            onPatchLoaded();
         return ok;
     }
 
@@ -572,6 +612,16 @@ namespace pw8::plugin
 
         currentPresetPath_ = file.getFullPathName();
         return loadPatch(result.patch);
+    }
+
+    float PatchworkEightProcessor::getModWheelValue() const noexcept
+    {
+        return mirroredModWheel_.load(std::memory_order_relaxed);
+    }
+
+    float PatchworkEightProcessor::getExpressionValue() const noexcept
+    {
+        return mirroredExpression_.load(std::memory_order_relaxed);
     }
 
     void PatchworkEightProcessor::syncCurrentPatchFromApvts() noexcept
@@ -658,11 +708,19 @@ namespace pw8::plugin
     void PatchworkEightProcessor::registerParamListeners()
     {
         for (auto* param : getParameters())
-            apvts.addParameterListener(param->getName(512), this);
+        {
+            if (param == nullptr)
+                continue;
+            if (auto* withId = dynamic_cast<juce::AudioProcessorParameterWithID*>(param))
+                apvts.addParameterListener(withId->paramID, this);
+        }
     }
 
     void PatchworkEightProcessor::parameterChanged(const juce::String& parameterID, float /*newValue*/)
     {
+        if (parameterID == kModWheelId || parameterID == kExpressionId)
+            return;
+
         paramChangeQueue_.push(paramGroupForId(parameterID));
 
         if (parameterID.contains("tapeDelayMs") || parameterID.contains("DelayMs") ||

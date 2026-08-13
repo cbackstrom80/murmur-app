@@ -1,0 +1,654 @@
+{
+  "schemaVersion": 2,
+  "metadata": {
+    "id": "pw8-genre-expansion-ambient-1926169057",
+    "name": "PULSE DRIVE 48",
+    "author": "MURMUR Sound Design",
+    "description": "Genre expansion Ambient patch #141. House/club energy \u2014 pumped compression, gated motion. Engines: Classic, NoiseChaos.",
+    "category": "ambient",
+    "moods": [
+      "house",
+      "club",
+      "motor"
+    ],
+    "genres": [
+      "house",
+      "club",
+      "gated-80s",
+      "motor",
+      "factory"
+    ],
+    "tags": [
+      "genre-expansion",
+      "ambient",
+      "house",
+      "house",
+      "club",
+      "gated-80s"
+    ],
+    "createdAt": "2026-08-13T00:00:00Z",
+    "engineVersion": "0.1.0",
+    "schemaVersion": 2,
+    "seed": 1926169057,
+    "lineage": []
+  },
+  "layerMode": 0,
+  "layerMorph": 0.0,
+  "layerA": {
+    "operators": [
+      {
+        "engine": 0,
+        "classicWaveform": 3,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.35,
+        "pan": 0.0
+      },
+      {
+        "engine": 6,
+        "frequencyRatio": 1.0,
+        "keyTrack": false,
+        "level": 0.08,
+        "pan": 0.2,
+        "noiseVariant": 1,
+        "noiseRate": 45.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      }
+    ],
+    "algorithm": {
+      "nodes": [
+        {
+          "id": 0,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 1,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 2,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 3,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 4,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 5,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 6,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 7,
+          "engine": 0,
+          "isOutput": true
+        }
+      ],
+      "edges": []
+    },
+    "envelopes": [
+      {
+        "attackSeconds": 1.5,
+        "decaySeconds": 1.2,
+        "sustainLevel": 0.8,
+        "releaseSeconds": 3.0,
+        "curveShape": 2.0
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      }
+    ],
+    "unison": {
+      "mode": 0,
+      "voices": 1
+    },
+    "filter1": {
+      "enabled": true,
+      "mode": 0,
+      "cutoffHz": 1840.0,
+      "resonance": 0.06,
+      "keyTrack": 0.05
+    },
+    "lfos": [
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 0.15,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 0.08,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      }
+    ],
+    "modRoutes": [
+      {
+        "source": 1,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 3.0,
+        "scope": 1
+      },
+      {
+        "source": 29,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 16.0,
+        "scope": 0
+      },
+      {
+        "source": 17,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 26,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 1
+      },
+      {
+        "source": 18,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 8.0,
+        "scope": 0
+      },
+      {
+        "source": 30,
+        "destination": 3,
+        "targetIndex": 0,
+        "amount": 0.25,
+        "scope": 0
+      },
+      {
+        "source": 20,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 12.0,
+        "scope": 0
+      }
+    ],
+    "gain": 1.0,
+    "pan": 0.0,
+    "width": 1.0,
+    "centerGravity": 0.5,
+    "insertEffects": [
+      {
+        "type": 2,
+        "mix": 0.4,
+        "chorusRateHz": 0.25,
+        "chorusDepthMs": 7.0,
+        "chorusBaseDelayMs": 12.0
+      }
+    ]
+  },
+  "layerB": {
+    "operators": [
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      }
+    ],
+    "algorithm": {
+      "nodes": [
+        {
+          "id": 0,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 1,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 2,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 3,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 4,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 5,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 6,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 7,
+          "engine": 0,
+          "isOutput": false
+        }
+      ],
+      "edges": []
+    },
+    "envelopes": [
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      }
+    ],
+    "gain": 1.0,
+    "pan": 0.0,
+    "width": 1.0,
+    "centerGravity": 0.5
+  },
+  "voiceSettings": {
+    "polyphony": 8,
+    "masterGain": 1.0,
+    "a4Hz": 440.0
+  },
+  "locks": {},
+  "macros": [
+    {
+      "id": "m1",
+      "name": "CLUB",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m2",
+      "name": "AIR",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m3",
+      "name": "WASH",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m4",
+      "name": "SPACE",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m5",
+      "name": "GLOW",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m6",
+      "name": "MOVE",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m7",
+      "name": "TONE",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m8",
+      "name": "DECAY",
+      "description": "Performance macro.",
+      "value": 0.0
+    }
+  ],
+  "arpeggiator": {
+    "enabled": false
+  },
+  "masterEffects": [
+    {
+      "type": 8,
+      "mix": 1.0,
+      "eqLowFreqHz": 100,
+      "eqLowGainDb": 1.5,
+      "eqMidFreqHz": 600,
+      "eqMidGainDb": -0.5,
+      "eqMidQ": 0.7,
+      "eqHighFreqHz": 6000,
+      "eqHighGainDb": 0.0
+    },
+    {
+      "type": 9,
+      "mix": 1.0,
+      "compThresholdDb": -18.0,
+      "compRatio": 4.0,
+      "compAttackMs": 8.0,
+      "compReleaseMs": 120.0,
+      "compKneeDb": 6.0,
+      "compMakeupDb": 2.0
+    },
+    {
+      "type": 10,
+      "mix": 1.0,
+      "limiterCeilingDb": -0.8,
+      "limiterLookaheadMs": 4.0,
+      "limiterReleaseMs": 60.0
+    }
+  ],
+  "uiFocus": {
+    "maxKnobs": 6,
+    "knobs": [
+      {
+        "kind": "macro",
+        "index": 5,
+        "label": "MOVE"
+      },
+      {
+        "kind": "param",
+        "paramId": "filterCutoffHz",
+        "label": "Cutoff"
+      },
+      {
+        "kind": "param",
+        "paramId": "filterResonance",
+        "label": "Reso"
+      },
+      {
+        "kind": "param",
+        "paramId": "layerGain",
+        "label": "Layer"
+      },
+      {
+        "kind": "param",
+        "paramId": "layerPan",
+        "label": "Pan"
+      },
+      {
+        "kind": "param",
+        "paramId": "masterGain",
+        "label": "Master"
+      }
+    ]
+  }
+}

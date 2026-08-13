@@ -19,10 +19,10 @@ namespace pw8::plugin::ui::palette
     inline const juce::Colour kBorder{0xff232630};
     inline const juce::Colour kBorderBright{0xff30343f};
 
-    // -- Text. --
-    inline const juce::Colour kTextPrimary{0xffe6e8ec};
-    inline const juce::Colour kTextSecondary{0xff8b909c};
-    inline const juce::Colour kTextDim{0xff565a66};
+    // -- Text (tuned for ~4.5:1+ on kPanel / kPanelRaised). --
+    inline const juce::Colour kTextPrimary{0xffeceef2};
+    inline const juce::Colour kTextSecondary{0xffadb2bd};
+    inline const juce::Colour kTextDim{0xff858b98};
 
     // -- A deliberate duotone, not a single accent: cool cyan for structural/signal
     // things (the algorithm graph, Filter, FX), warm amber for performance things
@@ -35,6 +35,11 @@ namespace pw8::plugin::ui::palette
 
     inline const juce::Colour kAccentWarm{0xffe8a33d};
     inline const juce::Colour kAccentWarmDim{0xff5c4a2c};
+
+    // Murmur brand violet — primary motion accent on rotary controls (orbit ring,
+    // satellites, default pointer). Structural cyan/warm overrides remain per-knob.
+    inline const juce::Colour kMurmurViolet{0xffb9a8ff};
+    inline const juce::Colour kMurmurVioletDeep{0xff8c79e8};
 
     // Card depth: a soft shadow beneath every SectionPanel, and a faint highlight
     // along its top edge -- the "milled panel set into a chassis" read depends on
@@ -77,6 +82,8 @@ namespace pw8::plugin::ui::palette
     inline const juce::Colour kModLfo{0xffb08fe8};
     inline const juce::Colour kModEnv{0xff8fd4e8};
     inline const juce::Colour kModVelocity{0xffe88f9e};
+    inline const juce::Colour kModModWheel{0xff8fe8b0};
+    inline const juce::Colour kModExpression{0xffe8a88f};
     inline const juce::Colour kModMacro{0xffe8c08f};
 
     /// `source` is a raw `modulation::ModSource` ordinal (kept as `int` here so this
@@ -89,6 +96,8 @@ namespace pw8::plugin::ui::palette
         if (source >= 1 && source <= 8) return kModLfo;   // Lfo1..Lfo8
         if (source >= 9 && source <= 16) return kModEnv;  // Env1..Env8
         if (source == 17) return kModVelocity;            // Velocity
+        if (source == 29) return kModModWheel;            // ModWheel
+        if (source == 30) return kModExpression;          // Expression (CC11)
         if (source >= 21 && source <= 28) return kModMacro; // Macro1..Macro8
         return kTextDim;
     }

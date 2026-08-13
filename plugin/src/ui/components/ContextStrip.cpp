@@ -72,7 +72,7 @@ namespace pw8::plugin::ui
         g.setColour(scopeAccent.withAlpha(0.32f));
         g.fillRoundedRectangle(badgeArea, 4.0f);
         g.setColour(scopeAccent);
-        g.setFont(fonts::label(9.5f));
+        g.setFont(fonts::label(fonts::kBodyLabelSize));
         g.drawText(scope_ == FilterPanelScope::Global ? "GLOBAL" : "ENGINE",
                    badgeArea, juce::Justification::centred);
 

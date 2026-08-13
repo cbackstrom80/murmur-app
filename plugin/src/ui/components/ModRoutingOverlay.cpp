@@ -45,8 +45,8 @@ namespace pw8::plugin::ui
         subtitleLabel_.setText("Connect a source (LFO, envelope, velocity) to a target (filter cutoff/resonance). "
                                "① Pick source  →  ② Pick destination. Press Esc to close.",
                                juce::dontSendNotification);
-        subtitleLabel_.setFont(fonts::value(10.5f));
-        subtitleLabel_.setColour(juce::Label::textColourId, palette::kTextDim);
+        subtitleLabel_.setFont(fonts::value(fonts::kBodyLabelSize));
+        subtitleLabel_.setColour(juce::Label::textColourId, palette::kTextSecondary);
         subtitleLabel_.setJustificationType(juce::Justification::centredLeft);
 
         closeButton_.onClick = [this] { dismiss(); };

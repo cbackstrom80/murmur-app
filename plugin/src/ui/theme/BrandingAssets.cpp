@@ -36,38 +36,32 @@ namespace pw8::plugin::ui::branding
             return out;
         }
 
-        juce::Image buildShipIcon()
+        juce::Image buildMarkIcon()
         {
-            auto mark = loadEmbedded(BinaryData::starfighter_logo_mark_png, BinaryData::starfighter_logo_mark_pngSize);
-            if (!mark.isValid())
-                return {};
-
-            // Hero logo is widescreen: ship + HUD ring in top ~48%, wordmark below.
-            const int cropHeight = juce::jmax(1, static_cast<int>(static_cast<float>(mark.getHeight()) * 0.48f));
-            mark = mark.getClippedImage({0, 0, mark.getWidth(), cropHeight});
+            auto mark = loadEmbedded(BinaryData::murmur_mark_512_png, BinaryData::murmur_mark_512_pngSize);
             return keyBlackTransparent(mark);
         }
 
-        const juce::Image& cachedShipIcon()
+        const juce::Image& cachedMarkIcon()
         {
-            static const juce::Image icon = buildShipIcon();
+            static const juce::Image icon = buildMarkIcon();
             return icon;
         }
     } // namespace
 
     juce::Colour glowColour() noexcept
     {
-        return juce::Colour(0xff5ecfff);
+        return juce::Colour(0xffB9A8FF);
     }
 
-    juce::Image getShipIcon()
+    juce::Image getMarkIcon()
     {
-        return cachedShipIcon();
+        return cachedMarkIcon();
     }
 
     int wordmarkWidth() noexcept
     {
-        return 248;
+        return 228;
     }
 
     int headerBarHeight() noexcept
@@ -75,9 +69,9 @@ namespace pw8::plugin::ui::branding
         return 64;
     }
 
-    void paintShipGlow(juce::Graphics& g, const juce::Image& ship, juce::Rectangle<float> bounds) noexcept
+    void paintMarkGlow(juce::Graphics& g, const juce::Image& mark, juce::Rectangle<float> bounds) noexcept
     {
-        if (!ship.isValid() || bounds.isEmpty())
+        if (!mark.isValid() || bounds.isEmpty())
             return;
 
         const auto centre = bounds.getCentre();
@@ -92,7 +86,7 @@ namespace pw8::plugin::ui::branding
         }
 
         g.setOpacity(1.0f);
-        g.drawImageWithin(ship, static_cast<int>(bounds.getX()), static_cast<int>(bounds.getY()),
+        g.drawImageWithin(mark, static_cast<int>(bounds.getX()), static_cast<int>(bounds.getY()),
                           static_cast<int>(bounds.getWidth()), static_cast<int>(bounds.getHeight()),
                           juce::RectanglePlacement::centred | juce::RectanglePlacement::onlyReduceInSize);
     }

@@ -13,7 +13,7 @@ namespace pw8::content
     void resetSearchRootsForTests() noexcept;
 
     /// Prepends an additional root (absolute directory, e.g. repo root or
-    /// Application Support/Patchwork Eight). Later calls take precedence.
+    /// Application Support/MURMUR (and legacy Patchwork Eight). Later calls take precedence.
     void addSearchRoot(const std::string& rootPath) noexcept;
 
     /// Walks upward from `startPath` (typically the plugin binary directory)

@@ -10,6 +10,9 @@
 
 namespace pw8::plugin::ui
 {
+    inline constexpr std::size_t kStandardKoinCount = 6;
+    inline constexpr std::size_t kMinimumKoinCount = 4;
+
     struct ModDestinationParam
     {
         juce::String paramId;
@@ -57,8 +60,20 @@ namespace pw8::plugin::ui
         }
     };
 
-    [[nodiscard]] std::vector<PatchFocusKnobSpec> inferPatchFocusKnobs(const patch::Patch& patch, std::size_t maxKnobs = 8);
+    /// When `apvtsForValidation` is set, param knobs whose ids are missing from APVTS are skipped.
+    [[nodiscard]] std::vector<PatchFocusKnobSpec> inferPatchFocusKnobs(
+        const patch::Patch& patch, std::size_t maxKnobs = 8,
+        const juce::AudioProcessorValueTreeState* apvtsForValidation = nullptr);
 
     [[nodiscard]] juce::String formatModRouteAmount(modulation::ModDestination destination, float amount);
+
+    /// First active mod-wheel route on Layer A, if any.
+    [[nodiscard]] std::optional<modulation::ModRoute> findModWheelRoute(const patch::Patch& patch) noexcept;
+
+    [[nodiscard]] juce::String formatModWheelStatus(const patch::Patch& patch, float modWheelValue01) noexcept;
+
+    [[nodiscard]] std::optional<modulation::ModRoute> findExpressionRoute(const patch::Patch& patch) noexcept;
+
+    [[nodiscard]] juce::String formatExpressionStatus(const patch::Patch& patch, float expressionValue01) noexcept;
 
 } // namespace pw8::plugin::ui

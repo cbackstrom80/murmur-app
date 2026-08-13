@@ -21,12 +21,28 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    PatchBrowserBar::PatchBrowserBar(PatchworkEightProcessor& processor) : processor_(processor)
+    PatchBrowserBar::PatchBrowserBar(PatchworkEightProcessor& processor)
+        : processor_(processor),
+          spectrumScope_(processor)
     {
         patchNameLabel_.setJustificationType(juce::Justification::centred);
         patchNameLabel_.setColour(juce::Label::textColourId, palette::kTextPrimary);
-        patchNameLabel_.setFont(fonts::title(15.0f));
+        patchNameLabel_.setFont(fonts::title(14.0f));
         addAndMakeVisible(patchNameLabel_);
+
+        addAndMakeVisible(spectrumScope_);
+        spectrumScope_.setViewMode(processor_.getScopeViewMode());
+
+        scopeModeToggle_.setMode(processor_.getScopeViewMode());
+        scopeModeToggle_.onModeChanged = [this](ScopeViewMode mode) {
+            processor_.setScopeViewMode(mode);
+            spectrumScope_.setViewMode(mode);
+        };
+        addAndMakeVisible(scopeModeToggle_);
+
+        masterVolumeKnob_ = std::make_unique<GlowKnob>(processor_.apvts, kMasterGainId, "VOL", nullptr, palette::kAccentWarm);
+        masterVolumeKnob_->setHeaderCompactMode(true);
+        addAndMakeVisible(*masterVolumeKnob_);
 
         prevButton_.onClick = [this] { stepPreset(-1); };
         nextButton_.onClick = [this] { stepPreset(1); };
@@ -106,20 +122,29 @@ namespace pw8::plugin::ui
         g.setColour(glowMix(0.08f));
         g.fillRoundedRectangle(badge.expanded(2.0f), 12.0f);
 
-        branding::paintShipGlow(g, branding::getShipIcon(), badge.reduced(3.0f));
+        branding::paintMarkGlow(g, branding::getMarkIcon(), badge.reduced(3.0f));
 
         brandArea.removeFromLeft(10.0f);
 
         auto titleArea = brandArea.removeFromTop(24.0f);
         g.setFont(fonts::title(19.0f));
         g.setColour(palette::kTextPrimary);
-        g.drawText("STARFIGHTER", titleArea, juce::Justification::centredLeft, true);
+        g.drawText("MURMUR", titleArea, juce::Justification::centredLeft, true);
 
-        g.setFont(fonts::label(8.5f));
-        g.setColour(glowMix(0.75f));
-        g.drawText("8-ENGINE ALGORITHMIC SYNTH", brandArea.removeFromTop(14.0f), juce::Justification::centredLeft, true);
+        g.setFont(fonts::label(fonts::kCaptionSize));
+        g.setColour(palette::kTextSecondary);
+        g.drawText("SOUND IN MOTION", brandArea.removeFromTop(14.0f), juce::Justification::centredLeft, true);
 
         paintVerticalSeparator(g, brandWidth - 0.5f, fullBounds.getY() + 10.0f, fullBounds.getBottom() - 10.0f);
+
+        if (patchNameLabel_.isVisible())
+        {
+            auto pill = patchNameLabel_.getBounds().toFloat().expanded(5.0f, 2.5f);
+            g.setColour(palette::kBackgroundBottom.withAlpha(0.78f));
+            g.fillRoundedRectangle(pill, 4.0f);
+            g.setColour(palette::kBorder.withAlpha(0.55f));
+            g.drawRoundedRectangle(pill, 4.0f, 1.0f);
+        }
     }
 
     void PatchBrowserBar::resized()
@@ -132,7 +157,12 @@ namespace pw8::plugin::ui
         nextButton_.setBounds(bounds.removeFromRight(28).reduced(0, 10));
         prevButton_.setBounds(bounds.removeFromRight(28).reduced(0, 10));
         bounds.removeFromRight(6);
-        patchNameLabel_.setBounds(bounds);
+        masterVolumeKnob_->setBounds(bounds.removeFromRight(54).reduced(0, 2));
+        bounds.removeFromRight(6);
+        patchNameLabel_.setBounds(bounds.removeFromRight(juce::jmax(120, bounds.getWidth() / 4)));
+        bounds.removeFromRight(6);
+        spectrumScope_.setBounds(bounds.reduced(0, 6));
+        scopeModeToggle_.setBounds(spectrumScope_.getBounds().removeFromTop(18).removeFromRight(56).reduced(4, 1));
     }
 
     void PatchBrowserBar::stepPreset(int direction)

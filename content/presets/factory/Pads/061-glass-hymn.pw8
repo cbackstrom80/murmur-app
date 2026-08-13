@@ -1,0 +1,701 @@
+{
+  "schemaVersion": 2,
+  "metadata": {
+    "id": "pw8-genre-expansion-pad-2647007843",
+    "name": "GLASS HYMN",
+    "author": "MURMUR Sound Design",
+    "description": "Genre expansion Pad patch #061. Dream-pop shimmer \u2014 chorus wash and neon nostalgia. Engines: Classic, Wavetable.",
+    "category": "pad",
+    "moods": [
+      "dream-pop",
+      "shoegaze",
+      "neon"
+    ],
+    "genres": [
+      "dream-pop",
+      "shoegaze",
+      "neon",
+      "80s-pop",
+      "factory"
+    ],
+    "tags": [
+      "genre-expansion",
+      "pad",
+      "dream-pop",
+      "dream-pop",
+      "shoegaze",
+      "neon"
+    ],
+    "createdAt": "2026-08-13T00:00:00Z",
+    "engineVersion": "0.1.0",
+    "schemaVersion": 2,
+    "seed": 2647007843,
+    "lineage": []
+  },
+  "layerMode": 0,
+  "layerMorph": 0.0,
+  "layerA": {
+    "operators": [
+      {
+        "engine": 0,
+        "classicWaveform": 2,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.55,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 2,
+        "frequencyRatio": 1.004,
+        "keyTrack": true,
+        "level": 0.42,
+        "pan": 0.35
+      },
+      {
+        "engine": 1,
+        "wavetableId": "content/wavetables/formant-vowel-aa.json",
+        "wavetableFramePosition": 0.2,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.4,
+        "pan": -0.3
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      }
+    ],
+    "algorithm": {
+      "nodes": [
+        {
+          "id": 0,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 1,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 2,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 3,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 4,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 5,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 6,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 7,
+          "engine": 0,
+          "isOutput": true
+        }
+      ],
+      "edges": []
+    },
+    "envelopes": [
+      {
+        "attackSeconds": 2.5,
+        "decaySeconds": 1.8,
+        "sustainLevel": 0.85,
+        "releaseSeconds": 4.0,
+        "curveShape": 2.2,
+        "legato": true
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      }
+    ],
+    "unison": {
+      "mode": 1,
+      "voices": 4,
+      "detune": 0.18,
+      "spread": 0.85
+    },
+    "filter1": {
+      "enabled": true,
+      "mode": 0,
+      "cutoffHz": 1400.0,
+      "resonance": 0.12,
+      "keyTrack": 0.2
+    },
+    "lfos": [
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 0.06,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 0.04,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.5
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      }
+    ],
+    "modRoutes": [
+      {
+        "source": 1,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 4.0,
+        "scope": 1
+      },
+      {
+        "source": 2,
+        "destination": 5,
+        "targetIndex": 2,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 29,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 18.0,
+        "scope": 0
+      },
+      {
+        "source": 17,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 18,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 8.0,
+        "scope": 0
+      },
+      {
+        "source": 30,
+        "destination": 3,
+        "targetIndex": 0,
+        "amount": 0.25,
+        "scope": 0
+      },
+      {
+        "source": 20,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 12.0,
+        "scope": 0
+      }
+    ],
+    "gain": 1.0,
+    "pan": 0.0,
+    "width": 1.0,
+    "centerGravity": 0.5,
+    "insertEffects": [
+      {
+        "type": 2,
+        "mix": 0.32,
+        "chorusRateHz": 0.4,
+        "chorusDepthMs": 5.5,
+        "chorusBaseDelayMs": 12.0
+      },
+      {
+        "type": 3,
+        "mix": 0.25,
+        "tapeDelayMs": 320.0,
+        "tapeFeedback": 0.35,
+        "tapeDriveDb": 4.0,
+        "tapeDuckAmount": 0.25,
+        "tapeDriftDepthMs": 8.0,
+        "tapeDriftRateHz": 0.12,
+        "tapePanMode": 2
+      }
+    ]
+  },
+  "layerB": {
+    "operators": [
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      }
+    ],
+    "algorithm": {
+      "nodes": [
+        {
+          "id": 0,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 1,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 2,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 3,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 4,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 5,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 6,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 7,
+          "engine": 0,
+          "isOutput": false
+        }
+      ],
+      "edges": []
+    },
+    "envelopes": [
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      }
+    ],
+    "gain": 1.0,
+    "pan": 0.0,
+    "width": 1.0,
+    "centerGravity": 0.5
+  },
+  "voiceSettings": {
+    "polyphony": 24,
+    "masterGain": 1.0,
+    "a4Hz": 440.0
+  },
+  "locks": {},
+  "macros": [
+    {
+      "id": "m1",
+      "name": "WASH",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m2",
+      "name": "SHIMMER",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m3",
+      "name": "WIDTH",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m4",
+      "name": "SPACE",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m5",
+      "name": "GLOW",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m6",
+      "name": "MORPH",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m7",
+      "name": "AIR",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m8",
+      "name": "SWELL",
+      "description": "Performance macro.",
+      "value": 0.0
+    }
+  ],
+  "arpeggiator": {
+    "enabled": false
+  },
+  "masterEffects": [
+    {
+      "type": 8,
+      "mix": 1.0,
+      "eqLowFreqHz": 100,
+      "eqLowGainDb": 0.0,
+      "eqMidFreqHz": 600,
+      "eqMidGainDb": 0.0,
+      "eqMidQ": 0.7,
+      "eqHighFreqHz": 6000,
+      "eqHighGainDb": 1.0
+    },
+    {
+      "type": 2,
+      "mix": 0.28,
+      "chorusRateHz": 0.35,
+      "chorusDepthMs": 5.0,
+      "chorusBaseDelayMs": 14.0
+    },
+    {
+      "type": 7,
+      "mix": 0.42,
+      "reverbSizeParam": 2.0,
+      "reverbDecaySeconds": 4.5,
+      "reverbPreDelayMs": 25.0,
+      "reverbHighRatio": 0.55,
+      "reverbHighCrossoverHz": 3200.0,
+      "reverbLowRatio": 1.4,
+      "reverbLowCrossoverHz": 300.0,
+      "reverbDiffusion": 0.8,
+      "reverbDensity": 0.85,
+      "reverbModDepth": 0.3,
+      "reverbModRateHz": 0.15,
+      "reverbEarlyLevel": 0.5,
+      "reverbLateLevel": 0.85,
+      "reverbRollOffHz": 9000.0,
+      "reverbVlfCutDb": -6.0
+    },
+    {
+      "type": 9,
+      "mix": 1.0,
+      "compThresholdDb": -16.0,
+      "compRatio": 2.5,
+      "compAttackMs": 15.0,
+      "compReleaseMs": 180.0,
+      "compKneeDb": 6.0,
+      "compMakeupDb": 3.0
+    },
+    {
+      "type": 10,
+      "mix": 1.0,
+      "limiterCeilingDb": -0.8,
+      "limiterLookaheadMs": 4.0,
+      "limiterReleaseMs": 60.0
+    }
+  ],
+  "uiFocus": {
+    "maxKnobs": 6,
+    "knobs": [
+      {
+        "kind": "macro",
+        "index": 0,
+        "label": "WASH"
+      },
+      {
+        "kind": "param",
+        "paramId": "filterCutoffHz",
+        "label": "Cutoff"
+      },
+      {
+        "kind": "param",
+        "paramId": "op1WavetablePos",
+        "label": "WT Pos"
+      },
+      {
+        "kind": "param",
+        "paramId": "filterResonance",
+        "label": "Reso"
+      },
+      {
+        "kind": "param",
+        "paramId": "layerGain",
+        "label": "Layer"
+      },
+      {
+        "kind": "param",
+        "paramId": "layerPan",
+        "label": "Pan"
+      }
+    ]
+  }
+}

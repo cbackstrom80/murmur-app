@@ -7,13 +7,6 @@ namespace pw8::plugin::ui
 {
     namespace
     {
-        bool isDefaultMacroName(const patch::Macro& macro, std::size_t index)
-        {
-            if (macro.name.empty())
-                return true;
-            return macro.name == kMacroParameterNames[index];
-        }
-
         bool macroHasActiveRoute(const patch::Patch& patch, std::size_t macroIndex)
         {
             const auto source = static_cast<modulation::ModSource>(static_cast<int>(modulation::ModSource::Macro1) +
@@ -24,6 +17,69 @@ namespace pw8::plugin::ui
                     return true;
             }
             return false;
+        }
+
+        void padPatchFocusKnobs(std::vector<PatchFocusKnobSpec>& specs, const patch::Patch& patch, std::size_t targetCount,
+                                const juce::AudioProcessorValueTreeState* apvtsForValidation)
+        {
+            if (specs.size() >= targetCount)
+            {
+                specs.resize(targetCount);
+                return;
+            }
+
+            const auto apvtsHasParam = [&](const juce::String& paramId) {
+                return apvtsForValidation == nullptr || apvtsForValidation->getParameter(paramId) != nullptr;
+            };
+
+            juce::StringArray seenParamIds;
+            for (const auto& existing : specs)
+            {
+                if (existing.kind == PatchFocusKnobKind::ApvtsParam)
+                    seenParamIds.add(existing.paramId);
+            }
+
+            auto pushMacro = [&](std::size_t index) {
+                if (specs.size() >= targetCount)
+                    return;
+                for (const auto& existing : specs)
+                {
+                    if (existing.kind == PatchFocusKnobKind::Macro && existing.macroIndex == index)
+                        return;
+                }
+                const auto& macro = patch.macros[index];
+                const auto label =
+                    macro.name.empty() ? juce::String(kMacroParameterNames[index]) : juce::String(macro.name);
+                specs.push_back({PatchFocusKnobKind::Macro, index, {}, label});
+            };
+
+            auto pushParam = [&](const juce::String& paramId, const juce::String& label) {
+                if (specs.size() >= targetCount || paramId.isEmpty() || seenParamIds.contains(paramId) ||
+                    !apvtsHasParam(paramId))
+                    return;
+                seenParamIds.add(paramId);
+                specs.push_back({PatchFocusKnobKind::ApvtsParam, 0, paramId, label});
+            };
+
+            for (std::size_t i = 0; i < patch.macros.size() && specs.size() < targetCount; ++i)
+            {
+                if (macroHasActiveRoute(patch, i))
+                    pushMacro(i);
+            }
+
+            static constexpr const char* kPadParams[][2] = {
+                {"filterCutoffHz", "Cutoff"},
+                {"filterResonance", "Reso"},
+                {"layerGain", "Layer"},
+                {"layerPan", "Pan"},
+                {"masterGain", "Master"},
+                {"lfo0RateHz", "LFO Rate"},
+            };
+            for (const auto& pad : kPadParams)
+                pushParam(juce::String(pad[0]), juce::String(pad[1]));
+
+            for (std::size_t i = 0; i < patch.macros.size() && specs.size() < targetCount; ++i)
+                pushMacro(i);
         }
     } // namespace
 
@@ -111,11 +167,17 @@ namespace pw8::plugin::ui
         processor.setOrReplaceModRouteLive(route.source, route.destination, route.targetIndex, clamped, route.scope);
     }
 
-    std::vector<PatchFocusKnobSpec> inferPatchFocusKnobs(const patch::Patch& patch, std::size_t maxKnobs)
+    std::vector<PatchFocusKnobSpec> inferPatchFocusKnobs(const patch::Patch& patch, std::size_t maxKnobs,
+                                                         const juce::AudioProcessorValueTreeState* apvtsForValidation)
     {
-        const auto cap = patch.uiFocus.knobs.empty()
-                             ? maxKnobs
-                             : juce::jmin(maxKnobs, patch.uiFocus.maxKnobs);
+        const std::size_t requestedCap = patch.uiFocus.knobs.empty()
+                                             ? maxKnobs
+                                             : juce::jmin(maxKnobs, patch.uiFocus.maxKnobs);
+        const std::size_t cap = juce::jmax(requestedCap, juce::jmin(maxKnobs, kMinimumKoinCount));
+
+        const auto apvtsHasParam = [&](const juce::String& paramId) {
+            return apvtsForValidation == nullptr || apvtsForValidation->getParameter(paramId) != nullptr;
+        };
 
         if (!patch.uiFocus.knobs.empty())
         {
@@ -138,11 +200,14 @@ namespace pw8::plugin::ui
                 }
                 else if (entry.kind == patch::UiFocusKnobKind::Param && !entry.paramId.empty())
                 {
-                    const auto label =
-                        entry.label.empty() ? juce::String(entry.paramId) : juce::String(entry.label);
-                    authored.push_back({PatchFocusKnobKind::ApvtsParam, 0, juce::String(entry.paramId), label});
+                    const auto paramId = juce::String(entry.paramId);
+                    if (!apvtsHasParam(paramId))
+                        continue;
+                    const auto label = entry.label.empty() ? paramId : juce::String(entry.label);
+                    authored.push_back({PatchFocusKnobKind::ApvtsParam, 0, paramId, label});
                 }
             }
+            padPatchFocusKnobs(authored, patch, cap, apvtsForValidation);
             if (!authored.empty())
                 return authored;
         }
@@ -152,7 +217,7 @@ namespace pw8::plugin::ui
         juce::StringArray seenParamIds;
 
         auto pushMacro = [&](std::size_t index) {
-            if (specs.size() >= cap)
+            if (specs.size() >= cap || !macroHasActiveRoute(patch, index))
                 return;
             for (const auto& existing : specs)
             {
@@ -166,7 +231,8 @@ namespace pw8::plugin::ui
         };
 
         auto pushParam = [&](const juce::String& paramId, const juce::String& label) {
-            if (specs.size() >= cap || paramId.isEmpty() || seenParamIds.contains(paramId))
+            if (specs.size() >= cap || paramId.isEmpty() || seenParamIds.contains(paramId) ||
+                !apvtsHasParam(paramId))
                 return;
             seenParamIds.add(paramId);
             specs.push_back({PatchFocusKnobKind::ApvtsParam, 0, paramId, label});
@@ -174,7 +240,7 @@ namespace pw8::plugin::ui
 
         for (std::size_t i = 0; i < patch.macros.size(); ++i)
         {
-            if (!isDefaultMacroName(patch.macros[i], i) || macroHasActiveRoute(patch, i))
+            if (macroHasActiveRoute(patch, i))
                 pushMacro(i);
         }
 
@@ -188,12 +254,11 @@ namespace pw8::plugin::ui
 
         if (specs.empty())
         {
-            for (std::size_t i = 0; i < 4 && i < patch.macros.size(); ++i)
-                pushMacro(i);
+            pushParam(juce::String(kFilterIdPrefix) + "CutoffHz", "Filter Cutoff");
+            pushParam(juce::String(kFilterIdPrefix) + "Resonance", "Filter Resonance");
         }
 
-        if (specs.size() > cap)
-            specs.resize(cap);
+        padPatchFocusKnobs(specs, patch, cap, apvtsForValidation);
         return specs;
     }
 
@@ -211,6 +276,50 @@ namespace pw8::plugin::ui
             default:
                 return sign + juce::String(amount, 2);
         }
+    }
+
+    std::optional<modulation::ModRoute> findModWheelRoute(const patch::Patch& patch) noexcept
+    {
+        for (const auto& route : patch.layerA.modRoutes)
+        {
+            if (route.source == modulation::ModSource::ModWheel && route.isActive())
+                return route;
+        }
+        return std::nullopt;
+    }
+
+    juce::String formatModWheelStatus(const patch::Patch& patch, float modWheelValue01) noexcept
+    {
+        const auto route = findModWheelRoute(patch);
+        if (!route.has_value())
+            return {};
+
+        const auto dest = modDestinationLabel(route->destination, route->targetIndex);
+        const auto depth = formatModRouteAmount(route->destination, route->amount);
+        const int pct = juce::roundToInt(juce::jlimit(0.0f, 1.0f, modWheelValue01) * 100.0f);
+        return "Mod Wheel (CC1)  " + juce::String(pct) + "%  ->  " + dest + "  (" + depth + " max)";
+    }
+
+    std::optional<modulation::ModRoute> findExpressionRoute(const patch::Patch& patch) noexcept
+    {
+        for (const auto& route : patch.layerA.modRoutes)
+        {
+            if (route.source == modulation::ModSource::Expression && route.isActive())
+                return route;
+        }
+        return std::nullopt;
+    }
+
+    juce::String formatExpressionStatus(const patch::Patch& patch, float expressionValue01) noexcept
+    {
+        const auto route = findExpressionRoute(patch);
+        if (!route.has_value())
+            return {};
+
+        const auto dest = modDestinationLabel(route->destination, route->targetIndex);
+        const auto depth = formatModRouteAmount(route->destination, route->amount);
+        const int pct = juce::roundToInt(juce::jlimit(0.0f, 1.0f, expressionValue01) * 100.0f);
+        return "Expression (CC11)  " + juce::String(pct) + "%  ->  " + dest + "  (" + depth + " max)";
     }
 
 } // namespace pw8::plugin::ui

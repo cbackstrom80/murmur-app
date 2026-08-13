@@ -6,6 +6,25 @@
 
 namespace pw8::plugin::ui::draw
 {
+    /// Layered alpha circles — scalable glow without bitmap blur (from Murmur UI kit).
+    inline void fillGlowDot(juce::Graphics& g, juce::Point<float> centre, float radius, juce::Colour colour,
+                            float intensity, int glowLayers = 6)
+    {
+        for (int i = glowLayers; i >= 1; --i)
+        {
+            const auto r = radius * (1.0f + 0.5f * static_cast<float>(i));
+            g.setColour(colour.withAlpha(intensity * 0.025f * static_cast<float>(glowLayers + 1 - i)));
+            g.fillEllipse(centre.x - r, centre.y - r, r * 2.0f, r * 2.0f);
+        }
+
+        g.setColour(colour.withAlpha(juce::jlimit(0.0f, 1.0f, intensity)));
+        g.fillEllipse(centre.x - radius, centre.y - radius, radius * 2.0f, radius * 2.0f);
+
+        g.setColour(juce::Colours::white.withAlpha(0.70f * intensity));
+        const auto core = radius * 0.42f;
+        g.fillEllipse(centre.x - core, centre.y - core, core * 2.0f, core * 2.0f);
+    }
+
     /// Dual-pass accent stroke — same technique as wavetable mesh lines and knob value arcs.
     inline void strokeGlowPath(juce::Graphics& g, const juce::Path& path, float alpha, float strokeWidth, bool live)
     {
@@ -34,6 +53,27 @@ namespace pw8::plugin::ui::draw
         juce::Path path;
         path.addRoundedRectangle(bounds, cornerSize);
         return path;
+    }
+
+    /// Subtle dark pill + soft shadow so labels stay readable over spectrum/glow backgrounds.
+    inline void drawLegibleText(juce::Graphics& g, const juce::String& text, juce::Rectangle<float> bounds,
+                                juce::Justification justification, juce::Colour textColour, const juce::Font& font,
+                                bool withBacking = true)
+    {
+        if (withBacking)
+        {
+            auto pill = bounds.expanded(5.0f, 2.5f);
+            g.setColour(palette::kBackgroundBottom.withAlpha(0.78f));
+            g.fillRoundedRectangle(pill, 4.0f);
+            g.setColour(palette::kBorder.withAlpha(0.55f));
+            g.drawRoundedRectangle(pill, 4.0f, 1.0f);
+        }
+
+        g.setFont(font);
+        g.setColour(textColour.withAlpha(0.28f));
+        g.drawText(text, bounds.translated(0.0f, 1.0f), justification, true);
+        g.setColour(textColour);
+        g.drawText(text, bounds, justification, true);
     }
 
     /// Shared chrome for TextButtons, tabs, and chips — recessed by default, accent glow when toggled on.

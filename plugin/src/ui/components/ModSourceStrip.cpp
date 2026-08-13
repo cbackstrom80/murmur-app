@@ -32,16 +32,16 @@ namespace pw8::plugin::ui
                            "Drag chips onto ringed knobs. Right-click rings to remove.",
                            juce::dontSendNotification);
         helpLabel_.setJustificationType(juce::Justification::centredLeft);
-        helpLabel_.setFont(fonts::value(10.0f));
-        helpLabel_.setColour(juce::Label::textColourId, palette::kTextDim);
+        helpLabel_.setFont(fonts::value(fonts::kBodyLabelSize));
+        helpLabel_.setColour(juce::Label::textColourId, palette::kTextSecondary);
         panel_.addAndMakeVisible(helpLabel_);
 
         panel_.addAndMakeVisible(sourcePalette_);
 
         destinationLabel_.setText("Route to:", juce::dontSendNotification);
         destinationLabel_.setJustificationType(juce::Justification::centredRight);
-        destinationLabel_.setFont(fonts::label(10.0f));
-        destinationLabel_.setColour(juce::Label::textColourId, palette::kTextDim);
+        destinationLabel_.setFont(fonts::label(fonts::kBodyLabelSize));
+        destinationLabel_.setColour(juce::Label::textColourId, palette::kTextSecondary);
         panel_.addAndMakeVisible(destinationLabel_);
 
         for (auto* button : {&cutoffButton_, &resonanceButton_})
@@ -265,8 +265,8 @@ namespace pw8::plugin::ui
         if (rows.empty())
         {
             auto area = connectionsAreaBounds().removeFromTop(kConnectionRowHeight * 2);
-            g.setColour(palette::kTextDim);
-            g.setFont(fonts::value(10.5f));
+            g.setColour(palette::kTextSecondary);
+            g.setFont(fonts::value(fonts::kBodyLabelSize));
             g.drawFittedText("No routes yet. Try: click LFO 1, then Global Cutoff, then tweak LFO Rate on FILTER.",
                              area, juce::Justification::centredLeft, 2);
             return;
@@ -283,8 +283,8 @@ namespace pw8::plugin::ui
             g.fillEllipse(dotBounds);
 
             textArea.removeFromLeft(4);
-            g.setColour(palette::kTextSecondary);
-            g.setFont(fonts::value(10.5f));
+            g.setColour(palette::kTextPrimary);
+            g.setFont(fonts::value(fonts::kBodyLabelSize));
             const auto label =
                 modSourceLabel(row.route.source) + "  ->  " + modDestinationLabel(row.route.destination, row.route.targetIndex);
             g.drawText(label, textArea, juce::Justification::centredLeft);
@@ -300,13 +300,13 @@ namespace pw8::plugin::ui
             g.setColour(colour.withAlpha(0.75f));
             g.fillRoundedRectangle(fillArea, 2.0f);
 
-            g.setColour(palette::kAccent.withAlpha(0.85f));
-            g.setFont(fonts::label(9.5f));
+            g.setColour(palette::kTextPrimary);
+            g.setFont(fonts::label(fonts::kBodyLabelSize));
             g.drawText(formatModRouteAmount(row.route.destination, row.route.amount), row.amountArea,
                        juce::Justification::centred);
 
-            g.setColour(palette::kTextDim);
-            g.setFont(fonts::label(12.0f));
+            g.setColour(palette::kTextSecondary);
+            g.setFont(fonts::label(fonts::kBodyLabelSize));
             g.drawText("x", row.removeButton, juce::Justification::centred);
         }
     }

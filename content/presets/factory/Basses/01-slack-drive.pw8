@@ -1,10 +1,10 @@
 {
   "schemaVersion": 2,
   "metadata": {
-    "id": "pw8-factory-bass-735756650",
+    "id": "pw8-factory-bass-3963239524",
     "name": "SLACK DRIVE",
     "author": "Patchwork Eight Engineering",
-    "description": "Factory Basse patch #01. Engines: Classic, Wavetable. Procedurally generated (seed 735756650) as part of the 250-patch factory content bank. Archetype: rubber funk bass with portamento with resonant acid sequence bass character.",
+    "description": "Factory Basse patch #01. Engines: Classic, Wavetable. Procedurally generated (seed 3963239524) as part of the 250-patch factory content bank. Archetype: mono growl bass.",
     "category": "bass",
     "moods": [
       "basses"
@@ -15,13 +15,12 @@
     "tags": [
       "factory",
       "bass",
-      "rubber-funk",
-      "acid-line"
+      "mono-growl"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 2,
-    "seed": 735756650,
+    "seed": 3963239524,
     "lineage": []
   },
   "layerMode": 0,
@@ -33,16 +32,16 @@
         "classicWaveform": 0,
         "frequencyRatio": 0.5,
         "keyTrack": true,
-        "level": 0.614716528434627,
+        "level": 0.5246669886983977,
         "pan": 0.0
       },
       {
         "engine": 1,
-        "wavetableId": "content/wavetables/bass-growl-saw.json",
-        "wavetableFramePosition": 0.3520929120352268,
+        "wavetableId": "content/wavetables/cheby-warm-drive.json",
+        "wavetableFramePosition": 0.27207617466350725,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.731450848827907,
+        "level": 0.9216289174272931,
         "pan": 0.0
       },
       {
@@ -141,10 +140,10 @@
     },
     "envelopes": [
       {
-        "attackSeconds": 0.004987464779117584,
-        "decaySeconds": 0.2889523925721757,
-        "sustainLevel": 0.5473005593094168,
-        "releaseSeconds": 0.2579671163473128,
+        "attackSeconds": 0.0073093654697388155,
+        "decaySeconds": 0.3831976838525387,
+        "sustainLevel": 0.39585177942276756,
+        "releaseSeconds": 0.05071120338464247,
         "curveShape": 1.5
       },
       {
@@ -225,22 +224,22 @@
     "filter1": {
       "enabled": true,
       "mode": 0,
-      "cutoffHz": 704.2102849883684,
-      "resonance": 0.416421354000985,
-      "keyTrack": 0.0022028861033442483
+      "cutoffHz": 324.3108123590739,
+      "resonance": 0.05901298320958483,
+      "keyTrack": 0.12829588776310352
     },
     "lfos": [
       {
         "waveform": 0,
         "mode": 0,
-        "rateHz": 3.455892438978116,
-        "syncDivisionIndex": 5,
+        "rateHz": 3.5148779589788535,
+        "syncDivisionIndex": 7,
         "phaseOffset": 0.0
       },
       {
         "waveform": 0,
         "mode": 0,
-        "rateHz": 1.4865924068579517,
+        "rateHz": 2.4830169172386762,
         "syncDivisionIndex": 4,
         "phaseOffset": 0.0
       },
@@ -292,14 +291,42 @@
         "source": 17,
         "destination": 1,
         "targetIndex": 0,
-        "amount": 14.688527986485367,
+        "amount": 7.24466763166264,
         "scope": 0
       },
       {
         "source": 1,
         "destination": 1,
         "targetIndex": 0,
-        "amount": 6.8571833527844355,
+        "amount": 2.42013499454142,
+        "scope": 0
+      },
+      {
+        "source": 29,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 24.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 12.0,
+        "scope": 1
+      },
+      {
+        "source": 30,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.35,
+        "scope": 0
+      },
+      {
+        "source": 20,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 12.0,
         "scope": 0
       }
     ],
@@ -310,8 +337,8 @@
     "insertEffects": [
       {
         "type": 1,
-        "mix": 0.414604114283725,
-        "saturationDriveDb": 12.866464476977365
+        "mix": 0.34956196999290506,
+        "saturationDriveDb": 5.371265526509642
       }
     ]
   },
@@ -546,18 +573,18 @@
       "type": 8,
       "mix": 1.0,
       "eqLowFreqHz": 100,
-      "eqLowGainDb": 1.7626819283654718,
+      "eqLowGainDb": 1.885723808823878,
       "eqMidFreqHz": 600,
-      "eqMidGainDb": -0.8333389114852776,
+      "eqMidGainDb": 0.4337133123239938,
       "eqMidQ": 0.7,
       "eqHighFreqHz": 6000,
-      "eqHighGainDb": -2.6445969968842937
+      "eqHighGainDb": -2.0072198443395517
     },
     {
       "type": 9,
       "mix": 1.0,
-      "compThresholdDb": -11.124723066937289,
-      "compRatio": 3.9703499886589246,
+      "compThresholdDb": -15.200436733389788,
+      "compRatio": 2.235967671485887,
       "compAttackMs": 15.0,
       "compReleaseMs": 180.0,
       "compKneeDb": 6.0,
@@ -572,7 +599,7 @@
     }
   ],
   "uiFocus": {
-    "maxKnobs": 4,
+    "maxKnobs": 6,
     "knobs": [
       {
         "kind": "macro",
@@ -580,14 +607,29 @@
         "label": "PUNCH"
       },
       {
-        "kind": "macro",
-        "index": 2,
-        "label": "SUB"
-      },
-      {
         "kind": "param",
         "paramId": "filterCutoffHz",
         "label": "Cutoff"
+      },
+      {
+        "kind": "param",
+        "paramId": "filterResonance",
+        "label": "Reso"
+      },
+      {
+        "kind": "param",
+        "paramId": "layerGain",
+        "label": "Layer"
+      },
+      {
+        "kind": "param",
+        "paramId": "layerPan",
+        "label": "Pan"
+      },
+      {
+        "kind": "param",
+        "paramId": "masterGain",
+        "label": "Master"
       }
     ]
   }

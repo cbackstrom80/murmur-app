@@ -68,9 +68,51 @@ def lfos_from_pair(lfo1, lfo2):
         slots.append(default_lfo_slot())
     return slots[:8]
 
+KOINS_TARGET = 6
+KOINS_MINIMUM = 4
+MAX_VOICES = 32
+PAD_MIN_CHORD_NOTES = 6  # voice slots = unison × notes; pads need headroom for legato chords
+
+
+def polyphony_for_pad(unison_voices):
+    """Pad polyphony in voice *slots* (not MIDI notes). Unison×4 needs ≥6 notes × 4 = 24 slots."""
+    voices = max(1, int(unison_voices))
+    return min(MAX_VOICES, max(16, voices * PAD_MIN_CHORD_NOTES))
+
+
+def ensure_pad_playability(patch):
+    """Pads: enough voice slots for unison stacks + amp legato so chord changes don't pile up."""
+    category = patch.get("metadata", {}).get("category")
+    if category != "pad":
+        return patch
+
+    layer_a = patch.setdefault("layerA", {})
+    unison_v = layer_a.get("unison", {}).get("voices", 1)
+    needed_poly = polyphony_for_pad(unison_v)
+    vs = patch.setdefault("voiceSettings", {})
+    if vs.get("polyphony", 8) < needed_poly:
+        vs["polyphony"] = needed_poly
+
+    envs = layer_a.get("envelopes", [])
+    if envs:
+        amp = envs[0]
+        amp["legato"] = True
+        rel = amp.get("releaseSeconds", 2.0)
+        if rel > 4.0:
+            amp["releaseSeconds"] = 4.0
+
+    return patch
+
 def build_patch(name, description, category, moods, tags, seed, operators, ampEnv, filter1, lfo1, lfo2,
                  modRoutes, insertEffects, masterEffects, macroNames, unison=None, arpeggiator=None,
-                 polyphony=8, gain=1.0, ui_focus=None):
+                 polyphony=8, gain=1.0):
+    uni = unison or {"mode": 0, "voices": 1}
+    if category == "pad":
+        ampEnv = dict(ampEnv)
+        ampEnv.setdefault("legato", True)
+        needed = polyphony_for_pad(uni.get("voices", 1))
+        if polyphony < needed:
+            polyphony = needed
     patch = {
         "schemaVersion": 2,
         "metadata": {
@@ -94,7 +136,7 @@ def build_patch(name, description, category, moods, tags, seed, operators, ampEn
             "operators": op_pad(operators),
             "algorithm": base_algorithm(),
             "envelopes": envelopes_from_amp(ampEnv),
-            "unison": unison or {"mode": 0, "voices": 1},
+            "unison": uni,
             "filter1": filter1,
             "lfos": lfos_from_pair(lfo1, lfo2),
             "modRoutes": modRoutes,
@@ -108,37 +150,92 @@ def build_patch(name, description, category, moods, tags, seed, operators, ampEn
         "arpeggiator": arpeggiator or {"enabled": False},
         "masterEffects": masterEffects,
     }
-    if ui_focus is not None:
-        patch["uiFocus"] = ui_focus
+    routes = ensure_standard_midi_layout(modRoutes, category)
+    patch["layerA"]["modRoutes"] = routes
+    patch["uiFocus"] = infer_ui_focus(macroNames, routes, category)
     return patch
 
-def infer_ui_focus(macro_names, mod_routes, category):
-    """Patch-authored PLAY-mode Knobs of Interest hints."""
+def infer_ui_focus(macro_names, mod_routes, category, target=KOINS_TARGET, minimum=KOINS_MINIMUM):
+    """Patch-authored PLAY-mode Knobs of Interest — target six, guarantee at least four."""
     knobs = []
+    seen_macro = set()
+    seen_param = set()
+
+    def add_macro(idx):
+        if idx >= len(macro_names) or idx in seen_macro or len(knobs) >= target:
+            return
+        seen_macro.add(idx)
+        knobs.append({"kind": "macro", "index": idx, "label": macro_names[idx]})
+
+    def add_param(param_id, label):
+        if param_id in seen_param or len(knobs) >= target:
+            return
+        seen_param.add(param_id)
+        knobs.append({"kind": "param", "paramId": param_id, "label": label})
+
     primary_macros = {
-        "bass": [0, 2],
-        "lead": [0, 1],
-        "pad": [0, 3],
-        "seq": [0, 4],
-        "ambient": [0, 5],
+        "bass": [0, 2, 4],
+        "lead": [0, 1, 3],
+        "pad": [0, 3, 5],
+        "seq": [0, 4, 6],
+        "ambient": [0, 5, 7],
     }
-    for idx in primary_macros.get(category, [0])[:2]:
-        if idx < len(macro_names):
-            knobs.append({"kind": "macro", "index": idx, "label": macro_names[idx]})
+    for idx in primary_macros.get(category, [0, 1, 2]):
+        if len(knobs) >= target:
+            break
+        if any(r.get("source", 0) == SRC_MACRO1 + idx for r in mod_routes):
+            add_macro(idx)
+
+    for route in mod_routes:
+        src = route.get("source", 0)
+        if SRC_MACRO1 <= src <= SRC_MACRO1 + 7:
+            add_macro(src - SRC_MACRO1)
+
     for route in mod_routes:
         dest = route.get("destination", 0)
-        if dest in (1, 2) and len(knobs) < 5:
-            param = "filterCutoffHz" if dest == 1 else "filterResonance"
-            label = "Cutoff" if dest == 1 else "Resonance"
-            if not any(k.get("paramId") == param for k in knobs if k.get("kind") == "param"):
-                knobs.append({"kind": "param", "paramId": param, "label": label})
-        elif dest == 5 and len(knobs) < 6:
-            knobs.append({"kind": "param", "paramId": "layerPan", "label": "Pan"})
-    if len(knobs) < 3:
-        for idx in range(min(3, len(macro_names))):
-            if not any(k.get("index") == idx for k in knobs if k.get("kind") == "macro"):
-                knobs.append({"kind": "macro", "index": idx, "label": macro_names[idx]})
-    return {"maxKnobs": min(6, max(4, len(knobs))), "knobs": knobs[:6]}
+        if dest == DST_FILTER_CUTOFF:
+            add_param("filterCutoffHz", "Cutoff")
+        elif dest == DST_FILTER_RES:
+            add_param("filterResonance", "Reso")
+        elif dest == DST_PAN:
+            add_param("layerPan", "Pan")
+        elif dest == DST_WT_POS:
+            add_param("op1WavetablePos", "WT Pos")
+
+    default_params = [
+        ("filterCutoffHz", "Cutoff"),
+        ("filterResonance", "Reso"),
+        ("layerGain", "Layer"),
+        ("layerPan", "Pan"),
+        ("masterGain", "Master"),
+        ("lfo0RateHz", "LFO Rate"),
+    ]
+    for param_id, label in default_params:
+        add_param(param_id, label)
+
+    for idx in range(min(8, len(macro_names))):
+        add_macro(idx)
+
+    while len(knobs) < minimum:
+        padded = False
+        for param_id, label in default_params:
+            if len(knobs) >= minimum:
+                break
+            before = len(knobs)
+            add_param(param_id, label)
+            if len(knobs) > before:
+                padded = True
+        for idx in range(min(8, len(macro_names))):
+            if len(knobs) >= minimum:
+                break
+            before = len(knobs)
+            add_macro(idx)
+            if len(knobs) > before:
+                padded = True
+        if not padded:
+            break
+
+    return {"maxKnobs": target, "knobs": knobs[:target]}
 
 def reverb(mix, size, decay, predelay=25.0):
     return {"type": 7, "mix": mix, "reverbSizeParam": size, "reverbDecaySeconds": decay,
@@ -175,7 +272,120 @@ def freq_shift_echo(mix=0.2, hz=7.0, delay=280.0, fb=0.5, lowCut=120.0, highCut=
 # ModSource / ModDestination ordinals (schema v2 — ModMatrixTypes.hpp)
 SRC_LFO1, SRC_LFO2 = 1, 2
 SRC_VELOCITY = 17
+SRC_CHANNEL_PRESSURE = 18
+SRC_POLY_AFTERTOUCH = 19
+SRC_MPE_SLIDE = 20
+SRC_MACRO1 = 21
+SRC_MOD_WHEEL = 29
+SRC_EXPRESSION = 30
 DST_FILTER_CUTOFF, DST_FILTER_RES, DST_OP_LEVEL, DST_PAN, DST_WT_POS = 1, 2, 3, 4, 5
+MAX_MOD_ROUTES = 64
+
+def _has_mod_source(modRoutes, source):
+    return any(r.get("source", 0) == source for r in modRoutes)
+
+def _append_mod_route(modRoutes, route):
+    if len(modRoutes) >= MAX_MOD_ROUTES:
+        return modRoutes
+    return list(modRoutes) + [route]
+
+def ensure_mod_wheel_route(modRoutes, amount=24.0):
+    """Append Mod Wheel -> Filter Cutoff if the patch has no mod-wheel route yet."""
+    if _has_mod_source(modRoutes, SRC_MOD_WHEEL):
+        return modRoutes
+    route = {"source": SRC_MOD_WHEEL, "destination": DST_FILTER_CUTOFF, "targetIndex": 0,
+             "amount": amount, "scope": 0}
+    return _append_mod_route(modRoutes, route)
+
+def ensure_standard_midi_layout(modRoutes, category):
+    """Ensure every patch has category-appropriate MIDI performance routes."""
+    routes = list(modRoutes)
+
+    wheel_by_category = {
+        "bass": (DST_FILTER_CUTOFF, 24.0, 0),
+        "lead": (DST_FILTER_CUTOFF, 28.0, 0),
+        "pad": (DST_FILTER_CUTOFF, 18.0, 0),
+        "seq": (DST_FILTER_CUTOFF, 20.0, 0),
+        "ambient": (DST_FILTER_CUTOFF, 16.0, 0),
+    }
+    if not _has_mod_source(routes, SRC_MOD_WHEEL):
+        dest, amount, idx = wheel_by_category.get(category, (DST_FILTER_CUTOFF, 24.0, 0))
+        routes = _append_mod_route(routes, {
+            "source": SRC_MOD_WHEEL, "destination": dest, "targetIndex": idx,
+            "amount": amount, "scope": 0,
+        })
+
+    if not _has_mod_source(routes, SRC_VELOCITY):
+        vel_dest = DST_OP_LEVEL if category == "seq" else DST_FILTER_CUTOFF
+        vel_amount = 0.35 if vel_dest == DST_OP_LEVEL else 10.0
+        routes = _append_mod_route(routes, {
+            "source": SRC_VELOCITY, "destination": vel_dest, "targetIndex": 0,
+            "amount": vel_amount, "scope": 0,
+        })
+
+    macro_by_category = {
+        "bass": (0, DST_FILTER_CUTOFF, 12.0, 0),
+        "lead": (0, DST_FILTER_CUTOFF, 10.0, 0),
+        "pad": (0, DST_WT_POS, 0.35, 1),
+        "seq": (0, DST_FILTER_CUTOFF, 8.0, 0),
+        "ambient": (5, DST_FILTER_CUTOFF, 10.0, 0),
+    }
+    if not any(SRC_MACRO1 <= r.get("source", 0) <= SRC_MACRO1 + 7 for r in routes):
+        macro_idx, dest, amount, target = macro_by_category.get(
+            category, (0, DST_FILTER_CUTOFF, 10.0, 0))
+        routes = _append_mod_route(routes, {
+            "source": SRC_MACRO1 + macro_idx, "destination": dest, "targetIndex": target,
+            "amount": amount, "scope": 1,
+        })
+
+    if category in ("pad", "ambient") and not _has_mod_source(routes, SRC_CHANNEL_PRESSURE):
+        routes = _append_mod_route(routes, {
+            "source": SRC_CHANNEL_PRESSURE, "destination": DST_FILTER_CUTOFF, "targetIndex": 0,
+            "amount": 8.0, "scope": 0,
+        })
+
+    if not _has_mod_source(routes, SRC_EXPRESSION):
+        expr_dest = DST_FILTER_RES if category in ("bass", "lead", "seq") else DST_OP_LEVEL
+        expr_amount = 0.35 if expr_dest == DST_FILTER_RES else 0.25
+        expr_target = 0
+        routes = _append_mod_route(routes, {
+            "source": SRC_EXPRESSION, "destination": expr_dest, "targetIndex": expr_target,
+            "amount": expr_amount, "scope": 0,
+        })
+
+    if not _has_mod_source(routes, SRC_MPE_SLIDE):
+        slide_amount = 14.0 if category == "lead" else 12.0
+        routes = _append_mod_route(routes, {
+            "source": SRC_MPE_SLIDE, "destination": DST_FILTER_CUTOFF, "targetIndex": 0,
+            "amount": slide_amount, "scope": 0,
+        })
+
+    return routes
+
+def normalize_preset_standards(patch):
+    """Apply MIDI layout + uiFocus standards to an existing .pw8 dict."""
+    category = patch.get("metadata", {}).get("category") or "pad"
+    macro_names = [m.get("name", f"M{i + 1}") for i, m in enumerate(patch.get("macros", []))]
+    if not macro_names:
+        macro_names = [f"M{i + 1}" for i in range(8)]
+    layer_a = patch.setdefault("layerA", {})
+    routes = layer_a.get("modRoutes", [])
+    layer_a["modRoutes"] = ensure_standard_midi_layout(routes, category)
+    patch["uiFocus"] = infer_ui_focus(macro_names, layer_a["modRoutes"], category)
+    if category == "pad":
+        ensure_pad_playability(patch)
+    return patch
+
+def fix_all_presets(root=None):
+    """Batch-apply standards to every .pw8 under content/presets/."""
+    root = pathlib.Path(root or REPO_ROOT / "content" / "presets")
+    fixed = 0
+    for pw8 in sorted(root.rglob("*.pw8")):
+        data = json.loads(pw8.read_text())
+        normalize_preset_standards(data)
+        pw8.write_text(json.dumps(data, indent=2) + "\n")
+        fixed += 1
+    return fixed
 
 WAVEFORM_SINE, WAVEFORM_TRI, WAVEFORM_SAW, WAVEFORM_SQR = 0, 1, 2, 3
 
@@ -287,6 +497,20 @@ NAME_BANKS = {
                 ["Drone", "Drift", "Expanse", "Bloom", "Hymn", "Wash", "Field", "Echo"]),
 }
 
+def load_reserved_display_names():
+    """Showcase/user preset names reserved so factory generation does not collide."""
+    reserved = set()
+    presets_root = REPO_ROOT / "content" / "presets"
+    for pw8 in presets_root.glob("*.pw8"):
+        try:
+            meta = json.loads(pw8.read_text()).get("metadata", {})
+            name = meta.get("name", "").strip()
+            if name:
+                reserved.add(name.lower())
+        except (json.JSONDecodeError, OSError):
+            pass
+    return reserved
+
 def make_name(category, rng, used):
     adjs, nouns = NAME_BANKS[category]
     synth_adjs = SYNTH_ADJECTIVES.get(category, adjs)
@@ -296,11 +520,14 @@ def make_name(category, rng, used):
             name = f"{rng.choice(synth_adjs)} {rng.choice(synth_nouns)}"
         else:
             name = f"{rng.choice(adjs)} {rng.choice(nouns)}"
-        if name not in used:
+        key = name.lower()
+        if name not in used and key not in GLOBAL_USED_NAMES:
             used.add(name)
+            GLOBAL_USED_NAMES.add(key)
             return name
     name = f"{rng.choice(adjs)} {rng.choice(nouns)} {rng.randint(2, 99)}"
     used.add(name)
+    GLOBAL_USED_NAMES.add(name.lower())
     return name
 
 def pick_archetype_tags(category, rng, count=2):
@@ -473,7 +700,8 @@ def gen_pad(i, rng):
     lfo1 = {"waveform": 0, "mode": 0, "rateHz": rng.uniform(0.03, 0.15), "syncDivisionIndex": 4, "phaseOffset": 0.0}
     lfo2 = {"waveform": 0, "mode": 0, "rateHz": rng.uniform(0.02, 0.1), "syncDivisionIndex": 4, "phaseOffset": 0.4}
     ampEnv = {"attackSeconds": rng.uniform(1.2, 3.8), "decaySeconds": rng.uniform(1.0, 2.5),
-              "sustainLevel": rng.uniform(0.65, 0.9), "releaseSeconds": rng.uniform(2.0, 6.0), "curveShape": 2.0}
+              "sustainLevel": rng.uniform(0.65, 0.9), "releaseSeconds": rng.uniform(1.8, 4.0),
+              "curveShape": 2.0, "legato": True}
     modRoutes = [{"source": SRC_LFO1, "destination": DST_FILTER_CUTOFF, "targetIndex": 0,
                   "amount": rng.uniform(4.0, 10.0), "scope": 1}]
     if len(ops) > 2 and rng.random() < 0.5:
@@ -597,51 +825,66 @@ CATEGORIES = {
 }
 
 COUNT_PER_CATEGORY = 50
-manifest = []
 
-for cat_key, (cat_label, gen_fn) in CATEGORIES.items():
-    out_dir = f"{OUT_ROOT}/{cat_label}"
-    os.makedirs(out_dir, exist_ok=True)
-    for stale in pathlib.Path(out_dir).glob("*.pw8"):
-        stale.unlink()
-    used_names = set()
-    for i in range(COUNT_PER_CATEGORY):
-        seed = hash((cat_key, i)) & 0xFFFFFFFF
-        rng = random.Random(seed)
-        name = make_name(cat_key, rng, used_names)
 
-        result = gen_fn(i, rng)
-        if len(result) == 9:
-            ops, ampEnv, filter1, lfo1, lfo2, modRoutes, insert, master, macroNames = result
-            arpeggiator = None
-        else:
-            ops, ampEnv, filter1, lfo1, lfo2, modRoutes, insert, master, macroNames, arpeggiator = result
+def main():
+    manifest = []
+    global GLOBAL_USED_NAMES
+    GLOBAL_USED_NAMES = load_reserved_display_names()
 
-        engines_used = sorted({o["engine"] for o in ops})
-        engine_names = ["Classic", "Wavetable", "FM/PM", "Additive", "PhaseShape", "Granular", "NoiseChaos", "Resonator"]
-        archetype_tags = pick_archetype_tags(cat_key, rng, count=rng.choice([1, 2]))
-        archetype_phrase = archetype_description_phrase(archetype_tags)
-        desc = (f"Factory {cat_label[:-1] if cat_label.endswith('s') else cat_label} patch #{i+1:02d}. "
-                f"Engines: {', '.join(engine_names[e] for e in engines_used)}. Procedurally generated "
-                f"(seed {seed}) as part of the 250-patch factory content bank. "
-                f"Archetype: {archetype_phrase}.")
+    for cat_key, (cat_label, gen_fn) in CATEGORIES.items():
+        out_dir = f"{OUT_ROOT}/{cat_label}"
+        os.makedirs(out_dir, exist_ok=True)
+        for stale in pathlib.Path(out_dir).glob("*.pw8"):
+            stale.unlink()
+        used_names = set()
+        for i in range(COUNT_PER_CATEGORY):
+            seed = hash((cat_key, i)) & 0xFFFFFFFF
+            rng = random.Random(seed)
+            name = make_name(cat_key, rng, used_names)
 
-        patch_tags = ["factory", cat_key] + archetype_tags
-        full_name = f"{name.upper()}"
-        patch = build_patch(
-            name=full_name, description=desc, category=cat_key,
-            moods=[cat_label.lower()], tags=patch_tags,
-            seed=seed, operators=ops, ampEnv=ampEnv, filter1=filter1, lfo1=lfo1, lfo2=lfo2,
-            modRoutes=modRoutes, insertEffects=insert, masterEffects=master, macroNames=macroNames,
-            arpeggiator=arpeggiator,
-            ui_focus=infer_ui_focus(macroNames, modRoutes, cat_key),
-        )
-        fname = f"{i+1:02d}-{name.lower().replace(' ', '-')}.pw8"
-        path = f"{out_dir}/{fname}"
-        with open(path, "w") as f:
-            json.dump(patch, f, indent=2)
-        manifest.append({"category": cat_label, "file": f"factory/{cat_label}/{fname}", "name": full_name})
+            result = gen_fn(i, rng)
+            if len(result) == 9:
+                ops, ampEnv, filter1, lfo1, lfo2, modRoutes, insert, master, macroNames = result
+                arpeggiator = None
+            else:
+                ops, ampEnv, filter1, lfo1, lfo2, modRoutes, insert, master, macroNames, arpeggiator = result
 
-print(f"Generated {len(manifest)} patches across {len(CATEGORIES)} categories.")
-with open(f"{OUT_ROOT}/MANIFEST.json", "w") as f:
-    json.dump(manifest, f, indent=2)
+            engines_used = sorted({o["engine"] for o in ops})
+            engine_names = ["Classic", "Wavetable", "FM/PM", "Additive", "PhaseShape", "Granular", "NoiseChaos", "Resonator"]
+            archetype_tags = pick_archetype_tags(cat_key, rng, count=rng.choice([1, 2]))
+            archetype_phrase = archetype_description_phrase(archetype_tags)
+            desc = (f"Factory {cat_label[:-1] if cat_label.endswith('s') else cat_label} patch #{i+1:02d}. "
+                    f"Engines: {', '.join(engine_names[e] for e in engines_used)}. Procedurally generated "
+                    f"(seed {seed}) as part of the 250-patch factory content bank. "
+                    f"Archetype: {archetype_phrase}.")
+
+            patch_tags = ["factory", cat_key] + archetype_tags
+            full_name = f"{name.upper()}"
+            patch = build_patch(
+                name=full_name, description=desc, category=cat_key,
+                moods=[cat_label.lower()], tags=patch_tags,
+                seed=seed, operators=ops, ampEnv=ampEnv, filter1=filter1, lfo1=lfo1, lfo2=lfo2,
+                modRoutes=modRoutes, insertEffects=insert, masterEffects=master, macroNames=macroNames,
+                arpeggiator=arpeggiator,
+            )
+            fname = f"{i+1:02d}-{name.lower().replace(' ', '-')}.pw8"
+            path = f"{out_dir}/{fname}"
+            with open(path, "w") as f:
+                json.dump(patch, f, indent=2)
+            manifest.append({"category": cat_label, "file": f"factory/{cat_label}/{fname}", "name": full_name})
+
+    print(f"Generated {len(manifest)} patches across {len(CATEGORIES)} categories.")
+    with open(f"{OUT_ROOT}/MANIFEST.json", "w") as f:
+        json.dump(manifest, f, indent=2)
+
+
+GLOBAL_USED_NAMES = load_reserved_display_names()
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "--fix-all":
+        count = fix_all_presets()
+        print(f"Normalized standards on {count} presets.")
+    else:
+        main()

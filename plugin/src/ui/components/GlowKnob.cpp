@@ -2,6 +2,7 @@
 
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
+#include "../theme/ObsidianRotary.h"
 #include "ModRoutingUi.h"
 #include "ModSourceChip.h"
 
@@ -27,8 +28,7 @@ namespace pw8::plugin::ui
                         juce::Colour accentColour)
     {
         slider_.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-        slider_.setRotaryParameters(juce::MathConstants<float>::pi * 1.2f, juce::MathConstants<float>::pi * 2.8f,
-                                     true);
+        slider_.setRotaryParameters(rotary::kStartAngle, rotary::kEndAngle, true);
         slider_.valueToText = std::move(valueToText);
         slider_.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 76, 16);
         slider_.setColour(juce::Slider::textBoxBackgroundColourId, palette::kPanelRaised);
@@ -75,6 +75,18 @@ namespace pw8::plugin::ui
     {
         maxDialDiameter_ = diameter;
         slider_.getProperties().set("maxDialDiameter", diameter);
+        resized();
+    }
+
+    void GlowKnob::setHeaderCompactMode(bool compact)
+    {
+        headerCompactMode_ = compact;
+        if (compact)
+        {
+            maxDialDiameter_ = 40;
+            slider_.getProperties().set("maxDialDiameter", maxDialDiameter_);
+            nameLabel_.setFont(fonts::label(fonts::kCaptionSize));
+        }
         resized();
     }
 
@@ -218,11 +230,21 @@ namespace pw8::plugin::ui
 
     void GlowKnob::resized()
     {
-        auto bounds = getLocalBounds().reduced(4);
-        nameLabel_.setBounds(bounds.removeFromBottom(kNameLabelHeight));
+        auto bounds = getLocalBounds().reduced(headerCompactMode_ ? 1 : 4);
+        const int nameHeight = headerCompactMode_ ? 11 : kNameLabelHeight;
+        nameLabel_.setBounds(bounds.removeFromBottom(nameHeight));
 
         if (showDepthPopover_ && modProcessor_ != nullptr)
             depthPopoverArea_ = bounds.removeFromBottom(kDepthPopoverHeight).reduced(8, 2);
+
+        if (headerCompactMode_)
+        {
+            slider_.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+            const int dialDiameter =
+                juce::jmin(maxDialDiameter_, bounds.getWidth(), juce::jmax(28, bounds.getHeight()));
+            slider_.setBounds(bounds.withSizeKeepingCentre(bounds.getWidth(), dialDiameter));
+            return;
+        }
 
         const int dialDiameter = juce::jmin(maxDialDiameter_, bounds.getWidth(),
                                            juce::jmax(32, bounds.getHeight() - kTextBoxHeight));
@@ -242,8 +264,8 @@ namespace pw8::plugin::ui
             fill.setWidth(fill.getWidth() * ringAmountNormalized_);
             g.setColour(ringColour_.isTransparent() ? palette::kAccent : ringColour_.withAlpha(0.75f));
             g.fillRoundedRectangle(fill, 2.0f);
-            g.setColour(palette::kTextDim);
-            g.setFont(fonts::label(9.0f));
+            g.setColour(palette::kTextSecondary);
+            g.setFont(fonts::label(fonts::kCaptionSize));
             g.drawText("DEPTH", depthPopoverArea_, juce::Justification::centred);
         }
 
@@ -257,16 +279,15 @@ namespace pw8::plugin::ui
 
         if (dragHover_)
         {
-            g.setColour(palette::kAccent.withAlpha(0.7f));
+            g.setColour(palette::kMurmurViolet.withAlpha(0.7f));
             g.drawEllipse(knobBounds.expanded(2.0f), 1.6f);
         }
         if (!ringColour_.isTransparent())
         {
-            const float startAngle = juce::MathConstants<float>::pi * 1.2f;
-            const float endAngle = startAngle + (juce::MathConstants<float>::pi * 1.6f) * ringAmountNormalized_;
+            const float endAngle = rotary::kStartAngle + rotary::kSweep * juce::jlimit(0.0f, 1.0f, ringAmountNormalized_);
             juce::Path arc;
             arc.addCentredArc(knobBounds.getCentreX(), knobBounds.getCentreY(), knobBounds.getWidth() * 0.5f,
-                              knobBounds.getHeight() * 0.5f, 0.0f, startAngle, endAngle, true);
+                              knobBounds.getHeight() * 0.5f, 0.0f, rotary::kStartAngle, endAngle, true);
             g.setColour(ringColour_.withAlpha(0.85f));
             g.strokePath(arc, juce::PathStrokeType(2.2f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
         }

@@ -1,0 +1,66 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g. 1.0.0)"
+        required: true
+        default: "1.0.0"
+
+permissions:
+  contents: write
+
+jobs:
+  macos-arm64-pkg:
+    name: Build MURMUR macOS arm64 .pkg (Ben MVP)
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: ver
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Configure plugin (Release, arm64)
+        run: cmake --preset plugin-release -DCMAKE_OSX_ARCHITECTURES=arm64
+
+      - name: Build AU
+        run: cmake --build --preset plugin-release -j --target pw8_plugin_AU
+
+      - name: Package Ben MVP installer (AU + presets + Logic docs, user Library)
+        run: |
+          chmod +x scripts/build_release_pkg.sh
+          scripts/build_release_pkg.sh --dmg --system-only "${{ steps.ver.outputs.version }}"
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/MURMUR-*-macOS-arm64.pkg
+            dist/MURMUR-*-macOS-arm64.dmg
+            dist/version.json
+          body_path: docs/BEN_MVP.md
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload workflow artifacts (manual runs)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: MURMUR-macos-arm64-${{ steps.ver.outputs.version }}
+          path: |
+            dist/MURMUR-*-macOS-arm64.pkg
+            dist/MURMUR-*-macOS-arm64.dmg
+            dist/version.json

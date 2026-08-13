@@ -26,7 +26,16 @@ namespace pw8::plugin::content
         juce::String genre; ///< Context / use-case; also matches legacy values stored in moods[].
         juce::String tag;
         bool favoritesOnly = false;
+
+        [[nodiscard]] bool isNarrowed() const noexcept
+        {
+            return favoritesOnly || query.trim().isNotEmpty() || category.trim().isNotEmpty()
+                   || mood.trim().isNotEmpty() || genre.trim().isNotEmpty() || tag.trim().isNotEmpty();
+        }
     };
+
+    /// Alias for progressive funnel filtering in the preset browser overlay.
+    using FunnelState = PresetMetadataFilter;
 
     enum class PresetFacet : std::uint8_t
     {

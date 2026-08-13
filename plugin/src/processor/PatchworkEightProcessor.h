@@ -17,14 +17,17 @@
 
 #include <array>
 #include <atomic>
+#include <functional>
 #include <memory>
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
 #include "pw8/patch/Patch.hpp"
 #include "pw8/render/Engine.hpp"
+#include "processor/ScopeAudioTap.h"
 #include "state/ParamChangeQueue.hpp"
 #include "state/PluginState.h"
+#include "ui/ScopeViewMode.h"
 
 namespace pw8::plugin
 {
@@ -42,7 +45,7 @@ namespace pw8::plugin
         juce::AudioProcessorEditor* createEditor() override;
         bool hasEditor() const override { return true; }
 
-        const juce::String getName() const override { return "Patchwork Eight"; }
+        const juce::String getName() const override { return "MURMUR"; }
         bool acceptsMidi() const override { return true; }
         bool producesMidi() const override { return false; }
         double getTailLengthSeconds() const override { return 4.0; }
@@ -59,6 +62,9 @@ namespace pw8::plugin
         /// Loads a new patch. Safe to call from the message thread only -- compiles a
         /// new Engine off-thread and atomically publishes it for processBlock() to pick up.
         bool loadPatch(const patch::Patch& newPatch);
+
+        /// Message-thread only: invoked after a successful `loadPatch()` / preset reload.
+        std::function<void()> onPatchLoaded;
 
         /// Message-thread only: load a `.pw8` from disk and remember its path for preset browsing.
         bool loadPatchFromFile(const juce::String& filePath);
@@ -139,6 +145,21 @@ namespace pw8::plugin
 
         /// Message-thread only: toggle step enabled/rest and push to live engine.
         void toggleArpStepEnabled(std::size_t stepIndex) noexcept;
+
+        /// Message-thread only: pull mono mix samples for header spectrum scope.
+        [[nodiscard]] int readScopeSamples(float* dest, int maxSamples) noexcept { return scopeAudioTap_.readMono(dest, maxSamples); }
+
+        [[nodiscard]] double getScopeSampleRate() const noexcept { return currentSampleRate_; }
+
+        /// Message-thread only: channel 0 mod wheel position (MIDI CC1), 0..1.
+        [[nodiscard]] float getModWheelValue() const noexcept;
+
+        /// Message-thread only: channel 0 expression pedal position (MIDI CC11), 0..1.
+        [[nodiscard]] float getExpressionValue() const noexcept;
+
+        [[nodiscard]] ui::ScopeViewMode getScopeViewMode() const noexcept { return scopeViewMode_; }
+
+        void setScopeViewMode(ui::ScopeViewMode mode) noexcept { scopeViewMode_ = mode; }
 
         /// Message-thread only (a UI-thread poll, same pattern as every other
         /// GATE-3/UI_GATE-4 timer-driven read of live engine state). Reads node
@@ -227,6 +248,14 @@ namespace pw8::plugin
         std::array<std::array<std::atomic<float>*, kNumEffectSlotFields>, kNumInsertFxSlots> insertFxParamPointers_{};
         std::array<std::array<std::atomic<float>*, kNumEffectSlotFields>, kNumMasterFxSlots> masterFxParamPointers_{};
         std::array<std::atomic<float>*, kNumArpFields> arpParamPointers_{};
+        std::atomic<float>* modWheelParamPointer_ = nullptr;
+        std::atomic<float> mirroredModWheel_{0.0f};
+        std::atomic<float>* expressionParamPointer_ = nullptr;
+        std::atomic<float> mirroredExpression_{0.0f};
+
+        /// Tracks host transport so we can all-sound-off when playback stops (Logic rarely
+        /// sends note-offs on stop).
+        bool hostWasPlaying_ = false;
 
         // The audio thread only ever dereferences activeEngine_.load(); everything else
         // (loadPatch, prepareToPlay building a replacement) happens off-thread and swaps
@@ -247,6 +276,8 @@ namespace pw8::plugin
         bool hasUserCreatedModRouteLive_ = false;
 
         ParamChangeQueue paramChangeQueue_{};
+        ScopeAudioTap scopeAudioTap_{};
+        ui::ScopeViewMode scopeViewMode_ = ui::ScopeViewMode::Fft;
         double currentSampleRate_ = 48000.0;
         render::QualityMode qualityMode_ = render::QualityMode::Normal;
 

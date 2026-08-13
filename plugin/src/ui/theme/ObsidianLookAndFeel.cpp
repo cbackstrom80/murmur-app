@@ -1,8 +1,11 @@
 #include "ObsidianLookAndFeel.h"
 
+#include <cmath>
+
 #include "ObsidianDraw.h"
 #include "ObsidianFonts.h"
 #include "ObsidianPalette.h"
+#include "ObsidianRotary.h"
 
 namespace pw8::plugin::ui
 {
@@ -13,7 +16,7 @@ namespace pw8::plugin::ui
         setColour(juce::Slider::textBoxTextColourId, palette::kTextPrimary);
         setColour(juce::Slider::textBoxBackgroundColourId, juce::Colours::transparentBlack);
         setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
-        setColour(juce::Slider::rotarySliderFillColourId, palette::kAccent);
+        setColour(juce::Slider::rotarySliderFillColourId, palette::kMurmurViolet);
         setColour(juce::ToggleButton::textColourId, palette::kTextSecondary);
         setColour(juce::TooltipWindow::backgroundColourId, palette::kPanelRaised);
         setColour(juce::TooltipWindow::textColourId, palette::kTextPrimary);
@@ -29,6 +32,18 @@ namespace pw8::plugin::ui
         setColour(juce::TextEditor::focusedOutlineColourId, palette::kAccent);
         setColour(juce::ScrollBar::backgroundColourId, juce::Colours::transparentBlack);
         setColour(juce::ScrollBar::thumbColourId, palette::kBorderBright);
+
+        setColour(juce::ComboBox::backgroundColourId, palette::kPanelRaised);
+        setColour(juce::ComboBox::textColourId, palette::kTextPrimary);
+        setColour(juce::ComboBox::outlineColourId, palette::kBorder);
+        setColour(juce::ComboBox::arrowColourId, palette::kTextSecondary);
+        setColour(juce::ComboBox::buttonColourId, palette::kPanel);
+
+        setColour(juce::PopupMenu::backgroundColourId, palette::kPanelRaised);
+        setColour(juce::PopupMenu::textColourId, palette::kTextPrimary);
+        setColour(juce::PopupMenu::headerTextColourId, palette::kTextSecondary);
+        setColour(juce::PopupMenu::highlightedBackgroundColourId, palette::kAccentDim);
+        setColour(juce::PopupMenu::highlightedTextColourId, palette::kTextPrimary);
     }
 
     void ObsidianLookAndFeel::drawButtonBackground(juce::Graphics& g, juce::Button& button,
@@ -55,7 +70,7 @@ namespace pw8::plugin::ui
     juce::Font ObsidianLookAndFeel::getTextButtonFont(juce::TextButton& button, int buttonHeight)
     {
         juce::ignoreUnused(button);
-        return fonts::label(juce::jlimit(9.5f, 12.0f, static_cast<float>(buttonHeight) * 0.38f));
+        return fonts::label(juce::jlimit(fonts::kLabelMinSize, 12.0f, static_cast<float>(buttonHeight) * 0.38f));
     }
 
     void ObsidianLookAndFeel::fillTextEditorBackground(juce::Graphics& g, int width, int height,
@@ -137,6 +152,10 @@ namespace pw8::plugin::ui
         if (width <= 0 || height <= 0)
             return;
 
+        const auto ringRole = slider.getProperties()["knobRingRole"].toString();
+        const bool outerOnly = ringRole == "outer";
+        const bool innerRole = ringRole == "inner";
+
         const auto bounds = juce::Rectangle<float>(static_cast<float>(x), static_cast<float>(y),
                                                      static_cast<float>(width), static_cast<float>(height))
                                  .reduced(4.0f);
@@ -147,42 +166,142 @@ namespace pw8::plugin::ui
         const auto knobBounds = bounds.withSizeKeepingCentre(diameter, diameter);
         const float radius = diameter * 0.5f;
         const auto centre = knobBounds.getCentre();
-        const float angle = rotaryStartAngle + sliderPosProportional * (rotaryEndAngle - rotaryStartAngle);
+        const float proportional = rotary::normalisedProportional(sliderPosProportional, slider);
+        const float angle = rotary::proportionalToAngle(proportional);
         const auto accent = slider.findColour(juce::Slider::rotarySliderFillColourId);
 
-        const float trackThickness = juce::jmax(2.0f, radius * 0.14f);
-        const float trackRadius = radius - trackThickness * 0.5f - 1.0f;
-        juce::Path track;
-        track.addCentredArc(centre.x, centre.y, trackRadius, trackRadius, 0.0f, rotaryStartAngle, rotaryEndAngle,
-                             true);
-        g.setColour(palette::kBorder);
-        g.strokePath(track, juce::PathStrokeType(trackThickness, juce::PathStrokeType::curved,
-                                                   juce::PathStrokeType::rounded));
+        const bool drawSatellites = !outerOnly && diameter >= 48.0f;
+        const bool drawSatelliteGlow = !outerOnly && diameter >= 58.0f;
+        const bool drawOrbitHalo = !outerOnly && diameter >= 44.0f;
+        const bool drawDropShadow = !outerOnly && diameter >= 44.0f;
 
-        if (sliderPosProportional > 0.001f)
+        const float orbitRadius = radius * 0.90f;
+        const float bodyRadius = radius * 0.62f;
+        const float trackThickness = juce::jmax(1.5f, radius * (drawSatellites ? 0.055f : 0.045f));
+        const float valueArcRadius = outerOnly ? orbitRadius : (innerRole ? bodyRadius * 0.92f : orbitRadius);
+        const juce::Point<float> direction(std::cos(angle), std::sin(angle));
+
+        if (outerOnly)
         {
-            juce::Path value;
-            value.addCentredArc(centre.x, centre.y, trackRadius, trackRadius, 0.0f, rotaryStartAngle, angle, true);
-            draw::strokeGlowPath(g, value, 1.0f, trackThickness, true);
+            juce::Path track;
+            track.addCentredArc(centre.x, centre.y, orbitRadius, orbitRadius, 0.0f, rotaryStartAngle, rotaryEndAngle,
+                                true);
+            g.setColour(palette::kBorder.withAlpha(0.55f));
+            g.strokePath(track, juce::PathStrokeType(trackThickness * 0.85f, juce::PathStrokeType::curved,
+                                                     juce::PathStrokeType::rounded));
+
+            if (proportional > 0.001f)
+            {
+                juce::Path value;
+                value.addCentredArc(centre.x, centre.y, orbitRadius, orbitRadius, 0.0f, rotaryStartAngle, angle, true);
+                g.setColour(accent.withAlpha(0.18f));
+                g.strokePath(value, juce::PathStrokeType(trackThickness * 1.8f, juce::PathStrokeType::curved,
+                                                         juce::PathStrokeType::rounded));
+                g.setColour(accent.withAlpha(0.95f));
+                g.strokePath(value, juce::PathStrokeType(trackThickness * 0.5f, juce::PathStrokeType::curved,
+                                                         juce::PathStrokeType::rounded));
+            }
+
+            const float pointerInner = orbitRadius * 0.82f;
+            const float pointerOuter = orbitRadius * 0.98f;
+            const auto pointerStart = centre + direction * pointerInner;
+            const auto pointerEnd = centre + direction * pointerOuter;
+            g.setColour(accent.withAlpha(0.25f));
+            g.drawLine({pointerStart, pointerEnd}, juce::jmax(2.5f, radius * 0.05f));
+            g.setColour(juce::Colour(0xffeee8ff).interpolatedWith(accent, 0.55f));
+            g.drawLine({pointerStart, pointerEnd}, juce::jmax(1.4f, radius * 0.024f));
+            return;
         }
 
-        const float bodyRadius = juce::jmax(2.0f, trackRadius - trackThickness * 1.6f);
-        juce::ColourGradient bodyGradient(palette::kPanelRaised, centre.x, centre.y - bodyRadius,
-                                           palette::kPanel, centre.x, centre.y + bodyRadius, false);
+        if (drawDropShadow)
+        {
+            g.setColour(palette::kShadow.withAlpha(0.35f));
+            g.fillEllipse(centre.x - radius + 1.0f, centre.y - radius + 2.5f, radius * 2.0f, radius * 2.0f);
+        }
+
+        g.setColour(palette::kBackgroundBottom);
+        g.fillEllipse(centre.x - radius, centre.y - radius, radius * 2.0f, radius * 2.0f);
+        g.setColour(palette::kBorder);
+        g.drawEllipse(centre.x - radius, centre.y - radius, radius * 2.0f, radius * 2.0f,
+                      juce::jmax(1.0f, radius * 0.024f));
+
+        juce::Path track;
+        track.addCentredArc(centre.x, centre.y, valueArcRadius, valueArcRadius, 0.0f, rotaryStartAngle,
+                            rotaryEndAngle, true);
+        g.setColour(palette::kBorder.withAlpha(0.85f));
+        g.strokePath(track, juce::PathStrokeType(trackThickness, juce::PathStrokeType::curved,
+                                                 juce::PathStrokeType::rounded));
+
+        if (proportional > 0.001f)
+        {
+            juce::Path value;
+            value.addCentredArc(centre.x, centre.y, valueArcRadius, valueArcRadius, 0.0f, rotaryStartAngle, angle,
+                                true);
+            g.setColour(accent.withAlpha(0.22f));
+            g.strokePath(value, juce::PathStrokeType(trackThickness * 2.0f, juce::PathStrokeType::curved,
+                                                     juce::PathStrokeType::rounded));
+            g.setColour(accent.withAlpha(0.92f));
+            g.strokePath(value, juce::PathStrokeType(trackThickness * 0.55f, juce::PathStrokeType::curved,
+                                                     juce::PathStrokeType::rounded));
+        }
+
+        if (drawOrbitHalo)
+        {
+            g.setColour(palette::kMurmurVioletDeep.withAlpha(drawSatelliteGlow ? 0.16f : 0.10f));
+            g.drawEllipse(centre.x - orbitRadius, centre.y - orbitRadius, orbitRadius * 2.0f, orbitRadius * 2.0f,
+                          juce::jmax(1.2f, radius * 0.04f));
+        }
+
+        if (drawSatellites)
+        {
+            const float satelliteAlpha = drawSatelliteGlow ? 0.72f : 0.38f;
+            const float dotRadius = juce::jmax(1.5f, radius * (drawSatelliteGlow ? 0.035f : 0.028f));
+            for (int i = 0; i < 8; ++i)
+            {
+                const auto satelliteAngle = -juce::MathConstants<float>::halfPi
+                                          + (juce::MathConstants<float>::twoPi * static_cast<float>(i) / 8.0f);
+                const auto point = centre + juce::Point<float>(std::cos(satelliteAngle), std::sin(satelliteAngle))
+                                             * orbitRadius;
+                if (drawSatelliteGlow)
+                    draw::fillGlowDot(g, point, dotRadius, palette::kMurmurViolet, satelliteAlpha);
+                else
+                {
+                    g.setColour(palette::kMurmurViolet.withAlpha(satelliteAlpha));
+                    g.fillEllipse(point.x - dotRadius, point.y - dotRadius, dotRadius * 2.0f, dotRadius * 2.0f);
+                }
+            }
+        }
+
+        juce::ColourGradient bodyGradient(juce::Colour(0xff303844), centre.x - bodyRadius * 0.4f,
+                                          centre.y - bodyRadius * 0.5f, juce::Colour(0xff070a0e),
+                                          centre.x + bodyRadius * 0.5f, centre.y + bodyRadius * 0.6f, false);
+        bodyGradient.addColour(0.48, juce::Colour(0xff121820));
         g.setGradientFill(bodyGradient);
         g.fillEllipse(centre.x - bodyRadius, centre.y - bodyRadius, bodyRadius * 2.0f, bodyRadius * 2.0f);
-        g.setColour(palette::kBorderBright);
-        g.drawEllipse(centre.x - bodyRadius, centre.y - bodyRadius, bodyRadius * 2.0f, bodyRadius * 2.0f, 1.0f);
 
-        juce::Path pointer;
-        const float pointerInner = bodyRadius * 0.25f;
-        const float pointerOuter = bodyRadius * 0.92f;
-        pointer.startNewSubPath(centre.x, centre.y - pointerInner);
-        pointer.lineTo(centre.x, centre.y - pointerOuter);
-        pointer.applyTransform(juce::AffineTransform::rotation(angle, centre.x, centre.y));
-        g.setColour(accent);
-        g.strokePath(pointer, juce::PathStrokeType(juce::jmax(1.5f, bodyRadius * 0.09f),
-                                                     juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+        juce::ColourGradient domeHighlight(juce::Colour(0xff242a33).withAlpha(0.55f), centre.x - bodyRadius * 0.25f,
+                                           centre.y - bodyRadius * 0.35f, juce::Colours::transparentBlack,
+                                           centre.x + bodyRadius * 0.2f, centre.y + bodyRadius * 0.25f, true);
+        g.setGradientFill(domeHighlight);
+        g.fillEllipse(centre.x - bodyRadius * 0.88f, centre.y - bodyRadius * 0.88f, bodyRadius * 1.76f,
+                      bodyRadius * 1.76f);
+
+        g.setColour(juce::Colour(0xff35404c));
+        g.drawEllipse(centre.x - bodyRadius, centre.y - bodyRadius, bodyRadius * 2.0f, bodyRadius * 2.0f,
+                      juce::jmax(1.0f, radius * 0.024f));
+
+        const float pointerInner = bodyRadius * 0.36f;
+        const float pointerOuter = bodyRadius * 0.78f;
+        const auto pointerStart = centre + direction * pointerInner;
+        const auto pointerEnd = centre + direction * pointerOuter;
+
+        if (drawOrbitHalo)
+        {
+            g.setColour(accent.withAlpha(0.20f));
+            g.drawLine({pointerStart, pointerEnd}, juce::jmax(3.0f, radius * 0.055f));
+        }
+        g.setColour(juce::Colour(0xffeee8ff).interpolatedWith(accent, 0.35f));
+        g.drawLine({pointerStart, pointerEnd}, juce::jmax(1.2f, radius * 0.021f));
     }
 
     void ObsidianLookAndFeel::drawToggleButton(juce::Graphics& g, juce::ToggleButton& button,
@@ -225,7 +344,18 @@ namespace pw8::plugin::ui
     juce::Font ObsidianLookAndFeel::getLabelFont(juce::Label& label)
     {
         juce::ignoreUnused(label);
-        return fonts::label(12.0f);
+        return fonts::label(fonts::kBodyLabelSize);
+    }
+
+    juce::Font ObsidianLookAndFeel::getPopupMenuFont()
+    {
+        return fonts::label(fonts::kBodyLabelSize);
+    }
+
+    juce::Font ObsidianLookAndFeel::getComboBoxFont(juce::ComboBox& box)
+    {
+        juce::ignoreUnused(box);
+        return fonts::label(fonts::kBodyLabelSize);
     }
 
 } // namespace pw8::plugin::ui

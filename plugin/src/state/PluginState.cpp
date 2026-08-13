@@ -218,6 +218,12 @@ namespace pw8::plugin
                 juce::ParameterID{kMacroParameterIds[i], 1}, kMacroParameterNames[i],
                 juce::NormalisableRange<float>(0.0f, 1.0f), 0.0f));
 
+        params.push_back(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{kModWheelId, 1}, kModWheelName, juce::NormalisableRange<float>(0.0f, 1.0f), 0.0f));
+
+        params.push_back(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{kExpressionId, 1}, kExpressionName, juce::NormalisableRange<float>(0.0f, 1.0f), 0.0f));
+
         for (const auto& spec : kFilterFieldSpecs)
             addParam(params, juce::String(kFilterIdPrefix) + spec.idSuffix, spec);
 

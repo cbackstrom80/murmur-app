@@ -69,6 +69,22 @@ namespace pw8::sequencer
         /// between one tick and the next. See docs/PLUGIN_ARCHITECTURE.md "Automation".
         void setLiveParams(const ArpeggiatorParams& params) noexcept { params_ = params; }
 
+        /// Clears held notes, pending arp events, and pattern position (MIDI panic / transport stop).
+        void reset() noexcept
+        {
+            heldNotes_.clear();
+            patternNotes_.clear();
+            noteSequence_.clear();
+            currentStepIndex_ = 0;
+            noteSequenceIndex_ = 0;
+            nextOrderIndex_ = 0;
+            stepSampleCounter_ = 0;
+            for (auto& slot : pendingNoteOffs_)
+                slot.active = false;
+            for (auto& slot : pendingTriggers_)
+                slot.active = false;
+        }
+
         [[nodiscard]] std::size_t getCurrentStepIndex() const noexcept { return currentStepIndex_; }
         [[nodiscard]] std::size_t getNoteSequenceIndex() const noexcept { return noteSequenceIndex_; }
 

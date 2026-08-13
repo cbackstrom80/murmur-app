@@ -125,6 +125,30 @@ TEST_CASE("ModMatrixExecutor skips inactive routes", "[modulation]")
     REQUIRE(out.filterCutoffSemitones == 0.0f);
 }
 
+TEST_CASE("ModMatrixExecutor routes ModWheel to FilterCutoff correctly", "[modulation]")
+{
+    pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;
+    routes.push_back(ModRoute{ModSource::ModWheel, ModDestination::FilterCutoff, 0, 24.0f, ModScope::Voice});
+
+    ModSourceValues sources;
+    sources.modWheel = 0.5f;
+
+    const auto out = ModMatrixExecutor::apply(routes, sources);
+    REQUIRE(out.filterCutoffSemitones == Catch::Approx(12.0f));
+}
+
+TEST_CASE("ModMatrixExecutor routes Expression to FilterResonance correctly", "[modulation]")
+{
+    pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;
+    routes.push_back(ModRoute{ModSource::Expression, ModDestination::FilterResonance, 0, 0.35f, ModScope::Voice});
+
+    ModSourceValues sources;
+    sources.expression = 1.0f;
+
+    const auto out = ModMatrixExecutor::apply(routes, sources);
+    REQUIRE(out.filterResonanceOffset == Catch::Approx(0.35f));
+}
+
 TEST_CASE("ModMatrixExecutor resolves macro sources by index", "[modulation]")
 {
     pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;

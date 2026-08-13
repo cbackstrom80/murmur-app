@@ -8,6 +8,7 @@
 #include "components/AmpEnvelopePanel.h"
 #include "components/ArpLauncherChip.h"
 #include "components/ArpPanelOverlay.h"
+#include "components/CompactModeEditor.h"
 #include "components/ContextStrip.h"
 #include "components/FilterLfoPanel.h"
 #include "components/FxChainStrip.h"
@@ -41,6 +42,7 @@ namespace pw8::plugin::ui
         {
             Basic,
             Advanced,
+            Compact,
         };
 
         enum class Page
@@ -53,6 +55,7 @@ namespace pw8::plugin::ui
         };
 
         void setViewMode(ViewMode mode);
+        void applyWindowConstraints();
         void showPage(Page page);
         void updateScopeUi();
         void refreshFilterPanelScope();
@@ -71,8 +74,10 @@ namespace pw8::plugin::ui
         NodeSelectorRow nodeSelectorRow_;
         ContextStrip contextStrip_;
         PatchFocusPanel patchFocusPanel_;
+        CompactModeEditor compactEditor_;
         juce::TextButton basicViewButton_{"Basic"};
         juce::TextButton advancedViewButton_{"Advanced"};
+        juce::TextButton compactViewButton_{"Compact"};
         std::array<juce::TextButton, 5> tabButtons_{
             juce::TextButton{"OSC"},
             juce::TextButton{"FILTER"},
@@ -100,6 +105,7 @@ namespace pw8::plugin::ui
         ModRoutingOverlay modRoutingOverlay_;
         ArpPanelOverlay arpPanelOverlay_;
         juce::ComponentBoundsConstrainer aspectConstrainer_;
+        juce::ComponentBoundsConstrainer compactConstrainer_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlayModeEditor)
     };

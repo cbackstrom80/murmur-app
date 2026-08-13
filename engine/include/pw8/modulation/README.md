@@ -4,7 +4,7 @@
 `ModRoute`) + `ModMatrixExecutor.hpp` (per-voice, per-sample execution). Fixed
 capacity: `core::FixedVector<ModRoute, core::kMaxModRoutes>` (64) lives on
 `LayerPatch::modRoutes`. Sources: LFO1, amplitude envelope, velocity, channel
-pressure, poly aftertouch, MPE slide, 8 macros. Destinations: filter cutoff
+pressure, poly aftertouch, MPE slide, mod wheel (CC1), 8 macros. Destinations: filter cutoff
 (exponential/semitone), filter resonance, per-operator level, pan.
 
 LAYER and GLOBAL scope (sharing one computed value across all voices in a layer, or

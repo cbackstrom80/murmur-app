@@ -15,6 +15,7 @@ namespace pw8::plugin::ui
           nodeSelectorRow_(processor),
           contextStrip_(processor),
           patchFocusPanel_(processor),
+          compactEditor_(processor),
           operatorEditorPanel_(processor),
           filterLfoPanel_(processor, modAssignmentController_),
           ampEnvelopePanel_(processor),
@@ -29,12 +30,17 @@ namespace pw8::plugin::ui
         aspectConstrainer_.setFixedAspectRatio(layout::kAspectRatio);
         aspectConstrainer_.setMinimumSize(layout::kMinWidth, layout::kMinHeight);
         aspectConstrainer_.setMaximumSize(layout::kMaxWidth, layout::kMaxHeight);
+
+        compactConstrainer_.setFixedAspectRatio(0.0);
+        compactConstrainer_.setMinimumSize(layout::kCompactWidth, layout::kCompactMinHeight);
+        compactConstrainer_.setMaximumSize(layout::kCompactWidth, layout::kCompactMaxHeight);
+
         setConstrainer(&aspectConstrainer_);
         setResizeLimits(layout::kMinWidth, layout::kMinHeight, layout::kMaxWidth, layout::kMaxHeight);
         setResizable(true, true);
 
         modAssignmentBanner_.setJustificationType(juce::Justification::centred);
-        modAssignmentBanner_.setFont(fonts::label(11.0f));
+        modAssignmentBanner_.setFont(fonts::label(fonts::kBodyLabelSize));
         modAssignmentBanner_.setColour(juce::Label::textColourId, palette::kTextPrimary);
         modAssignmentBanner_.setColour(juce::Label::backgroundColourId, branding::glowColour().withAlpha(0.22f));
         modAssignmentBanner_.setVisible(false);
@@ -70,9 +76,19 @@ namespace pw8::plugin::ui
         };
         presetBrowserOverlay_.onFiltersChanged = [this] {
             patchBrowserBar_.setBrowseFilters(presetBrowserOverlay_.browseFilter());
+            compactEditor_.setBrowseFilter(presetBrowserOverlay_.browseFilter());
         };
 
-        for (auto* btn : {&basicViewButton_, &advancedViewButton_})
+        compactEditor_.setPresetIndex(&patchBrowserBar_.getPresetIndex());
+        compactEditor_.setFavoritesStore(&favoritesStore_);
+        addChildComponent(compactEditor_);
+
+        processor.onPatchLoaded = [this] {
+            patchFocusPanel_.refreshFromPatch();
+            compactEditor_.refreshFromPatch();
+        };
+
+        for (auto* btn : {&basicViewButton_, &advancedViewButton_, &compactViewButton_})
         {
             btn->setClickingTogglesState(true);
             btn->setRadioGroupId(9000);
@@ -84,6 +100,7 @@ namespace pw8::plugin::ui
         }
         basicViewButton_.onClick = [this] { setViewMode(ViewMode::Basic); };
         advancedViewButton_.onClick = [this] { setViewMode(ViewMode::Advanced); };
+        compactViewButton_.onClick = [this] { setViewMode(ViewMode::Compact); };
 
         addChildComponent(nodeSelectorRow_);
         nodeSelectorRow_.onNodeSelected = [this](int node) {
@@ -160,23 +177,62 @@ namespace pw8::plugin::ui
         return false;
     }
 
+    void PlayModeEditor::applyWindowConstraints()
+    {
+        if (viewMode_ == ViewMode::Compact)
+        {
+            setConstrainer(&compactConstrainer_);
+            setResizeLimits(layout::kCompactWidth, layout::kCompactMinHeight, layout::kCompactWidth,
+                            layout::kCompactMaxHeight);
+            if (getWidth() != layout::kCompactWidth || getHeight() < layout::kCompactMinHeight)
+                setSize(layout::kCompactWidth, layout::kCompactDefaultHeight);
+        }
+        else
+        {
+            setConstrainer(&aspectConstrainer_);
+            setResizeLimits(layout::kMinWidth, layout::kMinHeight, layout::kMaxWidth, layout::kMaxHeight);
+            if (getWidth() < layout::kMinWidth || getHeight() < layout::kMinHeight)
+                setSize(layout::kDefaultWidth, layout::kDefaultHeight);
+        }
+    }
+
     void PlayModeEditor::setViewMode(ViewMode mode)
     {
+        if (viewMode_ == ViewMode::Compact && mode != ViewMode::Compact)
+            closeArpPanel();
+
         viewMode_ = mode;
         basicViewButton_.setToggleState(mode == ViewMode::Basic, juce::dontSendNotification);
         advancedViewButton_.setToggleState(mode == ViewMode::Advanced, juce::dontSendNotification);
+        compactViewButton_.setToggleState(mode == ViewMode::Compact, juce::dontSendNotification);
 
+        const bool compact = mode == ViewMode::Compact;
         const bool advanced = mode == ViewMode::Advanced;
+
+        patchBrowserBar_.setVisible(!compact);
+        arpLauncherChip_.setVisible(!compact);
+
+        basicViewButton_.setVisible(true);
+        advancedViewButton_.setVisible(true);
+        compactViewButton_.setVisible(true);
+
+        compactEditor_.setVisible(compact);
+        if (compact)
+        {
+            compactEditor_.setBrowseFilter(patchBrowserBar_.browseFilter());
+            compactEditor_.setBounds(getLocalBounds());
+        }
+
         nodeSelectorRow_.setVisible(advanced);
         contextStrip_.setVisible(advanced);
 
         for (auto& btn : tabButtons_)
             btn.setVisible(advanced);
 
-        patchFocusPanel_.setBasicPerformanceLayout(!advanced);
-        patchFocusPanel_.setVisible(!advanced);
+        patchFocusPanel_.setBasicPerformanceLayout(mode == ViewMode::Basic);
+        patchFocusPanel_.setVisible(mode == ViewMode::Basic);
 
-        if (!advanced)
+        if (compact || mode == ViewMode::Basic)
         {
             closeModRoutingOverlay();
             modAssignmentController_.disarm();
@@ -187,7 +243,7 @@ namespace pw8::plugin::ui
             fxPage_.setVisible(false);
             modAssignmentBanner_.setVisible(false);
         }
-        else
+        else if (advanced)
         {
             if (currentPage_ == Page::Filter && !filterPage_.isVisible())
                 showPage(Page::Filter);
@@ -196,6 +252,7 @@ namespace pw8::plugin::ui
             updateScopeUi();
         }
 
+        applyWindowConstraints();
         resized();
     }
 
@@ -341,14 +398,27 @@ namespace pw8::plugin::ui
 
     void PlayModeEditor::resized()
     {
+        if (viewMode_ == ViewMode::Compact)
+        {
+            auto bounds = getLocalBounds().reduced(layout::kCompactOuterMargin);
+            auto modeRow = bounds.removeFromTop(layout::kViewModeRowHeight);
+            basicViewButton_.setBounds(modeRow.removeFromLeft(72).reduced(2));
+            advancedViewButton_.setBounds(modeRow.removeFromLeft(88).reduced(2));
+            compactViewButton_.setBounds(modeRow.removeFromLeft(80).reduced(2));
+            compactEditor_.setBounds(bounds);
+            presetBrowserOverlay_.setBounds(getLocalBounds());
+            return;
+        }
+
         auto bounds = getLocalBounds().reduced(layout::kOuterMargin);
 
         patchBrowserBar_.setBounds(bounds.removeFromTop(branding::headerBarHeight()));
         bounds.removeFromTop(layout::kBlockGap);
 
         auto modeRow = bounds.removeFromTop(layout::kViewModeRowHeight);
-        basicViewButton_.setBounds(modeRow.removeFromLeft(96).reduced(2));
-        advancedViewButton_.setBounds(modeRow.removeFromLeft(108).reduced(2));
+        basicViewButton_.setBounds(modeRow.removeFromLeft(72).reduced(2));
+        advancedViewButton_.setBounds(modeRow.removeFromLeft(88).reduced(2));
+        compactViewButton_.setBounds(modeRow.removeFromLeft(80).reduced(2));
         arpLauncherChip_.setBounds(modeRow.removeFromRight(168).reduced(2, 1));
         bounds.removeFromTop(layout::kBlockGap);
 

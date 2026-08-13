@@ -38,14 +38,16 @@ namespace pw8::voice
 {
     /// Per-note expressive state. Populated from MIDI/MPE at note-on and updated by
     /// subsequent per-channel messages. pitchBendSemitones/mpePitch directly affect
-    /// pitch; channelPressure/polyAftertouch/mpeSlide are mod matrix sources
-    /// (ModSource::ChannelPressure/PolyAftertouch/MpeSlide).
+    /// pitch; channelPressure/polyAftertouch/mpeSlide/modWheel are mod matrix sources
+    /// (ModSource::ChannelPressure/PolyAftertouch/MpeSlide/ModWheel).
     struct NoteExpression
     {
         float pitchBendSemitones = 0.0f;
         float channelPressure = 0.0f; ///< 0..1
         float polyAftertouch = 0.0f;  ///< 0..1
         float mpeSlide = 0.0f;        ///< 0..1, MPE "timbre"/slide (CC74) when in MPE mode
+        float modWheel = 0.0f;        ///< 0..1, MIDI CC1 (channel-wide, latched per channel)
+        float expression = 0.0f;      ///< 0..1, MIDI CC11 (channel-wide, latched per channel)
         float mpePitch = 0.0f;        ///< semitones, MPE per-note pitch bend
     };
 
@@ -179,6 +181,8 @@ namespace pw8::voice
             sourceValues.channelPressure = expression.channelPressure;
             sourceValues.polyAftertouch = expression.polyAftertouch;
             sourceValues.mpeSlide = expression.mpeSlide;
+            sourceValues.modWheel = expression.modWheel;
+            sourceValues.expression = expression.expression;
             sourceValues.macros = macroValues;
 
             const auto modOut = modulation::ModMatrixExecutor::hasAudioRateModRoutes(liveModRoutes)

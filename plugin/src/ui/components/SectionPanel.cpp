@@ -72,7 +72,7 @@ namespace pw8::plugin::ui
 
             titleRow.removeFromLeft(6.0f);
             g.setColour(sectionTitleColour(accentColour_));
-            g.setFont(fonts::title(12.0f));
+            g.setFont(fonts::title(fonts::kSectionTitleSize));
             g.drawText(title_, titleRow, juce::Justification::centredLeft);
 
             // A hairline divider under the header row, the "card header" treatment

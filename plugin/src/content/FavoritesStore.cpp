@@ -2,6 +2,15 @@
 
 namespace pw8::plugin::content
 {
+    namespace
+    {
+        juce::File legacyStorageFile()
+        {
+            return juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
+                .getChildFile("Patchwork Eight/favorites.json");
+        }
+    } // namespace
+
     FavoritesStore::FavoritesStore()
     {
         load();
@@ -10,13 +19,15 @@ namespace pw8::plugin::content
     juce::File FavoritesStore::defaultStorageFile()
     {
         return juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
-            .getChildFile("Patchwork Eight/favorites.json");
+            .getChildFile("MURMUR/favorites.json");
     }
 
     void FavoritesStore::load()
     {
         paths_.clear();
-        const juce::File file = defaultStorageFile();
+        juce::File file = defaultStorageFile();
+        if (!file.existsAsFile())
+            file = legacyStorageFile();
         if (!file.existsAsFile())
             return;
 

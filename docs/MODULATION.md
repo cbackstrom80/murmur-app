@@ -76,8 +76,8 @@ executing `LayerPatch::modRoutes` (a `core::FixedVector<ModRoute, core::kMaxModR
 capacity 64) once per voice per sample. No allocation; routes with `source == None`
 or `destination == None` are skipped cheaply.
 
-Sources (29 total): `Lfo1`..`Lfo8`, `Env1`..`Env8`, `Velocity`, `ChannelPressure`,
-`PolyAftertouch`, `MpeSlide`, `Macro1`..`Macro8`.
+Sources (30 total): `Lfo1`..`Lfo8`, `Env1`..`Env8`, `Velocity`, `ChannelPressure`,
+`PolyAftertouch`, `MpeSlide`, `Macro1`..`Macro8`, `ModWheel` (MIDI CC1).
 
 Destinations: `FilterCutoff` (exponential/semitone-scaled), `FilterResonance`
 (additive), `OperatorLevel` (multiplicative, per-node via `targetIndex`), `Pan`

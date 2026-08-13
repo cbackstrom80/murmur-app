@@ -40,6 +40,8 @@ namespace pw8::modulation
         float channelPressure = 0.0f;  ///< 0..1
         float polyAftertouch = 0.0f;   ///< 0..1
         float mpeSlide = 0.0f;         ///< 0..1
+        float modWheel = 0.0f;         ///< 0..1, MIDI CC1
+        float expression = 0.0f;       ///< 0..1, MIDI CC11
         std::array<float, 8> macros{}; ///< 0..1 each
     };
 
@@ -109,6 +111,8 @@ namespace pw8::modulation
             controlRateSources.channelPressure = sources.channelPressure;
             controlRateSources.polyAftertouch = sources.polyAftertouch;
             controlRateSources.mpeSlide = sources.mpeSlide;
+            controlRateSources.modWheel = sources.modWheel;
+            controlRateSources.expression = sources.expression;
             controlRateSources.macros = sources.macros;
             return apply(routes, controlRateSources);
         }
@@ -196,6 +200,8 @@ namespace pw8::modulation
                 case ModSource::ChannelPressure: return s.channelPressure;
                 case ModSource::PolyAftertouch: return s.polyAftertouch;
                 case ModSource::MpeSlide: return s.mpeSlide;
+                case ModSource::ModWheel: return s.modWheel;
+                case ModSource::Expression: return s.expression;
                 case ModSource::Macro1: return s.macros[0];
                 case ModSource::Macro2: return s.macros[1];
                 case ModSource::Macro3: return s.macros[2];

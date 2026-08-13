@@ -1,4 +1,6 @@
+#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
+#include <cctype>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -78,100 +80,53 @@ namespace
         return loaded.patch;
     }
 
+    [[nodiscard]] bool isGoldenFactorySlot(const std::string& filename) noexcept
+    {
+        if (filename.size() < 3 || !std::isdigit(static_cast<unsigned char>(filename[0]))
+            || !std::isdigit(static_cast<unsigned char>(filename[1])) || filename[2] != '-')
+            return false;
+
+        const int slot = (filename[0] - '0') * 10 + (filename[1] - '0');
+        return slot >= 1 && slot <= 49 && ((slot - 1) % 3) == 0;
+    }
+
     [[nodiscard]] std::vector<std::string> defaultPresetPaths()
     {
-        return {
-            // Core + arp (4) + factory representatives (85 = 89 total)
+        std::vector<std::string> paths {
             "content/presets/init-saw.pw8",
             "content/presets/fm-bell.pw8",
             "content/presets/wt-morph.pw8",
             "content/presets/arp-pluck.pw8",
-            "content/presets/factory/Basses/01-slack-drive.pw8",
-            "content/presets/factory/Basses/04-ratio-pulse.pw8",
-            "content/presets/factory/Basses/07-coil-low.pw8",
-            "content/presets/factory/Basses/10-ladder-low.pw8",
-            "content/presets/factory/Basses/13-bronze-line.pw8",
-            "content/presets/factory/Basses/16-sludge-depth.pw8",
-            "content/presets/factory/Basses/19-slack-bass.pw8",
-            "content/presets/factory/Basses/22-trench-sub.pw8",
-            "content/presets/factory/Basses/25-squelch-line.pw8",
-            "content/presets/factory/Basses/28-growl-drive.pw8",
-            "content/presets/factory/Basses/31-fathom-low.pw8",
-            "content/presets/factory/Basses/34-accent-sub.pw8",
-            "content/presets/factory/Basses/37-accent-low.pw8",
-            "content/presets/factory/Basses/40-grind-drive.pw8",
-            "content/presets/factory/Basses/43-thud-bass.pw8",
-            "content/presets/factory/Basses/46-bronze-growl.pw8",
-            "content/presets/factory/Basses/49-root-low.pw8",
-            "content/presets/factory/Leads/01-comet-spike.pw8",
-            "content/presets/factory/Leads/04-pixel-sync.pw8",
-            "content/presets/factory/Leads/07-prism-cut.pw8",
-            "content/presets/factory/Leads/10-glass-line.pw8",
-            "content/presets/factory/Leads/13-flare-sync.pw8",
-            "content/presets/factory/Leads/16-comet-edge.pw8",
-            "content/presets/factory/Leads/19-vector-lead.pw8",
-            "content/presets/factory/Leads/22-blade-spike.pw8",
-            "content/presets/factory/Leads/25-solar-wave.pw8",
-            "content/presets/factory/Leads/28-glass-beam.pw8",
-            "content/presets/factory/Leads/31-spike-line.pw8",
-            "content/presets/factory/Leads/34-pixel-beam.pw8",
-            "content/presets/factory/Leads/37-fifth-section.pw8",
-            "content/presets/factory/Leads/40-voltage-wave.pw8",
-            "content/presets/factory/Leads/43-voltage-sync.pw8",
-            "content/presets/factory/Leads/46-vector-wave.pw8",
-            "content/presets/factory/Leads/49-voltage-line.pw8",
-            "content/presets/factory/Pads/01-amber-pad.pw8",
-            "content/presets/factory/Pads/04-feather-drift.pw8",
-            "content/presets/factory/Pads/07-pale-sky.pw8",
-            "content/presets/factory/Pads/10-velvet-veil.pw8",
-            "content/presets/factory/Pads/13-wistful-pad.pw8",
-            "content/presets/factory/Pads/16-halcyon-field.pw8",
-            "content/presets/factory/Pads/19-dawn-pad.pw8",
-            "content/presets/factory/Pads/22-faded-pad.pw8",
-            "content/presets/factory/Pads/25-swell-wash.pw8",
-            "content/presets/factory/Pads/28-bucket-glow.pw8",
-            "content/presets/factory/Pads/31-quiet-glow.pw8",
-            "content/presets/factory/Pads/34-quiet-bloom.pw8",
-            "content/presets/factory/Pads/37-distant-sky.pw8",
-            "content/presets/factory/Pads/40-chorus-stack.pw8",
-            "content/presets/factory/Pads/43-feather-bloom.pw8",
-            "content/presets/factory/Pads/46-marble-hymn.pw8",
-            "content/presets/factory/Pads/49-haze-stack.pw8",
-            "content/presets/factory/Ambient/01-nebula-expanse.pw8",
-            "content/presets/factory/Ambient/04-ash-wash.pw8",
-            "content/presets/factory/Ambient/07-drift-cloud.pw8",
-            "content/presets/factory/Ambient/10-sietch-drone.pw8",
-            "content/presets/factory/Ambient/13-resonant-drift.pw8",
-            "content/presets/factory/Ambient/16-nebula-drift.pw8",
-            "content/presets/factory/Ambient/19-sietch-hymn.pw8",
-            "content/presets/factory/Ambient/22-sere-echo.pw8",
-            "content/presets/factory/Ambient/25-threnody-hymn.pw8",
-            "content/presets/factory/Ambient/28-fen-hymn.pw8",
-            "content/presets/factory/Ambient/31-ochre-expanse.pw8",
-            "content/presets/factory/Ambient/34-resonant-riser.pw8",
-            "content/presets/factory/Ambient/37-sietch-echo.pw8",
-            "content/presets/factory/Ambient/40-fen-drone.pw8",
-            "content/presets/factory/Ambient/43-vapor-echo.pw8",
-            "content/presets/factory/Ambient/46-fen-drift.pw8",
-            "content/presets/factory/Ambient/49-resonant-cave.pw8",
-            "content/presets/factory/Sequences/01-stutter-motif.pw8",
-            "content/presets/factory/Sequences/04-loom-cycle.pw8",
-            "content/presets/factory/Sequences/07-glass-cycle.pw8",
-            "content/presets/factory/Sequences/10-relay-step.pw8",
-            "content/presets/factory/Sequences/13-motor-motor.pw8",
-            "content/presets/factory/Sequences/16-stab-chime.pw8",
-            "content/presets/factory/Sequences/19-stutter-loop.pw8",
-            "content/presets/factory/Sequences/22-pendulum-sequence.pw8",
-            "content/presets/factory/Sequences/25-chime-motor.pw8",
-            "content/presets/factory/Sequences/28-ratchet-motor.pw8",
-            "content/presets/factory/Sequences/31-gate-step.pw8",
-            "content/presets/factory/Sequences/34-tumble-sequence.pw8",
-            "content/presets/factory/Sequences/37-accent-step.pw8",
-            "content/presets/factory/Sequences/40-ratchet-sequence.pw8",
-            "content/presets/factory/Sequences/43-tine-step.pw8",
-            "content/presets/factory/Sequences/46-chime-step.pw8",
-            "content/presets/factory/Sequences/49-loom-run.pw8",
         };
+
+        const fs::path factoryRoot = repoRoot() / "content/presets/factory";
+        static constexpr const char* kCategories[] = {
+            "Basses", "Leads", "Pads", "Ambient", "Sequences",
+        };
+
+        for (const char* category : kCategories)
+        {
+            const fs::path categoryDir = factoryRoot / category;
+            if (!fs::is_directory(categoryDir))
+                continue;
+
+            std::vector<fs::path> files;
+            for (const auto& entry : fs::directory_iterator(categoryDir))
+            {
+                if (entry.path().extension() == ".pw8"
+                    && isGoldenFactorySlot(entry.path().filename().string()))
+                    files.push_back(entry.path());
+            }
+
+            std::sort(files.begin(), files.end());
+            for (const auto& file : files)
+            {
+                const auto rel = fs::relative(file, repoRoot());
+                paths.push_back(rel.generic_string());
+            }
+        }
+
+        return paths;
     }
 
     void registerContentRoots() noexcept
