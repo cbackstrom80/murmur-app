@@ -1,5 +1,7 @@
 # MURMUR (Patchwork Eight) — Product Gap Implementation Plan
 
+> **Note:** The accelerated implementation plan for **Gap 1 (DESIGN mode)** and **Gap 3 (wavetable warps)** is in [`DESIGN_AND_WARPS_PLAN.md`](DESIGN_AND_WARPS_PLAN.md).
+
 **Status:** PLAN (Aug 2026)  
 **Scope:** Six product gaps blocking competitive parity and sound-design workflow  
 **Repo:** `/Users/cbackstr/repos/patchwork-eight`  
