@@ -969,6 +969,15 @@ def engine_highlight_for_slot(slot: int) -> str:
 
 def write_readme():
     matrix = feature_matrix()
+    engine_rows = "\n".join(
+        f"| {name} | {matrix['engine_primary'].get(name, 0)} |"
+        for name in ["Classic", "Wavetable", "FM/PM", "Additive", "PhaseShape",
+                     "Granular", "NoiseChaos", "Resonator"]
+    )
+    graph_rows = "\n".join(
+        f"| {kind.replace('_', ' ').title()} | {matrix['graphs'].get(kind, 0)} |"
+        for kind in GRAPH_KINDS
+    )
     highlight_rows = "\n".join(
         f"| {num:03d} | **{name.upper()}** | {tip} |"
         for num, name, tip in HIGHLIGHT_TOP10
@@ -1028,20 +1037,34 @@ Filter 2, granular, FM, stack mode).
 | FX / transitions | 10 |
 | Keys / plucks | 10 |
 | Bells / mallets | 8 |
-| Stack / layer showcases | 8 |
-| Wildcard experimental | 7 |
+| Stack / layer showcases | 10 |
+| Wildcard experimental | 5 |
 
 ## Feature coverage (collection)
 
 | Feature | Presets |
 |---------|--------:|
 | Total | {matrix['total']} |
-| Filter 2 enabled | {matrix['filter2']} |
-| Wavetable warps (bend/sync/formant) | {matrix['warp']} |
+| Filter 2 (CharacterFilter) | {matrix['filter2']} |
+| Wavetable warps (any param) | {matrix['warp']} |
+| Warp-prominent (2+ warp params) | {matrix['warp_prominent']} |
+| Mod routes → warp destinations | {matrix['warp_mod_routes']} |
 | Granular layers | {matrix['granular']} |
 | Dual-layer stack mode | {matrix['stack']} |
 | Arpeggiator | {matrix['arp']} |
-| Engines used | {', '.join(matrix['engines'])} |
+| Insert or master FX | {matrix['fx']} |
+
+### Primary engine (≥8 each target)
+
+| Engine | Presets |
+|--------|--------:|
+{engine_rows}
+
+### Algorithm graph topologies (20 each)
+
+| Topology | Presets |
+|----------|--------:|
+{graph_rows}
 
 ## Regenerate
 

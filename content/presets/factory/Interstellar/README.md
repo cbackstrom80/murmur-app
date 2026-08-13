@@ -191,12 +191,12 @@ Dual-layer stacks, multiverse folds, Hawking radiation wildcards.
 | 091 | `parallel-universe.pw8` | pad | Classic, Additive, PhaseShape, Filter2, Stack | Chords in mid register |
 | 092 | `echo-chamber.pw8` | pad | Classic, Additive, PhaseShape, Filter2, Stack | Chords in mid register |
 | 093 | `morphic-stack.pw8` | pad | Classic, Additive, PhaseShape, Filter2, Stack | Chords in mid register |
-| 094 | `quasar-glitch.pw8` | ambient | Classic, Granular, Filter2 | Explore extremes |
-| 095 | `dark-matter-chaos.pw8` | ambient | Classic, Noise, Filter2 | Explore extremes |
-| 096 | `quantum-foam.pw8` | ambient | Classic, PhaseShape, Filter2 | Explore extremes |
-| 097 | `string-theory.pw8` | ambient | Classic, Wavetable, Warp, Filter2 | Explore extremes |
-| 098 | `hawking-radiation.pw8` | ambient | Classic, FM, Filter2 | Explore extremes |
-| 099 | `multiverse-fold.pw8` | ambient | Classic, Wavetable, Warp, Filter2 | Explore extremes |
+| 094 | `cosmic-stack.pw8` | pad | Classic, Additive, PhaseShape, Filter2, Stack | Chords in mid register |
+| 095 | `nebula-layers.pw8` | pad | Classic, Additive, PhaseShape, Filter2, Stack | Chords in mid register |
+| 096 | `quasar-glitch.pw8` | ambient | Classic, Granular, Filter2 | Explore extremes |
+| 097 | `dark-matter-chaos.pw8` | ambient | Classic, Noise, Filter2 | Explore extremes |
+| 098 | `quantum-foam.pw8` | ambient | Classic, PhaseShape, Filter2 | Explore extremes |
+| 099 | `hawking-radiation.pw8` | ambient | Classic, FM, Filter2 | Explore extremes |
 | 100 | `entropy-bloom.pw8` | ambient | Classic, Granular, Filter2 | Explore extremes |
 
 
@@ -212,20 +212,45 @@ Dual-layer stacks, multiverse folds, Hawking radiation wildcards.
 | FX / transitions | 10 |
 | Keys / plucks | 10 |
 | Bells / mallets | 8 |
-| Stack / layer showcases | 8 |
-| Wildcard experimental | 7 |
+| Stack / layer showcases | 10 |
+| Wildcard experimental | 5 |
 
 ## Feature coverage (collection)
 
 | Feature | Presets |
 |---------|--------:|
 | Total | 100 |
-| Filter 2 enabled | 82 |
-| Wavetable warps (bend/sync/formant) | 44 |
+| Filter 2 (CharacterFilter) | 82 |
+| Wavetable warps (any param) | 42 |
+| Warp-prominent (2+ warp params) | 16 |
+| Mod routes → warp destinations | 36 |
 | Granular layers | 13 |
-| Dual-layer stack mode | 8 |
+| Dual-layer stack mode | 10 |
 | Arpeggiator | 12 |
-| Engines used | Classic, Wavetable, FM/PM, Additive, PhaseShape, Granular, NoiseChaos, Resonator |
+| Insert or master FX | 100 |
+
+### Primary engine (≥8 each target)
+
+| Engine | Presets |
+|--------|--------:|
+| Classic | 5 |
+| Wavetable | 38 |
+| FM/PM | 19 |
+| Additive | 14 |
+| PhaseShape | 5 |
+| Granular | 13 |
+| NoiseChaos | 1 |
+| Resonator | 5 |
+
+### Algorithm graph topologies (20 each)
+
+| Topology | Presets |
+|----------|--------:|
+| Parallel | 20 |
+| Serial | 20 |
+| Fm Pm | 20 |
+| Feedback | 20 |
+| Multi Out | 20 |
 
 ## Regenerate
 
