@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-025-2255303105",
+    "id": "pw8-interstellar-025-3664038233",
     "name": "VOID ANCHOR",
     "author": "MURMUR Sound Design",
     "description": "Interstellar cinematic preset #025 \u2014 Void Anchor. Play C1\u2013C2; mod wheel opens harmonics; keep velocity moderate for clean sub. Engines: Classic.",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 2255303105,
+    "seed": 3664038233,
     "lineage": []
   },
   "layerMode": 0,
@@ -41,16 +41,16 @@
         "classicWaveform": 0,
         "frequencyRatio": 0.5,
         "keyTrack": true,
-        "level": 0.73,
+        "level": 0.32,
         "pan": 0.0
       },
       {
         "engine": 0,
-        "classicWaveform": 3,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.78,
-        "pan": 0.0
+        "level": 0.88,
+        "pan": 0.02697802486294998,
+        "classicWaveform": 0
       },
       {
         "engine": 0,
@@ -111,40 +111,83 @@
         {
           "id": 1,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 2,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 3,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 4,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 5,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 6,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 7,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         }
       ],
-      "edges": []
+      "edges": [
+        {
+          "source": 7,
+          "destination": 6,
+          "type": 1,
+          "amount": 0.5700000000000001
+        },
+        {
+          "source": 6,
+          "destination": 5,
+          "type": 1,
+          "amount": 0.62
+        },
+        {
+          "source": 5,
+          "destination": 4,
+          "type": 1,
+          "amount": 0.67
+        },
+        {
+          "source": 4,
+          "destination": 3,
+          "type": 1,
+          "amount": 0.72
+        },
+        {
+          "source": 3,
+          "destination": 2,
+          "type": 1,
+          "amount": 0.77
+        },
+        {
+          "source": 2,
+          "destination": 1,
+          "type": 1,
+          "amount": 0.8200000000000001
+        },
+        {
+          "source": 1,
+          "destination": 0,
+          "type": 1,
+          "amount": 0.87
+        }
+      ]
     },
     "envelopes": [
       {

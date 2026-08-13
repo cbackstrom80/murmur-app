@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-013-1435224440",
+    "id": "pw8-interstellar-013-1384589120",
     "name": "GRAVITY WELL PAD",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #013 \u2014 Gravity Well Pad. Hold mid register C3\u2013C5; mod wheel blooms filter and wavetable; pressure adds shimmer. Engines: Classic, Additive, PhaseShape.",
+    "description": "Interstellar cinematic preset #013 \u2014 Gravity Well Pad. Hold mid register C3\u2013C5; mod wheel blooms filter and wavetable; pressure adds shimmer. Engines: Classic, Wavetable, PhaseShape.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 1435224440,
+    "seed": 1384589120,
     "lineage": []
   },
   "layerMode": 0,
@@ -41,30 +41,33 @@
         "classicWaveform": 0,
         "frequencyRatio": 0.5,
         "keyTrack": true,
-        "level": 0.38,
+        "level": 0.32,
         "pan": 0.0
       },
       {
-        "engine": 3,
+        "engine": 4,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.82,
-        "pan": 0.0,
-        "additivePartialCount": 36,
-        "additiveTilt": -0.13,
-        "additiveOddEven": 0.55,
-        "additiveStretch": 0.012
+        "level": 0.88,
+        "pan": 0.03055526362469263,
+        "phaseBend": 0.35,
+        "phaseFold": 0.42,
+        "phaseAsymmetry": 0.12,
+        "phaseShape": 0.62
       },
       {
-        "engine": 4,
-        "frequencyRatio": 1.002,
+        "engine": 1,
+        "wavetableId": "content/wavetables/chord-octave-stack.json",
+        "wavetableFramePosition": 0.4,
+        "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.28,
-        "pan": 0.25,
-        "phaseBend": 0.12,
-        "phaseFold": 0.22,
-        "phaseAsymmetry": 0.05,
-        "phaseShape": 0.45
+        "level": 0.62,
+        "pan": 0.09346358349544032,
+        "wtBend": 0.489505592304224,
+        "wtAsymmetry": 0.26078139030385394,
+        "wtSyncRatio": 1.746261422899843,
+        "wtSyncAmount": 0.39560245848456993,
+        "wtFormantShift": 0.19012635276880063
       },
       {
         "engine": 0,
@@ -116,12 +119,12 @@
         },
         {
           "id": 1,
-          "engine": 0,
+          "engine": 4,
           "isOutput": true
         },
         {
           "id": 2,
-          "engine": 0,
+          "engine": 1,
           "isOutput": true
         },
         {
@@ -345,17 +348,38 @@
         "scope": 0
       },
       {
+        "source": 1,
+        "destination": 8,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 2,
+        "destination": 9,
+        "targetIndex": 1,
+        "amount": 0.28,
+        "scope": 1
+      },
+      {
+        "source": 30,
+        "destination": 10,
+        "targetIndex": 1,
+        "amount": 1.8,
+        "scope": 1
+      },
+      {
+        "source": 21,
+        "destination": 11,
+        "targetIndex": 1,
+        "amount": 0.42,
+        "scope": 1
+      },
+      {
         "source": 17,
         "destination": 1,
         "targetIndex": 0,
         "amount": 10.0,
-        "scope": 0
-      },
-      {
-        "source": 30,
-        "destination": 3,
-        "targetIndex": 0,
-        "amount": 0.25,
         "scope": 0
       },
       {

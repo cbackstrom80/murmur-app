@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-020-27076234",
+    "id": "pw8-interstellar-020-3604131152",
     "name": "ORBITAL DECAY",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #020 \u2014 Orbital Decay. Play C1\u2013C2; mod wheel opens harmonics; keep velocity moderate for clean sub. Engines: Classic.",
+    "description": "Interstellar cinematic preset #020 \u2014 Orbital Decay. Play C1\u2013C2; mod wheel opens harmonics; keep velocity moderate for clean sub. Engines: Classic, Additive.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 27076234,
+    "seed": 3604131152,
     "lineage": []
   },
   "layerMode": 0,
@@ -41,16 +41,19 @@
         "classicWaveform": 0,
         "frequencyRatio": 0.5,
         "keyTrack": true,
-        "level": 0.63,
+        "level": 0.32,
         "pan": 0.0
       },
       {
-        "engine": 0,
-        "classicWaveform": 2,
+        "engine": 3,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.78,
-        "pan": 0.0
+        "level": 0.88,
+        "pan": 0.046477781683711694,
+        "additivePartialCount": 40,
+        "additiveTilt": -0.2,
+        "additiveOddEven": 0.65,
+        "additiveStretch": 0.01
       },
       {
         "engine": 0,
@@ -110,7 +113,7 @@
         },
         {
           "id": 1,
-          "engine": 0,
+          "engine": 3,
           "isOutput": true
         },
         {

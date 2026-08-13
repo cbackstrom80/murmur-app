@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-041-2353282083",
+    "id": "pw8-interstellar-041-2720085028",
     "name": "DOCKING SCENE",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #041 \u2014 Docking Scene. Melodic lines G3\u2013B4; legato portamento; mod wheel adds bite and filter sweep. Engines: Classic.",
+    "description": "Interstellar cinematic preset #041 \u2014 Docking Scene. Melodic lines G3\u2013B4; legato portamento; mod wheel adds bite and filter sweep. Engines: Classic, Wavetable.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 2353282083,
+    "seed": 2720085028,
     "lineage": []
   },
   "layerMode": 0,
@@ -41,24 +41,30 @@
         "classicWaveform": 2,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.85,
+        "level": 0.32,
         "pan": 0.0
       },
       {
         "engine": 0,
-        "classicWaveform": 2,
-        "frequencyRatio": 1.006,
-        "keyTrack": true,
-        "level": 0.5,
-        "pan": 0.22
-      },
-      {
-        "engine": 0,
-        "classicWaveform": 0,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.0,
-        "pan": 0.0
+        "level": 0.88,
+        "pan": -0.027519882104659762,
+        "classicWaveform": 0
+      },
+      {
+        "engine": 1,
+        "wavetableId": "content/wavetables/chord-octave-stack.json",
+        "wavetableFramePosition": 0.4,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.62,
+        "pan": -0.0235078333079084,
+        "wtBend": 0.2828513031614729,
+        "wtAsymmetry": 0.37281427396874867,
+        "wtSyncRatio": 2.5976036974357335,
+        "wtSyncAmount": 0.390765328917013,
+        "wtFormantShift": -0.1441093284697575
       },
       {
         "engine": 0,
@@ -115,23 +121,23 @@
         },
         {
           "id": 2,
-          "engine": 0,
+          "engine": 1,
           "isOutput": true
         },
         {
           "id": 3,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 4,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 5,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 6,
@@ -144,7 +150,26 @@
           "isOutput": true
         }
       ],
-      "edges": []
+      "edges": [
+        {
+          "source": 3,
+          "destination": 0,
+          "type": 1,
+          "amount": 0.68
+        },
+        {
+          "source": 4,
+          "destination": 1,
+          "type": 1,
+          "amount": 0.62
+        },
+        {
+          "source": 5,
+          "destination": 2,
+          "type": 1,
+          "amount": 0.58
+        }
+      ]
     },
     "envelopes": [
       {
@@ -317,10 +342,31 @@
         "scope": 0
       },
       {
+        "source": 1,
+        "destination": 8,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 2,
+        "destination": 9,
+        "targetIndex": 1,
+        "amount": 0.28,
+        "scope": 1
+      },
+      {
+        "source": 30,
+        "destination": 10,
+        "targetIndex": 1,
+        "amount": 1.8,
+        "scope": 1
+      },
+      {
         "source": 21,
-        "destination": 1,
-        "targetIndex": 0,
-        "amount": 10.0,
+        "destination": 11,
+        "targetIndex": 1,
+        "amount": 0.42,
         "scope": 1
       },
       {

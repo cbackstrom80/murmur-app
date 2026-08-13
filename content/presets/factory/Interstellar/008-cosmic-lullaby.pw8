@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-008-1090874034",
+    "id": "pw8-interstellar-008-1056020950",
     "name": "COSMIC LULLABY",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #008 \u2014 Cosmic Lullaby. Hold mid register C3\u2013C5; mod wheel blooms filter and wavetable; pressure adds shimmer. Engines: Classic, Wavetable, FM/PM.",
+    "description": "Interstellar cinematic preset #008 \u2014 Cosmic Lullaby. Hold mid register C3\u2013C5; mod wheel blooms filter and wavetable; pressure adds shimmer. Engines: Classic, Wavetable, Resonator.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 1090874034,
+    "seed": 1056020950,
     "lineage": []
   },
   "layerMode": 0,
@@ -41,29 +41,34 @@
         "classicWaveform": 0,
         "frequencyRatio": 0.5,
         "keyTrack": true,
-        "level": 0.38,
+        "level": 0.32,
         "pan": 0.0
       },
       {
-        "engine": 1,
-        "wavetableId": "content/wavetables/classic-sine-to-triangle.json",
-        "wavetableFramePosition": 0.3,
+        "engine": 7,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.78,
-        "pan": 0.04046120999928643
+        "level": 0.88,
+        "pan": 0.11044163376584581,
+        "resonatorStructure": 0.38,
+        "resonatorDecay": 0.72,
+        "resonatorDamping": 0.42,
+        "resonatorBrightness": 0.48,
+        "resonatorModeCount": 6
       },
       {
-        "engine": 2,
-        "classicWaveform": 0,
-        "frequencyRatio": 2.0,
+        "engine": 1,
+        "wavetableId": "content/wavetables/chord-fifth-stack.json",
+        "wavetableFramePosition": 0.4,
+        "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.18,
-        "pan": -0.2,
-        "fmModulatorRatio": 3.0,
-        "fmModulatorIndex": 0.28,
-        "fmModulatorFeedback": 0.06,
-        "fmModulatorWaveform": 0
+        "level": 0.62,
+        "pan": 0.13727163471032683,
+        "wtBend": 0.44253988595029137,
+        "wtAsymmetry": 0.396275681238403,
+        "wtSyncRatio": 2.4210586121392046,
+        "wtSyncAmount": 0.4982455171563931,
+        "wtFormantShift": -0.18801607069314524
       },
       {
         "engine": 0,
@@ -115,12 +120,12 @@
         },
         {
           "id": 1,
-          "engine": 0,
+          "engine": 7,
           "isOutput": true
         },
         {
           "id": 2,
-          "engine": 0,
+          "engine": 1,
           "isOutput": true
         },
         {
@@ -344,17 +349,38 @@
         "scope": 0
       },
       {
+        "source": 1,
+        "destination": 8,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 2,
+        "destination": 9,
+        "targetIndex": 1,
+        "amount": 0.28,
+        "scope": 1
+      },
+      {
+        "source": 30,
+        "destination": 10,
+        "targetIndex": 1,
+        "amount": 1.8,
+        "scope": 1
+      },
+      {
+        "source": 21,
+        "destination": 11,
+        "targetIndex": 1,
+        "amount": 0.42,
+        "scope": 1
+      },
+      {
         "source": 17,
         "destination": 1,
         "targetIndex": 0,
         "amount": 10.0,
-        "scope": 0
-      },
-      {
-        "source": 30,
-        "destination": 3,
-        "targetIndex": 0,
-        "amount": 0.25,
         "scope": 0
       },
       {

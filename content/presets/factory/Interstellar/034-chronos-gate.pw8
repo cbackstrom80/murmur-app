@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-034-728437259",
+    "id": "pw8-interstellar-034-2558174143",
     "name": "CHRONOS GATE",
     "author": "MURMUR Sound Design",
     "description": "Interstellar cinematic preset #034 \u2014 Chronos Gate. Short notes or arp; mod wheel sharpens sync warp; works at 60\u2013120 BPM. Engines: Classic, Wavetable, NoiseChaos.",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 728437259,
+    "seed": 2558174143,
     "lineage": []
   },
   "layerMode": 0,
@@ -41,19 +41,19 @@
         "classicWaveform": 0,
         "frequencyRatio": 0.5,
         "keyTrack": true,
-        "level": 0.35,
+        "level": 0.32,
         "pan": 0.0
       },
       {
         "engine": 1,
-        "wavetableId": "content/wavetables/bell-metallic-strike.json",
-        "wavetableFramePosition": 0.35,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.82,
-        "pan": 0.0,
-        "wtSyncRatio": 2.9,
-        "wtSyncAmount": 0.6
+        "level": 0.88,
+        "pan": 0.08125273501849731,
+        "wavetableId": "content/wavetables/ambient-dreamy-veil.json",
+        "wavetableFramePosition": 0.35,
+        "wtBend": 0.18,
+        "wtFormantShift": 0.12
       },
       {
         "engine": 6,
@@ -114,41 +114,84 @@
         },
         {
           "id": 1,
-          "engine": 0,
-          "isOutput": true
+          "engine": 1,
+          "isOutput": false
         },
         {
           "id": 2,
-          "engine": 0,
-          "isOutput": true
+          "engine": 6,
+          "isOutput": false
         },
         {
           "id": 3,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 4,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 5,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 6,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 7,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         }
       ],
-      "edges": []
+      "edges": [
+        {
+          "source": 7,
+          "destination": 6,
+          "type": 1,
+          "amount": 0.5700000000000001
+        },
+        {
+          "source": 6,
+          "destination": 5,
+          "type": 1,
+          "amount": 0.62
+        },
+        {
+          "source": 5,
+          "destination": 4,
+          "type": 1,
+          "amount": 0.67
+        },
+        {
+          "source": 4,
+          "destination": 3,
+          "type": 1,
+          "amount": 0.72
+        },
+        {
+          "source": 3,
+          "destination": 2,
+          "type": 1,
+          "amount": 0.77
+        },
+        {
+          "source": 2,
+          "destination": 1,
+          "type": 1,
+          "amount": 0.8200000000000001
+        },
+        {
+          "source": 1,
+          "destination": 0,
+          "type": 1,
+          "amount": 0.87
+        }
+      ]
     },
     "envelopes": [
       {

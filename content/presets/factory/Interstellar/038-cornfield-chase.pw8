@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-038-568990230",
+    "id": "pw8-interstellar-038-3146199241",
     "name": "CORNFIELD CHASE",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #038 \u2014 Cornfield Chase. Melodic lines G3\u2013B4; legato portamento; mod wheel adds bite and filter sweep. Engines: Wavetable.",
+    "description": "Interstellar cinematic preset #038 \u2014 Cornfield Chase. Melodic lines G3\u2013B4; legato portamento; mod wheel adds bite and filter sweep. Engines: Wavetable, Granular.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 568990230,
+    "seed": 3146199241,
     "lineage": []
   },
   "layerMode": 0,
@@ -38,22 +38,30 @@
     "operators": [
       {
         "engine": 1,
-        "wavetableId": "content/wavetables/pwm-wide-sweep.json",
+        "wavetableId": "content/wavetables/classic-saw-to-square.json",
         "wavetableFramePosition": 0.4,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.9,
+        "level": 0.32,
         "pan": 0.0,
-        "wtSyncRatio": 2.5,
-        "wtSyncAmount": 0.55
+        "wtSyncRatio": 2.5248949165895676,
+        "wtSyncAmount": 0.6230350565291247,
+        "wtBend": 0.3444364223757752,
+        "wtAsymmetry": 0.24600761943426946,
+        "wtFormantShift": -0.22853177307288008
       },
       {
-        "engine": 0,
-        "classicWaveform": 0,
+        "engine": 5,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.0,
-        "pan": 0.0
+        "level": 0.88,
+        "pan": 0.03421768973719261,
+        "wavetableId": "content/wavetables/gran-ocean-swell.json",
+        "wavetableFramePosition": 0.3,
+        "grainDensity": 12.0,
+        "grainSizeMs": 120.0,
+        "grainPositionJitter": 0.3,
+        "grainPitchJitter": 0.08
       },
       {
         "engine": 0,
@@ -108,46 +116,89 @@
       "nodes": [
         {
           "id": 0,
-          "engine": 0,
+          "engine": 1,
           "isOutput": true
         },
         {
           "id": 1,
-          "engine": 0,
-          "isOutput": true
+          "engine": 5,
+          "isOutput": false
         },
         {
           "id": 2,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 3,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 4,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 5,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 6,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 7,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         }
       ],
-      "edges": []
+      "edges": [
+        {
+          "source": 7,
+          "destination": 6,
+          "type": 1,
+          "amount": 0.5700000000000001
+        },
+        {
+          "source": 6,
+          "destination": 5,
+          "type": 1,
+          "amount": 0.62
+        },
+        {
+          "source": 5,
+          "destination": 4,
+          "type": 1,
+          "amount": 0.67
+        },
+        {
+          "source": 4,
+          "destination": 3,
+          "type": 1,
+          "amount": 0.72
+        },
+        {
+          "source": 3,
+          "destination": 2,
+          "type": 1,
+          "amount": 0.77
+        },
+        {
+          "source": 2,
+          "destination": 1,
+          "type": 1,
+          "amount": 0.8200000000000001
+        },
+        {
+          "source": 1,
+          "destination": 0,
+          "type": 1,
+          "amount": 0.87
+        }
+      ]
     },
     "envelopes": [
       {
@@ -320,10 +371,31 @@
         "scope": 0
       },
       {
+        "source": 1,
+        "destination": 8,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 2,
+        "destination": 9,
+        "targetIndex": 1,
+        "amount": 0.28,
+        "scope": 1
+      },
+      {
+        "source": 30,
+        "destination": 10,
+        "targetIndex": 1,
+        "amount": 1.8,
+        "scope": 1
+      },
+      {
         "source": 21,
-        "destination": 1,
-        "targetIndex": 0,
-        "amount": 10.0,
+        "destination": 11,
+        "targetIndex": 1,
+        "amount": 0.42,
         "scope": 1
       },
       {

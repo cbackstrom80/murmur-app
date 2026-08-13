@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-006-766253425",
+    "id": "pw8-interstellar-006-2267663909",
     "name": "EVENT HORIZON GLOW",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #006 \u2014 Event Horizon Glow. Hold mid register C3\u2013C5; mod wheel blooms filter and wavetable; pressure adds shimmer. Engines: Classic, Resonator.",
+    "description": "Interstellar cinematic preset #006 \u2014 Event Horizon Glow. Hold mid register C3\u2013C5; mod wheel blooms filter and wavetable; pressure adds shimmer. Engines: Classic, Granular.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 766253425,
+    "seed": 2267663909,
     "lineage": []
   },
   "layerMode": 0,
@@ -41,20 +41,21 @@
         "classicWaveform": 0,
         "frequencyRatio": 0.5,
         "keyTrack": true,
-        "level": 0.38,
+        "level": 0.32,
         "pan": 0.0
       },
       {
-        "engine": 7,
+        "engine": 5,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.68,
-        "pan": 0.0,
-        "resonatorStructure": 0.42,
-        "resonatorDecay": 0.78,
-        "resonatorDamping": 0.38,
-        "resonatorBrightness": 0.52,
-        "resonatorModeCount": 7
+        "level": 0.88,
+        "pan": -0.012944678631836903,
+        "wavetableId": "content/wavetables/gran-digital-glitch.json",
+        "wavetableFramePosition": 0.3,
+        "grainDensity": 12.0,
+        "grainSizeMs": 120.0,
+        "grainPositionJitter": 0.3,
+        "grainPitchJitter": 0.08
       },
       {
         "engine": 0,
@@ -114,7 +115,7 @@
         },
         {
           "id": 1,
-          "engine": 0,
+          "engine": 5,
           "isOutput": true
         },
         {

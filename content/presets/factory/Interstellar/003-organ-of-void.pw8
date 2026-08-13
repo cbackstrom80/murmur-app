@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-003-3482577352",
+    "id": "pw8-interstellar-003-3152534561",
     "name": "ORGAN OF VOID",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #003 \u2014 Organ Of Void. Hold mid register C3\u2013C5; mod wheel blooms filter and wavetable; pressure adds shimmer. Engines: Classic, Wavetable, PhaseShape.",
+    "description": "Interstellar cinematic preset #003 \u2014 Organ Of Void. Hold mid register C3\u2013C5; mod wheel blooms filter and wavetable; pressure adds shimmer. Engines: Classic, Wavetable, FM/PM.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 3482577352,
+    "seed": 3152534561,
     "lineage": []
   },
   "layerMode": 0,
@@ -41,29 +41,34 @@
         "classicWaveform": 0,
         "frequencyRatio": 0.5,
         "keyTrack": true,
-        "level": 0.38,
+        "level": 0.32,
         "pan": 0.0
       },
       {
-        "engine": 1,
-        "wavetableId": "content/wavetables/formant-vowel-oo.json",
-        "wavetableFramePosition": 0.35,
+        "engine": 2,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.78,
-        "pan": 0.1324862337898744,
-        "wtFormantShift": 0.25
+        "level": 0.88,
+        "pan": 0.09677621993134936,
+        "classicWaveform": 0,
+        "fmModulatorRatio": 2.0,
+        "fmModulatorIndex": 0.55,
+        "fmModulatorFeedback": 0.15,
+        "fmModulatorWaveform": 0
       },
       {
-        "engine": 4,
-        "frequencyRatio": 1.002,
+        "engine": 1,
+        "wavetableId": "content/wavetables/ambient-dreamy-veil.json",
+        "wavetableFramePosition": 0.4,
+        "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.28,
-        "pan": 0.25,
-        "phaseBend": 0.12,
-        "phaseFold": 0.22,
-        "phaseAsymmetry": 0.05,
-        "phaseShape": 0.45
+        "level": 0.62,
+        "pan": -0.021185177541362232,
+        "wtBend": 0.3432378058150771,
+        "wtAsymmetry": 0.35971285196160374,
+        "wtSyncRatio": 1.9259904919500241,
+        "wtSyncAmount": 0.5711281811536141,
+        "wtFormantShift": -0.16055310550368834
       },
       {
         "engine": 0,
@@ -115,12 +120,12 @@
         },
         {
           "id": 1,
-          "engine": 0,
+          "engine": 2,
           "isOutput": true
         },
         {
           "id": 2,
-          "engine": 0,
+          "engine": 1,
           "isOutput": true
         },
         {
@@ -344,17 +349,38 @@
         "scope": 0
       },
       {
+        "source": 1,
+        "destination": 8,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 2,
+        "destination": 9,
+        "targetIndex": 1,
+        "amount": 0.28,
+        "scope": 1
+      },
+      {
+        "source": 30,
+        "destination": 10,
+        "targetIndex": 1,
+        "amount": 1.8,
+        "scope": 1
+      },
+      {
+        "source": 21,
+        "destination": 11,
+        "targetIndex": 1,
+        "amount": 0.42,
+        "scope": 1
+      },
+      {
         "source": 17,
         "destination": 1,
         "targetIndex": 0,
         "amount": 10.0,
-        "scope": 0
-      },
-      {
-        "source": 30,
-        "destination": 3,
-        "targetIndex": 0,
-        "amount": 0.25,
         "scope": 0
       },
       {

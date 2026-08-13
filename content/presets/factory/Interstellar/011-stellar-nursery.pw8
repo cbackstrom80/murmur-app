@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-011-2648997880",
+    "id": "pw8-interstellar-011-2061581768",
     "name": "STELLAR NURSERY",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #011 \u2014 Stellar Nursery. Hold mid register C3\u2013C5; mod wheel blooms filter and wavetable; pressure adds shimmer. Engines: Classic, FM/PM, PhaseShape, Granular.",
+    "description": "Interstellar cinematic preset #011 \u2014 Stellar Nursery. Hold mid register C3\u2013C5; mod wheel blooms filter and wavetable; pressure adds shimmer. Engines: Classic, FM/PM, PhaseShape.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 2648997880,
+    "seed": 2061581768,
     "lineage": []
   },
   "layerMode": 0,
@@ -41,21 +41,20 @@
         "classicWaveform": 0,
         "frequencyRatio": 0.5,
         "keyTrack": true,
-        "level": 0.38,
+        "level": 0.32,
         "pan": 0.0
       },
       {
-        "engine": 5,
-        "wavetableId": "content/wavetables/gran-ocean-swell.json",
-        "wavetableFramePosition": 0.25,
+        "engine": 2,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.55,
-        "pan": 0.2,
-        "grainDensity": 20.0,
-        "grainSizeMs": 140.0,
-        "grainPositionJitter": 0.28,
-        "grainPitchJitter": 0.06
+        "level": 0.88,
+        "pan": 0.05346015659162201,
+        "classicWaveform": 0,
+        "fmModulatorRatio": 2.0,
+        "fmModulatorIndex": 0.55,
+        "fmModulatorFeedback": 0.15,
+        "fmModulatorWaveform": 0
       },
       {
         "engine": 4,
@@ -122,17 +121,17 @@
         },
         {
           "id": 1,
-          "engine": 0,
+          "engine": 2,
           "isOutput": true
         },
         {
           "id": 2,
-          "engine": 0,
+          "engine": 4,
           "isOutput": true
         },
         {
           "id": 3,
-          "engine": 0,
+          "engine": 2,
           "isOutput": true
         },
         {

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-079-1819125305",
+    "id": "pw8-interstellar-079-1965120182",
     "name": "DEBRIS STRIKE",
     "author": "MURMUR Sound Design",
     "description": "Interstellar cinematic preset #079 \u2014 Debris Strike. Single strikes C5\u2013C7; chorus widens; mod wheel shifts formant metallic tone. Engines: Wavetable, FM/PM.",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 1819125305,
+    "seed": 1965120182,
     "lineage": []
   },
   "layerMode": 0,
@@ -55,7 +55,7 @@
         "frequencyRatio": 2.0,
         "keyTrack": true,
         "level": 0.35,
-        "pan": 0.12840309892089063,
+        "pan": -0.23621428480572865,
         "wtFormantShift": -0.09999999999999999
       },
       {
@@ -111,46 +111,65 @@
       "nodes": [
         {
           "id": 0,
-          "engine": 0,
+          "engine": 2,
           "isOutput": true
         },
         {
           "id": 1,
-          "engine": 0,
-          "isOutput": true
+          "engine": 1,
+          "isOutput": false
         },
         {
           "id": 2,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 3,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 4,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 5,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 6,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 7,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         }
       ],
-      "edges": []
+      "edges": [
+        {
+          "source": 2,
+          "destination": 1,
+          "type": 1,
+          "amount": 0.78
+        },
+        {
+          "source": 1,
+          "destination": 1,
+          "type": 6,
+          "amount": 0.58
+        },
+        {
+          "source": 1,
+          "destination": 0,
+          "type": 1,
+          "amount": 1.0
+        }
+      ]
     },
     "envelopes": [
       {

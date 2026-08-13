@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-031-667919935",
+    "id": "pw8-interstellar-031-321458387",
     "name": "CLOCKWORK ORBIT",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #031 \u2014 Clockwork Orbit. Short notes or arp; mod wheel sharpens sync warp; works at 60\u2013120 BPM. Engines: Classic, Wavetable.",
+    "description": "Interstellar cinematic preset #031 \u2014 Clockwork Orbit. Short notes or arp; mod wheel sharpens sync warp; works at 60\u2013120 BPM. Engines: Classic, Wavetable, NoiseChaos.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 667919935,
+    "seed": 321458387,
     "lineage": []
   },
   "layerMode": 0,
@@ -41,27 +41,31 @@
         "classicWaveform": 0,
         "frequencyRatio": 0.5,
         "keyTrack": true,
-        "level": 0.35,
+        "level": 0.32,
         "pan": 0.0
+      },
+      {
+        "engine": 6,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.88,
+        "pan": 0.0162430418698562,
+        "noiseVariant": 2,
+        "noiseRate": 69.59651083960736
       },
       {
         "engine": 1,
-        "wavetableId": "content/wavetables/bell-dark-gong.json",
-        "wavetableFramePosition": 0.35,
+        "wavetableId": "content/wavetables/ambient-evolving-swell.json",
+        "wavetableFramePosition": 0.4,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.82,
-        "pan": 0.0,
-        "wtSyncRatio": 2.45,
-        "wtSyncAmount": 0.51
-      },
-      {
-        "engine": 0,
-        "classicWaveform": 0,
-        "frequencyRatio": 1.0,
-        "keyTrack": true,
-        "level": 0.0,
-        "pan": 0.0
+        "level": 0.62,
+        "pan": -0.1248479532396817,
+        "wtBend": 0.47238469135971195,
+        "wtAsymmetry": 0.24454920757244547,
+        "wtSyncRatio": 1.5241341080208786,
+        "wtSyncAmount": 0.6071668171780783,
+        "wtFormantShift": -0.18277412469254184
       },
       {
         "engine": 0,
@@ -113,41 +117,84 @@
         },
         {
           "id": 1,
-          "engine": 0,
-          "isOutput": true
+          "engine": 6,
+          "isOutput": false
         },
         {
           "id": 2,
-          "engine": 0,
-          "isOutput": true
+          "engine": 1,
+          "isOutput": false
         },
         {
           "id": 3,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 4,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 5,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 6,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 7,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         }
       ],
-      "edges": []
+      "edges": [
+        {
+          "source": 7,
+          "destination": 6,
+          "type": 1,
+          "amount": 0.5700000000000001
+        },
+        {
+          "source": 6,
+          "destination": 5,
+          "type": 1,
+          "amount": 0.62
+        },
+        {
+          "source": 5,
+          "destination": 4,
+          "type": 1,
+          "amount": 0.67
+        },
+        {
+          "source": 4,
+          "destination": 3,
+          "type": 1,
+          "amount": 0.72
+        },
+        {
+          "source": 3,
+          "destination": 2,
+          "type": 1,
+          "amount": 0.77
+        },
+        {
+          "source": 2,
+          "destination": 1,
+          "type": 1,
+          "amount": 0.8200000000000001
+        },
+        {
+          "source": 1,
+          "destination": 0,
+          "type": 1,
+          "amount": 0.87
+        }
+      ]
     },
     "envelopes": [
       {
@@ -320,22 +367,36 @@
         "scope": 1
       },
       {
-        "source": 17,
-        "destination": 3,
-        "targetIndex": 0,
+        "source": 1,
+        "destination": 8,
+        "targetIndex": 1,
         "amount": 0.35,
-        "scope": 0
+        "scope": 1
       },
       {
-        "source": 21,
-        "destination": 1,
-        "targetIndex": 0,
-        "amount": 8.0,
+        "source": 2,
+        "destination": 9,
+        "targetIndex": 1,
+        "amount": 0.28,
         "scope": 1
       },
       {
         "source": 30,
-        "destination": 2,
+        "destination": 10,
+        "targetIndex": 1,
+        "amount": 1.8,
+        "scope": 1
+      },
+      {
+        "source": 21,
+        "destination": 11,
+        "targetIndex": 1,
+        "amount": 0.42,
+        "scope": 1
+      },
+      {
+        "source": 17,
+        "destination": 3,
         "targetIndex": 0,
         "amount": 0.35,
         "scope": 0

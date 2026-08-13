@@ -2066,33 +2066,33 @@
   },
   {
     "category": "Interstellar",
-    "file": "factory/Interstellar/094-quasar-glitch.pw8",
+    "file": "factory/Interstellar/094-cosmic-stack.pw8",
+    "name": "COSMIC STACK"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/095-nebula-layers.pw8",
+    "name": "NEBULA LAYERS"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/096-quasar-glitch.pw8",
     "name": "QUASAR GLITCH"
   },
   {
     "category": "Interstellar",
-    "file": "factory/Interstellar/095-dark-matter-chaos.pw8",
+    "file": "factory/Interstellar/097-dark-matter-chaos.pw8",
     "name": "DARK MATTER CHAOS"
   },
   {
     "category": "Interstellar",
-    "file": "factory/Interstellar/096-quantum-foam.pw8",
+    "file": "factory/Interstellar/098-quantum-foam.pw8",
     "name": "QUANTUM FOAM"
   },
   {
     "category": "Interstellar",
-    "file": "factory/Interstellar/097-string-theory.pw8",
-    "name": "STRING THEORY"
-  },
-  {
-    "category": "Interstellar",
-    "file": "factory/Interstellar/098-hawking-radiation.pw8",
+    "file": "factory/Interstellar/099-hawking-radiation.pw8",
     "name": "HAWKING RADIATION"
-  },
-  {
-    "category": "Interstellar",
-    "file": "factory/Interstellar/099-multiverse-fold.pw8",
-    "name": "MULTIVERSE FOLD"
   },
   {
     "category": "Interstellar",

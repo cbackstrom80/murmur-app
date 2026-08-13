@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-053-757832661",
+    "id": "pw8-interstellar-053-1656533297",
     "name": "REDSHIFT DRONE",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #053 \u2014 Redshift Drone. Hold any note 5+ seconds; mod wheel morphs granular density; minimal movement. Engines: Classic, Granular, Resonator.",
+    "description": "Interstellar cinematic preset #053 \u2014 Redshift Drone. Hold any note 5+ seconds; mod wheel morphs granular density; minimal movement. Engines: Classic, PhaseShape, Resonator.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 757832661,
+    "seed": 1656533297,
     "lineage": []
   },
   "layerMode": 0,
@@ -45,23 +45,21 @@
         "pan": 0.0
       },
       {
-        "engine": 5,
-        "wavetableId": "content/wavetables/gran-digital-glitch.json",
-        "wavetableFramePosition": 0.4,
+        "engine": 4,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.52,
-        "pan": -0.024272980039472702,
-        "grainDensity": 14.0,
-        "grainSizeMs": 150.0,
-        "grainPositionJitter": 0.32,
-        "grainPitchJitter": 0.05
+        "level": 0.88,
+        "pan": 0.10613566264506491,
+        "phaseBend": 0.35,
+        "phaseFold": 0.42,
+        "phaseAsymmetry": 0.12,
+        "phaseShape": 0.62
       },
       {
         "engine": 7,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.48,
+        "level": 0.264,
         "pan": 0.0,
         "resonatorStructure": 0.38,
         "resonatorDecay": 0.82,
@@ -119,28 +117,28 @@
         },
         {
           "id": 1,
-          "engine": 0,
+          "engine": 4,
           "isOutput": true
         },
         {
           "id": 2,
-          "engine": 0,
+          "engine": 7,
           "isOutput": true
         },
         {
           "id": 3,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 4,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 5,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 6,
@@ -153,7 +151,26 @@
           "isOutput": true
         }
       ],
-      "edges": []
+      "edges": [
+        {
+          "source": 3,
+          "destination": 0,
+          "type": 1,
+          "amount": 0.68
+        },
+        {
+          "source": 4,
+          "destination": 1,
+          "type": 1,
+          "amount": 0.62
+        },
+        {
+          "source": 5,
+          "destination": 2,
+          "type": 1,
+          "amount": 0.58
+        }
+      ]
     },
     "envelopes": [
       {

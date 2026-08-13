@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-047-2783413921",
+    "id": "pw8-interstellar-047-2821764687",
     "name": "GOLDEN RECORD",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #047 \u2014 Golden Record. Melodic lines G3\u2013B4; legato portamento; mod wheel adds bite and filter sweep. Engines: PhaseShape.",
+    "description": "Interstellar cinematic preset #047 \u2014 Golden Record. Melodic lines G3\u2013B4; legato portamento; mod wheel adds bite and filter sweep. Engines: PhaseShape, NoiseChaos.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 2783413921,
+    "seed": 2821764687,
     "lineage": []
   },
   "layerMode": 0,
@@ -40,7 +40,7 @@
         "engine": 4,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.88,
+        "level": 0.32,
         "pan": 0.0,
         "phaseBend": 0.35,
         "phaseFold": 0.4,
@@ -48,12 +48,13 @@
         "phaseShape": 0.6
       },
       {
-        "engine": 0,
-        "classicWaveform": 0,
+        "engine": 6,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.0,
-        "pan": 0.0
+        "level": 0.88,
+        "pan": 0.03393103751830154,
+        "noiseVariant": 2,
+        "noiseRate": 62.28598765272519
       },
       {
         "engine": 0,
@@ -108,12 +109,12 @@
       "nodes": [
         {
           "id": 0,
-          "engine": 0,
+          "engine": 4,
           "isOutput": true
         },
         {
           "id": 1,
-          "engine": 0,
+          "engine": 6,
           "isOutput": true
         },
         {
@@ -124,17 +125,17 @@
         {
           "id": 3,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 4,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 5,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 6,
@@ -147,7 +148,26 @@
           "isOutput": true
         }
       ],
-      "edges": []
+      "edges": [
+        {
+          "source": 3,
+          "destination": 0,
+          "type": 1,
+          "amount": 0.68
+        },
+        {
+          "source": 4,
+          "destination": 1,
+          "type": 1,
+          "amount": 0.62
+        },
+        {
+          "source": 5,
+          "destination": 2,
+          "type": 1,
+          "amount": 0.58
+        }
+      ]
     },
     "envelopes": [
       {

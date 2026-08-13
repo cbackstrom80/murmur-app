@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-050-2625817489",
+    "id": "pw8-interstellar-050-114764432",
     "name": "VOID WHISPER",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #050 \u2014 Void Whisper. Hold any note 5+ seconds; mod wheel morphs granular density; minimal movement. Engines: Classic, Wavetable, Granular, Resonator.",
+    "description": "Interstellar cinematic preset #050 \u2014 Void Whisper. Hold any note 5+ seconds; mod wheel morphs granular density; minimal movement. Engines: Classic, Wavetable, Resonator.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 2625817489,
+    "seed": 114764432,
     "lineage": []
   },
   "layerMode": 0,
@@ -45,23 +45,21 @@
         "pan": 0.0
       },
       {
-        "engine": 5,
-        "wavetableId": "content/wavetables/gran-crystal-burst.json",
-        "wavetableFramePosition": 0.28,
+        "engine": 1,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.52,
-        "pan": 0.23020997356753758,
-        "grainDensity": 10.4,
-        "grainSizeMs": 126.0,
-        "grainPositionJitter": 0.32,
-        "grainPitchJitter": 0.05
+        "level": 0.88,
+        "pan": -0.10132501621442119,
+        "wavetableId": "content/wavetables/formant-vowel-morph-a-to-e.json",
+        "wavetableFramePosition": 0.35,
+        "wtBend": 0.18,
+        "wtFormantShift": 0.12
       },
       {
         "engine": 7,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.48,
+        "level": 0.264,
         "pan": 0.0,
         "resonatorStructure": 0.38,
         "resonatorDecay": 0.82,
@@ -71,7 +69,7 @@
       },
       {
         "engine": 1,
-        "wavetableId": "content/wavetables/fold-sine-sharp.json",
+        "wavetableId": "content/wavetables/ambient-evolving-swell.json",
         "wavetableFramePosition": 0.45,
         "frequencyRatio": 0.5,
         "keyTrack": true,
@@ -121,28 +119,28 @@
         },
         {
           "id": 1,
-          "engine": 0,
+          "engine": 1,
           "isOutput": true
         },
         {
           "id": 2,
-          "engine": 0,
+          "engine": 7,
           "isOutput": true
         },
         {
           "id": 3,
-          "engine": 0,
-          "isOutput": true
+          "engine": 1,
+          "isOutput": false
         },
         {
           "id": 4,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 5,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 6,
@@ -155,7 +153,26 @@
           "isOutput": true
         }
       ],
-      "edges": []
+      "edges": [
+        {
+          "source": 3,
+          "destination": 0,
+          "type": 1,
+          "amount": 0.68
+        },
+        {
+          "source": 4,
+          "destination": 1,
+          "type": 1,
+          "amount": 0.62
+        },
+        {
+          "source": 5,
+          "destination": 2,
+          "type": 1,
+          "amount": 0.58
+        }
+      ]
     },
     "envelopes": [
       {

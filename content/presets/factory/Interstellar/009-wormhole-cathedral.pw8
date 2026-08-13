@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-009-895209676",
+    "id": "pw8-interstellar-009-3217591293",
     "name": "WORMHOLE CATHEDRAL",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #009 \u2014 Wormhole Cathedral. Hold mid register C3\u2013C5; mod wheel blooms filter and wavetable; pressure adds shimmer. Engines: Classic, Wavetable, PhaseShape.",
+    "description": "Interstellar cinematic preset #009 \u2014 Wormhole Cathedral. Hold mid register C3\u2013C5; mod wheel blooms filter and wavetable; pressure adds shimmer. Engines: Classic, Wavetable.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 895209676,
+    "seed": 3217591293,
     "lineage": []
   },
   "layerMode": 0,
@@ -41,30 +41,30 @@
         "classicWaveform": 0,
         "frequencyRatio": 0.5,
         "keyTrack": true,
-        "level": 0.38,
+        "level": 0.32,
         "pan": 0.0
       },
       {
-        "engine": 1,
-        "wavetableId": "content/wavetables/formant-vowel-morph-o-to-u.json",
-        "wavetableFramePosition": 0.45,
+        "engine": 0,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.78,
-        "pan": -0.03724054454810258,
-        "wtFormantShift": 0.35,
-        "wtBend": 0.38
+        "level": 0.88,
+        "pan": 0.044540114012997095,
+        "classicWaveform": 0
       },
       {
-        "engine": 4,
-        "frequencyRatio": 1.002,
+        "engine": 1,
+        "wavetableId": "content/wavetables/texture-drone-evolve.json",
+        "wavetableFramePosition": 0.4,
+        "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.28,
-        "pan": 0.25,
-        "phaseBend": 0.12,
-        "phaseFold": 0.22,
-        "phaseAsymmetry": 0.05,
-        "phaseShape": 0.45
+        "level": 0.62,
+        "pan": 0.07198526101944203,
+        "wtBend": 0.2998700327983691,
+        "wtAsymmetry": 0.3846922858117754,
+        "wtSyncRatio": 1.5229148391065412,
+        "wtSyncAmount": 0.5015480821479016,
+        "wtFormantShift": -0.06979424455650013
       },
       {
         "engine": 0,
@@ -121,7 +121,7 @@
         },
         {
           "id": 2,
-          "engine": 0,
+          "engine": 1,
           "isOutput": true
         },
         {
@@ -345,17 +345,38 @@
         "scope": 0
       },
       {
+        "source": 1,
+        "destination": 8,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 2,
+        "destination": 9,
+        "targetIndex": 1,
+        "amount": 0.28,
+        "scope": 1
+      },
+      {
+        "source": 30,
+        "destination": 10,
+        "targetIndex": 1,
+        "amount": 1.8,
+        "scope": 1
+      },
+      {
+        "source": 21,
+        "destination": 11,
+        "targetIndex": 1,
+        "amount": 0.42,
+        "scope": 1
+      },
+      {
         "source": 17,
         "destination": 1,
         "targetIndex": 0,
         "amount": 10.0,
-        "scope": 0
-      },
-      {
-        "source": 30,
-        "destination": 3,
-        "targetIndex": 0,
-        "amount": 0.25,
         "scope": 0
       },
       {

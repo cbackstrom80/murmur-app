@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-098-4072439894",
-    "name": "HAWKING RADIATION",
+    "id": "pw8-interstellar-096-268998993",
+    "name": "QUASAR GLITCH",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #098 \u2014 Hawking Radiation. Explore extremes; mod wheel is essential; still musical at moderate settings. Engines: Classic, FM/PM.",
+    "description": "Interstellar cinematic preset #096 \u2014 Quasar Glitch. Explore extremes; mod wheel is essential; still musical at moderate settings. Engines: Classic, Granular.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 4072439894,
+    "seed": 268998993,
     "lineage": []
   },
   "layerMode": 0,
@@ -45,16 +45,17 @@
         "pan": 0.0
       },
       {
-        "engine": 2,
+        "engine": 5,
         "frequencyRatio": 1.0,
         "keyTrack": true,
         "level": 0.72,
-        "pan": -0.06837657311078937,
-        "classicWaveform": 0,
-        "fmModulatorRatio": 7.0,
-        "fmModulatorIndex": 1.1,
-        "fmModulatorFeedback": 0.25,
-        "fmModulatorWaveform": 0
+        "pan": -0.26565931899314155,
+        "wavetableId": "content/wavetables/gran-frozen-grit.json",
+        "wavetableFramePosition": 0.4,
+        "grainPositionJitter": 0.45,
+        "grainPitchJitter": 0.12,
+        "grainDensity": 18.0,
+        "grainSizeMs": 70.0
       },
       {
         "engine": 0,
@@ -114,7 +115,7 @@
         },
         {
           "id": 1,
-          "engine": 0,
+          "engine": 5,
           "isOutput": true
         },
         {
@@ -130,25 +131,50 @@
         {
           "id": 4,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 5,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 6,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 7,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         }
       ],
-      "edges": []
+      "edges": [
+        {
+          "source": 4,
+          "destination": 0,
+          "type": 1,
+          "amount": 0.52
+        },
+        {
+          "source": 5,
+          "destination": 1,
+          "type": 1,
+          "amount": 0.48
+        },
+        {
+          "source": 6,
+          "destination": 2,
+          "type": 0,
+          "amount": 0.38
+        },
+        {
+          "source": 7,
+          "destination": 3,
+          "type": 1,
+          "amount": 0.42
+        }
+      ]
     },
     "envelopes": [
       {
@@ -236,7 +262,7 @@
     "filter1": {
       "enabled": true,
       "mode": 0,
-      "cutoffHz": 2600.0,
+      "cutoffHz": 1800.0,
       "resonance": 0.28,
       "keyTrack": 0.25
     },
@@ -364,7 +390,7 @@
       {
         "type": 5,
         "mix": 0.18,
-        "freqShiftHz": 9.0,
+        "freqShiftHz": 5.0,
         "freqShiftDelayMs": 320.0,
         "freqShiftFeedback": 0.45,
         "freqShiftLowCutHz": 120.0,

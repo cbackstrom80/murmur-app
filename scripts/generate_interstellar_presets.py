@@ -298,6 +298,95 @@ def graph_kind_for_slot(slot: int) -> str:
     return GRAPH_KINDS[(slot - 1) // 20]
 
 
+def primary_engine_for_slot(slot: int) -> int | None:
+    """Ensure each engine is primary on at least 8 presets (slots 1–64 grid)."""
+    if slot > 64:
+        return None
+    return (slot - 1) % 8
+
+
+def force_primary_engine(ops: list, engine: int, f, rng: random.Random) -> list:
+    """Rewrite op slot 1 so `engine` is the loudest active operator."""
+    ops = [dict(o) for o in ops]
+    while len(ops) < 2:
+        ops.append({"engine": 0, "classicWaveform": f.WAVEFORM_SINE, "frequencyRatio": 1.0,
+                    "keyTrack": True, "level": 0.0, "pan": 0.0})
+    for i, op in enumerate(ops):
+        if i == 0:
+            op["level"] = min(op.get("level", 0.35), 0.32)
+        elif i == 1:
+            op.clear()
+            op.update({"engine": engine, "frequencyRatio": 1.0, "keyTrack": True,
+                       "level": 0.88, "pan": rng.uniform(-0.12, 0.12)})
+            if engine == 0:
+                op["classicWaveform"] = f.WAVEFORM_SAW if rng.random() > 0.5 else f.WAVEFORM_SINE
+            elif engine == 1:
+                op.update({"wavetableId": f.wt_path("pad", rng), "wavetableFramePosition": 0.35,
+                           "wtBend": 0.18, "wtFormantShift": 0.12})
+            elif engine == 2:
+                op.update({"classicWaveform": f.WAVEFORM_SINE, "fmModulatorRatio": 2.0,
+                           "fmModulatorIndex": 0.55, "fmModulatorFeedback": 0.15,
+                           "fmModulatorWaveform": f.WAVEFORM_SINE})
+            elif engine == 3:
+                op.update({"additivePartialCount": 40, "additiveTilt": -0.2,
+                           "additiveOddEven": 0.65, "additiveStretch": 0.01})
+            elif engine == 4:
+                op.update({"phaseBend": 0.35, "phaseFold": 0.42, "phaseAsymmetry": 0.12, "phaseShape": 0.62})
+            elif engine == 5:
+                op.update({"wavetableId": f.wt_path("gran", rng), "wavetableFramePosition": 0.3,
+                           "grainDensity": 12.0, "grainSizeMs": 120.0,
+                           "grainPositionJitter": 0.3, "grainPitchJitter": 0.08})
+            elif engine == 6:
+                op.update({"noiseVariant": 2, "noiseRate": 60.0 + rng.uniform(-10, 10)})
+            else:
+                op.update({"resonatorStructure": 0.38, "resonatorDecay": 0.72,
+                           "resonatorDamping": 0.42, "resonatorBrightness": 0.48, "resonatorModeCount": 6})
+        elif op.get("level", 0) > 0.45:
+            op["level"] = op["level"] * 0.55
+    return ops
+
+
+WARP_PROMINENT_SLOTS = frozenset({
+    1, 2, 3, 8, 9, 13, 17, 21, 28, 31, 38, 41, 48, 55, 62, 71, 86, 93,
+})
+
+
+def boost_warp_prominence(ops: list, slot: int, rng: random.Random, f) -> list:
+    """Full warp param suite on wavetable ops for showcase presets."""
+    if slot not in WARP_PROMINENT_SLOTS:
+        return ops
+    ops = [dict(o) for o in ops]
+    wt_idx = next((i for i, o in enumerate(ops) if o.get("engine") == 1 and o.get("level", 0) > 0.2), None)
+    if wt_idx is None:
+        while len(ops) < 3:
+            ops.append({"engine": 0, "classicWaveform": f.WAVEFORM_SINE, "frequencyRatio": 1.0,
+                        "keyTrack": True, "level": 0.0, "pan": 0.0})
+        ops[2] = {
+            "engine": 1, "wavetableId": f.wt_path("pad", rng),
+            "wavetableFramePosition": 0.4, "frequencyRatio": 1.0, "keyTrack": True,
+            "level": 0.62, "pan": rng.uniform(-0.2, 0.2),
+        }
+        wt_idx = 2
+    op = ops[wt_idx]
+    op["wtBend"] = 0.28 + rng.random() * 0.25
+    op["wtAsymmetry"] = 0.18 + rng.random() * 0.22
+    op["wtSyncRatio"] = 1.4 + rng.random() * 1.2
+    op["wtSyncAmount"] = 0.38 + rng.random() * 0.25
+    op["wtFormantShift"] = -0.25 + rng.random() * 0.5
+    return ops
+
+
+def warp_mod_routes_for_slot(slot: int, wt_op: int = 1) -> list:
+    if slot not in WARP_PROMINENT_SLOTS:
+        return []
+    return [
+        {"source": SRC_LFO1, "destination": DST_WT_BEND, "targetIndex": wt_op, "amount": 0.35, "scope": 1},
+        {"source": SRC_LFO2, "destination": DST_WT_ASYM, "targetIndex": wt_op, "amount": 0.28, "scope": 1},
+        {"source": SRC_EXPRESSION, "destination": DST_WT_SYNC, "targetIndex": wt_op, "amount": 1.8, "scope": 1},
+        {"source": SRC_MACRO1, "destination": DST_WT_FORMANT, "targetIndex": wt_op, "amount": 0.42, "scope": 1},
+    ]
+
+
 def mw_bloom_routes(wt_op=1, wt_amount=0.4, cutoff_amount=22.0):
     return [
         {"source": SRC_MOD_WHEEL, "destination": DST_FILTER_CUTOFF, "targetIndex": 0,
@@ -817,6 +906,12 @@ def build_interstellar_patch(f, slot, display_name, archetype, variant, rng):
     else:
         ops, amp_env, filter1, lfo1, lfo2, mod_routes, insert, master, macro_names, arp, extras = result
 
+    target_primary = primary_engine_for_slot(slot)
+    if target_primary is not None:
+        ops = force_primary_engine(ops, target_primary, f, rng)
+    ops = boost_warp_prominence(ops, slot, rng, f)
+    mod_routes = mod_routes + warp_mod_routes_for_slot(slot)
+
     seed = hash((BATCH_TAG, archetype, slot, display_name)) & 0xFFFFFFFF
     engines_used = sorted({o["engine"] for o in ops})
     engine_names = ["Classic", "Wavetable", "FM/PM", "Additive", "PhaseShape",
@@ -1102,6 +1197,8 @@ def main():
     matrix = feature_matrix()
     print(f"Engines: {', '.join(matrix['engines'])}")
     print(f"Filter2: {matrix['filter2']}, Warp: {matrix['warp']}, Stack: {matrix['stack']}, Arp: {matrix['arp']}")
+    print(f"Graphs: {matrix['graphs']}")
+    print(f"Primary engines: {matrix['engine_primary']}")
 
 
 def update_manifest(new_entries: list[dict]) -> None:

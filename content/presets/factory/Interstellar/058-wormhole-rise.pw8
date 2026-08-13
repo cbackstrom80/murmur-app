@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-058-544724334",
+    "id": "pw8-interstellar-058-2880510980",
     "name": "WORMHOLE RISE",
     "author": "MURMUR Sound Design",
     "description": "Interstellar cinematic preset #058 \u2014 Wormhole Rise. Long notes or single triggers; sweep mod wheel for riser/drop; use as transition layer. Engines: Wavetable, NoiseChaos.",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 544724334,
+    "seed": 2880510980,
     "lineage": []
   },
   "layerMode": 0,
@@ -47,13 +47,14 @@
       },
       {
         "engine": 1,
-        "wavetableId": "content/wavetables/fold-saw-soft.json",
-        "wavetableFramePosition": 0.1,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.62,
-        "pan": 0.0,
-        "wtBend": 0.55
+        "level": 0.88,
+        "pan": 0.03357595157147947,
+        "wavetableId": "content/wavetables/formant-vowel-oo.json",
+        "wavetableFramePosition": 0.35,
+        "wtBend": 0.18,
+        "wtFormantShift": 0.12
       },
       {
         "engine": 0,
@@ -108,12 +109,12 @@
       "nodes": [
         {
           "id": 0,
-          "engine": 0,
+          "engine": 6,
           "isOutput": true
         },
         {
           "id": 1,
-          "engine": 0,
+          "engine": 1,
           "isOutput": true
         },
         {
@@ -124,17 +125,17 @@
         {
           "id": 3,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 4,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 5,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 6,
@@ -147,7 +148,26 @@
           "isOutput": true
         }
       ],
-      "edges": []
+      "edges": [
+        {
+          "source": 3,
+          "destination": 0,
+          "type": 1,
+          "amount": 0.68
+        },
+        {
+          "source": 4,
+          "destination": 1,
+          "type": 1,
+          "amount": 0.62
+        },
+        {
+          "source": 5,
+          "destination": 2,
+          "type": 1,
+          "amount": 0.58
+        }
+      ]
     },
     "envelopes": [
       {

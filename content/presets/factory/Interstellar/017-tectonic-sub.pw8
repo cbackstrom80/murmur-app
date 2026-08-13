@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-017-3180195136",
+    "id": "pw8-interstellar-017-2917779830",
     "name": "TECTONIC SUB",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #017 \u2014 Tectonic Sub. Play C1\u2013C2; mod wheel opens harmonics; keep velocity moderate for clean sub. Engines: Classic.",
+    "description": "Interstellar cinematic preset #017 \u2014 Tectonic Sub. Play C1\u2013C2; mod wheel opens harmonics; keep velocity moderate for clean sub. Engines: Classic, Wavetable.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 3180195136,
+    "seed": 2917779830,
     "lineage": []
   },
   "layerMode": 0,
@@ -41,24 +41,30 @@
         "classicWaveform": 0,
         "frequencyRatio": 0.5,
         "keyTrack": true,
-        "level": 0.5700000000000001,
+        "level": 0.32,
         "pan": 0.0
       },
       {
         "engine": 0,
-        "classicWaveform": 3,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.78,
-        "pan": 0.0
+        "level": 0.88,
+        "pan": 0.052789241809831994,
+        "classicWaveform": 2
       },
       {
-        "engine": 0,
-        "classicWaveform": 3,
-        "frequencyRatio": 1.003,
+        "engine": 1,
+        "wavetableId": "content/wavetables/chord-fifth-stack.json",
+        "wavetableFramePosition": 0.4,
+        "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.35,
-        "pan": 0.12
+        "level": 0.62,
+        "pan": 0.014284758153501498,
+        "wtBend": 0.3021143695377749,
+        "wtAsymmetry": 0.39519965752751174,
+        "wtSyncRatio": 2.043624653899315,
+        "wtSyncAmount": 0.4050287168146324,
+        "wtFormantShift": -0.07512827780493248
       },
       {
         "engine": 0,
@@ -115,7 +121,7 @@
         },
         {
           "id": 2,
-          "engine": 0,
+          "engine": 1,
           "isOutput": true
         },
         {
@@ -317,11 +323,32 @@
         "scope": 0
       },
       {
-        "source": 30,
-        "destination": 2,
-        "targetIndex": 0,
+        "source": 1,
+        "destination": 8,
+        "targetIndex": 1,
         "amount": 0.35,
-        "scope": 0
+        "scope": 1
+      },
+      {
+        "source": 2,
+        "destination": 9,
+        "targetIndex": 1,
+        "amount": 0.28,
+        "scope": 1
+      },
+      {
+        "source": 30,
+        "destination": 10,
+        "targetIndex": 1,
+        "amount": 1.8,
+        "scope": 1
+      },
+      {
+        "source": 21,
+        "destination": 11,
+        "targetIndex": 1,
+        "amount": 0.42,
+        "scope": 1
       },
       {
         "source": 20,

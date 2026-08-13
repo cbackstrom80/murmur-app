@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-040-3348547847",
+    "id": "pw8-interstellar-040-4280091397",
     "name": "FIRST STEP",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #040 \u2014 First Step. Melodic lines G3\u2013B4; legato portamento; mod wheel adds bite and filter sweep. Engines: Wavetable.",
+    "description": "Interstellar cinematic preset #040 \u2014 First Step. Melodic lines G3\u2013B4; legato portamento; mod wheel adds bite and filter sweep. Engines: Wavetable, Resonator.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 3348547847,
+    "seed": 4280091397,
     "lineage": []
   },
   "layerMode": 0,
@@ -38,21 +38,25 @@
     "operators": [
       {
         "engine": 1,
-        "wavetableId": "content/wavetables/pwm-twin-detune.json",
+        "wavetableId": "content/wavetables/metallic-ratio-stack-b.json",
         "wavetableFramePosition": 0.55,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.88,
+        "level": 0.32,
         "pan": 0.0,
         "wtBend": 0.25
       },
       {
-        "engine": 0,
-        "classicWaveform": 0,
+        "engine": 7,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.0,
-        "pan": 0.0
+        "level": 0.88,
+        "pan": -0.012998361186046317,
+        "resonatorStructure": 0.38,
+        "resonatorDecay": 0.72,
+        "resonatorDamping": 0.42,
+        "resonatorBrightness": 0.48,
+        "resonatorModeCount": 6
       },
       {
         "engine": 0,
@@ -107,46 +111,89 @@
       "nodes": [
         {
           "id": 0,
-          "engine": 0,
+          "engine": 1,
           "isOutput": true
         },
         {
           "id": 1,
-          "engine": 0,
-          "isOutput": true
+          "engine": 7,
+          "isOutput": false
         },
         {
           "id": 2,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 3,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 4,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 5,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 6,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 7,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         }
       ],
-      "edges": []
+      "edges": [
+        {
+          "source": 7,
+          "destination": 6,
+          "type": 1,
+          "amount": 0.5700000000000001
+        },
+        {
+          "source": 6,
+          "destination": 5,
+          "type": 1,
+          "amount": 0.62
+        },
+        {
+          "source": 5,
+          "destination": 4,
+          "type": 1,
+          "amount": 0.67
+        },
+        {
+          "source": 4,
+          "destination": 3,
+          "type": 1,
+          "amount": 0.72
+        },
+        {
+          "source": 3,
+          "destination": 2,
+          "type": 1,
+          "amount": 0.77
+        },
+        {
+          "source": 2,
+          "destination": 1,
+          "type": 1,
+          "amount": 0.8200000000000001
+        },
+        {
+          "source": 1,
+          "destination": 0,
+          "type": 1,
+          "amount": 0.87
+        }
+      ]
     },
     "envelopes": [
       {

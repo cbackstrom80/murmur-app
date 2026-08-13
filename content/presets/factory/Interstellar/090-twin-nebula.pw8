@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-090-2484766058",
+    "id": "pw8-interstellar-090-2422894256",
     "name": "TWIN NEBULA",
     "author": "MURMUR Sound Design",
     "description": "Interstellar cinematic preset #090 \u2014 Twin Nebula. Chords in mid register; macro MORPH crossfades dual layers; mod wheel = bloom. Engines: Classic, Additive, PhaseShape.",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 2484766058,
+    "seed": 2422894256,
     "lineage": []
   },
   "layerMode": 2,
@@ -116,12 +116,12 @@
         },
         {
           "id": 1,
-          "engine": 0,
+          "engine": 3,
           "isOutput": true
         },
         {
           "id": 2,
-          "engine": 0,
+          "engine": 4,
           "isOutput": true
         },
         {
@@ -132,25 +132,50 @@
         {
           "id": 4,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 5,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 6,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 7,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         }
       ],
-      "edges": []
+      "edges": [
+        {
+          "source": 4,
+          "destination": 0,
+          "type": 1,
+          "amount": 0.52
+        },
+        {
+          "source": 5,
+          "destination": 1,
+          "type": 1,
+          "amount": 0.48
+        },
+        {
+          "source": 6,
+          "destination": 2,
+          "type": 0,
+          "amount": 0.38
+        },
+        {
+          "source": 7,
+          "destination": 3,
+          "type": 1,
+          "amount": 0.42
+        }
+      ]
     },
     "envelopes": [
       {
@@ -399,7 +424,7 @@
       },
       {
         "engine": 5,
-        "wavetableId": "content/wavetables/gran-vocal-dust.json",
+        "wavetableId": "content/wavetables/gran-crystal-burst.json",
         "wavetableFramePosition": 0.2,
         "frequencyRatio": 1.0,
         "keyTrack": true,

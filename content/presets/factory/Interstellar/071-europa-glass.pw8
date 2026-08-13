@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-071-979432994",
+    "id": "pw8-interstellar-071-3857925057",
     "name": "EUROPA GLASS",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #071 \u2014 Europa Glass. Staccato C4\u2013C5; velocity controls brightness; mod wheel adds space. Engines: Classic, PhaseShape.",
+    "description": "Interstellar cinematic preset #071 \u2014 Europa Glass. Staccato C4\u2013C5; velocity controls brightness; mod wheel adds space. Engines: Classic, Wavetable, PhaseShape.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 979432994,
+    "seed": 3857925057,
     "lineage": []
   },
   "layerMode": 0,
@@ -56,12 +56,18 @@
         "phaseShape": 0.45
       },
       {
-        "engine": 0,
-        "classicWaveform": 0,
+        "engine": 1,
+        "wavetableId": "content/wavetables/chord-fifth-stack.json",
+        "wavetableFramePosition": 0.4,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.0,
-        "pan": 0.0
+        "level": 0.62,
+        "pan": -0.08440655602051512,
+        "wtBend": 0.336419041473758,
+        "wtAsymmetry": 0.39238545901695093,
+        "wtSyncRatio": 2.561682098970881,
+        "wtSyncAmount": 0.4328780023858303,
+        "wtFormantShift": -0.1587788522024699
       },
       {
         "engine": 0,
@@ -113,41 +119,60 @@
         },
         {
           "id": 1,
-          "engine": 0,
-          "isOutput": true
+          "engine": 4,
+          "isOutput": false
         },
         {
           "id": 2,
-          "engine": 0,
-          "isOutput": true
+          "engine": 1,
+          "isOutput": false
         },
         {
           "id": 3,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 4,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 5,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 6,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 7,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         }
       ],
-      "edges": []
+      "edges": [
+        {
+          "source": 2,
+          "destination": 1,
+          "type": 1,
+          "amount": 0.78
+        },
+        {
+          "source": 1,
+          "destination": 1,
+          "type": 6,
+          "amount": 0.58
+        },
+        {
+          "source": 1,
+          "destination": 0,
+          "type": 1,
+          "amount": 1.0
+        }
+      ]
     },
     "envelopes": [
       {
@@ -313,18 +338,32 @@
         "scope": 0
       },
       {
-        "source": 21,
-        "destination": 1,
-        "targetIndex": 0,
-        "amount": 8.0,
+        "source": 1,
+        "destination": 8,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 2,
+        "destination": 9,
+        "targetIndex": 1,
+        "amount": 0.28,
         "scope": 1
       },
       {
         "source": 30,
-        "destination": 2,
-        "targetIndex": 0,
-        "amount": 0.35,
-        "scope": 0
+        "destination": 10,
+        "targetIndex": 1,
+        "amount": 1.8,
+        "scope": 1
+      },
+      {
+        "source": 21,
+        "destination": 11,
+        "targetIndex": 1,
+        "amount": 0.42,
+        "scope": 1
       },
       {
         "source": 20,

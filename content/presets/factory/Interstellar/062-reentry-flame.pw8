@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-062-3766180301",
+    "id": "pw8-interstellar-062-2650835593",
     "name": "REENTRY FLAME",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #062 \u2014 Reentry Flame. Long notes or single triggers; sweep mod wheel for riser/drop; use as transition layer. Engines: Wavetable, NoiseChaos.",
+    "description": "Interstellar cinematic preset #062 \u2014 Reentry Flame. Long notes or single triggers; sweep mod wheel for riser/drop; use as transition layer. Engines: Wavetable, Granular, NoiseChaos.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 3766180301,
+    "seed": 2650835593,
     "lineage": []
   },
   "layerMode": 0,
@@ -46,22 +46,31 @@
         "noiseRate": 60.0
       },
       {
+        "engine": 5,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.88,
+        "pan": -0.050111574262106176,
+        "wavetableId": "content/wavetables/gran-cloud-drift.json",
+        "wavetableFramePosition": 0.3,
+        "grainDensity": 12.0,
+        "grainSizeMs": 120.0,
+        "grainPositionJitter": 0.3,
+        "grainPitchJitter": 0.08
+      },
+      {
         "engine": 1,
-        "wavetableId": "content/wavetables/texture-tonal-to-noise.json",
-        "wavetableFramePosition": 0.1,
+        "wavetableId": "content/wavetables/chord-fifth-stack.json",
+        "wavetableFramePosition": 0.4,
         "frequencyRatio": 1.0,
         "keyTrack": true,
         "level": 0.62,
-        "pan": 0.0,
-        "wtBend": 0.67
-      },
-      {
-        "engine": 0,
-        "classicWaveform": 0,
-        "frequencyRatio": 1.0,
-        "keyTrack": true,
-        "level": 0.0,
-        "pan": 0.0
+        "pan": 0.05119524049131852,
+        "wtBend": 0.2939036545510102,
+        "wtAsymmetry": 0.3282070024748638,
+        "wtSyncRatio": 2.3684703080909513,
+        "wtSyncAmount": 0.55218541572661,
+        "wtFormantShift": 0.11598607008747897
       },
       {
         "engine": 0,
@@ -108,46 +117,65 @@
       "nodes": [
         {
           "id": 0,
-          "engine": 0,
+          "engine": 6,
           "isOutput": true
         },
         {
           "id": 1,
-          "engine": 0,
-          "isOutput": true
+          "engine": 5,
+          "isOutput": false
         },
         {
           "id": 2,
-          "engine": 0,
-          "isOutput": true
+          "engine": 1,
+          "isOutput": false
         },
         {
           "id": 3,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 4,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 5,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 6,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 7,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         }
       ],
-      "edges": []
+      "edges": [
+        {
+          "source": 2,
+          "destination": 1,
+          "type": 1,
+          "amount": 0.78
+        },
+        {
+          "source": 1,
+          "destination": 1,
+          "type": 6,
+          "amount": 0.58
+        },
+        {
+          "source": 1,
+          "destination": 0,
+          "type": 1,
+          "amount": 1.0
+        }
+      ]
     },
     "envelopes": [
       {
@@ -327,6 +355,34 @@
         "scope": 0
       },
       {
+        "source": 1,
+        "destination": 8,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 2,
+        "destination": 9,
+        "targetIndex": 1,
+        "amount": 0.28,
+        "scope": 1
+      },
+      {
+        "source": 30,
+        "destination": 10,
+        "targetIndex": 1,
+        "amount": 1.8,
+        "scope": 1
+      },
+      {
+        "source": 21,
+        "destination": 11,
+        "targetIndex": 1,
+        "amount": 0.42,
+        "scope": 1
+      },
+      {
         "source": 17,
         "destination": 1,
         "targetIndex": 0,
@@ -334,24 +390,10 @@
         "scope": 0
       },
       {
-        "source": 26,
-        "destination": 1,
-        "targetIndex": 0,
-        "amount": 10.0,
-        "scope": 1
-      },
-      {
         "source": 18,
         "destination": 1,
         "targetIndex": 0,
         "amount": 8.0,
-        "scope": 0
-      },
-      {
-        "source": 30,
-        "destination": 3,
-        "targetIndex": 0,
-        "amount": 0.25,
         "scope": 0
       },
       {
@@ -661,8 +703,8 @@
     "knobs": [
       {
         "kind": "macro",
-        "index": 5,
-        "label": "TENSION"
+        "index": 0,
+        "label": "RISE"
       },
       {
         "kind": "param",

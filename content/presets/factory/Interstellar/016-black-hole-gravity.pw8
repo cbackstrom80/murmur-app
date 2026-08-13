@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-016-842011891",
+    "id": "pw8-interstellar-016-2295707272",
     "name": "BLACK HOLE GRAVITY",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #016 \u2014 Black Hole Gravity. Play C1\u2013C2; mod wheel opens harmonics; keep velocity moderate for clean sub. Engines: Classic, FM/PM.",
+    "description": "Interstellar cinematic preset #016 \u2014 Black Hole Gravity. Play C1\u2013C2; mod wheel opens harmonics; keep velocity moderate for clean sub. Engines: Classic, Resonator.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 842011891,
+    "seed": 2295707272,
     "lineage": []
   },
   "layerMode": 0,
@@ -41,20 +41,20 @@
         "classicWaveform": 0,
         "frequencyRatio": 0.5,
         "keyTrack": true,
-        "level": 0.55,
+        "level": 0.32,
         "pan": 0.0
       },
       {
-        "engine": 2,
-        "classicWaveform": 0,
+        "engine": 7,
         "frequencyRatio": 1.0,
         "keyTrack": true,
         "level": 0.88,
-        "pan": 0.0,
-        "fmModulatorRatio": 0.5,
-        "fmModulatorIndex": 0.35,
-        "fmModulatorFeedback": 0.12,
-        "fmModulatorWaveform": 0
+        "pan": -0.016211186657809545,
+        "resonatorStructure": 0.38,
+        "resonatorDecay": 0.72,
+        "resonatorDamping": 0.42,
+        "resonatorBrightness": 0.48,
+        "resonatorModeCount": 6
       },
       {
         "engine": 0,
@@ -114,7 +114,7 @@
         },
         {
           "id": 1,
-          "engine": 0,
+          "engine": 7,
           "isOutput": true
         },
         {

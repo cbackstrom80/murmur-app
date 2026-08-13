@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-086-3199586692",
+    "id": "pw8-interstellar-086-2124946491",
     "name": "DUAL CATHEDRAL",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #086 \u2014 Dual Cathedral. Chords in mid register; macro MORPH crossfades dual layers; mod wheel = bloom. Engines: Classic, Additive, PhaseShape.",
+    "description": "Interstellar cinematic preset #086 \u2014 Dual Cathedral. Chords in mid register; macro MORPH crossfades dual layers; mod wheel = bloom. Engines: Classic, Wavetable, Additive.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 3199586692,
+    "seed": 2124946491,
     "lineage": []
   },
   "layerMode": 2,
@@ -56,15 +56,18 @@
         "additiveStretch": 0.01
       },
       {
-        "engine": 4,
-        "frequencyRatio": 1.002,
+        "engine": 1,
+        "wavetableId": "content/wavetables/ambient-airy-drift.json",
+        "wavetableFramePosition": 0.4,
+        "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.25,
-        "pan": 0.2,
-        "phaseBend": 0.1,
-        "phaseFold": 0.2,
-        "phaseAsymmetry": 0.05,
-        "phaseShape": 0.4
+        "level": 0.62,
+        "pan": -0.12173825954436777,
+        "wtBend": 0.4844502834335148,
+        "wtAsymmetry": 0.2485739952161775,
+        "wtSyncRatio": 1.795131677807643,
+        "wtSyncAmount": 0.6060451038515634,
+        "wtFormantShift": -0.00021720883287401627
       },
       {
         "engine": 0,
@@ -116,12 +119,12 @@
         },
         {
           "id": 1,
-          "engine": 0,
+          "engine": 3,
           "isOutput": true
         },
         {
           "id": 2,
-          "engine": 0,
+          "engine": 1,
           "isOutput": true
         },
         {
@@ -132,25 +135,50 @@
         {
           "id": 4,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 5,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 6,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 7,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         }
       ],
-      "edges": []
+      "edges": [
+        {
+          "source": 4,
+          "destination": 0,
+          "type": 1,
+          "amount": 0.52
+        },
+        {
+          "source": 5,
+          "destination": 1,
+          "type": 1,
+          "amount": 0.48
+        },
+        {
+          "source": 6,
+          "destination": 2,
+          "type": 0,
+          "amount": 0.38
+        },
+        {
+          "source": 7,
+          "destination": 3,
+          "type": 1,
+          "amount": 0.42
+        }
+      ]
     },
     "envelopes": [
       {
@@ -331,6 +359,34 @@
         "scope": 0
       },
       {
+        "source": 1,
+        "destination": 8,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 2,
+        "destination": 9,
+        "targetIndex": 1,
+        "amount": 0.28,
+        "scope": 1
+      },
+      {
+        "source": 30,
+        "destination": 10,
+        "targetIndex": 1,
+        "amount": 1.8,
+        "scope": 1
+      },
+      {
+        "source": 21,
+        "destination": 11,
+        "targetIndex": 1,
+        "amount": 0.42,
+        "scope": 1
+      },
+      {
         "source": 17,
         "destination": 1,
         "targetIndex": 0,
@@ -342,13 +398,6 @@
         "destination": 1,
         "targetIndex": 0,
         "amount": 8.0,
-        "scope": 0
-      },
-      {
-        "source": 30,
-        "destination": 3,
-        "targetIndex": 0,
-        "amount": 0.25,
         "scope": 0
       },
       {
@@ -388,7 +437,7 @@
     "operators": [
       {
         "engine": 1,
-        "wavetableId": "content/wavetables/ambient-dreamy-veil.json",
+        "wavetableId": "content/wavetables/formant-vowel-oo.json",
         "wavetableFramePosition": 0.3,
         "frequencyRatio": 1.0,
         "keyTrack": true,
@@ -399,7 +448,7 @@
       },
       {
         "engine": 5,
-        "wavetableId": "content/wavetables/gran-shimmer-voice.json",
+        "wavetableId": "content/wavetables/gran-frozen-grit.json",
         "wavetableFramePosition": 0.2,
         "frequencyRatio": 1.0,
         "keyTrack": true,

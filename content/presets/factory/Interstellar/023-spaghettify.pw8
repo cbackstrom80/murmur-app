@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-023-3103655624",
+    "id": "pw8-interstellar-023-806854958",
     "name": "SPAGHETTIFY",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #023 \u2014 Spaghettify. Play C1\u2013C2; mod wheel opens harmonics; keep velocity moderate for clean sub. Engines: Classic, Resonator.",
+    "description": "Interstellar cinematic preset #023 \u2014 Spaghettify. Play C1\u2013C2; mod wheel opens harmonics; keep velocity moderate for clean sub. Engines: Classic, NoiseChaos.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 3103655624,
+    "seed": 806854958,
     "lineage": []
   },
   "layerMode": 0,
@@ -41,20 +41,17 @@
         "classicWaveform": 0,
         "frequencyRatio": 0.5,
         "keyTrack": true,
-        "level": 0.6900000000000001,
+        "level": 0.32,
         "pan": 0.0
       },
       {
-        "engine": 7,
+        "engine": 6,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.82,
-        "pan": 0.0,
-        "resonatorStructure": 0.25,
-        "resonatorDecay": 0.55,
-        "resonatorDamping": 0.55,
-        "resonatorBrightness": 0.35,
-        "resonatorModeCount": 5
+        "level": 0.88,
+        "pan": 0.007211198256926482,
+        "noiseVariant": 2,
+        "noiseRate": 62.15625729769595
       },
       {
         "engine": 0,
@@ -114,41 +111,84 @@
         },
         {
           "id": 1,
-          "engine": 0,
-          "isOutput": true
+          "engine": 6,
+          "isOutput": false
         },
         {
           "id": 2,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 3,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 4,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 5,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 6,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 7,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         }
       ],
-      "edges": []
+      "edges": [
+        {
+          "source": 7,
+          "destination": 6,
+          "type": 1,
+          "amount": 0.5700000000000001
+        },
+        {
+          "source": 6,
+          "destination": 5,
+          "type": 1,
+          "amount": 0.62
+        },
+        {
+          "source": 5,
+          "destination": 4,
+          "type": 1,
+          "amount": 0.67
+        },
+        {
+          "source": 4,
+          "destination": 3,
+          "type": 1,
+          "amount": 0.72
+        },
+        {
+          "source": 3,
+          "destination": 2,
+          "type": 1,
+          "amount": 0.77
+        },
+        {
+          "source": 2,
+          "destination": 1,
+          "type": 1,
+          "amount": 0.8200000000000001
+        },
+        {
+          "source": 1,
+          "destination": 0,
+          "type": 1,
+          "amount": 0.87
+        }
+      ]
     },
     "envelopes": [
       {

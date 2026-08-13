@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-030-4289290372",
+    "id": "pw8-interstellar-030-2308433977",
     "name": "PULSAR GRID",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #030 \u2014 Pulsar Grid. Short notes or arp; mod wheel sharpens sync warp; works at 60\u2013120 BPM. Engines: Classic, Wavetable, NoiseChaos.",
+    "description": "Interstellar cinematic preset #030 \u2014 Pulsar Grid. Short notes or arp; mod wheel sharpens sync warp; works at 60\u2013120 BPM. Engines: Classic, Granular, NoiseChaos.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 4289290372,
+    "seed": 2308433977,
     "lineage": []
   },
   "layerMode": 0,
@@ -41,19 +41,21 @@
         "classicWaveform": 0,
         "frequencyRatio": 0.5,
         "keyTrack": true,
-        "level": 0.35,
+        "level": 0.32,
         "pan": 0.0
       },
       {
-        "engine": 1,
-        "wavetableId": "content/wavetables/bell-bright-tine.json",
-        "wavetableFramePosition": 0.35,
+        "engine": 5,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.82,
-        "pan": 0.0,
-        "wtSyncRatio": 2.3,
-        "wtSyncAmount": 0.48
+        "level": 0.88,
+        "pan": -0.045386802156833245,
+        "wavetableId": "content/wavetables/gran-crystal-burst.json",
+        "wavetableFramePosition": 0.3,
+        "grainDensity": 12.0,
+        "grainSizeMs": 120.0,
+        "grainPositionJitter": 0.3,
+        "grainPitchJitter": 0.08
       },
       {
         "engine": 6,
@@ -114,41 +116,84 @@
         },
         {
           "id": 1,
-          "engine": 0,
-          "isOutput": true
+          "engine": 5,
+          "isOutput": false
         },
         {
           "id": 2,
-          "engine": 0,
-          "isOutput": true
+          "engine": 6,
+          "isOutput": false
         },
         {
           "id": 3,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 4,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 5,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 6,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 7,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         }
       ],
-      "edges": []
+      "edges": [
+        {
+          "source": 7,
+          "destination": 6,
+          "type": 1,
+          "amount": 0.5700000000000001
+        },
+        {
+          "source": 6,
+          "destination": 5,
+          "type": 1,
+          "amount": 0.62
+        },
+        {
+          "source": 5,
+          "destination": 4,
+          "type": 1,
+          "amount": 0.67
+        },
+        {
+          "source": 4,
+          "destination": 3,
+          "type": 1,
+          "amount": 0.72
+        },
+        {
+          "source": 3,
+          "destination": 2,
+          "type": 1,
+          "amount": 0.77
+        },
+        {
+          "source": 2,
+          "destination": 1,
+          "type": 1,
+          "amount": 0.8200000000000001
+        },
+        {
+          "source": 1,
+          "destination": 0,
+          "type": 1,
+          "amount": 0.87
+        }
+      ]
     },
     "envelopes": [
       {

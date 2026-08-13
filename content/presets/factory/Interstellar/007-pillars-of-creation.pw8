@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-007-1550588985",
+    "id": "pw8-interstellar-007-2378866927",
     "name": "PILLARS OF CREATION",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #007 \u2014 Pillars Of Creation. Hold mid register C3\u2013C5; mod wheel blooms filter and wavetable; pressure adds shimmer. Engines: Classic, Additive, PhaseShape.",
+    "description": "Interstellar cinematic preset #007 \u2014 Pillars Of Creation. Hold mid register C3\u2013C5; mod wheel blooms filter and wavetable; pressure adds shimmer. Engines: Classic, PhaseShape, NoiseChaos.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 1550588985,
+    "seed": 2378866927,
     "lineage": []
   },
   "layerMode": 0,
@@ -41,19 +41,17 @@
         "classicWaveform": 0,
         "frequencyRatio": 0.5,
         "keyTrack": true,
-        "level": 0.38,
+        "level": 0.32,
         "pan": 0.0
       },
       {
-        "engine": 3,
+        "engine": 6,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.82,
-        "pan": 0.0,
-        "additivePartialCount": 36,
-        "additiveTilt": -0.19,
-        "additiveOddEven": 0.78,
-        "additiveStretch": 0.012
+        "level": 0.88,
+        "pan": -0.061648348456253214,
+        "noiseVariant": 2,
+        "noiseRate": 56.46504586529819
       },
       {
         "engine": 4,
@@ -116,12 +114,12 @@
         },
         {
           "id": 1,
-          "engine": 0,
+          "engine": 6,
           "isOutput": true
         },
         {
           "id": 2,
-          "engine": 0,
+          "engine": 4,
           "isOutput": true
         },
         {

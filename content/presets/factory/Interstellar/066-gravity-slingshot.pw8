@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-066-551639362",
+    "id": "pw8-interstellar-066-1283837043",
     "name": "GRAVITY SLINGSHOT",
     "author": "MURMUR Sound Design",
     "description": "Interstellar cinematic preset #066 \u2014 Gravity Slingshot. Long notes or single triggers; sweep mod wheel for riser/drop; use as transition layer. Engines: Wavetable, PhaseShape, NoiseChaos.",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 551639362,
+    "seed": 1283837043,
     "lineage": []
   },
   "layerMode": 0,
@@ -111,46 +111,65 @@
       "nodes": [
         {
           "id": 0,
-          "engine": 0,
+          "engine": 6,
           "isOutput": true
         },
         {
           "id": 1,
-          "engine": 0,
-          "isOutput": true
+          "engine": 1,
+          "isOutput": false
         },
         {
           "id": 2,
-          "engine": 0,
-          "isOutput": true
+          "engine": 4,
+          "isOutput": false
         },
         {
           "id": 3,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 4,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 5,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 6,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 7,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         }
       ],
-      "edges": []
+      "edges": [
+        {
+          "source": 2,
+          "destination": 1,
+          "type": 1,
+          "amount": 0.78
+        },
+        {
+          "source": 1,
+          "destination": 1,
+          "type": 6,
+          "amount": 0.58
+        },
+        {
+          "source": 1,
+          "destination": 0,
+          "type": 1,
+          "amount": 1.0
+        }
+      ]
     },
     "envelopes": [
       {

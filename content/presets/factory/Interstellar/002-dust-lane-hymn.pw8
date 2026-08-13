@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-002-463236041",
+    "id": "pw8-interstellar-002-2606512269",
     "name": "DUST LANE HYMN",
     "author": "MURMUR Sound Design",
     "description": "Interstellar cinematic preset #002 \u2014 Dust Lane Hymn. Hold mid register C3\u2013C5; mod wheel blooms filter and wavetable; pressure adds shimmer. Engines: Classic, Wavetable, FM/PM.",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 463236041,
+    "seed": 2606512269,
     "lineage": []
   },
   "layerMode": 0,
@@ -41,17 +41,22 @@
         "classicWaveform": 0,
         "frequencyRatio": 0.5,
         "keyTrack": true,
-        "level": 0.38,
+        "level": 0.32,
         "pan": 0.0
       },
       {
         "engine": 1,
-        "wavetableId": "content/wavetables/ambient-evolving-swell.json",
-        "wavetableFramePosition": 0.25,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.78,
-        "pan": -0.06862277412766936
+        "level": 0.88,
+        "pan": -0.112062456994619,
+        "wavetableId": "content/wavetables/chord-octave-stack.json",
+        "wavetableFramePosition": 0.35,
+        "wtBend": 0.3661125546340044,
+        "wtFormantShift": -0.054806881624714365,
+        "wtAsymmetry": 0.2958588550073604,
+        "wtSyncRatio": 2.194636566750855,
+        "wtSyncAmount": 0.4166736358863449
       },
       {
         "engine": 2,
@@ -115,12 +120,12 @@
         },
         {
           "id": 1,
-          "engine": 0,
+          "engine": 1,
           "isOutput": true
         },
         {
           "id": 2,
-          "engine": 0,
+          "engine": 2,
           "isOutput": true
         },
         {
@@ -344,17 +349,38 @@
         "scope": 0
       },
       {
+        "source": 1,
+        "destination": 8,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 2,
+        "destination": 9,
+        "targetIndex": 1,
+        "amount": 0.28,
+        "scope": 1
+      },
+      {
+        "source": 30,
+        "destination": 10,
+        "targetIndex": 1,
+        "amount": 1.8,
+        "scope": 1
+      },
+      {
+        "source": 21,
+        "destination": 11,
+        "targetIndex": 1,
+        "amount": 0.42,
+        "scope": 1
+      },
+      {
         "source": 17,
         "destination": 1,
         "targetIndex": 0,
         "amount": 10.0,
-        "scope": 0
-      },
-      {
-        "source": 30,
-        "destination": 3,
-        "targetIndex": 0,
-        "amount": 0.25,
         "scope": 0
       },
       {

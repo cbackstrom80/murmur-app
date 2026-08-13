@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-072-659197040",
+    "id": "pw8-interstellar-072-1274929015",
     "name": "TITAN ATMOSPHERE",
     "author": "MURMUR Sound Design",
     "description": "Interstellar cinematic preset #072 \u2014 Titan Atmosphere. Staccato C4\u2013C5; velocity controls brightness; mod wheel adds space. Engines: Classic, Resonator.",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 659197040,
+    "seed": 1274929015,
     "lineage": []
   },
   "layerMode": 0,
@@ -114,41 +114,60 @@
         },
         {
           "id": 1,
-          "engine": 0,
-          "isOutput": true
+          "engine": 7,
+          "isOutput": false
         },
         {
           "id": 2,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 3,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 4,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 5,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 6,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 7,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         }
       ],
-      "edges": []
+      "edges": [
+        {
+          "source": 2,
+          "destination": 1,
+          "type": 1,
+          "amount": 0.78
+        },
+        {
+          "source": 1,
+          "destination": 1,
+          "type": 6,
+          "amount": 0.58
+        },
+        {
+          "source": 1,
+          "destination": 0,
+          "type": 1,
+          "amount": 1.0
+        }
+      ]
     },
     "envelopes": [
       {

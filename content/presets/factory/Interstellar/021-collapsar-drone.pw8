@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-021-3367443480",
+    "id": "pw8-interstellar-021-3911178239",
     "name": "COLLAPSAR DRONE",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #021 \u2014 Collapsar Drone. Play C1\u2013C2; mod wheel opens harmonics; keep velocity moderate for clean sub. Engines: Classic, Wavetable.",
+    "description": "Interstellar cinematic preset #021 \u2014 Collapsar Drone. Play C1\u2013C2; mod wheel opens harmonics; keep velocity moderate for clean sub. Engines: Classic, Wavetable, PhaseShape.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 3367443480,
+    "seed": 3911178239,
     "lineage": []
   },
   "layerMode": 0,
@@ -41,25 +41,33 @@
         "classicWaveform": 0,
         "frequencyRatio": 0.5,
         "keyTrack": true,
-        "level": 0.65,
+        "level": 0.32,
         "pan": 0.0
+      },
+      {
+        "engine": 4,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.88,
+        "pan": -0.03591021172892146,
+        "phaseBend": 0.35,
+        "phaseFold": 0.42,
+        "phaseAsymmetry": 0.12,
+        "phaseShape": 0.62
       },
       {
         "engine": 1,
-        "wavetableId": "content/wavetables/bass-growl-saw.json",
-        "wavetableFramePosition": 0.35,
+        "wavetableId": "content/wavetables/classic-sine-to-triangle.json",
+        "wavetableFramePosition": 0.4,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.85,
-        "pan": 0.0
-      },
-      {
-        "engine": 0,
-        "classicWaveform": 0,
-        "frequencyRatio": 1.0,
-        "keyTrack": true,
-        "level": 0.0,
-        "pan": 0.0
+        "level": 0.62,
+        "pan": -0.05984372349539124,
+        "wtBend": 0.2923413902362527,
+        "wtAsymmetry": 0.22951008106757184,
+        "wtSyncRatio": 1.8515167497658083,
+        "wtSyncAmount": 0.5203180370959133,
+        "wtFormantShift": -0.20311930301272174
       },
       {
         "engine": 0,
@@ -111,41 +119,84 @@
         },
         {
           "id": 1,
-          "engine": 0,
-          "isOutput": true
+          "engine": 4,
+          "isOutput": false
         },
         {
           "id": 2,
-          "engine": 0,
-          "isOutput": true
+          "engine": 1,
+          "isOutput": false
         },
         {
           "id": 3,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 4,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 5,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 6,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 7,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         }
       ],
-      "edges": []
+      "edges": [
+        {
+          "source": 7,
+          "destination": 6,
+          "type": 1,
+          "amount": 0.5700000000000001
+        },
+        {
+          "source": 6,
+          "destination": 5,
+          "type": 1,
+          "amount": 0.62
+        },
+        {
+          "source": 5,
+          "destination": 4,
+          "type": 1,
+          "amount": 0.67
+        },
+        {
+          "source": 4,
+          "destination": 3,
+          "type": 1,
+          "amount": 0.72
+        },
+        {
+          "source": 3,
+          "destination": 2,
+          "type": 1,
+          "amount": 0.77
+        },
+        {
+          "source": 2,
+          "destination": 1,
+          "type": 1,
+          "amount": 0.8200000000000001
+        },
+        {
+          "source": 1,
+          "destination": 0,
+          "type": 1,
+          "amount": 0.87
+        }
+      ]
     },
     "envelopes": [
       {
@@ -325,11 +376,32 @@
         "scope": 1
       },
       {
-        "source": 30,
-        "destination": 2,
-        "targetIndex": 0,
+        "source": 1,
+        "destination": 8,
+        "targetIndex": 1,
         "amount": 0.35,
-        "scope": 0
+        "scope": 1
+      },
+      {
+        "source": 2,
+        "destination": 9,
+        "targetIndex": 1,
+        "amount": 0.28,
+        "scope": 1
+      },
+      {
+        "source": 30,
+        "destination": 10,
+        "targetIndex": 1,
+        "amount": 1.8,
+        "scope": 1
+      },
+      {
+        "source": 21,
+        "destination": 11,
+        "targetIndex": 1,
+        "amount": 0.42,
+        "scope": 1
       },
       {
         "source": 20,

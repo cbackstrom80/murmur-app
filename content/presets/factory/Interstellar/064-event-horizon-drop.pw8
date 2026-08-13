@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-064-574229056",
+    "id": "pw8-interstellar-064-975490279",
     "name": "EVENT HORIZON DROP",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #064 \u2014 Event Horizon Drop. Long notes or single triggers; sweep mod wheel for riser/drop; use as transition layer. Engines: Wavetable, PhaseShape, NoiseChaos.",
+    "description": "Interstellar cinematic preset #064 \u2014 Event Horizon Drop. Long notes or single triggers; sweep mod wheel for riser/drop; use as transition layer. Engines: PhaseShape, NoiseChaos, Resonator.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 574229056,
+    "seed": 975490279,
     "lineage": []
   },
   "layerMode": 0,
@@ -46,14 +46,16 @@
         "noiseRate": 70.0
       },
       {
-        "engine": 1,
-        "wavetableId": "content/wavetables/fold-saw-soft.json",
-        "wavetableFramePosition": 0.1,
+        "engine": 7,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.62,
-        "pan": 0.0,
-        "wtBend": 0.73
+        "level": 0.88,
+        "pan": -0.05106703950058661,
+        "resonatorStructure": 0.38,
+        "resonatorDecay": 0.72,
+        "resonatorDamping": 0.42,
+        "resonatorBrightness": 0.48,
+        "resonatorModeCount": 6
       },
       {
         "engine": 4,
@@ -111,46 +113,65 @@
       "nodes": [
         {
           "id": 0,
-          "engine": 0,
+          "engine": 6,
           "isOutput": true
         },
         {
           "id": 1,
-          "engine": 0,
-          "isOutput": true
+          "engine": 7,
+          "isOutput": false
         },
         {
           "id": 2,
-          "engine": 0,
-          "isOutput": true
+          "engine": 4,
+          "isOutput": false
         },
         {
           "id": 3,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 4,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 5,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 6,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         },
         {
           "id": 7,
           "engine": 0,
-          "isOutput": true
+          "isOutput": false
         }
       ],
-      "edges": []
+      "edges": [
+        {
+          "source": 2,
+          "destination": 1,
+          "type": 1,
+          "amount": 0.78
+        },
+        {
+          "source": 1,
+          "destination": 1,
+          "type": 6,
+          "amount": 0.58
+        },
+        {
+          "source": 1,
+          "destination": 0,
+          "type": 1,
+          "amount": 1.0
+        }
+      ]
     },
     "envelopes": [
       {

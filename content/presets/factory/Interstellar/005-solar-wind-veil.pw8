@@ -1,10 +1,10 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-005-270972627",
+    "id": "pw8-interstellar-005-3570959311",
     "name": "SOLAR WIND VEIL",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar cinematic preset #005 \u2014 Solar Wind Veil. Hold mid register C3\u2013C5; mod wheel blooms filter and wavetable; pressure adds shimmer. Engines: Classic, Wavetable, FM/PM, PhaseShape.",
+    "description": "Interstellar cinematic preset #005 \u2014 Solar Wind Veil. Hold mid register C3\u2013C5; mod wheel blooms filter and wavetable; pressure adds shimmer. Engines: Classic, FM/PM, PhaseShape.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 270972627,
+    "seed": 3570959311,
     "lineage": []
   },
   "layerMode": 0,
@@ -41,17 +41,19 @@
         "classicWaveform": 0,
         "frequencyRatio": 0.5,
         "keyTrack": true,
-        "level": 0.38,
+        "level": 0.32,
         "pan": 0.0
       },
       {
-        "engine": 1,
-        "wavetableId": "content/wavetables/ambient-dreamy-veil.json",
-        "wavetableFramePosition": 0.4,
+        "engine": 4,
         "frequencyRatio": 1.0,
         "keyTrack": true,
-        "level": 0.78,
-        "pan": -0.15443253922759217
+        "level": 0.88,
+        "pan": 0.05173025980681567,
+        "phaseBend": 0.35,
+        "phaseFold": 0.42,
+        "phaseAsymmetry": 0.12,
+        "phaseShape": 0.62
       },
       {
         "engine": 4,
@@ -118,17 +120,17 @@
         },
         {
           "id": 1,
-          "engine": 0,
+          "engine": 4,
           "isOutput": true
         },
         {
           "id": 2,
-          "engine": 0,
+          "engine": 4,
           "isOutput": true
         },
         {
           "id": 3,
-          "engine": 0,
+          "engine": 2,
           "isOutput": true
         },
         {
