@@ -134,6 +134,11 @@ namespace pw8::patch
                 {"grainSizeMs", o.grainSizeMs},
                 {"grainPositionJitter", o.grainPositionJitter},
                 {"grainPitchJitter", o.grainPitchJitter},
+                {"wtBend", o.wtBend},
+                {"wtAsymmetry", o.wtAsymmetry},
+                {"wtSyncRatio", o.wtSyncRatio},
+                {"wtSyncAmount", o.wtSyncAmount},
+                {"wtFormantShift", o.wtFormantShift},
                 {"filter1", json{{"enabled", o.filter1.enabled},
                                  {"mode", static_cast<int>(o.filter1.mode)},
                                  {"cutoffHz", o.filter1.cutoffHz},
@@ -179,6 +184,11 @@ namespace pw8::patch
             o.grainSizeMs = clampNum(j.value("grainSizeMs", 60.0f), 1.0f, 500.0f);
             o.grainPositionJitter = clampNum(j.value("grainPositionJitter", 0.1f), 0.0f, 1.0f);
             o.grainPitchJitter = clampNum(j.value("grainPitchJitter", 0.0f), 0.0f, 1.0f);
+            o.wtBend = clampNum(j.value("wtBend", 0.0f), -1.0f, 1.0f);
+            o.wtAsymmetry = clampNum(j.value("wtAsymmetry", 0.0f), -1.0f, 1.0f);
+            o.wtSyncRatio = clampNum(j.value("wtSyncRatio", 1.0f), 1.0f, 16.0f);
+            o.wtSyncAmount = clampNum(j.value("wtSyncAmount", 0.0f), 0.0f, 1.0f);
+            o.wtFormantShift = clampNum(j.value("wtFormantShift", 0.0f), -1.0f, 1.0f);
             if (j.contains("filter1"))
             {
                 const auto& jf = j.at("filter1");
@@ -898,6 +908,14 @@ namespace pw8::patch
                     // an unparseable route -> clamped/defaulted ModRoute) still produces
                     // a valid, safe Patch either way.
                 }
+            }
+
+            if (fromVersion < 3)
+            {
+                // v2 -> v3 (docs/DESIGN_AND_WARPS_PLAN.md §3.3): OperatorPatch wavetable
+                // warp scalars (`wtBend`, `wtAsymmetry`, `wtSyncRatio`, `wtSyncAmount`,
+                // `wtFormantShift`). No JSON rewrite required — fromJson defaults apply
+                // on load (all zeros / wtSyncRatio=1). Existing presets remain transparent.
             }
         }
     } // namespace

@@ -23,7 +23,9 @@ namespace pw8::core
     /// v1 -> v2: LayerPatch's singular `ampEnvelope`/`lfo1` fields became 8-slot
     /// `envelopes[]`/`lfos[]` arrays (docs/MODULATION.md "8 envelopes / 8 LFOs",
     /// docs/ROADMAP.md "GATE 5") -- see PatchSerializer's migrateToCurrentSchema().
-    inline constexpr int kPatchSchemaVersion = 2;
+    /// v2 -> v3: OperatorPatch wavetable warp fields (`wtBend`, `wtAsymmetry`, etc.)
+    /// -- see docs/DESIGN_AND_WARPS_PLAN.md §3.3.
+    inline constexpr int kPatchSchemaVersion = 3;
 
     /// Schema version of `AlgorithmGraphDefinition` serialization.
     inline constexpr int kAlgorithmSchemaVersion = 1;

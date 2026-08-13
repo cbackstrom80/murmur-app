@@ -15,7 +15,7 @@
 #include "pw8/render/BlockMidi.hpp"
 #include "pw8/sequencer/ArpeggiatorTypes.hpp"
 #include "processor/EffectLatency.hpp"
-#include "ui/PlayModeEditor.h"
+#include "ui/MurmurRootEditor.h"
 
 #include <juce_core/juce_core.h>
 
@@ -559,10 +559,7 @@ namespace pw8::plugin
 
     juce::AudioProcessorEditor* PatchworkEightProcessor::createEditor()
     {
-        // The real PLAY-mode editor (docs/PLUGIN_ARCHITECTURE.md "Editor"; the OBSIDIAN
-        // skin, docs/UI.md). DESIGN/LAB modes are PLANNED -- PLAY mode is the one
-        // screen that exists today.
-        return new ui::PlayModeEditor(*this);
+        return new ui::MurmurRootEditor(*this);
     }
 
     void PatchworkEightProcessor::getStateInformation(juce::MemoryBlock& destData)

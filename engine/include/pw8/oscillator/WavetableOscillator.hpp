@@ -4,15 +4,12 @@
 
 #include "pw8/dsp/Math.hpp"
 
-// Engine Type 2 -- Wavetable (MINIMAL / PARTIAL implementation, see docs/DSP_ENGINE.md).
+// Engine Type 2 -- Wavetable (see docs/DSP_ENGINE.md).
 //
-// Status: PARTIAL. This is a real, working wavetable reader (multi-frame, linearly
-// interpolated across both sample position and frame position) but it is NOT yet
-// mip-mapped/band-limited -- at high fundamental frequencies against a table with
-// significant high-harmonic content, this will alias. Mipmapping is tracked as a
-// PLANNED follow-up (Phase 2 completion) once the core architecture proves out; the
-// table storage layout below was chosen specifically so mip levels can be added as
-// extra `WavetableView`s per octave without changing the oscillator's read logic.
+// Status: IMPLEMENTED core reader — multi-frame, linearly interpolated across
+// sample and frame position, with mip-mapped band-limited views selected via
+// `WavetableTable::viewForFrequency()`. Pre-read phase warps (bend, asymmetry,
+// sync) are wired in Week 2+ — see docs/DESIGN_AND_WARPS_PLAN.md.
 //
 // The oscillator itself owns no sample storage (no realtime allocation): callers
 // point it at a `WavetableView` that is prepared off the audio thread (see

@@ -108,6 +108,14 @@ load time but kept for documentation/tooling.
 gain/operator params) and different-topology (dual-compile + equal-power output
 blend) cases are not implemented in this pass.
 
+## Wavetable internal sync vs graph SYNC
+
+When wavetable internal sync warps land (schema v3, `wtSyncRatio` / `wtSyncAmount`),
+they coexist with graph `EdgeType::Sync` edges. **Graph SYNC wins on wrap events:**
+a SYNC edge still hard-resets the destination phase accumulator the sample after the
+source wraps. Internal wt sync only reshapes read phase within the carrier cycle and
+does not override graph SYNC. Full rationale: [docs/adr/wt-sync-precedence.md](adr/wt-sync-precedence.md).
+
 ## Graph Inspector
 
 `pw8-graph inspect <preset.pw8>` (`tools/graph_inspector/`) prints a compiled

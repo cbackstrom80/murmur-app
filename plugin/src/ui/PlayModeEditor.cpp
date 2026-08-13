@@ -8,9 +8,8 @@
 
 namespace pw8::plugin::ui
 {
-    PlayModeEditor::PlayModeEditor(PatchworkEightProcessor& processor)
-        : juce::AudioProcessorEditor(&processor),
-          patchBrowserBar_(processor),
+    PlayModeEditor::PlayModeEditor(PatchworkEightProcessor& processor, SharedEditorChrome& chrome)
+        : chrome_(chrome),
           arpLauncherChip_(processor),
           nodeSelectorRow_(processor),
           contextStrip_(processor),
@@ -21,23 +20,10 @@ namespace pw8::plugin::ui
           ampEnvelopePanel_(processor),
           modLauncherPanel_(processor, modAssignmentController_),
           fxChainStrip_(processor),
-          presetBrowserOverlay_(processor, patchBrowserBar_.getPresetIndex(), favoritesStore_),
           modRoutingOverlay_(processor, modAssignmentController_),
           arpPanelOverlay_(processor)
     {
         setLookAndFeel(&lookAndFeel_);
-
-        aspectConstrainer_.setFixedAspectRatio(layout::kAspectRatio);
-        aspectConstrainer_.setMinimumSize(layout::kMinWidth, layout::kMinHeight);
-        aspectConstrainer_.setMaximumSize(layout::kMaxWidth, layout::kMaxHeight);
-
-        compactConstrainer_.setFixedAspectRatio(0.0);
-        compactConstrainer_.setMinimumSize(layout::kCompactWidth, layout::kCompactMinHeight);
-        compactConstrainer_.setMaximumSize(layout::kCompactWidth, layout::kCompactMaxHeight);
-
-        setConstrainer(&aspectConstrainer_);
-        setResizeLimits(layout::kMinWidth, layout::kMinHeight, layout::kMaxWidth, layout::kMaxHeight);
-        setResizable(true, true);
 
         modAssignmentBanner_.setJustificationType(juce::Justification::centred);
         modAssignmentBanner_.setFont(fonts::label(fonts::kBodyLabelSize));
@@ -62,31 +48,11 @@ namespace pw8::plugin::ui
         arpPanelOverlay_.onClosed = [this] { closeArpPanel(); };
         arpLauncherChip_.onOpenDrawer = [this] { openArpPanel(); };
 
-        addAndMakeVisible(patchBrowserBar_);
         addAndMakeVisible(arpLauncherChip_);
-        patchBrowserBar_.setFavoritesStore(&favoritesStore_);
-        patchBrowserBar_.onBrowseClicked = [this] {
-            addAndMakeVisible(presetBrowserOverlay_);
-            presetBrowserOverlay_.setBounds(getLocalBounds());
-            presetBrowserOverlay_.showOverlay();
-        };
-        presetBrowserOverlay_.onClosed = [this] {
-            patchBrowserBar_.setBrowseFilters(presetBrowserOverlay_.browseFilter());
-            removeChildComponent(&presetBrowserOverlay_);
-        };
-        presetBrowserOverlay_.onFiltersChanged = [this] {
-            patchBrowserBar_.setBrowseFilters(presetBrowserOverlay_.browseFilter());
-            compactEditor_.setBrowseFilter(presetBrowserOverlay_.browseFilter());
-        };
 
-        compactEditor_.setPresetIndex(&patchBrowserBar_.getPresetIndex());
-        compactEditor_.setFavoritesStore(&favoritesStore_);
+        compactEditor_.setPresetIndex(&chrome_.patchBrowserBar.getPresetIndex());
+        compactEditor_.setFavoritesStore(&chrome_.favoritesStore);
         addChildComponent(compactEditor_);
-
-        processor.onPatchLoaded = [this] {
-            patchFocusPanel_.refreshFromPatch();
-            compactEditor_.refreshFromPatch();
-        };
 
         for (auto* btn : {&basicViewButton_, &advancedViewButton_, &compactViewButton_})
         {
@@ -144,14 +110,22 @@ namespace pw8::plugin::ui
         fxPage_.addAndMakeVisible(fxChainStrip_);
 
         setViewMode(ViewMode::Basic);
-        setSize(layout::kDefaultWidth, layout::kDefaultHeight);
     }
 
-    PlayModeEditor::~PlayModeEditor()
+    PlayModeEditor::~PlayModeEditor() { setLookAndFeel(nullptr); }
+
+    void PlayModeEditor::refreshFromPatch()
     {
-        setConstrainer(nullptr);
-        setLookAndFeel(nullptr);
+        patchFocusPanel_.refreshFromPatch();
+        compactEditor_.refreshFromPatch();
     }
+
+    void PlayModeEditor::setBrowseFilter(const content::PresetMetadataFilter& filter)
+    {
+        compactEditor_.setBrowseFilter(filter);
+    }
+
+    bool PlayModeEditor::isCompactView() const noexcept { return viewMode_ == ViewMode::Compact; }
 
     bool PlayModeEditor::keyPressed(const juce::KeyPress& key)
     {
@@ -167,33 +141,13 @@ namespace pw8::plugin::ui
             return true;
         }
 
-        if (viewMode_ == ViewMode::Advanced &&
-            key == juce::KeyPress('m', juce::ModifierKeys::noModifiers, 0))
+        if (viewMode_ == ViewMode::Advanced && key == juce::KeyPress('m', juce::ModifierKeys::noModifiers, 0))
         {
             openModRoutingOverlay();
             return true;
         }
 
         return false;
-    }
-
-    void PlayModeEditor::applyWindowConstraints()
-    {
-        if (viewMode_ == ViewMode::Compact)
-        {
-            setConstrainer(&compactConstrainer_);
-            setResizeLimits(layout::kCompactWidth, layout::kCompactMinHeight, layout::kCompactWidth,
-                            layout::kCompactMaxHeight);
-            if (getWidth() != layout::kCompactWidth || getHeight() < layout::kCompactMinHeight)
-                setSize(layout::kCompactWidth, layout::kCompactDefaultHeight);
-        }
-        else
-        {
-            setConstrainer(&aspectConstrainer_);
-            setResizeLimits(layout::kMinWidth, layout::kMinHeight, layout::kMaxWidth, layout::kMaxHeight);
-            if (getWidth() < layout::kMinWidth || getHeight() < layout::kMinHeight)
-                setSize(layout::kDefaultWidth, layout::kDefaultHeight);
-        }
     }
 
     void PlayModeEditor::setViewMode(ViewMode mode)
@@ -209,7 +163,6 @@ namespace pw8::plugin::ui
         const bool compact = mode == ViewMode::Compact;
         const bool advanced = mode == ViewMode::Advanced;
 
-        patchBrowserBar_.setVisible(!compact);
         arpLauncherChip_.setVisible(!compact);
 
         basicViewButton_.setVisible(true);
@@ -219,7 +172,7 @@ namespace pw8::plugin::ui
         compactEditor_.setVisible(compact);
         if (compact)
         {
-            compactEditor_.setBrowseFilter(patchBrowserBar_.browseFilter());
+            compactEditor_.setBrowseFilter(chrome_.patchBrowserBar.browseFilter());
             compactEditor_.setBounds(getLocalBounds());
         }
 
@@ -252,8 +205,10 @@ namespace pw8::plugin::ui
             updateScopeUi();
         }
 
-        applyWindowConstraints();
-        resized();
+        if (onLayoutOrViewModeChanged)
+            onLayoutOrViewModeChanged();
+        else
+            resized();
     }
 
     void PlayModeEditor::openModRoutingOverlay()
@@ -269,7 +224,6 @@ namespace pw8::plugin::ui
     void PlayModeEditor::closeModRoutingOverlay()
     {
         removeChildComponent(&modRoutingOverlay_);
-        // Keep armed source so user can assign on FILTER tab after closing overlay.
     }
 
     void PlayModeEditor::openArpPanel()
@@ -406,14 +360,10 @@ namespace pw8::plugin::ui
             advancedViewButton_.setBounds(modeRow.removeFromLeft(88).reduced(2));
             compactViewButton_.setBounds(modeRow.removeFromLeft(80).reduced(2));
             compactEditor_.setBounds(bounds);
-            presetBrowserOverlay_.setBounds(getLocalBounds());
             return;
         }
 
-        auto bounds = getLocalBounds().reduced(layout::kOuterMargin);
-
-        patchBrowserBar_.setBounds(bounds.removeFromTop(branding::headerBarHeight()));
-        bounds.removeFromTop(layout::kBlockGap);
+        auto bounds = getLocalBounds();
 
         auto modeRow = bounds.removeFromTop(layout::kViewModeRowHeight);
         basicViewButton_.setBounds(modeRow.removeFromLeft(72).reduced(2));
@@ -480,7 +430,6 @@ namespace pw8::plugin::ui
         modLauncherPanel_.setBounds(modPage_.getLocalBounds());
         fxChainStrip_.setBounds(fxPage_.getLocalBounds());
 
-        presetBrowserOverlay_.setBounds(getLocalBounds());
         modRoutingOverlay_.setBounds(getLocalBounds());
         arpPanelOverlay_.setBounds(getLocalBounds());
     }

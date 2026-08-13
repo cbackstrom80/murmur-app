@@ -124,6 +124,14 @@ namespace pw8::patch
         float grainPositionJitter = 0.1f;
         float grainPitchJitter = 0.0f;
 
+        /// Wavetable engine warp fields (only meaningful when engine == Wavetable).
+        /// See docs/DESIGN_AND_WARPS_PLAN.md §3.3 and oscillator::WtWarpParams.
+        float wtBend = 0.0f;
+        float wtAsymmetry = 0.0f;
+        float wtSyncRatio = 1.0f;
+        float wtSyncAmount = 0.0f;
+        float wtFormantShift = 0.0f;
+
         /// Optional per-engine multimode SVF on this operator's own generated output
         /// (before routed graph audio is mixed in). Off by default.
         filter::FilterParams filter1{};

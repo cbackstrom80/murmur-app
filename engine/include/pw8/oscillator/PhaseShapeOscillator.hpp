@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "pw8/dsp/Math.hpp"
+#include "pw8/oscillator/PhaseWarpCommon.hpp"
 
 // Engine Type 5 -- Phase / Shape.
 //
@@ -88,29 +89,11 @@ namespace pw8::oscillator
     private:
         [[nodiscard]] static float warpPhase(float t, const PhaseShapeParams& params) noexcept
         {
-            // Curve A: single-cycle sinusoidal warp -- accelerates the read phase
-            // through one half of the cycle and decelerates it through the other,
-            // the smooth analogue of CZ's "saw" DCW family.
-            const float curveA = std::sin(dsp::kTwoPi * t);
-            // Curve B: double-cycle sinusoidal warp -- folds a second oscillation
-            // into the cycle, closer to CZ's "resonant" DCW family (formant-like).
-            const float curveB = std::sin(2.0f * dsp::kTwoPi * t);
             const float shape = dsp::clamp(params.phaseShape, 0.0f, 1.0f);
-            const float base = dsp::lerp(curveA, curveB, shape);
-
-            // Asymmetry biases the warp magnitude toward one half of the cycle
-            // (cos(2*pi*t) is +1 at t=0, -1 at t=0.5) rather than shifting it
-            // uniformly, which is what makes it read as a skew rather than a bend.
-            const float asymmetry = dsp::clamp(params.phaseAsymmetry, -1.0f, 1.0f);
-            const float skewed = base * (1.0f + asymmetry * std::cos(dsp::kTwoPi * t));
-
-            const float bend = dsp::clamp(params.phaseBend, -1.0f, 1.0f);
-            // kWarpDepth keeps the maximum phase displacement well under a full
-            // cycle even at bend=+-1 and asymmetry=+-1 (worst case ~2x curve
-            // amplitude), so the warped read phase never wraps more than once
-            // relative to the unwarped phase in a single sample.
-            constexpr float kWarpDepth = 0.2f;
-            return dsp::wrapPhase(t + bend * skewed * kWarpDepth);
+            const float base =
+                dsp::lerp(singleCycleWarpCurve(t), doubleCycleWarpCurve(t), shape);
+            const float skewed = applyAsymmetrySkew(base, t, params.phaseAsymmetry);
+            return applyPhaseBend(t, skewed, params.phaseBend);
         }
 
         // Smooth "reflect back into range" wavefolder (asin(sin(...))) -- at

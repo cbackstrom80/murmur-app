@@ -53,6 +53,8 @@ target_sources(pw8_plugin PRIVATE
     src/content/PresetIndex.cpp
     src/content/WavetableIndex.cpp
     src/content/FavoritesStore.cpp
+    src/ui/MurmurRootEditor.cpp
+    src/ui/DesignModeEditor.cpp
     src/ui/PlayModeEditor.cpp
     src/ui/theme/ObsidianLookAndFeel.cpp
     src/ui/theme/BrandingAssets.cpp

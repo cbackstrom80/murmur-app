@@ -1,0 +1,97 @@
+#include <algorithm>
+#include <catch2/catch_approx.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <cmath>
+#include <complex>
+#include <vector>
+
+#include "pw8/dsp/Fft.hpp"
+#include "pw8/dsp/Math.hpp"
+#include "pw8/oscillator/WavetableWarp.hpp"
+
+using namespace pw8;
+using namespace pw8::oscillator;
+
+namespace
+{
+    double nonFundamentalEnergyRatio(const std::vector<float>& samples, std::size_t fundamentalBin)
+    {
+        const std::size_t n = samples.size();
+        std::vector<std::complex<float>> data(n);
+        for (std::size_t i = 0; i < n; ++i)
+            data[i] = std::complex<float>(samples[i], 0.0f);
+        dsp::fft(data, false);
+
+        const std::size_t half = n / 2;
+        const double fundamentalEnergy = std::norm(data[fundamentalBin]);
+        double totalEnergy = 0.0;
+        for (std::size_t k = 1; k < half; ++k)
+            totalEnergy += std::norm(data[k]);
+        const double nonFundamental = totalEnergy - fundamentalEnergy;
+        return nonFundamental / std::max(fundamentalEnergy, 1.0e-9);
+    }
+
+    std::vector<float> renderSineTableWithWarp(float bend, double sampleRate, float freqHz, std::size_t numSamples)
+    {
+        constexpr int kTableSize = 256;
+        std::vector<float> table(static_cast<std::size_t>(kTableSize));
+        for (int i = 0; i < kTableSize; ++i)
+            table[static_cast<std::size_t>(i)] =
+                std::sin(dsp::kTwoPi * static_cast<float>(i) / static_cast<float>(kTableSize));
+
+        WtWarpParams params;
+        params.bend = bend;
+
+        std::vector<float> out(numSamples);
+        float phase = 0.0f;
+        const float dt = freqHz / static_cast<float>(sampleRate);
+        for (std::size_t i = 0; i < numSamples; ++i)
+        {
+            const float readPhase = warpReadPhase(phase, params);
+            const float sampleF = readPhase * static_cast<float>(kTableSize);
+            const int idx0 = static_cast<int>(sampleF) % kTableSize;
+            const int idx1 = (idx0 + 1) % kTableSize;
+            const float frac = sampleF - std::floor(sampleF);
+            out[i] = dsp::lerp(table[static_cast<std::size_t>(idx0)], table[static_cast<std::size_t>(idx1)], frac);
+            phase = dsp::wrapPhase(phase + dt);
+        }
+        return out;
+    }
+} // namespace
+
+TEST_CASE("WavetableWarp identity at zero bend and asymmetry", "[wavetable][warp]")
+{
+    WtWarpParams params;
+    REQUIRE(warpReadPhase(0.25f, params) == Catch::Approx(0.25f));
+    REQUIRE(warpReadPhase(0.75f, params) == Catch::Approx(0.75f));
+}
+
+TEST_CASE("WavetableWarp bend displaces read phase", "[wavetable][warp]")
+{
+    WtWarpParams neutral;
+    WtWarpParams bent;
+    bent.bend = 0.8f;
+
+    REQUIRE(warpReadPhase(0.25f, bent) != Catch::Approx(warpReadPhase(0.25f, neutral)).margin(1.0e-4f));
+}
+
+TEST_CASE("WavetableWarp bend increases harmonics", "[wavetable][warp]")
+{
+    constexpr std::size_t kNumSamples = 8192;
+    constexpr std::size_t kWarmup = 512;
+    constexpr double kSampleRate = 48000.0;
+    constexpr std::size_t kFundamentalBin = 40;
+    constexpr float kFreqHz = static_cast<float>(kFundamentalBin) * static_cast<float>(kSampleRate) /
+                              static_cast<float>(kNumSamples);
+
+    const auto flat = renderSineTableWithWarp(0.0f, kSampleRate, kFreqHz, kWarmup + kNumSamples);
+    const auto warped = renderSineTableWithWarp(0.75f, kSampleRate, kFreqHz, kWarmup + kNumSamples);
+
+    const auto flatTail = std::vector<float>(flat.begin() + static_cast<std::ptrdiff_t>(kWarmup), flat.end());
+    const auto warpedTail = std::vector<float>(warped.begin() + static_cast<std::ptrdiff_t>(kWarmup), warped.end());
+
+    const double flatRatio = nonFundamentalEnergyRatio(flatTail, kFundamentalBin);
+    const double warpedRatio = nonFundamentalEnergyRatio(warpedTail, kFundamentalBin);
+
+    REQUIRE(warpedRatio > flatRatio * 1.05);
+}
