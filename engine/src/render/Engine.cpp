@@ -118,6 +118,11 @@ namespace pw8::render
         out.grainSizeMs = p.grainSizeMs;
         out.grainPositionJitter = p.grainPositionJitter;
         out.grainPitchJitter = p.grainPitchJitter;
+        out.wtBend = p.wtBend;
+        out.wtAsymmetry = p.wtAsymmetry;
+        out.wtSyncRatio = p.wtSyncRatio;
+        out.wtSyncAmount = p.wtSyncAmount;
+        out.wtFormantShift = p.wtFormantShift;
         return out;
     }
 

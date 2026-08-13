@@ -360,6 +360,11 @@ namespace pw8::plugin
             params.grainSizeMs = loadF(ptrs[29]);
             params.grainPositionJitter = loadF(ptrs[30]);
             params.grainPitchJitter = loadF(ptrs[31]);
+            params.wtBend = loadF(ptrs[32]);
+            params.wtAsymmetry = loadF(ptrs[33]);
+            params.wtSyncRatio = loadF(ptrs[34]);
+            params.wtSyncAmount = loadF(ptrs[35]);
+            params.wtFormantShift = loadF(ptrs[36]);
             engine.setOperatorLive(op, params);
 
             const auto& fptrs = operatorFilterParamPointers_[op];
@@ -618,6 +623,45 @@ namespace pw8::plugin
 
         currentPresetPath_ = file.getFullPathName();
         return loadPatch(result.patch);
+    }
+
+    GraphEditResult PatchworkEightProcessor::tryCompileAlgorithm(
+        const algorithm::AlgorithmGraphDefinition& def) const
+    {
+        GraphEditResult result;
+        algorithm::CompiledAlgorithm compiled;
+        result.status = algorithm::AlgorithmGraphCompiler::compile(def, compiled);
+        result.ok = result.status == algorithm::CompileStatus::Ok;
+        result.detail = algorithm::toString(result.status);
+        if (result.ok)
+        {
+            juce::String order;
+            for (std::size_t i = 0; i < compiled.executionOrder.size(); ++i)
+            {
+                if (i > 0)
+                    order += ",";
+                order += juce::String(compiled.executionOrder[i].get());
+            }
+            juce::String outputs;
+            for (std::size_t i = 0; i < compiled.outputNodes.size(); ++i)
+            {
+                if (i > 0)
+                    outputs += ",";
+                outputs += juce::String(compiled.outputNodes[i].get());
+            }
+            result.detail = "OK — order " + order + "  outputs: " + outputs;
+        }
+        return result;
+    }
+
+    bool PatchworkEightProcessor::commitAlgorithmGraph(const algorithm::AlgorithmGraphDefinition& def)
+    {
+        const auto preview = tryCompileAlgorithm(def);
+        if (!preview.ok)
+            return false;
+
+        currentPatch_.layerA.algorithm = def;
+        return loadPatch(currentPatch_);
     }
 
     float PatchworkEightProcessor::getModWheelValue() const noexcept
@@ -880,6 +924,9 @@ namespace pw8::plugin
                 o.resonatorModeCount,
                 o.grainDensity,                       o.grainSizeMs,
                 o.grainPositionJitter,                o.grainPitchJitter,
+                o.wtBend,                             o.wtAsymmetry,
+                o.wtSyncRatio,                        o.wtSyncAmount,
+                o.wtFormantShift,
             };
             for (std::size_t i = 0; i < kNumOperatorFields; ++i)
                 setParam(operatorParamId(op, kOperatorFieldSpecs[i].idSuffix), opValues[i]);
@@ -1014,6 +1061,11 @@ namespace pw8::plugin
             o.grainSizeMs = loadF(ptrs[29]);
             o.grainPositionJitter = loadF(ptrs[30]);
             o.grainPitchJitter = loadF(ptrs[31]);
+            o.wtBend = loadF(ptrs[32]);
+            o.wtAsymmetry = loadF(ptrs[33]);
+            o.wtSyncRatio = loadF(ptrs[34]);
+            o.wtSyncAmount = loadF(ptrs[35]);
+            o.wtFormantShift = loadF(ptrs[36]);
 
             const auto& fptrs = operatorFilterParamPointers_[op];
             auto& ef = o.filter1;

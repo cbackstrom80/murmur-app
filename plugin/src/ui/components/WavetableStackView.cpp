@@ -10,6 +10,7 @@
 #include "wireframe/WireframeProjection.h"
 #include "pw8/algorithm/AlgorithmTypes.hpp"
 #include "pw8/dsp/Math.hpp"
+#include "pw8/oscillator/WavetableWarp.hpp"
 #include "state/PluginState.h"
 
 namespace pw8::plugin::ui
@@ -278,6 +279,21 @@ namespace pw8::plugin::ui
         const float liveFramePos = livePos * static_cast<float>(numFrames - 1);
         const int liveFrame = juce::jlimit(0, numFrames - 1, static_cast<int>(liveFramePos + 0.5f));
 
+        oscillator::WtWarpParams warpParams;
+        const auto engineParamId = operatorParamId(static_cast<std::size_t>(selectedNode_), "Engine");
+        int engineOrdinal = static_cast<int>(algorithm::EngineType::Wavetable);
+        if (auto* rawEngine = processor_.apvts.getRawParameterValue(engineParamId))
+            engineOrdinal = static_cast<int>(rawEngine->load() + 0.5f);
+        if (engineOrdinal == static_cast<int>(algorithm::EngineType::Wavetable))
+        {
+            if (auto* raw = processor_.apvts.getRawParameterValue(
+                    operatorParamId(static_cast<std::size_t>(selectedNode_), "WtBend")))
+                warpParams.bend = raw->load();
+            if (auto* raw = processor_.apvts.getRawParameterValue(
+                    operatorParamId(static_cast<std::size_t>(selectedNode_), "WtAsymmetry")))
+                warpParams.asymmetry = raw->load();
+        }
+
         auto captionArea = bounds.removeFromBottom(14.0f);
 
         // Table name is shown in tableNameLabel_; keep technical frame readout here.
@@ -294,7 +310,8 @@ namespace pw8::plugin::ui
             const float frameFrac = framePos - static_cast<float>(f0);
 
             const float tp = static_cast<float>(p) / static_cast<float>(kPointsPerRow - 1);
-            const float srcPos = tp * static_cast<float>(samplesPerFrame - 1);
+            const float readPhase = oscillator::warpReadPhase(tp, warpParams);
+            const float srcPos = readPhase * static_cast<float>(samplesPerFrame - 1);
             const int s0 = static_cast<int>(srcPos);
             const int s1 = juce::jmin(s0 + 1, samplesPerFrame - 1);
             const float sampleFrac = srcPos - static_cast<float>(s0);

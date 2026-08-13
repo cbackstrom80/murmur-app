@@ -96,6 +96,13 @@ namespace pw8::op
         float grainSizeMs = 60.0f;
         float grainPositionJitter = 0.1f;
         float grainPitchJitter = 0.0f;
+
+        /// Wavetable engine warp fields — see oscillator::WtWarpParams.
+        float wtBend = 0.0f;
+        float wtAsymmetry = 0.0f;
+        float wtSyncRatio = 1.0f;
+        float wtSyncAmount = 0.0f;
+        float wtFormantShift = 0.0f;
     };
 
     struct OperatorState
@@ -221,7 +228,13 @@ namespace pw8::op
                     const oscillator::WavetableView view =
                         wavetableTable != nullptr ? wavetableTable->viewForFrequency(carrierHz, sampleRate_)
                                                    : oscillator::WavetableView{};
-                    out = waveOsc.renderSample(view, params.wavetableFramePosition, phaseMod);
+                    oscillator::WtWarpParams warp;
+                    warp.bend = params.wtBend;
+                    warp.asymmetry = params.wtAsymmetry;
+                    warp.syncRatio = params.wtSyncRatio;
+                    warp.syncAmount = params.wtSyncAmount;
+                    warp.formantShift = params.wtFormantShift;
+                    out = waveOsc.renderSample(view, params.wavetableFramePosition, phaseMod, warp);
                     break;
                 }
 

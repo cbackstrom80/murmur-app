@@ -11,7 +11,8 @@ namespace pw8::plugin
     // phaseAsymmetry, phaseShape, additivePartialCount, additiveTilt,
     // additiveOddEven, additiveStretch, resonatorStructure, resonatorDecay,
     // resonatorDamping, resonatorBrightness, resonatorModeCount, grainDensity,
-    // grainSizeMs, grainPositionJitter, grainPitchJitter.
+    // grainSizeMs, grainPositionJitter, grainPitchJitter, wtBend, wtAsymmetry,
+    // wtSyncRatio, wtSyncAmount, wtFormantShift.
     const std::array<ParamFieldSpec, kNumOperatorFields> kOperatorFieldSpecs = {{
         {"Engine",             "Engine",             0.0f,   7.0f, 0.0f,   true},
         {"Waveform",           "Waveform",           0.0f,   3.0f, 2.0f,   true},
@@ -45,6 +46,11 @@ namespace pw8::plugin
         {"GrainSizeMs",          "Size Ms",   1.0f, 500.0f, 60.0f, false},
         {"GrainPositionJitter",  "Pos Jit",   0.0f,   1.0f, 0.1f,  false},
         {"GrainPitchJitter",     "Pitch Jit", 0.0f,   1.0f, 0.0f,  false},
+        {"WtBend",               "WT Bend",  -1.0f,   1.0f, 0.0f,  false},
+        {"WtAsymmetry",          "WT Asym",  -1.0f,   1.0f, 0.0f,  false},
+        {"WtSyncRatio",          "WT Sync Ratio", 1.0f, 16.0f, 1.0f, false},
+        {"WtSyncAmount",         "WT Sync Amt",   0.0f,  1.0f, 0.0f, false},
+        {"WtFormantShift",       "WT Formant",   -1.0f,  1.0f, 0.0f, false},
     }};
 
     // Matches filter::FilterParams: enabled, mode, cutoffHz, resonance, keyTrack.

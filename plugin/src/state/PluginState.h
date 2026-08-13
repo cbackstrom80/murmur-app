@@ -6,25 +6,15 @@
 // audible effect on Layer A (the only voiced layer, Phase 8) or is genuinely a
 // live performance control (macros, arpeggiator's scalar fields, effect slot
 // scalar fields), and (b) is POD -- safe to read/write from the audio thread with
-// zero allocation risk. That's 802 parameters: 8 macros, Global Filter (5), 8 engine
-// filters x 5 fields (40), 8 LFOs x 5
-// fields (40), 8 operators x 32 fields (256 -- grew from 9 to 13 in the Engine
-// Type 3 (FM/PM) pass, adding the self-contained modulator's ratio/index/
-// feedback/waveform, 13 to 15 in the Engine Type 7 (NoiseChaos) pass, adding
-// noiseVariant/noiseRate, 15 to 19 in the Engine Type 5 (PhaseShape) pass,
-// adding phaseBend/phaseFold/phaseAsymmetry/phaseShape, 19 to 23 in the
-// Engine Type 4 (Additive) pass, adding additivePartialCount/additiveTilt/
-// additiveOddEven/additiveStretch, 23 to 28 in the Engine Type 8
-// (Resonator) pass, adding resonatorStructure/resonatorDecay/
-// resonatorDamping/resonatorBrightness/resonatorModeCount, then 28 to 32 in
-// the Engine Type 6 (Granular) pass, adding grainDensity/grainSizeMs/
-// grainPositionJitter/grainPitchJitter), 8 envelopes x 8 fields (64), layer
+// zero allocation risk. That's 842 parameters: 8 macros, Global Filter (5), 8 engine
+// filters x 5 fields (40), 8 LFOs x 5 fields (40), 8 operators x 37 fields (296),
+// 8 envelopes x 8 fields (64), layer
 // gain/pan + master gain (3), 3 insert + 4 master FX slots x 54 scalar fields
 // each (378, covering all 10 effect algorithms -- Reverb grew from 4 to 15
 // fields in GATE 11's multiband redesign), and the arpeggiator's 8 top-level
 // scalar fields -- see docs/PLUGIN_ARCHITECTURE.md "Automation" for the exact
 // count and running total across passes (8 -> 270 -> 361 -> 501 -> 578 -> 610
-// -> 626 -> 658 -> 690 -> 730 -> 762,
+// -> 626 -> 658 -> 690 -> 730 -> 762 -> 802 -> 842,
 // docs/ROADMAP.md).
 //
 // Deliberately NOT exposed as flat automation (see render::Engine's "Live
@@ -80,7 +70,7 @@ namespace pw8::plugin
     inline constexpr std::size_t kNumEnvelopes = 8;
     inline constexpr std::size_t kNumInsertFxSlots = 3;
     inline constexpr std::size_t kNumMasterFxSlots = 4;
-    inline constexpr std::size_t kNumOperatorFields = 32;
+    inline constexpr std::size_t kNumOperatorFields = 37;
     inline constexpr std::size_t kNumOperatorFilterFields = 5;
     inline constexpr std::size_t kNumFilterFields = 5;
     inline constexpr std::size_t kNumFilter2Fields = 5;
@@ -139,7 +129,7 @@ namespace pw8::plugin
     inline constexpr const char* kMasterGainId = "masterGain";
 
     /// Builds the plugin's full `AudioProcessorValueTreeState` parameter layout --
-    /// all 802 parameters described above, generated from the field-spec tables
+    /// all 842 parameters described above, generated from the field-spec tables
     /// rather than hand-written one at a time.
     [[nodiscard]] juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 

@@ -1,13 +1,11 @@
 #include "DesignModeEditor.h"
 
 #include "PlayModeLayout.h"
-#include "theme/BrandingAssets.h"
-#include "theme/ObsidianFonts.h"
 #include "theme/ObsidianPalette.h"
 
 namespace pw8::plugin::ui
 {
-    DesignModeEditor::DesignModeEditor()
+    DesignModeEditor::DesignModeEditor(PatchworkEightProcessor& processor) : processor_(processor)
     {
         setLookAndFeel(&lookAndFeel_);
 
@@ -34,19 +32,26 @@ namespace pw8::plugin::ui
         fxPage_.addAndMakeVisible(fxPanel_);
         wavetablePage_.addAndMakeVisible(wavetablePanel_);
 
-        for (auto* label : {&graphPlaceholder_, &matrixPlaceholder_, &fxPlaceholder_, &wavetablePlaceholder_})
+        graphEditor_ = std::make_unique<AlgorithmGraphEditor>(processor_);
+        graphPanel_.addAndMakeVisible(*graphEditor_);
+
+        for (auto* label : {&matrixPlaceholder_, &fxPlaceholder_, &wavetablePlaceholder_})
         {
             label->setJustificationType(juce::Justification::centred);
-            label->setFont(fonts::label(fonts::kBodyLabelSize));
             label->setColour(juce::Label::textColourId, palette::kTextDim);
         }
 
-        graphPanel_.addAndMakeVisible(graphPlaceholder_);
         matrixPanel_.addAndMakeVisible(matrixPlaceholder_);
         fxPanel_.addAndMakeVisible(fxPlaceholder_);
         wavetablePanel_.addAndMakeVisible(wavetablePlaceholder_);
 
         showPage(Page::Graph);
+    }
+
+    void DesignModeEditor::refreshFromPatch()
+    {
+        if (graphEditor_ != nullptr)
+            graphEditor_->refreshFromPatch();
     }
 
     void DesignModeEditor::showPage(Page page)
@@ -68,12 +73,6 @@ namespace pw8::plugin::ui
         const auto h = static_cast<float>(getHeight());
         juce::ColourGradient bg(palette::kBackgroundTop, 0.0f, 0.0f, palette::kBackgroundBottom, 0.0f, h, false);
         g.setGradientFill(bg);
-        g.fillAll();
-
-        juce::ColourGradient accentGlow(palette::kAccent.withAlpha(0.08f), 0.0f, 0.0f,
-                                        juce::Colours::transparentBlack, static_cast<float>(getWidth()) * 0.35f,
-                                        h * 0.12f, true);
-        g.setGradientFill(accentGlow);
         g.fillAll();
     }
 
@@ -97,7 +96,9 @@ namespace pw8::plugin::ui
         fxPanel_.setBounds(fxPage_.getLocalBounds());
         wavetablePanel_.setBounds(wavetablePage_.getLocalBounds());
 
-        graphPlaceholder_.setBounds(graphPanel_.getContentBounds());
+        if (graphEditor_ != nullptr)
+            graphEditor_->setBounds(graphPanel_.getContentBounds());
+
         matrixPlaceholder_.setBounds(matrixPanel_.getContentBounds());
         fxPlaceholder_.setBounds(fxPanel_.getContentBounds());
         wavetablePlaceholder_.setBounds(wavetablePanel_.getContentBounds());

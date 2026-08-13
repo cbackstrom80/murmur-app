@@ -23,6 +23,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 
 #include "pw8/patch/Patch.hpp"
+#include "pw8/algorithm/AlgorithmGraphCompiler.hpp"
 #include "pw8/render/Engine.hpp"
 #include "processor/ScopeAudioTap.h"
 #include "state/ParamChangeQueue.hpp"
@@ -31,6 +32,13 @@
 
 namespace pw8::plugin
 {
+    struct GraphEditResult
+    {
+        bool ok = false;
+        algorithm::CompileStatus status = algorithm::CompileStatus::Ok;
+        juce::String detail;
+    };
+
     class PatchworkEightProcessor : public juce::AudioProcessor,
                                      private juce::AudioProcessorValueTreeState::Listener
     {
@@ -103,6 +111,12 @@ namespace pw8::plugin
         /// deliberately doesn't cover (the algorithm graph's nodes/edges, patch
         /// metadata) so the editor doesn't need a second, divergent copy of it.
         [[nodiscard]] const patch::Patch& getCurrentPatch() const noexcept { return currentPatch_; }
+
+        /// Message-thread only: compile preview for DESIGN graph editor.
+        [[nodiscard]] GraphEditResult tryCompileAlgorithm(const algorithm::AlgorithmGraphDefinition& def) const;
+
+        /// Message-thread only: apply a validated graph to Layer A and reload the engine.
+        bool commitAlgorithmGraph(const algorithm::AlgorithmGraphDefinition& def);
 
         /// Message-thread only. True once this player has performed the
         /// drag-to-modulate gesture at least once via setOrReplaceModRouteLive()

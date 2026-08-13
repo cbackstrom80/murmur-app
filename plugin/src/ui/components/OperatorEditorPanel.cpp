@@ -178,6 +178,10 @@ namespace pw8::plugin::ui
             apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "GrainPositionJitter"), "Pos Jit");
         grainPitchJitterKnob_ = std::make_unique<GlowKnob>(
             apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "GrainPitchJitter"), "Pitch Jit");
+        wtBendKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "WtBend"), "WT Bend");
+        wtAsymmetryKnob_ = std::make_unique<GlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "WtAsymmetry"), "WT Asym");
 
         for (auto* k : {waveformKnob_.get(), levelKnob_.get(), panKnob_.get(), ratioKnob_.get(), wavetablePosKnob_.get(),
                          fmModRatioKnob_.get(), fmModIndexKnob_.get(), fmModFeedbackKnob_.get(), fmModWaveformKnob_.get(),
@@ -188,7 +192,7 @@ namespace pw8::plugin::ui
                          resonatorStructureKnob_.get(), resonatorDecayKnob_.get(), resonatorDampingKnob_.get(),
                          resonatorBrightnessKnob_.get(), resonatorModesKnob_.get(),
                          grainDensityKnob_.get(), grainSizeKnob_.get(), grainPosJitterKnob_.get(),
-                         grainPitchJitterKnob_.get()})
+                         grainPitchJitterKnob_.get(), wtBendKnob_.get(), wtAsymmetryKnob_.get()})
             panel_.addAndMakeVisible(*k);
         wireModTargets();
     }
@@ -280,6 +284,8 @@ namespace pw8::plugin::ui
         grainSizeKnob_->setVisible(isGranular);
         grainPosJitterKnob_->setVisible(isGranular);
         grainPitchJitterKnob_->setVisible(isGranular);
+        wtBendKnob_->setVisible(isWavetable);
+        wtAsymmetryKnob_->setVisible(isWavetable);
         levelKnob_->setVisible(true);
         panKnob_->setVisible(true);
 
@@ -451,6 +457,22 @@ namespace pw8::plugin::ui
                 resonatorBrightnessKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (resonatorModesKnob_)
                 resonatorModesKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+        }
+        else if (wtBendKnob_ && wtBendKnob_->isVisible())
+        {
+            const int knobWidth = content.getWidth() / 6;
+            if (levelKnob_)
+                levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            if (panKnob_)
+                panKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            if (ratioKnob_)
+                ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            if (wavetablePosKnob_)
+                wavetablePosKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            if (wtBendKnob_)
+                wtBendKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            if (wtAsymmetryKnob_)
+                wtAsymmetryKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
         }
         else if (wavetablePosKnob_ && wavetablePosKnob_->isVisible())
         {

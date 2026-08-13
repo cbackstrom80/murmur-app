@@ -63,6 +63,7 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/GlowRingButton.cpp
     src/ui/components/SectionPanel.cpp
     src/ui/components/AlgorithmGraphView.cpp
+    src/ui/components/AlgorithmGraphEditor.cpp
     src/ui/components/NodeSelectorRow.cpp
     src/ui/components/ContextStrip.cpp
     src/ui/components/OperatorEditorPanel.cpp

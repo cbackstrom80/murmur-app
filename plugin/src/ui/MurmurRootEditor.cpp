@@ -12,7 +12,7 @@ namespace pw8::plugin::ui
           patchBrowserBar_(processor),
           presetBrowserOverlay_(processor, patchBrowserBar_.getPresetIndex(), favoritesStore_),
           playModeEditor_(processor, chrome_),
-          designModeEditor_()
+          designModeEditor_(processor)
     {
         setLookAndFeel(&lookAndFeel_);
 
@@ -56,6 +56,7 @@ namespace pw8::plugin::ui
         processor.onPatchLoaded = [this, &processor] {
             juce::ignoreUnused(processor);
             playModeEditor_.refreshFromPatch();
+            designModeEditor_.refreshFromPatch();
         };
 
         setAppMode(AppMode::Play);

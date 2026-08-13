@@ -8,6 +8,7 @@
 #include "pw8/dsp/Fft.hpp"
 #include "pw8/dsp/Math.hpp"
 #include "pw8/oscillator/WavetableWarp.hpp"
+#include "pw8/oscillator/WavetableOscillator.hpp"
 
 using namespace pw8;
 using namespace pw8::oscillator;
@@ -94,4 +95,34 @@ TEST_CASE("WavetableWarp bend increases harmonics", "[wavetable][warp]")
     const double warpedRatio = nonFundamentalEnergyRatio(warpedTail, kFundamentalBin);
 
     REQUIRE(warpedRatio > flatRatio * 1.05);
+}
+
+TEST_CASE("WavetableOscillator warp changes output vs identity", "[wavetable][warp]")
+{
+    constexpr int kTableSize = 256;
+    std::vector<float> samples(static_cast<std::size_t>(kTableSize));
+    for (int i = 0; i < kTableSize; ++i)
+        samples[static_cast<std::size_t>(i)] =
+            std::sin(dsp::kTwoPi * static_cast<float>(i) / static_cast<float>(kTableSize));
+
+    WavetableView view;
+    view.samples = samples.data();
+    view.numFrames = 1;
+    view.samplesPerFrame = kTableSize;
+
+    WavetableOscillator osc;
+    osc.prepare(48000.0);
+    osc.setFrequency(440.0f);
+    osc.reset(0.25f);
+
+    WtWarpParams neutral;
+    WtWarpParams bent;
+    bent.bend = 0.75f;
+
+    const float flat = osc.renderSample(view, 0.0f, 0.0f, neutral);
+    osc.reset(0.25f);
+    const float warped = osc.renderSample(view, 0.0f, 0.0f, bent);
+
+    REQUIRE(flat != Catch::Approx(0.0f).margin(1.0e-4f));
+    REQUIRE(warped != Catch::Approx(flat).margin(1.0e-4f));
 }

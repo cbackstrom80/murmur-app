@@ -3,13 +3,14 @@
 #include <cstddef>
 
 #include "pw8/dsp/Math.hpp"
+#include "pw8/oscillator/WavetableWarp.hpp"
 
 // Engine Type 2 -- Wavetable (see docs/DSP_ENGINE.md).
 //
 // Status: IMPLEMENTED core reader — multi-frame, linearly interpolated across
 // sample and frame position, with mip-mapped band-limited views selected via
 // `WavetableTable::viewForFrequency()`. Pre-read phase warps (bend, asymmetry,
-// sync) are wired in Week 2+ — see docs/DESIGN_AND_WARPS_PLAN.md.
+// sync) apply via `WtWarpParams` — see docs/DESIGN_AND_WARPS_PLAN.md.
 //
 // The oscillator itself owns no sample storage (no realtime allocation): callers
 // point it at a `WavetableView` that is prepared off the audio thread (see
@@ -47,8 +48,10 @@ namespace pw8::oscillator
         void setFrequency(float hz) noexcept { frequencyHz_ = hz; }
 
         /// `framePosition01` selects a (possibly fractional) frame across the table, 0..1.
+        /// Pre-read phase warps (bend, asymmetry) apply via `warp` before table lookup.
         [[nodiscard]] float renderSample(const WavetableView& table, float framePosition01,
-                                          float externalPhaseModulation = 0.0f) noexcept
+                                          float externalPhaseModulation = 0.0f,
+                                          const WtWarpParams& warp = {}) noexcept
         {
             if (!table.isValid())
             {
@@ -56,7 +59,8 @@ namespace pw8::oscillator
                 return 0.0f;
             }
 
-            const float readPhase = dsp::wrapPhase(phase_ + externalPhaseModulation);
+            const float modulatedPhase = dsp::wrapPhase(phase_ + externalPhaseModulation);
+            const float readPhase = warpReadPhase(modulatedPhase, warp);
             const float out = readTable(table, dsp::clamp(framePosition01, 0.0f, 1.0f), readPhase);
 
             const float dt = static_cast<float>(frequencyHz_ / sampleRate_);

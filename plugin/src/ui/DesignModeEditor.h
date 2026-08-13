@@ -1,22 +1,27 @@
 #pragma once
 
 #include <array>
+#include <memory>
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "components/AlgorithmGraphEditor.h"
 #include "components/SectionPanel.h"
+#include "processor/PatchworkEightProcessor.h"
 #include "theme/ObsidianLookAndFeel.h"
 
 namespace pw8::plugin::ui
 {
-    /// DESIGN mode shell — Graph / Matrix / FX / Wavetable tabs (Week 1 stub panels).
+    /// DESIGN mode shell — Graph / Matrix / FX / Wavetable tabs.
     class DesignModeEditor : public juce::Component
     {
     public:
-        DesignModeEditor();
+        explicit DesignModeEditor(PatchworkEightProcessor& processor);
 
         void paint(juce::Graphics& g) override;
         void resized() override;
+
+        void refreshFromPatch();
 
     private:
         enum class Page
@@ -29,6 +34,7 @@ namespace pw8::plugin::ui
 
         void showPage(Page page);
 
+        PatchworkEightProcessor& processor_;
         ObsidianLookAndFeel lookAndFeel_;
         std::array<juce::TextButton, 4> tabButtons_{
             juce::TextButton{"Graph"},
@@ -45,7 +51,7 @@ namespace pw8::plugin::ui
         SectionPanel matrixPanel_{"Mod Matrix"};
         SectionPanel fxPanel_{"FX Detail"};
         SectionPanel wavetablePanel_{"Wavetable"};
-        juce::Label graphPlaceholder_{"", "Graph editor — Week 2"};
+        std::unique_ptr<AlgorithmGraphEditor> graphEditor_;
         juce::Label matrixPlaceholder_{"", "Full mod matrix — Week 4"};
         juce::Label fxPlaceholder_{"", "FX detail panels — Week 5"};
         juce::Label wavetablePlaceholder_{"", "Wavetable warp panel — Week 7"};
