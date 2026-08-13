@@ -876,37 +876,72 @@ def build_interstellar_patch(f, slot, display_name, archetype, variant, rng):
 
 def feature_matrix():
     """Return coverage counts for README."""
-    engines = set()
-    has_filter2 = has_warp = has_granular = has_stack = has_arp = 0
+    engine_names = ["Classic", "Wavetable", "FM/PM", "Additive", "PhaseShape",
+                    "Granular", "NoiseChaos", "Resonator"]
+    engine_primary = {i: 0 for i in range(8)}
+    graph_counts = {k: 0 for k in GRAPH_KINDS}
+    has_filter2 = has_warp = has_warp_prominent = has_granular = has_stack = has_arp = 0
+    has_fx = has_warp_mod = 0
+    warp_param_keys = ("wtBend", "wtAsymmetry", "wtSyncRatio", "wtSyncAmount", "wtFormantShift")
+    warp_mod_dests = {DST_WT_BEND, DST_WT_ASYM, DST_WT_SYNC, DST_WT_FORMANT}
+
     for pw8 in sorted(OUT_DIR.glob("*.pw8")):
         data = json.loads(pw8.read_text())
-        for op in data.get("layerA", {}).get("operators", []):
-            if op.get("level", 0) > 0:
-                engines.add(op.get("engine", 0))
-        f2 = data.get("layerA", {}).get("filter2", {})
+        layer_a = data.get("layerA", {})
+        active_ops = [op for op in layer_a.get("operators", []) if op.get("level", 0) > 0]
+        if active_ops:
+            primary = max(active_ops, key=lambda o: o.get("level", 0))
+            engine_primary[primary.get("engine", 0)] += 1
+
+        alg = layer_a.get("algorithm", {})
+        edges = alg.get("edges", [])
+        if any(e.get("type") == 6 for e in edges):
+            graph_counts["feedback"] += 1
+        elif len(edges) >= 5 and all(e.get("type") == 1 for e in edges):
+            graph_counts["serial"] += 1
+        elif len([e for e in edges if e.get("type") == 1]) >= 3 and sum(
+                1 for n in alg.get("nodes", []) if n.get("isOutput")) >= 3:
+            if any(e.get("type") == 0 for e in edges):
+                graph_counts["multi_out"] += 1
+            else:
+                graph_counts["fm_pm"] += 1
+        elif not edges and sum(1 for n in alg.get("nodes", []) if n.get("isOutput")) >= 6:
+            graph_counts["parallel"] += 1
+
+        f2 = layer_a.get("filter2", {})
         if f2.get("enabled"):
             has_filter2 += 1
-        for op in data.get("layerA", {}).get("operators", []):
-            if any(op.get(k, 0) for k in ("wtBend", "wtSyncAmount", "wtFormantShift")):
-                has_warp += 1
-                break
-        if any(op.get("engine") == 5 and op.get("level", 0) > 0
-               for op in data.get("layerA", {}).get("operators", [])):
+        warp_fields = sum(1 for op in layer_a.get("operators", [])
+                          for k in warp_param_keys if op.get(k, 0))
+        if warp_fields:
+            has_warp += 1
+        if warp_fields >= 2:
+            has_warp_prominent += 1
+        if any(op.get("engine") == 5 and op.get("level", 0) > 0 for op in layer_a.get("operators", [])):
             has_granular += 1
         if data.get("layerMode") == 2:
             has_stack += 1
         if data.get("arpeggiator", {}).get("enabled"):
             has_arp += 1
-    engine_names = ["Classic", "Wavetable", "FM/PM", "Additive", "PhaseShape",
-                    "Granular", "NoiseChaos", "Resonator"]
-    used = [engine_names[e] for e in sorted(engines)]
+        if data.get("masterEffects") or layer_a.get("insertEffects"):
+            has_fx += 1
+        for r in layer_a.get("modRoutes", []):
+            if r.get("destination") in warp_mod_dests:
+                has_warp_mod += 1
+
+    used = [engine_names[e] for e in sorted(i for i, c in engine_primary.items() if c > 0)]
     return {
         "engines": used,
+        "engine_primary": {engine_names[k]: v for k, v in engine_primary.items()},
+        "graphs": graph_counts,
         "filter2": has_filter2,
         "warp": has_warp,
+        "warp_prominent": has_warp_prominent,
+        "warp_mod_routes": has_warp_mod,
         "granular": has_granular,
         "stack": has_stack,
         "arp": has_arp,
+        "fx": has_fx,
         "total": len(list(OUT_DIR.glob("*.pw8"))),
     }
 
