@@ -140,16 +140,18 @@ So today KOINS are **mostly direct parameter knobs**, with **one macro** as the 
 
 ### Basic vs Compact vs Advanced exposure
 
+**Product direction (2026-08-13):** PLAY-only UI — **no Design Mode**. Live topology **removed** from Basic/Compact. Advanced screen **stays** (OSC/FILTER/ENV/MOD/FX tabs + mod routing overlay).
+
 | Surface | Basic | Compact (320px teleprompter) | Advanced |
 |---------|-------|------------------------------|----------|
-| KOINS / PatchFocusPanel | **Full viewport** (6 knobs, 120px decked) | **4 KOINS** orbiting circular scope + mission card | **Hidden** |
-| Live topology strip | Bottom strip, tappable | Hidden (scope is hero) | Under node row |
+| KOINS / PatchFocusPanel | **Target: 2 macro knobs** (today: 6 knobs) | **Target: 2 macro knobs** orbiting scope + mission card (today: 4) | **Hidden** |
+| Live topology | **Removed** | **Removed** | **Removed** (no live graph strip) |
 | Mod Matrix UI | Hidden (overlay closed) | Hidden | MOD tab + `ModRoutingOverlay` (M key) |
 | Macro strip (8) | Not shown | Not shown | Not shown |
 | OSC/FILTER/ENV/MOD/FX tabs | Hidden | Hidden | Shown |
 | MW/EXP badges | On PatchFocusPanel | Not in compact orbit layout | N/A |
 
-View wiring: `PlayModeEditor::setViewMode()` — Basic shows only `patchFocusPanel_` + topology strip; Compact delegates to `CompactModeEditor` + `focusPanel_.setCompactLayout(true)`.
+View wiring: `PlayModeEditor::setViewMode()` — Basic shows `patchFocusPanel_` only; Compact delegates to `CompactModeEditor` + `focusPanel_.setCompactLayout(true)`.
 
 ### Patch / mod routing that can back 2 macro-KOINS
 
@@ -297,7 +299,7 @@ Serializer expands `macroBundles` → `modRoutes` on load (single source of trut
 | KOIN B (Macro 2) | Large knob | Orbit knob | — | — |
 | Mod Wheel | Badge | (implicit in patch) | Badge if KOINS panel shown | Route only, no extra knob |
 | Expression | Badge | — | — | Route only |
-| Live topology strip | Collapsed | — | Full strip | — |
+| Live topology strip | **Removed** | **Removed** | **Removed** | — |
 | Cutoff / Reso direct | **Remove from KOINS** | **Remove** | FILTER tab | Yes — use macro routes instead |
 | Macro 3–8 | APVTS only | APVTS only | MOD / DAW | Omit routes unless needed |
 | Full mod matrix | Hidden | Hidden | MOD tab + overlay | Author routes, don’t expose UI |
@@ -343,7 +345,7 @@ Serializer expands `macroBundles` → `modRoutes` on load (single source of trut
 2. **Pick naming convention** — patch-specific names (WARMTH/SPACE) vs fixed global labels; docs assume patch-authored (ASM-aligned).
 3. **Scope agent PR** — factory regen + `infer_ui_focus` + constants first; UI constant changes second; defer `macroBundles` schema unless agents need it immediately.
 4. **Leave MP11SE CC → Macro3–7 map intact** — hardware continues to work; those macros simply won’t appear as KOINS.
-5. **Advanced PLAY unchanged** — full MOD tab remains the escape hatch for power users.
+5. **Advanced PLAY unchanged** — full MOD tab remains the escape hatch for power users. **No Design Mode** — patch authoring is agentic/offline; PLAY exposes only what each preset needs.
 
 ---
 
