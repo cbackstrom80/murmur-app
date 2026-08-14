@@ -32,9 +32,9 @@ namespace pw8::plugin::ui::knobrings
         // Match decked::computeGeometry (medium) — value arc sits on middle deck.
         const float valueArcRadius = deckedStyle ? dialRadius * 0.80f * 0.94f : dialRadius * 0.90f;
         const float outerDeckRadius = deckedStyle ? dialRadius * 0.95f : dialRadius * 0.98f;
-        const float modGap = juce::jmax(4.5f, dialRadius * 0.085f);
+        const float modGap = juce::jmax(5.0f, dialRadius * 0.095f);
         const float modRingRadius = outerDeckRadius + modGap;
-        const float modStrokeWidth = juce::jmax(3.8f, dialRadius * 0.078f);
+        const float modStrokeWidth = juce::jmax(4.6f, dialRadius * 0.092f);
 
         return {centre, dialRadius, valueArcRadius, modRingRadius, modStrokeWidth};
     }
@@ -84,8 +84,8 @@ namespace pw8::plugin::ui::knobrings
             rotary::kStartAngle + rotary::kSweep * juce::jlimit(0.0f, 1.0f, liveNormalized);
         const auto direction = rotary::unitDirectionAtAngle(ghostAngle);
         const auto point = layout.centre + direction * layout.modRingRadius;
-        const float dotRadius = juce::jmax(2.8f, layout.dialRadius * 0.048f);
-        draw::fillGlowDot(g, point, dotRadius, accent, 0.88f, 5);
+        const float dotRadius = juce::jmax(3.2f, layout.dialRadius * 0.055f);
+        draw::fillGlowDot(g, point, dotRadius, accent, 0.92f, 6);
     }
 
     inline void drawDragHoverRing(juce::Graphics& g, const Layout& layout)

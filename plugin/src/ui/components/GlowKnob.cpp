@@ -347,7 +347,7 @@ namespace pw8::plugin::ui
         const auto sliderBounds = slider_.getBounds().toFloat().reduced(4.0f);
         const auto ringLayout =
             knobrings::computeLayout(sliderBounds, static_cast<float>(maxDialDiameter_), deckedStyle_);
-        const float strokeScale = featuredPerformanceMacro_ ? 1.22f : 1.0f;
+        const float strokeScale = featuredPerformanceMacro_ ? 1.35f : 1.08f;
 
         if (dragHover_)
             knobrings::drawDragHoverRing(g, ringLayout);
