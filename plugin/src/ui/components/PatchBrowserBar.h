@@ -44,6 +44,7 @@ namespace pw8::plugin::ui
         PatchworkEightProcessor& processor_;
         content::PresetIndex presetIndex_;
         juce::Label patchNameLabel_;
+        juce::Label patchHintLabel_;
         juce::TextButton prevButton_{"<"};
         juce::TextButton nextButton_{">"};
         juce::TextButton browseButton_{"BROWSE"};

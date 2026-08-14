@@ -168,6 +168,9 @@ namespace pw8::plugin::ui
         revertButton_.onClick = [this] { revertEdits(); };
         addAndMakeVisible(revertButton_);
 
+        graphPreview_ = std::make_unique<AlgorithmGraphView>(processor_);
+        addAndMakeVisible(*graphPreview_);
+
         refreshFromPatch();
     }
 
@@ -232,6 +235,12 @@ namespace pw8::plugin::ui
         }
     }
 
+    void AlgorithmGraphEditor::syncGraphPreview()
+    {
+        if (graphPreview_ != nullptr)
+            graphPreview_->setGraphPreview(&workingCopy_);
+    }
+
     void AlgorithmGraphEditor::recompilePreview()
     {
         workingCopy_.edges.clear();
@@ -247,6 +256,7 @@ namespace pw8::plugin::ui
         compileStatus_.setColour(juce::Label::textColourId, compileOk ? palette::kAccent : juce::Colours::orange);
         applyButton_.setEnabled(compileOk && dirty);
         revertButton_.setEnabled(dirty);
+        syncGraphPreview();
     }
 
     void AlgorithmGraphEditor::addEdge()
@@ -328,6 +338,13 @@ namespace pw8::plugin::ui
     void AlgorithmGraphEditor::resized()
     {
         auto bounds = getLocalBounds().reduced(8);
+
+        if (graphPreview_ != nullptr)
+        {
+            const int previewHeight = juce::jlimit(160, 280, bounds.getHeight() * 2 / 5);
+            graphPreview_->setBounds(bounds.removeFromTop(previewHeight));
+            bounds.removeFromTop(8);
+        }
 
         nodesHeader_.setBounds(bounds.removeFromTop(20));
         auto nodeRow = bounds.removeFromTop(28);

@@ -19,6 +19,32 @@ namespace pw8::plugin::ui
             g.setGradientFill(line);
             g.fillRect(x, top, 1.0f, bottom - top);
         }
+
+        juce::String performanceHintFromDescription(const std::string& description)
+        {
+            if (description.empty())
+                return {};
+
+            juce::String text = juce::String::fromUTF8(description.data(),
+                                                       static_cast<int>(description.size()));
+            text = text.trim();
+
+            int end = -1;
+            for (int i = 0; i < text.length(); ++i)
+            {
+                const juce::juce_wchar c = text[i];
+                if (c == '.' || c == '!' || c == '?')
+                {
+                    end = i;
+                    break;
+                }
+            }
+
+            juce::String hint = end >= 0 ? text.substring(0, end + 1).trim() : text;
+            if (hint.length() > 80)
+                hint = hint.substring(0, 77).trimEnd() + "...";
+            return hint;
+        }
     } // namespace
 
     PatchBrowserBar::PatchBrowserBar(PatchworkEightProcessor& processor)
@@ -29,6 +55,12 @@ namespace pw8::plugin::ui
         patchNameLabel_.setColour(juce::Label::textColourId, palette::kTextPrimary);
         patchNameLabel_.setFont(fonts::title(14.0f));
         addAndMakeVisible(patchNameLabel_);
+
+        patchHintLabel_.setJustificationType(juce::Justification::centred);
+        patchHintLabel_.setColour(juce::Label::textColourId, palette::kTextDim);
+        patchHintLabel_.setFont(fonts::label(fonts::kCaptionSize));
+        patchHintLabel_.setInterceptsMouseClicks(false, false);
+        addChildComponent(patchHintLabel_);
 
         addAndMakeVisible(spectrumScope_);
         spectrumScope_.setViewMode(processor_.getScopeViewMode());
@@ -87,9 +119,15 @@ namespace pw8::plugin::ui
 
     void PatchBrowserBar::timerCallback()
     {
-        const auto name = juce::String(processor_.getCurrentPatch().metadata.name);
+        const auto& meta = processor_.getCurrentPatch().metadata;
+        const auto name = juce::String(meta.name);
         if (patchNameLabel_.getText() != name)
             patchNameLabel_.setText(name.isEmpty() ? "INIT" : name, juce::dontSendNotification);
+
+        const auto hint = performanceHintFromDescription(meta.description);
+        if (patchHintLabel_.getText() != hint)
+            patchHintLabel_.setText(hint, juce::dontSendNotification);
+        patchHintLabel_.setVisible(!hint.isEmpty());
     }
 
     void PatchBrowserBar::paint(juce::Graphics& g)
@@ -137,9 +175,11 @@ namespace pw8::plugin::ui
 
         paintVerticalSeparator(g, brandWidth - 0.5f, fullBounds.getY() + 10.0f, fullBounds.getBottom() - 10.0f);
 
-        if (patchNameLabel_.isVisible())
+        if (patchNameLabel_.isVisible() || patchHintLabel_.isVisible())
         {
             auto pill = patchNameLabel_.getBounds().toFloat().expanded(5.0f, 2.5f);
+            if (patchHintLabel_.isVisible())
+                pill = pill.getUnion(patchHintLabel_.getBounds().toFloat().expanded(5.0f, 2.0f));
             g.setColour(palette::kBackgroundBottom.withAlpha(0.78f));
             g.fillRoundedRectangle(pill, 4.0f);
             g.setColour(palette::kBorder.withAlpha(0.55f));
@@ -159,7 +199,11 @@ namespace pw8::plugin::ui
         bounds.removeFromRight(6);
         masterVolumeKnob_->setBounds(bounds.removeFromRight(54).reduced(0, 2));
         bounds.removeFromRight(6);
-        patchNameLabel_.setBounds(bounds.removeFromRight(juce::jmax(120, bounds.getWidth() / 4)));
+        const int presetColumnWidth = juce::jmax(140, bounds.getWidth() / 4);
+        auto presetColumn = bounds.removeFromRight(presetColumnWidth);
+        patchNameLabel_.setBounds(presetColumn.removeFromTop(18));
+        if (patchHintLabel_.isVisible())
+            patchHintLabel_.setBounds(presetColumn.removeFromTop(14));
         bounds.removeFromRight(6);
         spectrumScope_.setBounds(bounds.reduced(0, 6));
         scopeModeToggle_.setBounds(spectrumScope_.getBounds().removeFromTop(18).removeFromRight(56).reduced(4, 1));

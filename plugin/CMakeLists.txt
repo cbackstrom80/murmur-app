@@ -64,6 +64,7 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/SectionPanel.cpp
     src/ui/components/AlgorithmGraphView.cpp
     src/ui/components/AlgorithmGraphEditor.cpp
+    src/ui/components/EngineIconGrid.cpp
     src/ui/components/ModMatrixDesignPanel.cpp
     src/ui/components/DesignFxDetailPanel.cpp
     src/ui/components/WavetableWarpPanel.cpp

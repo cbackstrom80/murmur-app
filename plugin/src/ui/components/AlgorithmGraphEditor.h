@@ -1,6 +1,6 @@
 #pragma once
 
-#include <functional>
+#include <memory>
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
@@ -9,6 +9,8 @@
 
 namespace pw8::plugin::ui
 {
+    class AlgorithmGraphView;
+
     /// DESIGN mode edge-list editor for Layer A's algorithm graph.
     class AlgorithmGraphEditor : public juce::Component
     {
@@ -31,6 +33,7 @@ namespace pw8::plugin::ui
         void ensureDefaultNodes();
         void rebuildEdgeRows();
         void recompilePreview();
+        void syncGraphPreview();
         void addEdge();
         void applyEdits();
         void revertEdits();
@@ -42,6 +45,8 @@ namespace pw8::plugin::ui
 
         juce::Label nodesHeader_{"", "Nodes (toggle output)"};
         std::array<juce::ToggleButton, pw8::core::kNodesPerLayer> outputToggles_;
+
+        std::unique_ptr<AlgorithmGraphView> graphPreview_;
 
         juce::Label edgesHeader_{"", "Edges"};
         juce::TextButton addEdgeButton_{"+ Add Edge"};

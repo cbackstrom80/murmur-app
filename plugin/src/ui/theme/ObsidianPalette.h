@@ -9,6 +9,24 @@
 // Every color used anywhere in plugin/src/ui/ comes from this file -- no component
 // hand-rolls its own juce::Colour literal, so the whole skin can be re-tuned (or a
 // second skin added later) by editing one place.
+//
+// ---- Color role system (UI Differentiation Brief, Week 1) ----
+// Three accents, three jobs — avoid "neon soup" by never mixing roles on one control:
+//
+//   CYAN (kAccent / kAccentDim)
+//     Topology, signal structure, graph edges, active routes, filter/FX wireframes.
+//     Use for: AlgorithmGraphView, node output badges, edge legend, scope structure.
+//
+//   AMBER (kAccentWarm / kAccentWarmDim)
+//     Performance, human touch, KOINS, macros, GLOBAL scope, MIDI badges (MW/EXP).
+//     Use for: macro knobs, performance scope accents, compact teleprompter chrome.
+//
+//   VIOLET (kMurmurViolet / kMurmurVioletDeep)
+//     DESIGN mode, lab/authoring chrome, brand motion on default rotary orbit.
+//     Use for: DESIGN tab row, SectionPanel titles in DESIGN, default knob ring.
+//     Do NOT use for graph topology — that stays cyan so PLAY/DESIGN graph reads alike.
+//
+// Mod source chips use their own rainbow (kMod*) — distinct from all three accents.
 namespace pw8::plugin::ui::palette
 {
     // -- Structure: background/panel/border, darkest to lightest. --
@@ -24,20 +42,16 @@ namespace pw8::plugin::ui::palette
     inline const juce::Colour kTextSecondary{0xffadb2bd};
     inline const juce::Colour kTextDim{0xff858b98};
 
-    // -- A deliberate duotone, not a single accent: cool cyan for structural/signal
-    // things (the algorithm graph, Filter, FX), warm amber for performance things
-    // (the 8 macros -- the one surface a player's hands are actually on). Neither
-    // reads as "extra" because each owns a distinct, consistent role rather than
-    // competing for the same meaning -- restraint is still the point, just spent on
-    // two colors instead of one. --
+    // -- A deliberate tri-accent system (see role doc above): --
+    // Cyan = structural/signal topology (graph, routes, wireframes).
     inline const juce::Colour kAccent{0xff7fe7e0};
     inline const juce::Colour kAccentDim{0xff3d5c59};
 
+    // Amber = performance / KOINS / macros / human-touch surfaces.
     inline const juce::Colour kAccentWarm{0xffe8a33d};
     inline const juce::Colour kAccentWarmDim{0xff5c4a2c};
 
-    // Murmur brand violet — primary motion accent on rotary controls (orbit ring,
-    // satellites, default pointer). Structural cyan/warm overrides remain per-knob.
+    // Violet = DESIGN/lab authoring chrome + default knob orbit (brand motion).
     inline const juce::Colour kMurmurViolet{0xffb9a8ff};
     inline const juce::Colour kMurmurVioletDeep{0xff8c79e8};
 

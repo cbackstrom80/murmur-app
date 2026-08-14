@@ -15,9 +15,9 @@ namespace pw8::plugin::ui
             btn.setClickingTogglesState(true);
             btn.setRadioGroupId(9100);
             btn.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
-            btn.setColour(juce::TextButton::buttonOnColourId, palette::kAccentDim.withAlpha(0.55f));
+            btn.setColour(juce::TextButton::buttonOnColourId, palette::kMurmurVioletDeep.withAlpha(0.45f));
             btn.setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
-            btn.setColour(juce::TextButton::textColourOnId, palette::kAccent);
+            btn.setColour(juce::TextButton::textColourOnId, palette::kMurmurViolet);
             btn.onClick = [this, page = static_cast<Page>(i)] { showPage(page); };
             addAndMakeVisible(btn);
         }

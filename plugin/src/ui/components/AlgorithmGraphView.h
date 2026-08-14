@@ -64,8 +64,13 @@ namespace pw8::plugin::ui
 
         [[nodiscard]] int getSelectedNode() const noexcept { return selectedNode_; }
 
+        /// When set, paint/read from this graph instead of the processor patch (DESIGN preview).
+        void setGraphPreview(const algorithm::AlgorithmGraphDefinition* preview) noexcept;
+
     private:
         void timerCallback() override;
+
+        [[nodiscard]] const algorithm::AlgorithmGraphDefinition& activeGraph() const noexcept;
 
         [[nodiscard]] juce::Point<float> nodePosition(std::size_t index, std::size_t nodeCount,
                                                         juce::Rectangle<float> area) const;
@@ -75,6 +80,7 @@ namespace pw8::plugin::ui
         [[nodiscard]] juce::String buildCaption() const;
 
         PatchworkEightProcessor& processor_;
+        const algorithm::AlgorithmGraphDefinition* previewGraph_ = nullptr;
         float pulsePhase_ = 0.0f;
         int selectedNode_ = 0; // Matches OperatorEditorPanel's own initial showNode(0).
 

@@ -3,6 +3,7 @@
 #include "../theme/ObsidianDraw.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
+#include "EngineIconGrid.h"
 #include "pw8/algorithm/AlgorithmTypes.hpp"
 
 namespace pw8::plugin::ui
@@ -98,8 +99,13 @@ namespace pw8::plugin::ui
 
             g.setColour((implemented ? palette::kTextPrimary : palette::kTextDim).withAlpha(alphaMul));
             g.setFont(fonts::label(10.0f));
+
+            auto textBounds = bounds;
+            const auto iconBounds = textBounds.removeFromLeft(18).toFloat().reduced(2.0f, 4.0f);
+            engineicons::drawEngineIcon(g, engine, iconBounds, palette::kAccent.withAlpha(0.85f * alphaMul), 1.2f);
+
             const juce::String label = juce::String(i) + " " + engineLabel(engine);
-            g.drawText(label, bounds, juce::Justification::centred);
+            g.drawText(label, textBounds, juce::Justification::centred);
         }
 
         {

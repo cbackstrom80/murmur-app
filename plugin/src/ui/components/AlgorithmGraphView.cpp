@@ -77,6 +77,19 @@ namespace pw8::plugin::ui
         stopTimer();
     }
 
+    void AlgorithmGraphView::setGraphPreview(const algorithm::AlgorithmGraphDefinition* preview) noexcept
+    {
+        previewGraph_ = preview;
+        repaint();
+    }
+
+    const algorithm::AlgorithmGraphDefinition& AlgorithmGraphView::activeGraph() const noexcept
+    {
+        if (previewGraph_ != nullptr)
+            return *previewGraph_;
+        return processor_.getCurrentPatch().layerA.algorithm;
+    }
+
     void AlgorithmGraphView::timerCallback()
     {
         pulsePhase_ += 1.0f / 24.0f * 0.35f; // one full lap roughly every ~3 seconds.
@@ -107,7 +120,7 @@ namespace pw8::plugin::ui
 
     void AlgorithmGraphView::mouseDown(const juce::MouseEvent& event)
     {
-        const auto& algo = processor_.getCurrentPatch().layerA.algorithm;
+        const auto& algo = activeGraph();
         const auto area = circleArea();
         const std::size_t nodeCount = algo.nodes.size();
         const auto pos = event.position;
@@ -128,7 +141,7 @@ namespace pw8::plugin::ui
 
     juce::String AlgorithmGraphView::buildCaption() const
     {
-        const auto& algo = processor_.getCurrentPatch().layerA.algorithm;
+        const auto& algo = activeGraph();
         if (algo.edges.empty())
             return "All 8 operators sum directly to the output -- no custom routing in this patch.";
 
@@ -158,7 +171,7 @@ namespace pw8::plugin::ui
 
     void AlgorithmGraphView::paint(juce::Graphics& g)
     {
-        const auto& algo = processor_.getCurrentPatch().layerA.algorithm;
+        const auto& algo = activeGraph();
         const auto area = circleArea();
         const std::size_t nodeCount = algo.nodes.size();
 
