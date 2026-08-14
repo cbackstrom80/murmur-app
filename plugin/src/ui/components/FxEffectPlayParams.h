@@ -59,7 +59,8 @@ namespace pw8::plugin::ui
             {{{"LimiterCeilingDb", "Ceil"}, {"LimiterLookaheadMs", "Look"}, {"LimiterReleaseMs", "Rel"}, {nullptr, nullptr}}}};
         static constexpr FxTypePlaySpec kBinauralSpace{
             "QUASAR", "QSR",
-            {{{nullptr, "Distance"}, {nullptr, "Angle"}, {nullptr, "Room"}, {nullptr, "Delay"}}}};
+            {{{"Qsr1Distance", "Distance"}, {"Qsr1Angle", "Angle"}, {"Qsr1RoomAmount", "Room"},
+              {"QuasarDelayTimeMs", "Delay"}}}};
 
         switch (typeOrdinal)
         {

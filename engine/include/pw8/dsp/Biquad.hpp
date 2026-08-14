@@ -84,6 +84,24 @@ namespace pw8::dsp
             setCoefficients(b0, b1, b2, a0, a1, a2);
         }
 
+        /// RBJ Audio EQ Cookbook "HPF" -- 2-pole highpass, Q fixed at 0.707 (Butterworth).
+        void setHighpass(float freqHz, double sampleRate) noexcept
+        {
+            const float w0 = kTwoPi * freqHz / static_cast<float>(sampleRate);
+            const float cosW0 = std::cos(w0);
+            const float sinW0 = std::sin(w0);
+            constexpr float kQ = 0.70710678f;
+            const float alpha = sinW0 / (2.0f * kQ);
+
+            const float b0 = (1.0f + cosW0) * 0.5f;
+            const float b1 = -(1.0f + cosW0);
+            const float b2 = b0;
+            const float a0 = 1.0f + alpha;
+            const float a1 = -2.0f * cosW0;
+            const float a2 = 1.0f - alpha;
+            setCoefficients(b0, b1, b2, a0, a1, a2);
+        }
+
         /// RBJ Audio EQ Cookbook "LPF" -- a standard 2-pole lowpass, Q fixed at
         /// 0.707 (Butterworth, maximally flat passband, no resonant peak at the
         /// corner) since effects::Reverb's "Roll Off" doesn't expose Q separately.

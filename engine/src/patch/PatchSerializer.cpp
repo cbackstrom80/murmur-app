@@ -345,12 +345,25 @@ namespace pw8::patch
                 {"compTransformerAmount", e.compTransformerAmount},
                 {"limiterCeilingDb", e.limiterCeilingDb},           {"limiterLookaheadMs", e.limiterLookaheadMs},
                 {"limiterReleaseMs", e.limiterReleaseMs},
+                {"qsr1Level", e.qsr1Level},                         {"qsr2Level", e.qsr2Level},
+                {"cntrLevel", e.cntrLevel},                         {"inputSplitHpfHz", e.inputSplitHpfHz},
+                {"cntrHpfHz", e.cntrHpfHz},
+                {"qsr1Height", e.qsr1Height},                       {"qsr1Angle", e.qsr1AngleDeg},
+                {"qsr1Distance", e.qsr1Distance},
+                {"qsr2Height", e.qsr2Height},                       {"qsr2Angle", e.qsr2AngleDeg},
+                {"qsr2Distance", e.qsr2Distance},
+                {"qsr1RoomAmount", e.qsr1RoomAmount},               {"qsr1RoomSize", e.qsr1RoomSize},
+                {"qsr1RoomDamping", e.qsr1RoomDamping},
+                {"qsr2RoomAmount", e.qsr2RoomAmount},               {"qsr2RoomSize", e.qsr2RoomSize},
+                {"qsr2RoomDamping", e.qsr2RoomDamping},
+                {"quasarDelayTimeMs", e.quasarDelayTimeMs},         {"quasarDelayFeedback", e.quasarDelayFeedback},
+                {"quasarDelayVolume", e.quasarDelayVolume},
             };
         }
 
         void fromJson(const json& j, effects::EffectSlotParams& e)
         {
-            e.type = static_cast<effects::EffectType>(clampNum(j.value("type", 0), 0, 10));
+            e.type = static_cast<effects::EffectType>(clampNum(j.value("type", 0), 0, 11));
             e.mix = clampNum(j.value("mix", 1.0f), 0.0f, 1.0f);
 
             e.saturationDriveDb = clampNum(j.value("saturationDriveDb", 6.0f), 0.0f, 48.0f);
@@ -448,6 +461,27 @@ namespace pw8::patch
             e.limiterLookaheadMs = clampNum(j.value("limiterLookaheadMs", 5.0f),
                                              0.5f, effects::kMaxLimiterLookaheadSeconds * 1000.0f);
             e.limiterReleaseMs = clampNum(j.value("limiterReleaseMs", 60.0f), 1.0f, 2000.0f);
+
+            e.qsr1Level = clampNum(j.value("qsr1Level", 0.65f), 0.0f, 1.0f);
+            e.qsr2Level = clampNum(j.value("qsr2Level", 0.55f), 0.0f, 1.0f);
+            e.cntrLevel = clampNum(j.value("cntrLevel", 0.85f), 0.0f, 1.0f);
+            e.inputSplitHpfHz = clampNum(j.value("inputSplitHpfHz", 120.0f), 20.0f, 500.0f);
+            e.cntrHpfHz = clampNum(j.value("cntrHpfHz", 80.0f), 20.0f, 300.0f);
+            e.qsr1Height = clampNum(j.value("qsr1Height", 0.0f), -1.0f, 1.0f);
+            e.qsr1AngleDeg = clampNum(j.value("qsr1Angle", j.value("qsr1AngleDeg", 30.0f)), 0.0f, 360.0f);
+            e.qsr1Distance = clampNum(j.value("qsr1Distance", 0.35f), 0.0f, 1.0f);
+            e.qsr2Height = clampNum(j.value("qsr2Height", 0.0f), -1.0f, 1.0f);
+            e.qsr2AngleDeg = clampNum(j.value("qsr2Angle", j.value("qsr2AngleDeg", 330.0f)), 0.0f, 360.0f);
+            e.qsr2Distance = clampNum(j.value("qsr2Distance", 0.4f), 0.0f, 1.0f);
+            e.qsr1RoomAmount = clampNum(j.value("qsr1RoomAmount", 0.45f), 0.0f, 1.0f);
+            e.qsr1RoomSize = clampNum(j.value("qsr1RoomSize", 1.0f), 0.2f, 3.0f);
+            e.qsr1RoomDamping = clampNum(j.value("qsr1RoomDamping", 0.55f), 0.0f, 1.0f);
+            e.qsr2RoomAmount = clampNum(j.value("qsr2RoomAmount", 0.40f), 0.0f, 1.0f);
+            e.qsr2RoomSize = clampNum(j.value("qsr2RoomSize", 1.1f), 0.2f, 3.0f);
+            e.qsr2RoomDamping = clampNum(j.value("qsr2RoomDamping", 0.50f), 0.0f, 1.0f);
+            e.quasarDelayTimeMs = clampNum(j.value("quasarDelayTimeMs", 450.0f), 3.0f, 20000.0f);
+            e.quasarDelayFeedback = clampNum(j.value("quasarDelayFeedback", 0.35f), 0.0f, 1.0f);
+            e.quasarDelayVolume = clampNum(j.value("quasarDelayVolume", 0.25f), 0.0f, 1.0f);
         }
 
         void toJson(json& j, const LayerPatch& l)

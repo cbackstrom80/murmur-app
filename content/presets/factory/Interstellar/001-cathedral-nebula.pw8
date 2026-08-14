@@ -24,11 +24,17 @@
       "hymn-swell",
       "cinematic",
       "factory",
-      "score"
+      "score",
+      "spatial"
     ],
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
+    "masterFx": "quasar",
+    "performanceHints": [
+      "headphone-first binaural wash",
+      "CNTR holds bass — sweep SPACE for orbit"
+    ],
     "seed": 752283916,
     "lineage": []
   },
@@ -448,6 +454,27 @@
         "targetIndex": 0,
         "amount": 0.4,
         "scope": 0
+      },
+      {
+        "source": 24,
+        "destination": 13,
+        "targetIndex": 2,
+        "amount": 0.35,
+        "scope": 2
+      },
+      {
+        "source": 24,
+        "destination": 15,
+        "targetIndex": 2,
+        "amount": 0.5,
+        "scope": 2
+      },
+      {
+        "source": 24,
+        "destination": 16,
+        "targetIndex": 2,
+        "amount": 1.2,
+        "scope": 2
       }
     ],
     "gain": 1.0,
@@ -672,7 +699,7 @@
     {
       "id": "m4",
       "name": "SPACE",
-      "description": "Performance macro.",
+      "description": "Opens Quasar spatial mix, room size, and tail on master slot M3.",
       "value": 0.0
     },
     {
@@ -723,23 +750,26 @@
       "chorusBaseDelayMs": 14.0
     },
     {
-      "type": 7,
-      "mix": 0.52,
-      "reverbSizeParam": 2.6,
-      "reverbDecaySeconds": 9.5,
-      "reverbPreDelayMs": 42.0,
-      "reverbHighRatio": 0.55,
-      "reverbHighCrossoverHz": 3200.0,
-      "reverbLowRatio": 1.4,
-      "reverbLowCrossoverHz": 300.0,
-      "reverbDiffusion": 0.8,
-      "reverbDensity": 0.85,
-      "reverbModDepth": 0.3,
-      "reverbModRateHz": 0.15,
-      "reverbEarlyLevel": 0.5,
-      "reverbLateLevel": 0.85,
-      "reverbRollOffHz": 9000.0,
-      "reverbVlfCutDb": -6.0
+      "type": 11,
+      "mix": 0.72,
+      "qsr1Level": 0.65,
+      "qsr2Level": 0.55,
+      "cntrLevel": 0.85,
+      "qsr1Height": 0.1,
+      "qsr1Angle": 35.0,
+      "qsr1Distance": 0.38,
+      "qsr1RoomAmount": 0.42,
+      "qsr1RoomSize": 1.05,
+      "qsr1RoomDamping": 0.52,
+      "qsr2Height": -0.05,
+      "qsr2Angle": 325.0,
+      "qsr2Distance": 0.42,
+      "qsr2RoomAmount": 0.38,
+      "qsr2RoomSize": 1.12,
+      "qsr2RoomDamping": 0.48,
+      "quasarDelayTimeMs": 520.0,
+      "quasarDelayFeedback": 0.32,
+      "quasarDelayVolume": 0.22
     },
     {
       "type": 9,

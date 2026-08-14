@@ -30,7 +30,17 @@
 | **Meta-mod (macro → mod route depth)** | Engine gap documented in `ASM_MACRO_KOINS_RESEARCH.md`; not in `ModMatrixExecutor`. |
 | **`macroBundles` schema** | Optional Phase 2 polish; flat `modRoutes` + `set_macro_koin` sufficient for agents. |
 
-## Verify in Logic Pro
+| 5 | **Global Quasar FX Phase 2** — `BinauralSpace` master slot with ITD/ILD panner, dual embedded `RoomEngine` paths, CNTR anchor, post-sum delay; 20 APVTS params; PLAY QUASAR UI; SPACE macro on Interstellar showcase presets. | `BinauralSpace.hpp`, `RoomEngine.hpp`, `BinauralPanner.hpp`, `FxChainStrip`, `EffectsTests.cpp` |
+
+## Verify in Logic Pro (Quasar Phase 2)
+
+1. Rebuild AU (`cmake --preset dev && cmake --build --preset dev`).
+2. Load **Interstellar/001-cathedral-nebula** — master slot M3 = **QUASAR** (headphones).
+3. Hold C3–C5 chord; sweep **SPACE** macro — spatial mix, room size, and tail should open.
+4. **Advanced → FX** — select M3, TYPE = QUASAR; tweak Distance / Angle / Room / Delay knobs.
+5. A/B vs chorus on M2 — Quasar should feel outside-the-head, not detuned widening.
+
+## Verify in Logic Pro (Horizon 2 baseline)
 
 1. Build and install AU (see `WEEK8_EXIT_CHECKLIST.md`).
 2. Load **Interstellar/001-cathedral-nebula** — Basic view shows macro KOINS; preset bar hint shows spread lines (`BLOOM → Filter, WT, Formant, …`) and macro descriptions. **Dissemination** is on: each held note keeps its macro snapshot — sweep BLOOM before a chord, then hold; re-sweep mid-chord does not retune active voices.

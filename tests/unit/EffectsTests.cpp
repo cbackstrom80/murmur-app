@@ -7,6 +7,8 @@
 #include "pw8/dsp/Biquad.hpp"
 #include "pw8/dsp/Fft.hpp"
 #include "pw8/dsp/HilbertTransformer.hpp"
+#include "pw8/effects/BinauralPanner.hpp"
+#include "pw8/effects/BinauralSpace.hpp"
 #include "pw8/effects/EffectChain.hpp"
 
 using namespace pw8;
@@ -1070,4 +1072,98 @@ TEST_CASE("Reverb Size scales delay lengths independent of decay time", "[effect
     REQUIRE(smallCross < static_cast<std::size_t>(0.005 * kSampleRate));
     REQUIRE(largeCross > static_cast<std::size_t>(0.01 * kSampleRate));
     REQUIRE(largeCross > smallCross * 3); // meaningfully scales with size, not a fixed onset.
+}
+
+TEST_CASE("Binaural panner produces opposing ITD for left vs right azimuth", "[effects][quasar][binaural]")
+{
+    auto renderPanned = [](float angleDeg) {
+        BinauralPanner panner;
+        panner.prepare(kSampleRate);
+        SpatialParams params{angleDeg, 0.0f, 0.35f};
+        std::vector<StereoSample> out;
+        constexpr int kSamples = static_cast<int>(0.008 * kSampleRate);
+        out.reserve(static_cast<std::size_t>(kSamples));
+        for (int i = 0; i < kSamples; ++i)
+        {
+            const float in = (i == 0) ? 1.0f : 0.0f;
+            float outL = 0.0f, outR = 0.0f;
+            panner.processMono(in, params, outL, outR);
+            out.push_back({outL, outR});
+        }
+        return out;
+    };
+
+    const auto left = renderPanned(90.0f);
+    const auto right = renderPanned(270.0f);
+    REQUIRE(allFinite(left));
+    REQUIRE(allFinite(right));
+
+    const std::size_t leftPeakL = peakIndex(left, 0, left.size(), true);
+    const std::size_t leftPeakR = peakIndex(left, 0, left.size(), false);
+    const std::size_t rightPeakL = peakIndex(right, 0, right.size(), true);
+    const std::size_t rightPeakR = peakIndex(right, 0, right.size(), false);
+
+    REQUIRE(leftPeakL != leftPeakR);
+    REQUIRE(rightPeakL != rightPeakR);
+    REQUIRE(leftPeakL < leftPeakR);
+    REQUIRE(rightPeakR < rightPeakL);
+}
+
+TEST_CASE("BinauralSpace widens mono input on headphones vs passthrough", "[effects][quasar]")
+{
+    BinauralSpaceProcessor proc;
+    proc.prepare(kSampleRate);
+    EffectSlotParams p;
+    p.type = EffectType::BinauralSpace;
+    p.mix = 1.0f;
+    p.qsr1AngleDeg = 70.0f;
+    p.qsr2AngleDeg = 250.0f;
+    p.qsr1Distance = 0.55f;
+    p.qsr2Distance = 0.6f;
+    p.cntrLevel = 0.0f;
+    p.qsr1Level = 1.0f;
+    p.qsr2Level = 1.0f;
+    p.qsr1RoomAmount = 0.35f;
+    p.qsr2RoomAmount = 0.32f;
+    p.quasarDelayVolume = 0.0f;
+
+    constexpr int kSamples = static_cast<int>(0.05 * kSampleRate);
+    double sumL = 0.0, sumR = 0.0;
+    std::vector<StereoSample> samples;
+    samples.reserve(static_cast<std::size_t>(kSamples));
+    for (int i = 0; i < kSamples; ++i)
+    {
+        const float in = (i == 0) ? 1.0f : 0.0f;
+        float outL = 0.0f, outR = 0.0f;
+        proc.processStereo(in, in, p, outL, outR);
+        samples.push_back({outL, outR});
+        sumL += static_cast<double>(outL) * outL;
+        sumR += static_cast<double>(outR) * outR;
+    }
+
+    REQUIRE(allFinite(samples));
+    const double rmsL = std::sqrt(sumL / kSamples);
+    const double rmsR = std::sqrt(sumR / kSamples);
+    REQUIRE(rmsL > 1.0e-4);
+    REQUIRE(rmsR > 1.0e-4);
+
+    const std::size_t peakL = peakIndex(samples, 1, samples.size(), true);
+    const std::size_t peakR = peakIndex(samples, 1, samples.size(), false);
+    REQUIRE(peakL > 0);
+    REQUIRE(peakR > 0);
+    REQUIRE(peakL != peakR);
+}
+
+TEST_CASE("BinauralSpace bypass mix=0 passes input unchanged", "[effects][quasar]")
+{
+    BinauralSpaceProcessor proc;
+    proc.prepare(kSampleRate);
+    EffectSlotParams p;
+    p.type = EffectType::BinauralSpace;
+    p.mix = 0.0f;
+
+    float outL = 0.0f, outR = 0.0f;
+    proc.processStereo(0.42f, -0.17f, p, outL, outR);
+    REQUIRE(outL == Catch::Approx(0.42f));
+    REQUIRE(outR == Catch::Approx(-0.17f));
 }

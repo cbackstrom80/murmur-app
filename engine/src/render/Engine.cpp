@@ -115,13 +115,25 @@ namespace pw8::render
             {
                 auto& e = slots[i];
                 e.mix = dsp::clamp(e.mix + mod.mixOffset[i], 0.0f, 1.0f);
-                if (e.type != effects::EffectType::Reverb)
-                    continue;
-                e.reverbSizeParam = dsp::clamp(e.reverbSizeParam + mod.reverbSizeOffset[i], 0.2f, 3.0f);
-                e.reverbDecaySeconds = dsp::clamp(e.reverbDecaySeconds + mod.reverbDecayOffset[i], 0.05f, 20.0f);
-                e.reverbPreDelayMs = dsp::clamp(e.reverbPreDelayMs + mod.reverbPreDelayOffset[i], 0.0f, 200.0f);
-                e.reverbDiffusion = dsp::clamp(e.reverbDiffusion + mod.reverbDiffusionOffset[i], 0.0f, 1.0f);
-                e.reverbModDepth = dsp::clamp(e.reverbModDepth + mod.reverbModDepthOffset[i], 0.0f, 1.0f);
+                if (e.type == effects::EffectType::Reverb)
+                {
+                    e.reverbSizeParam = dsp::clamp(e.reverbSizeParam + mod.reverbSizeOffset[i], 0.2f, 3.0f);
+                    e.reverbDecaySeconds = dsp::clamp(e.reverbDecaySeconds + mod.reverbDecayOffset[i], 0.05f, 20.0f);
+                    e.reverbPreDelayMs = dsp::clamp(e.reverbPreDelayMs + mod.reverbPreDelayOffset[i], 0.0f, 200.0f);
+                    e.reverbDiffusion = dsp::clamp(e.reverbDiffusion + mod.reverbDiffusionOffset[i], 0.0f, 1.0f);
+                    e.reverbModDepth = dsp::clamp(e.reverbModDepth + mod.reverbModDepthOffset[i], 0.0f, 1.0f);
+                }
+                else if (e.type == effects::EffectType::BinauralSpace)
+                {
+                    e.qsr1RoomSize = dsp::clamp(e.qsr1RoomSize + mod.reverbSizeOffset[i], 0.2f, 3.0f);
+                    e.qsr2RoomSize = dsp::clamp(e.qsr2RoomSize + mod.reverbSizeOffset[i] * 0.85f, 0.2f, 3.0f);
+                    e.qsr1RoomAmount = dsp::clamp(e.qsr1RoomAmount + mod.reverbDecayOffset[i] * 0.08f, 0.0f, 1.0f);
+                    e.qsr2RoomAmount = dsp::clamp(e.qsr2RoomAmount + mod.reverbDecayOffset[i] * 0.08f, 0.0f, 1.0f);
+                    e.qsr1Distance = dsp::clamp(e.qsr1Distance + mod.reverbPreDelayOffset[i] * 0.002f, 0.0f, 1.0f);
+                    e.qsr2Distance = dsp::clamp(e.qsr2Distance + mod.reverbPreDelayOffset[i] * 0.002f, 0.0f, 1.0f);
+                    e.quasarDelayFeedback =
+                        dsp::clamp(e.quasarDelayFeedback + mod.reverbDiffusionOffset[i] * 0.15f, 0.0f, 1.0f);
+                }
             }
         }
 

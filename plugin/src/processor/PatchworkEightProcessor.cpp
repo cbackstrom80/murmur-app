@@ -473,6 +473,26 @@ namespace pw8::plugin
             p.limiterCeilingDb = loadF(ptrs[54]);
             p.limiterLookaheadMs = loadF(ptrs[55]);
             p.limiterReleaseMs = loadF(ptrs[56]);
+            p.qsr1Level = loadF(ptrs[57]);
+            p.qsr2Level = loadF(ptrs[58]);
+            p.cntrLevel = loadF(ptrs[59]);
+            p.inputSplitHpfHz = loadF(ptrs[60]);
+            p.cntrHpfHz = loadF(ptrs[61]);
+            p.qsr1Height = loadF(ptrs[62]);
+            p.qsr1AngleDeg = loadF(ptrs[63]);
+            p.qsr1Distance = loadF(ptrs[64]);
+            p.qsr2Height = loadF(ptrs[65]);
+            p.qsr2AngleDeg = loadF(ptrs[66]);
+            p.qsr2Distance = loadF(ptrs[67]);
+            p.qsr1RoomAmount = loadF(ptrs[68]);
+            p.qsr1RoomSize = loadF(ptrs[69]);
+            p.qsr1RoomDamping = loadF(ptrs[70]);
+            p.qsr2RoomAmount = loadF(ptrs[71]);
+            p.qsr2RoomSize = loadF(ptrs[72]);
+            p.qsr2RoomDamping = loadF(ptrs[73]);
+            p.quasarDelayTimeMs = loadF(ptrs[74]);
+            p.quasarDelayFeedback = loadF(ptrs[75]);
+            p.quasarDelayVolume = loadF(ptrs[76]);
             engine.setInsertEffectLive(slot, p);
         }
 
@@ -540,6 +560,26 @@ namespace pw8::plugin
             p.limiterCeilingDb = loadF(ptrs[54]);
             p.limiterLookaheadMs = loadF(ptrs[55]);
             p.limiterReleaseMs = loadF(ptrs[56]);
+            p.qsr1Level = loadF(ptrs[57]);
+            p.qsr2Level = loadF(ptrs[58]);
+            p.cntrLevel = loadF(ptrs[59]);
+            p.inputSplitHpfHz = loadF(ptrs[60]);
+            p.cntrHpfHz = loadF(ptrs[61]);
+            p.qsr1Height = loadF(ptrs[62]);
+            p.qsr1AngleDeg = loadF(ptrs[63]);
+            p.qsr1Distance = loadF(ptrs[64]);
+            p.qsr2Height = loadF(ptrs[65]);
+            p.qsr2AngleDeg = loadF(ptrs[66]);
+            p.qsr2Distance = loadF(ptrs[67]);
+            p.qsr1RoomAmount = loadF(ptrs[68]);
+            p.qsr1RoomSize = loadF(ptrs[69]);
+            p.qsr1RoomDamping = loadF(ptrs[70]);
+            p.qsr2RoomAmount = loadF(ptrs[71]);
+            p.qsr2RoomSize = loadF(ptrs[72]);
+            p.qsr2RoomDamping = loadF(ptrs[73]);
+            p.quasarDelayTimeMs = loadF(ptrs[74]);
+            p.quasarDelayFeedback = loadF(ptrs[75]);
+            p.quasarDelayVolume = loadF(ptrs[76]);
             engine.setMasterEffectLive(slot, p);
         }
 
@@ -987,6 +1027,13 @@ namespace pw8::plugin
                 p.compMakeupDb,
                 p.compTransformerCore,      p.compTransformerBrand, p.compTransformerAmount,
                 p.limiterCeilingDb,         p.limiterLookaheadMs, p.limiterReleaseMs,
+                p.qsr1Level,                p.qsr2Level,          p.cntrLevel,
+                p.inputSplitHpfHz,          p.cntrHpfHz,          p.qsr1Height,
+                p.qsr1AngleDeg,             p.qsr1Distance,       p.qsr2Height,
+                p.qsr2AngleDeg,             p.qsr2Distance,       p.qsr1RoomAmount,
+                p.qsr1RoomSize,             p.qsr1RoomDamping,    p.qsr2RoomAmount,
+                p.qsr2RoomSize,             p.qsr2RoomDamping,    p.quasarDelayTimeMs,
+                p.quasarDelayFeedback,      p.quasarDelayVolume,
             };
             for (std::size_t i = 0; i < kNumEffectSlotFields; ++i)
                 setParam(id + kEffectSlotFieldSpecs[i].idSuffix, values[i]);
@@ -1169,6 +1216,26 @@ namespace pw8::plugin
             p.limiterCeilingDb = loadF(ptrs[54]);
             p.limiterLookaheadMs = loadF(ptrs[55]);
             p.limiterReleaseMs = loadF(ptrs[56]);
+            p.qsr1Level = loadF(ptrs[57]);
+            p.qsr2Level = loadF(ptrs[58]);
+            p.cntrLevel = loadF(ptrs[59]);
+            p.inputSplitHpfHz = loadF(ptrs[60]);
+            p.cntrHpfHz = loadF(ptrs[61]);
+            p.qsr1Height = loadF(ptrs[62]);
+            p.qsr1AngleDeg = loadF(ptrs[63]);
+            p.qsr1Distance = loadF(ptrs[64]);
+            p.qsr2Height = loadF(ptrs[65]);
+            p.qsr2AngleDeg = loadF(ptrs[66]);
+            p.qsr2Distance = loadF(ptrs[67]);
+            p.qsr1RoomAmount = loadF(ptrs[68]);
+            p.qsr1RoomSize = loadF(ptrs[69]);
+            p.qsr1RoomDamping = loadF(ptrs[70]);
+            p.qsr2RoomAmount = loadF(ptrs[71]);
+            p.qsr2RoomSize = loadF(ptrs[72]);
+            p.qsr2RoomDamping = loadF(ptrs[73]);
+            p.quasarDelayTimeMs = loadF(ptrs[74]);
+            p.quasarDelayFeedback = loadF(ptrs[75]);
+            p.quasarDelayVolume = loadF(ptrs[76]);
         };
         for (std::size_t slot = 0; slot < kNumInsertFxSlots; ++slot)
             readFxSlot(insertFxParamPointers_[slot], currentPatch_.layerA.insertEffects[slot]);

@@ -69,6 +69,10 @@ namespace pw8::effects
     inline constexpr float kMaxReverbModDepthMs = 4.0f;         ///< late-tank per-line delay-length modulation, at reverbModDepth=1.
     inline constexpr float kMaxLimiterLookaheadSeconds = 0.02f; ///< 20ms cap -- see effects::Limiter.
 
+    inline constexpr std::size_t kNumRoomEngineLines = 8;
+    inline constexpr float kMaxRoomLineSeconds = 0.12f;
+    inline constexpr float kMaxQuasarDelaySeconds = 20.0f;
+
     /// One node in a NodeDelay tree. `parentIndex < static_cast<int>(ownIndex)` is
     /// required (validated/clamped at load, same "always route from a lower index"
     /// discipline the algorithm graph compiler and fuzz tool already rely on to
@@ -182,6 +186,28 @@ namespace pw8::effects
         float limiterCeilingDb = -0.3f;
         float limiterLookaheadMs = 5.0f;
         float limiterReleaseMs = 60.0f;
+
+        // -- BinauralSpace / QUASAR (docs/GLOBAL_QUASAR_FX_PLAN.md) --
+        float qsr1Level = 0.65f;
+        float qsr2Level = 0.55f;
+        float cntrLevel = 0.85f;
+        float inputSplitHpfHz = 120.0f;
+        float cntrHpfHz = 80.0f;
+        float qsr1Height = 0.0f;
+        float qsr1AngleDeg = 30.0f;
+        float qsr1Distance = 0.35f;
+        float qsr2Height = 0.0f;
+        float qsr2AngleDeg = 330.0f;
+        float qsr2Distance = 0.4f;
+        float qsr1RoomAmount = 0.45f;
+        float qsr1RoomSize = 1.0f;
+        float qsr1RoomDamping = 0.55f;
+        float qsr2RoomAmount = 0.40f;
+        float qsr2RoomSize = 1.1f;
+        float qsr2RoomDamping = 0.50f;
+        float quasarDelayTimeMs = 450.0f;
+        float quasarDelayFeedback = 0.35f;
+        float quasarDelayVolume = 0.25f;
     };
 
 } // namespace pw8::effects

@@ -487,17 +487,31 @@ Spatial params (`qsr1Angle`, etc.) are **never** disseminated — sweeping SPACE
 |-------|-------|--------|-----------|
 | **0** | This plan doc + research cross-links | **S** | Curtis approval |
 | **1** | `ModDestination` master reverb/gain; Global executor in `Engine`; MCP + MacroSpread labels; SPACE routes on Interstellar pad | **M** | Macro2 moves master reverb in Logic without Advanced FX |
-| **2** | `EffectType::BinauralSpace`; `RoomEngine` extract; ITD/ILD panner; CNTR/QSR1/QSR2 routing; bypass-safe passthrough; APVTS stub fields; PLAY 4-knob surface | **L** | Headphone orbit audible — "cheap widener" rejected in A/B |
+| **2** | `EffectType::BinauralSpace`; `RoomEngine` extract; ITD/ILD panner; CNTR/QSR1/QSR2 routing; APVTS + PLAY 4-knob surface | **L** | **Shipped 2026-08-14** — headphone orbit audible |
 | **3** | Full 47-param surface; embedded room FDN per path; early reflections; post-sum delay + freeze; 18 mod destinations; `set_global_quasar_fx` MCP; GLOBAL → QUASAR UI tab | **L** | Feature-complete vs Quasar *philosophy* |
 | **4** | High-tier HRIR; spherical scope UI; factory `spatial/` presets; morph keyframes; QA soak + reference track A/B | **M** | Ship candidate |
 
-### Phase 1 deliverables (starter — in repo)
+### Phase 2 deliverables (shipped 2026-08-14)
+
+- [x] `RoomEngine.hpp` — 8-line embedded FDN for QSR paths
+- [x] `BinauralPanner.hpp` — ITD/ILD + distance/height cues
+- [x] `BinauralSpaceProcessor` — CNTR/QSR1/QSR2 routing + post-sum stereo delay
+- [x] Wired into `EffectChain` (no passthrough)
+- [x] 20 Quasar APVTS fields on `EffectSlotParams` + serializer
+- [x] PLAY FX: 4-knob QUASAR surface + expanded CNTR/Q2/Room/Delay row
+- [x] `MasterReverb*` mod routes map to Quasar room params when type=BinauralSpace
+- [x] Interstellar showcase presets: `001-cathedral-nebula`, `004-tesseract-bloom`, `092-echo-chamber`
+- [x] Unit tests: ITD panner + BinauralSpace stereo width + bypass
+
+---
+
+### Phase 1 deliverables (shipped)
 
 - [x] `ModDestination`: `MasterFxMix`, `MasterReverbMix`, `MasterReverbSize`, `MasterReverbDecay`, `MasterReverbPreDelay`, `MasterReverbDiffusion`, `MasterReverbModDepth`, `MasterGain`
 - [x] `ModMatrixExecutor::applyMasterBus()` + `Engine` hook
 - [x] MCP `patch_schema.py` destination strings
 - [x] `MacroSpread` short labels
-- [ ] Interstellar preset SPACE routes (Phase 1 follow-up PR)
+- [x] Interstellar preset SPACE routes (Phase 2 showcase presets)
 
 ---
 

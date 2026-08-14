@@ -2,6 +2,7 @@
 
 #include <array>
 
+#include "pw8/effects/BinauralSpace.hpp"
 #include "pw8/effects/Chorus.hpp"
 #include "pw8/effects/Compressor.hpp"
 #include "pw8/effects/EffectTypes.hpp"
@@ -41,6 +42,7 @@ namespace pw8::effects
             eq_.prepare(sampleRate);
             compressor_.prepare(sampleRate);
             limiter_.prepare(sampleRate);
+            binauralSpace_.prepare(sampleRate);
         }
 
         void reset() noexcept
@@ -55,6 +57,7 @@ namespace pw8::effects
             eq_.reset();
             compressor_.reset();
             limiter_.reset();
+            binauralSpace_.reset();
         }
 
         void processStereo(float inL, float inR, const EffectSlotParams& p, float& outL, float& outR) noexcept
@@ -73,9 +76,7 @@ namespace pw8::effects
                 case EffectType::Compressor: compressor_.processStereo(inL, inR, p, outL, outR); return;
                 case EffectType::Limiter: limiter_.processStereo(inL, inR, p, outL, outR); return;
                 case EffectType::BinauralSpace:
-                    // Phase 2 stub: passthrough until BinauralSpaceProcessor ships.
-                    outL = inL;
-                    outR = inR;
+                    binauralSpace_.processStereo(inL, inR, p, outL, outR);
                     return;
             }
             outL = inL;
@@ -93,6 +94,7 @@ namespace pw8::effects
         EqProcessor eq_{};
         CompressorProcessor compressor_{};
         LimiterProcessor limiter_{};
+        BinauralSpaceProcessor binauralSpace_{};
     };
 
     /// `NumSlots` `EffectSlotProcessor`s run in series (slot 0's output feeds slot

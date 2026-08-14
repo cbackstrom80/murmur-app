@@ -108,7 +108,7 @@ namespace pw8::plugin::ui
 
         typeRow_ = std::make_unique<MetadataFacetRow>("TYPE");
         typeRow_->setValues(
-            juce::StringArray{"SATUR", "CHORUS", "TAPE", "NODE", "FSHF", "FRACT", "REVERB", "EQ", "COMP", "LIMIT"});
+            juce::StringArray{"SATUR", "CHORUS", "TAPE", "NODE", "FSHF", "FRACT", "REVERB", "EQ", "COMP", "LIMIT", "QUASAR"});
         typeRow_->onChange = [this]() {
             const auto chip = typeRow_->getSelectedValue();
             if (chip.isEmpty())
@@ -182,6 +182,11 @@ namespace pw8::plugin::ui
     bool FxChainStrip::showsMasterCompressorControls() const
     {
         return selectedSlotIndex_ >= 3 && readEffectType(apvts_, selectedSlot().paramPrefix) == 9;
+    }
+
+    bool FxChainStrip::showsQuasarControls() const
+    {
+        return readEffectType(apvts_, selectedSlot().paramPrefix) == 11;
     }
 
     bool FxChainStrip::canSwapSelectedSlot(int direction) const
@@ -258,6 +263,7 @@ namespace pw8::plugin::ui
             selectedSlot().lastEnabledType = type;
         refreshSelectorStates();
         refreshTransformerUi();
+        refreshQuasarUi();
         syncTypeRowFromParams();
         syncTransformerRowsFromParams();
         swapLeft_.setEnabled(canSwapSelectedSlot(-1));
@@ -270,6 +276,32 @@ namespace pw8::plugin::ui
             return;
         const int type = readEffectType(apvts_, selectedSlot().paramPrefix);
         typeRow_->setSelectedValue(type == 0 ? juce::String() : fxChipLabelForType(type));
+    }
+
+    void FxChainStrip::refreshQuasarUi()
+    {
+        const bool show = showsQuasarControls();
+        if (show && quasarExtraKnobs_.empty())
+        {
+            const auto& prefix = selectedSlot().paramPrefix;
+            const std::array<std::pair<const char*, const char*>, 4> defs = {{
+                {"CntrLevel", "CNTR"},
+                {"Qsr2Distance", "Q2 Dist"},
+                {"Qsr1RoomSize", "Room Sz"},
+                {"QuasarDelayFeedback", "Dly Fdbk"},
+            }};
+            for (const auto& [suffix, label] : defs)
+            {
+                auto knob = std::make_unique<GlowKnob>(apvts_, prefix + suffix, label);
+                panel_.addAndMakeVisible(*knob);
+                quasarExtraKnobs_.push_back(std::move(knob));
+            }
+        }
+        else if (!show)
+            quasarExtraKnobs_.clear();
+
+        for (auto& knob : quasarExtraKnobs_)
+            knob->setVisible(show);
     }
 
     void FxChainStrip::refreshTransformerUi()
@@ -330,6 +362,7 @@ namespace pw8::plugin::ui
         rebuildParamKnobs();
         refreshSelectorStates();
         refreshTransformerUi();
+        refreshQuasarUi();
         syncTypeRowFromParams();
         syncTransformerRowsFromParams();
 
@@ -408,6 +441,7 @@ namespace pw8::plugin::ui
         swapRight_.setBounds(topRow.removeFromLeft(64));
 
         const bool showTrans = showsMasterCompressorControls();
+        const bool showQuasar = showsQuasarControls();
         if (showTrans)
         {
             main.removeFromTop(6);
@@ -432,6 +466,14 @@ namespace pw8::plugin::ui
 
         if (showTrans && transAmountKnob_ != nullptr)
             transAmountKnob_->setBounds(main.removeFromTop(88).removeFromLeft(72).reduced(3));
+
+        if (showQuasar && !quasarExtraKnobs_.empty())
+        {
+            auto quasarRow = main.removeFromTop(88);
+            const int qKnobW = quasarRow.getWidth() / static_cast<int>(quasarExtraKnobs_.size());
+            for (auto& knob : quasarExtraKnobs_)
+                knob->setBounds(quasarRow.removeFromLeft(qKnobW).reduced(3));
+        }
     }
 
 } // namespace pw8::plugin::ui
