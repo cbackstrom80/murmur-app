@@ -14,7 +14,7 @@ namespace pw8::plugin::ui
         addAndMakeVisible(panel_);
         panel_.setInterceptsMouseClicks(false, true);
 
-        introLabel_.setText("This patch's main controls — turn these while you play.",
+        introLabel_.setText("This patch's performance macros — turn these while you play.",
                             juce::dontSendNotification);
         introLabel_.setJustificationType(juce::Justification::centredLeft);
         introLabel_.setFont(fonts::value(fonts::kBodyLabelSize));
@@ -190,19 +190,19 @@ namespace pw8::plugin::ui
     void PatchFocusPanel::timerCallback()
     {
         const auto& patch = processor_.getCurrentPatch();
-        const std::size_t maxKnobs = compactLayout_ ? 4 : kStandardKoinCount;
-        const auto specs = inferPatchFocusKnobs(patch, maxKnobs, &processor_.apvts);
+        const std::size_t maxKnobs = kMaxFeatureKoinCount;
+        const auto specs = inferPatchFocusKnobs(patch, maxKnobs);
 
         const auto patchName = patch.metadata.name.empty() ? juce::String("Init") : juce::String(patch.metadata.name);
         const bool authored = !patch.uiFocus.knobs.empty();
         if (compactLayout_)
         {
-            subtitleLabel_.setText(authored ? "Patch controls" : "Focus controls", juce::dontSendNotification);
+            subtitleLabel_.setText(authored ? "Performance macros" : "Feature macros", juce::dontSendNotification);
         }
         else
         {
             subtitleLabel_.setText("Playing " + patchName + " — " + juce::String(static_cast<int>(specs.size())) +
-                                       (authored ? " patch-authored controls" : " focus controls"),
+                                       (authored ? " patch-authored macros" : " feature macros"),
                                    juce::dontSendNotification);
         }
 
@@ -258,18 +258,12 @@ namespace pw8::plugin::ui
 
         for (const auto& spec : specs)
         {
-            std::unique_ptr<GlowKnob> knob;
-            if (spec.kind == PatchFocusKnobKind::Macro)
-            {
-                knob = std::make_unique<GlowKnob>(processor_.apvts, kMacroParameterIds[spec.macroIndex], spec.label,
-                                                  nullptr, palette::kAccentWarm);
-            }
-            else
-            {
-                if (processor_.apvts.getParameter(spec.paramId) == nullptr)
-                    continue;
-                knob = std::make_unique<GlowKnob>(processor_.apvts, spec.paramId, spec.label);
-            }
+            if (spec.kind != PatchFocusKnobKind::Macro || spec.macroIndex >= 8)
+                continue;
+
+            auto knob = std::make_unique<GlowKnob>(processor_.apvts, kMacroParameterIds[spec.macroIndex], spec.label,
+                                                   nullptr, palette::kAccentWarm);
+            knob->setFeaturedPerformanceMacro(true);
             if (compactLayout_)
                 addAndMakeVisible(*knob);
             else
@@ -288,15 +282,31 @@ namespace pw8::plugin::ui
                 const auto centre = orbitHole_.getCentre();
                 const int orbitRadius = juce::jmax(orbitHole_.getWidth(), orbitHole_.getHeight()) / 2 + 36;
                 const int knobSize = 64;
-                static constexpr float kAngles[] = {
+                static constexpr float kAnglesOne[] = {-juce::MathConstants<float>::halfPi};
+                static constexpr float kAnglesTwo[] = {
+                    -juce::MathConstants<float>::halfPi,
+                    juce::MathConstants<float>::halfPi,
+                };
+                static constexpr float kAnglesThree[] = {
                     -juce::MathConstants<float>::halfPi,
                     0.0f,
-                    juce::MathConstants<float>::halfPi,
                     juce::MathConstants<float>::pi,
                 };
-                for (std::size_t i = 0; i < knobs_.size() && i < 4; ++i)
+                const float* angles = kAnglesThree;
+                std::size_t angleCount = 3;
+                if (knobs_.size() == 1)
                 {
-                    const float a = kAngles[i];
+                    angles = kAnglesOne;
+                    angleCount = 1;
+                }
+                else if (knobs_.size() == 2)
+                {
+                    angles = kAnglesTwo;
+                    angleCount = 2;
+                }
+                for (std::size_t i = 0; i < knobs_.size() && i < angleCount; ++i)
+                {
+                    const float a = angles[i];
                     const int cx = centre.x + static_cast<int>(std::cos(a) * static_cast<float>(orbitRadius));
                     const int cy = centre.y + static_cast<int>(std::sin(a) * static_cast<float>(orbitRadius));
                     knobs_[i]->setBounds(cx - knobSize / 2, cy - knobSize / 2, knobSize, knobSize);

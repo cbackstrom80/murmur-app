@@ -68,8 +68,8 @@ def lfos_from_pair(lfo1, lfo2):
         slots.append(default_lfo_slot())
     return slots[:8]
 
-KOINS_TARGET = 6
-KOINS_MINIMUM = 4
+KOINS_TARGET = 3
+KOINS_MINIMUM = 1
 MAX_VOICES = 32
 PAD_MIN_CHORD_NOTES = 6  # voice slots = unison × notes; pads need headroom for legato chords
 
@@ -156,86 +156,37 @@ def build_patch(name, description, category, moods, tags, seed, operators, ampEn
     return patch
 
 def infer_ui_focus(macro_names, mod_routes, category, target=KOINS_TARGET, minimum=KOINS_MINIMUM):
-    """Patch-authored PLAY-mode Knobs of Interest — target six, guarantee at least four."""
+    """1–3 macro-only feature KOINS — contextual performance macros wired via modRoutes."""
     knobs = []
-    seen_macro = set()
-    seen_param = set()
+    seen = set()
+
+    def macro_has_route(idx):
+        return any(r.get("source", 0) == SRC_MACRO1 + idx for r in mod_routes)
 
     def add_macro(idx):
-        if idx >= len(macro_names) or idx in seen_macro or len(knobs) >= target:
+        if idx in seen or len(knobs) >= target or idx >= len(macro_names):
             return
-        seen_macro.add(idx)
+        if not macro_has_route(idx):
+            return
+        seen.add(idx)
         knobs.append({"kind": "macro", "index": idx, "label": macro_names[idx]})
 
-    def add_param(param_id, label):
-        if param_id in seen_param or len(knobs) >= target:
-            return
-        seen_param.add(param_id)
-        knobs.append({"kind": "param", "paramId": param_id, "label": label})
-
     primary_macros = {
-        "bass": [0, 2, 4],
-        "lead": [0, 1, 3],
-        "pad": [0, 3, 5],
-        "seq": [0, 4, 6],
-        "ambient": [0, 5, 7],
+        "bass": [0, 1],
+        "lead": [0, 1, 2],
+        "pad": [0, 1, 2],
+        "seq": [0, 1, 2],
+        "ambient": [0, 1, 2],
     }
     for idx in primary_macros.get(category, [0, 1, 2]):
-        if len(knobs) >= target:
-            break
-        if any(r.get("source", 0) == SRC_MACRO1 + idx for r in mod_routes):
-            add_macro(idx)
-
-    for route in mod_routes:
-        src = route.get("source", 0)
-        if SRC_MACRO1 <= src <= SRC_MACRO1 + 7:
-            add_macro(src - SRC_MACRO1)
-
-    for route in mod_routes:
-        dest = route.get("destination", 0)
-        if dest == DST_FILTER_CUTOFF:
-            add_param("filterCutoffHz", "Cutoff")
-        elif dest == DST_FILTER_RES:
-            add_param("filterResonance", "Reso")
-        elif dest == DST_PAN:
-            add_param("layerPan", "Pan")
-        elif dest == DST_WT_POS:
-            add_param("op1WavetablePos", "WT Pos")
-
-    default_params = [
-        ("filterCutoffHz", "Cutoff"),
-        ("filterResonance", "Reso"),
-        ("layerGain", "Layer"),
-        ("layerPan", "Pan"),
-        ("masterGain", "Master"),
-        ("lfo0RateHz", "LFO Rate"),
-    ]
-    for param_id, label in default_params:
-        add_param(param_id, label)
-
-    for idx in range(min(8, len(macro_names))):
         add_macro(idx)
 
-    while len(knobs) < minimum:
-        padded = False
-        for param_id, label in default_params:
-            if len(knobs) >= minimum:
-                break
-            before = len(knobs)
-            add_param(param_id, label)
-            if len(knobs) > before:
-                padded = True
-        for idx in range(min(8, len(macro_names))):
-            if len(knobs) >= minimum:
-                break
-            before = len(knobs)
-            add_macro(idx)
-            if len(knobs) > before:
-                padded = True
-        if not padded:
-            break
+    for idx in range(3):
+        add_macro(idx)
+    for idx in range(3, min(8, len(macro_names))):
+        add_macro(idx)
 
-    return {"maxKnobs": target, "knobs": knobs[:target]}
+    return {"maxKnobs": min(target, len(knobs)) if knobs else 1, "knobs": knobs[:target]}
 
 def reverb(mix, size, decay, predelay=25.0):
     return {"type": 7, "mix": mix, "reverbSizeParam": size, "reverbDecaySeconds": decay,

@@ -10,8 +10,9 @@
 
 namespace pw8::plugin::ui
 {
-    inline constexpr std::size_t kStandardKoinCount = 6;
-    inline constexpr std::size_t kMinimumKoinCount = 4;
+    /// Feature KOINS in Basic/Compact PLAY: contextual macro/mod-matrix performance controls (1–3).
+    inline constexpr std::size_t kMaxFeatureKoinCount = 3;
+    inline constexpr std::size_t kMinFeatureKoinCount = 1;
 
     struct ModDestinationParam
     {
@@ -60,10 +61,10 @@ namespace pw8::plugin::ui
         }
     };
 
-    /// When `apvtsForValidation` is set, param knobs whose ids are missing from APVTS are skipped.
-    [[nodiscard]] std::vector<PatchFocusKnobSpec> inferPatchFocusKnobs(
-        const patch::Patch& patch, std::size_t maxKnobs = 8,
-        const juce::AudioProcessorValueTreeState* apvtsForValidation = nullptr);
+    /// Returns 0–3 macro KOINS (Macro1–8) that have active mod routes, or patch-authored
+    /// `uiFocus` macro entries. Never pads with direct APVTS param knobs.
+    [[nodiscard]] std::vector<PatchFocusKnobSpec> inferPatchFocusKnobs(const patch::Patch& patch,
+                                                                       std::size_t maxKnobs = kMaxFeatureKoinCount);
 
     [[nodiscard]] juce::String formatModRouteAmount(modulation::ModDestination destination, float amount);
 

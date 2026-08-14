@@ -19,67 +19,35 @@ namespace pw8::plugin::ui
             return false;
         }
 
-        void padPatchFocusKnobs(std::vector<PatchFocusKnobSpec>& specs, const patch::Patch& patch, std::size_t targetCount,
-                                const juce::AudioProcessorValueTreeState* apvtsForValidation)
+        [[nodiscard]] std::size_t featureKoinCap(std::size_t maxKnobs) noexcept
         {
-            if (specs.size() >= targetCount)
-            {
-                specs.resize(targetCount);
+            return static_cast<std::size_t>(
+                juce::jlimit(static_cast<int>(kMinFeatureKoinCount), static_cast<int>(kMaxFeatureKoinCount),
+                             static_cast<int>(maxKnobs)));
+        }
+
+        void pushMacroKnob(std::vector<PatchFocusKnobSpec>& specs, const patch::Patch& patch, std::size_t macroIndex,
+                           std::size_t cap)
+        {
+            if (specs.size() >= cap || macroIndex >= patch.macros.size())
                 return;
-            }
-
-            const auto apvtsHasParam = [&](const juce::String& paramId) {
-                return apvtsForValidation == nullptr || apvtsForValidation->getParameter(paramId) != nullptr;
-            };
-
-            juce::StringArray seenParamIds;
             for (const auto& existing : specs)
             {
-                if (existing.kind == PatchFocusKnobKind::ApvtsParam)
-                    seenParamIds.add(existing.paramId);
-            }
-
-            auto pushMacro = [&](std::size_t index) {
-                if (specs.size() >= targetCount)
+                if (existing.macroIndex == macroIndex)
                     return;
-                for (const auto& existing : specs)
-                {
-                    if (existing.kind == PatchFocusKnobKind::Macro && existing.macroIndex == index)
-                        return;
-                }
-                const auto& macro = patch.macros[index];
-                const auto label =
-                    macro.name.empty() ? juce::String(kMacroParameterNames[index]) : juce::String(macro.name);
-                specs.push_back({PatchFocusKnobKind::Macro, index, {}, label});
-            };
-
-            auto pushParam = [&](const juce::String& paramId, const juce::String& label) {
-                if (specs.size() >= targetCount || paramId.isEmpty() || seenParamIds.contains(paramId) ||
-                    !apvtsHasParam(paramId))
-                    return;
-                seenParamIds.add(paramId);
-                specs.push_back({PatchFocusKnobKind::ApvtsParam, 0, paramId, label});
-            };
-
-            for (std::size_t i = 0; i < patch.macros.size() && specs.size() < targetCount; ++i)
-            {
-                if (macroHasActiveRoute(patch, i))
-                    pushMacro(i);
             }
+            const auto& macro = patch.macros[macroIndex];
+            const auto label =
+                macro.name.empty() ? juce::String(kMacroParameterNames[macroIndex]) : juce::String(macro.name);
+            specs.push_back({PatchFocusKnobKind::Macro, macroIndex, {}, label});
+        }
 
-            static constexpr const char* kPadParams[][2] = {
-                {"filterCutoffHz", "Cutoff"},
-                {"filterResonance", "Reso"},
-                {"layerGain", "Layer"},
-                {"layerPan", "Pan"},
-                {"masterGain", "Master"},
-                {"lfo0RateHz", "LFO Rate"},
-            };
-            for (const auto& pad : kPadParams)
-                pushParam(juce::String(pad[0]), juce::String(pad[1]));
-
-            for (std::size_t i = 0; i < patch.macros.size() && specs.size() < targetCount; ++i)
-                pushMacro(i);
+        void pushMacroIfRouted(std::vector<PatchFocusKnobSpec>& specs, const patch::Patch& patch,
+                               std::size_t macroIndex, std::size_t cap)
+        {
+            if (!macroHasActiveRoute(patch, macroIndex))
+                return;
+            pushMacroKnob(specs, patch, macroIndex, cap);
         }
     } // namespace
 
@@ -204,98 +172,54 @@ namespace pw8::plugin::ui
         processor.setOrReplaceModRouteLive(route.source, route.destination, route.targetIndex, clamped, route.scope);
     }
 
-    std::vector<PatchFocusKnobSpec> inferPatchFocusKnobs(const patch::Patch& patch, std::size_t maxKnobs,
-                                                         const juce::AudioProcessorValueTreeState* apvtsForValidation)
+    std::vector<PatchFocusKnobSpec> inferPatchFocusKnobs(const patch::Patch& patch, std::size_t maxKnobs)
     {
-        const std::size_t requestedCap = patch.uiFocus.knobs.empty()
-                                             ? maxKnobs
-                                             : juce::jmin(maxKnobs, patch.uiFocus.maxKnobs);
-        const std::size_t cap = juce::jmax(requestedCap, juce::jmin(maxKnobs, kMinimumKoinCount));
-
-        const auto apvtsHasParam = [&](const juce::String& paramId) {
-            return apvtsForValidation == nullptr || apvtsForValidation->getParameter(paramId) != nullptr;
-        };
+        const std::size_t cap = featureKoinCap(maxKnobs);
 
         if (!patch.uiFocus.knobs.empty())
         {
             std::vector<PatchFocusKnobSpec> authored;
             authored.reserve(cap);
+            const std::size_t authoredCap =
+                juce::jmin(cap, patch.uiFocus.maxKnobs > 0 ? patch.uiFocus.maxKnobs : cap);
             for (const auto& entry : patch.uiFocus.knobs)
             {
-                if (authored.size() >= cap)
+                if (authored.size() >= authoredCap)
                     break;
-                if (entry.kind == patch::UiFocusKnobKind::Macro)
+                if (entry.kind != patch::UiFocusKnobKind::Macro || entry.macroIndex >= patch.macros.size())
+                    continue;
+
+                bool duplicate = false;
+                for (const auto& existing : authored)
                 {
-                    if (entry.macroIndex >= patch.macros.size())
-                        continue;
-                    const auto& macro = patch.macros[entry.macroIndex];
-                    const auto label = entry.label.empty()
-                                           ? (macro.name.empty() ? juce::String(kMacroParameterNames[entry.macroIndex])
-                                                                 : juce::String(macro.name))
-                                           : juce::String(entry.label);
-                    authored.push_back({PatchFocusKnobKind::Macro, entry.macroIndex, {}, label});
+                    if (existing.macroIndex == entry.macroIndex)
+                    {
+                        duplicate = true;
+                        break;
+                    }
                 }
-                else if (entry.kind == patch::UiFocusKnobKind::Param && !entry.paramId.empty())
-                {
-                    const auto paramId = juce::String(entry.paramId);
-                    if (!apvtsHasParam(paramId))
-                        continue;
-                    const auto label = entry.label.empty() ? paramId : juce::String(entry.label);
-                    authored.push_back({PatchFocusKnobKind::ApvtsParam, 0, paramId, label});
-                }
+                if (duplicate)
+                    continue;
+
+                const auto& macro = patch.macros[entry.macroIndex];
+                const auto label = entry.label.empty()
+                                       ? (macro.name.empty() ? juce::String(kMacroParameterNames[entry.macroIndex])
+                                                             : juce::String(macro.name))
+                                       : juce::String(entry.label);
+                authored.push_back({PatchFocusKnobKind::Macro, entry.macroIndex, {}, label});
             }
-            padPatchFocusKnobs(authored, patch, cap, apvtsForValidation);
             if (!authored.empty())
                 return authored;
         }
 
         std::vector<PatchFocusKnobSpec> specs;
         specs.reserve(cap);
-        juce::StringArray seenParamIds;
 
-        auto pushMacro = [&](std::size_t index) {
-            if (specs.size() >= cap || !macroHasActiveRoute(patch, index))
-                return;
-            for (const auto& existing : specs)
-            {
-                if (existing.kind == PatchFocusKnobKind::Macro && existing.macroIndex == index)
-                    return;
-            }
-            const auto& macro = patch.macros[index];
-            const auto label =
-                macro.name.empty() ? juce::String(kMacroParameterNames[index]) : juce::String(macro.name);
-            specs.push_back({PatchFocusKnobKind::Macro, index, {}, label});
-        };
+        for (std::size_t i = 0; i < 3 && specs.size() < cap; ++i)
+            pushMacroIfRouted(specs, patch, i, cap);
+        for (std::size_t i = 3; i < patch.macros.size() && specs.size() < cap; ++i)
+            pushMacroIfRouted(specs, patch, i, cap);
 
-        auto pushParam = [&](const juce::String& paramId, const juce::String& label) {
-            if (specs.size() >= cap || paramId.isEmpty() || seenParamIds.contains(paramId) ||
-                !apvtsHasParam(paramId))
-                return;
-            seenParamIds.add(paramId);
-            specs.push_back({PatchFocusKnobKind::ApvtsParam, 0, paramId, label});
-        };
-
-        for (std::size_t i = 0; i < patch.macros.size(); ++i)
-        {
-            if (macroHasActiveRoute(patch, i))
-                pushMacro(i);
-        }
-
-        for (const auto& route : patch.layerA.modRoutes)
-        {
-            if (!route.isActive())
-                continue;
-            if (const auto param = modDestinationParam(route.destination, route.targetIndex))
-                pushParam(param->paramId, param->label);
-        }
-
-        if (specs.empty())
-        {
-            pushParam(juce::String(kFilterIdPrefix) + "CutoffHz", "Filter Cutoff");
-            pushParam(juce::String(kFilterIdPrefix) + "Resonance", "Filter Resonance");
-        }
-
-        padPatchFocusKnobs(specs, patch, cap, apvtsForValidation);
         return specs;
     }
 

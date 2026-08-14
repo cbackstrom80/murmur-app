@@ -14,8 +14,8 @@
 
 namespace pw8::plugin::ui
 {
-    /// Per-patch "Knobs of Interest" — patch-authored via `uiFocus` in .pw8, or inferred
-    /// from named macros, macro routes, and active mod destinations.
+    /// Per-patch feature KOINS — contextual macro/mod-matrix performance controls
+    /// (patch-authored via `uiFocus` in .pw8, or inferred from routed macros).
     class PatchFocusPanel : public juce::Component, private juce::Timer
     {
     public:
@@ -28,10 +28,10 @@ namespace pw8::plugin::ui
         /// BASIC view: larger knobs, hide mod-matrix entry. Advanced entry lives in the view-mode toggle.
         void setBasicPerformanceLayout(bool basicLayout);
 
-        /// Compact 320px column: smaller knobs, tighter grid, max 4 focus controls.
+        /// Compact 320px column: smaller knobs, tighter grid, up to 3 feature macro KOINS.
         void setCompactLayout(bool compactLayout);
 
-        /// Teleprompter: orbit up to 4 KOINS around `centerHole` (cardinal positions).
+        /// Teleprompter: orbit up to 3 feature macro KOINS around `centerHole`.
         void setOrbitHole(juce::Rectangle<int> centerHole);
 
         /// Force rebuild from the processor's current patch (e.g. immediately after preset load).
@@ -48,7 +48,7 @@ namespace pw8::plugin::ui
         void updateBadgePulse();
 
         PatchworkEightProcessor& processor_;
-        SectionPanel panel_{"Knobs of Interest", palette::kAccentWarm, true};
+        SectionPanel panel_{"Feature Macros", palette::kAccentWarm, true};
         juce::Label introLabel_;
         juce::Label subtitleLabel_;
         juce::Label modWheelBadge_;

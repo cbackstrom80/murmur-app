@@ -679,7 +679,7 @@ namespace pw8::patch
 
         void fromJson(const json& j, PatchUiFocus& focus)
         {
-            focus.maxKnobs = static_cast<std::size_t>(clampNum(j.value("maxKnobs", 6), 1, 8));
+            focus.maxKnobs = static_cast<std::size_t>(clampNum(j.value("maxKnobs", 3), 1, 3));
             focus.knobs.clear();
             if (!j.contains("knobs") || !j.at("knobs").is_array())
                 return;
@@ -799,7 +799,7 @@ namespace pw8::patch
             }
             j["macros"] = macros;
 
-            if (!patch.uiFocus.knobs.empty() || patch.uiFocus.maxKnobs != 6)
+            if (!patch.uiFocus.knobs.empty() || patch.uiFocus.maxKnobs != 3)
             {
                 json focus;
                 toJson(focus, patch.uiFocus);

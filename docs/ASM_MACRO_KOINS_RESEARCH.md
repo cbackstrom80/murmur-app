@@ -1,8 +1,27 @@
-# ASM Performance Macros → MURMUR 2 Macro-KOINS Research
+# ASM Performance Macros → MURMUR Feature Macro KOINS
 
-**Date:** 2026-08-13  
+**Date:** 2026-08-13 (updated)  
 **Author:** Agent research pass for Curtis  
-**Goal:** Understand how Ashun Sound Machines (ASM) Hydrasynth implements Performance Macros, audit MURMUR/Patchwork Eight KOINS today, and propose exactly **2 ASM-style macro-KOINS** for Basic/Compact PLAY + agentic preset generation.
+**Goal:** Understand how Ashun Sound Machines (ASM) Hydrasynth implements Performance Macros, audit MURMUR/Patchwork Eight KOINS today, and define **1–3 feature macro KOINS** for Basic/Compact PLAY + agentic preset generation.
+
+---
+
+## Feature macro KOINS policy (2026-08-13)
+
+**KOINS = contextual macro/mod-matrix performance controls**, not generic APVTS param knobs.
+
+| Property | Value |
+|----------|-------|
+| Count | **1–3** per patch in Basic/Compact PLAY |
+| Engine binding | `Macro1`–`Macro8` APVTS params + `layerA.modRoutes` |
+| Typical indices | 0, 1, 2 (Macro1–3) with patch-specific names |
+| Visual | Featured decked knobs — warm amber accent + subtle outer-deck tint (`featuredKoin` in `DeckedKnobDraw`) |
+| MW/EXP | Separate MIDI badges — not KOINS |
+| Advanced PLAY | KOINS hidden; full MOD tab for power users |
+| Schema | `uiFocus.maxKnobs` default **3**, clamp **1–3**; `kind: macro` only on performance surface |
+| Inference | Routed macros only — **no param-kind padding** |
+
+Agentic preset generation assigns meaningful macro names + 2–4 mod routes per featured macro reflecting patch character (e.g. CATHEDRAL NEBULA: BLOOM + SPACE routing to reverb/warp/filter).
 
 ---
 

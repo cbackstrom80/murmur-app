@@ -25,12 +25,13 @@ Every factory and showcase preset follows this minimum layout (applied by `ensur
 | Seq | +20 st → cutoff | Macro 1 (RATE) | Filter cutoff | Velocity → op level, Expression |
 | Ambient | +16 st → cutoff | Macro 6 (SPACE) | Filter cutoff | Aftertouch → cutoff, Expression → level |
 
-### Knobs of Interest (KOINS) policy
+### Feature macro KOINS policy
 
-- **Minimum:** 4 authored or inferred focus knobs per patch (`uiFocus.knobs`).
-- **Target:** 6 focus knobs (standard PLAY layout).
-- **Runtime fallback:** `inferPatchFocusKnobs()` pads to at least 4 (compact column) or 6 (standard PLAY) from named macros, active mod routes, and default APVTS params.
-- At least one **macro** appears in `uiFocus` or is wired in `modRoutes` so Logic Smart Controls can map a performance macro.
+- **Range:** 1–3 feature macro KOINS per patch in Basic/Compact PLAY (`kMaxFeatureKoinCount = 3`).
+- **Semantic model:** each KOIN is a **macro** (Macro1–8) with active `modRoutes` — contextual performance bundles, not raw APVTS params.
+- **Authored:** `uiFocus.knobs` with `kind: macro` and indices 0–2 typical; `maxKnobs` default 3 (clamped 1–3).
+- **Runtime fallback:** `inferPatchFocusKnobs()` picks routed macros (Macro1–3 first); no param padding.
+- Factory presets wire 2–4 mod routes per featured macro with patch-specific names (PUNCH, BLOOM, SPACE, …).
 
 ## Mod Wheel (CC1)
 

@@ -233,20 +233,20 @@ namespace pw8::patch
         Param,
     };
 
-    /// One performance knob shown in PLAY-mode "Knobs of Interest" (see docs/PATCH_FORMAT.md uiFocus).
+    /// One feature KOIN in PLAY mode: a macro knob wired via modRoutes (see docs/PATCH_FORMAT.md uiFocus).
     struct UiFocusKnob
     {
         UiFocusKnobKind kind = UiFocusKnobKind::Macro;
-        std::size_t macroIndex = 0; ///< 0..7 when kind == Macro
-        std::string paramId;          ///< APVTS id when kind == Param (e.g. "filterCutoffHz")
+        std::size_t macroIndex = 0; ///< 0..7 when kind == Macro (Macro1–3 typical for KOINS)
+        std::string paramId;          ///< legacy APVTS id when kind == Param (not shown in Basic/Compact)
         std::string label;            ///< optional display override
     };
 
-    /// Patch-authored performance controls. When `knobs` is non-empty, PLAY mode uses this list
-    /// instead of runtime inference from macro names / mod routes.
+    /// Patch-authored feature macro KOINS (1–3 in Basic/Compact PLAY). When `knobs` is non-empty,
+    /// PLAY mode uses macro entries from this list instead of inferring from mod routes.
     struct PatchUiFocus
     {
-        std::size_t maxKnobs = 6;
+        std::size_t maxKnobs = 3;
         std::vector<UiFocusKnob> knobs;
     };
 

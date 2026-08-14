@@ -13,7 +13,7 @@
 
 namespace pw8::plugin::ui
 {
-    /// 320px-wide performance teleprompter: mission card, circular scope hub, 4 KOINS orbit.
+    /// 320px-wide performance teleprompter: mission card, circular scope hub, 1–3 feature macro KOINS orbit.
     class CompactModeEditor : public juce::Component, private juce::Timer
     {
     public:

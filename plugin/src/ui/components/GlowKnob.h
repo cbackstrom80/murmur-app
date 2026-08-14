@@ -74,6 +74,8 @@ namespace pw8::plugin::ui
         };
         void setDeckedStyle(bool enabled, DeckedKnobSize size = DeckedKnobSize::Medium);
 
+        void setFeaturedPerformanceMacro(bool featured);
+
         /// Compact header layout: smaller dial, hidden value readout.
         void setHeaderCompactMode(bool compact);
 

@@ -84,30 +84,31 @@ sliding-window-minimum gain).
 See `content/presets/*.pw8` for complete, real, loadable examples, and
 `tests/serialization/PatchSerializerTests.cpp` for the roundtrip contract.
 
-## `uiFocus` (PLAY-mode performance knobs)
+## `uiFocus` (PLAY-mode feature macro KOINS)
 
-**IMPLEMENTED (optional).** Authors can declare which controls appear in the PLAY
-editor's persistent **Knobs of Interest** strip (above the OSC/FILTER/ENV/MOD/FX tabs).
-When `uiFocus.knobs` is non-empty, the UI uses this list exclusively (no runtime
-inference). When omitted or empty, PLAY mode infers knobs from named macros, macro
-mod routes, and active mod-route destinations.
+**IMPLEMENTED (optional).** Authors declare **1–3 feature macro KOINS** — contextual
+performance controls wired via `modRoutes` — shown in Basic/Compact PLAY mode.
+When `uiFocus.knobs` is non-empty, the UI uses macro entries from this list (param
+entries are stored for legacy compatibility but not shown on the performance surface).
+When omitted or empty, PLAY mode infers up to 3 routed macros (Macro1–3 preferred).
 
 ```jsonc
 "uiFocus": {
-  "maxKnobs": 6,
+  "maxKnobs": 3,
   "knobs": [
-    { "kind": "macro", "index": 0 },
-    { "kind": "macro", "index": 2, "label": "Motion" },
-    { "kind": "param", "paramId": "filterCutoffHz", "label": "Brightness" },
-    { "kind": "param", "paramId": "layerPan", "label": "Width" }
+    { "kind": "macro", "index": 0, "label": "BLOOM" },
+    { "kind": "macro", "index": 1, "label": "SPACE" },
+    { "kind": "macro", "index": 2, "label": "GRIT" }
   ]
 }
 ```
 
-- `kind`: `"macro"` (0–7 index into `macros[]`) or `"param"` (APVTS parameter id)
-- `paramId`: must match a plugin parameter id (e.g. `"filterCutoffHz"`, `"macro1"`, `"layerPan"`)
-- `label`: optional display override
-- `maxKnobs`: optional cap (default 6, clamped 1–8)
+- `kind`: `"macro"` (0–7 index into `macros[]`; Macro1–3 typical). `"param"` is legacy only.
+- `label`: optional display override (defaults to `macros[i].name`)
+- `maxKnobs`: optional cap (default 3, clamped 1–3)
+
+Each KOIN is a **macro knob** whose destinations live in `layerA.modRoutes` — not a
+direct APVTS parameter binding. Mod Wheel and Expression remain separate MIDI badges.
 
 See `content/presets/factory/Pads/06-velvet-glow.pw8` for a factory example.
 

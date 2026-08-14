@@ -177,8 +177,16 @@ namespace pw8::plugin::ui
         {
             const auto deckedSize = decked::sizeFromProperty(slider.getProperties()["deckedSize"].toString());
             const bool active = slider.isMouseOverOrDragging();
-            drawDeckedRotarySlider(g, knobBounds, proportional, rotaryStartAngle, rotaryEndAngle, accent, deckedSize,
-                                   outerOnly, innerRole, active);
+            const bool featuredKoin = slider.getProperties().getWithDefault("featuredKoin", false);
+            auto drawAccent = accent;
+            if (featuredKoin)
+            {
+                drawAccent = accent.isTransparent() ? palette::kAccentWarm : accent.brighter(0.10f);
+                if (drawAccent.isTransparent())
+                    drawAccent = palette::kAccentWarm;
+            }
+            drawDeckedRotarySlider(g, knobBounds, proportional, rotaryStartAngle, rotaryEndAngle, drawAccent, deckedSize,
+                                   outerOnly, innerRole, active, featuredKoin);
             return;
         }
 

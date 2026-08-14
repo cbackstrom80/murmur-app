@@ -342,7 +342,7 @@ namespace pw8::plugin::ui::decked
     /// `outerRingOnly` / `innerCapOnly` support ConcentricGlowKnob dual-parameter dials.
     inline void drawDeckedRotarySlider(juce::Graphics& g, juce::Rectangle<float> knobBounds, float proportional,
                                        float rotaryStartAngle, float rotaryEndAngle, juce::Colour accent, Size size,
-                                       bool outerRingOnly, bool innerCapOnly, bool active)
+                                       bool outerRingOnly, bool innerCapOnly, bool active, bool featured = false)
     {
         const float diameter = juce::jmax(16.0f, juce::jmin(knobBounds.getWidth(), knobBounds.getHeight()));
         const auto geo = computeGeometry(diameter, size);
@@ -362,8 +362,16 @@ namespace pw8::plugin::ui::decked
             g.fillEllipse(centre.x - geo.outerDeckRadius, centre.y - geo.outerDeckRadius, geo.outerDeckRadius * 2.0f,
                           geo.outerDeckRadius * 2.0f);
 
+            if (featured)
+            {
+                g.setColour(palette::kAccentWarm.withAlpha(0.07f));
+                g.fillEllipse(centre.x - geo.outerDeckRadius, centre.y - geo.outerDeckRadius,
+                              geo.outerDeckRadius * 2.0f, geo.outerDeckRadius * 2.0f);
+            }
+
             strokeDeckRing(g, centre, geo.outerDeckRadius, geo.trackThickness * 0.55f,
-                           palette::kBorder.withAlpha(0.55f), palette::kTopHighlight, geo.drawRimGlow);
+                           featured ? palette::kAccentWarmDim.withAlpha(0.65f) : palette::kBorder.withAlpha(0.55f),
+                           palette::kTopHighlight, geo.drawRimGlow || featured);
         }
 
         if (outerRingOnly)
@@ -376,7 +384,8 @@ namespace pw8::plugin::ui::decked
         }
 
         strokeDeckRing(g, centre, geo.middleDeckRadius, geo.trackThickness * 0.72f,
-                       accent.withAlpha(active ? 0.72f : 0.48f), accent.brighter(0.25f), geo.drawRimGlow);
+                       accent.withAlpha(active ? (featured ? 0.82f : 0.72f) : (featured ? 0.58f : 0.48f)),
+                       accent.brighter(featured ? 0.32f : 0.25f), geo.drawRimGlow || featured);
 
         if (geo.drawLedRing)
             drawLedRing(g, centre, geo.middleDeckRadius, accent, active);

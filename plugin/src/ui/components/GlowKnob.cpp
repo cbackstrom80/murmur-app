@@ -102,6 +102,12 @@ namespace pw8::plugin::ui
         slider_.repaint();
     }
 
+    void GlowKnob::setFeaturedPerformanceMacro(bool featured)
+    {
+        slider_.getProperties().set("featuredKoin", featured);
+        slider_.repaint();
+    }
+
     void GlowKnob::setHeaderCompactMode(bool compact)
     {
         headerCompactMode_ = compact;
