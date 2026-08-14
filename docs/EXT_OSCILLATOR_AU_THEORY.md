@@ -1,6 +1,6 @@
 # EXT Oscillator via AU Sidechain — Theory
 
-**Status:** Research only. No implementation.
+**Status:** Sidechain **envelope follower MVP shipped in v1.1.0** (mod matrix source + UI badge). Full **EXT engine type** remains research / future work.
 
 **Question:** Could an `EXT` (external audio) oscillator engine type be available in Logic Pro AU mode, letting the user route e.g. a "Vocal BUS" into operator 0 instead of a wavetable?
 
@@ -17,7 +17,26 @@
 | **Standalone** | **No** (as described). No "Vocal BUS" unless the app adds a live audio-input device path — a different feature. |
 | **AU in other DAWs** | **Varies.** Sidechain routing exists but UX is not standardized like Logic's bus model. |
 
-MURMUR is already configured as an AU instrument (`kAudioUnitType_MusicDevice`, `IS_SYNTH TRUE`, `NEEDS_MIDI_INPUT TRUE`) in `plugin/CMakeLists.txt`. It currently declares **output only** — no input buses — so Logic has nothing to route external audio into today.
+MURMUR is already configured as an AU instrument (`kAudioUnitType_MusicDevice`, `IS_SYNTH TRUE`, `NEEDS_MIDI_INPUT TRUE`) in `plugin/CMakeLists.txt`. **v1.1.0** adds a stereo **Sidechain** input bus (AU builds only) and an envelope follower exposed as **`ModSource::Sidechain`** in the mod matrix. Logic can route a bus or track into the sidechain picker; the follower level (0..1) modulates destinations like any other source. A **Sidechain** badge in PLAY performance view pulses when input is active.
+
+Full **EXT** (replace operator 0 audio with sidechain samples) is **not** implemented yet — see [Proposed architecture](#proposed-architecture-ext-on-operator-0-au) below.
+
+---
+
+## Shipped in v1.1.0 (sidechain follower MVP)
+
+| Piece | Where |
+|-------|--------|
+| AU sidechain input bus | `PatchworkEightProcessor::makeProcessorBuses()` — `"Sidechain"` stereo input |
+| Envelope follower | `engine/include/pw8/dsp/SidechainFollower.hpp` |
+| Mod matrix source | `ModSource::Sidechain` → any destination (e.g. Quasar distance) |
+| Engine hook | `Engine::setSidechainLevel()` in master-bus mod sources |
+| UI | PLAY performance **Sidechain (AU)** badge when routed or active |
+| MCP | `sidechain` in `patch_schema.py` mod source enum |
+
+**Logic setup:** Instrument track → MURMUR → sidechain menu → pick vocal bus or track. Add a mod route **SIDECHAIN →** target (MOD tab or patch JSON). Envelope follows sidechain RMS; no replacement of internal oscillators.
+
+**Deferred:** `EngineType::External` on operator 0 (see below).
 
 ---
 

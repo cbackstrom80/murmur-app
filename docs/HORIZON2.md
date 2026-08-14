@@ -3,7 +3,17 @@
 **Branch:** `cursor/favorites-unison-stack-daw`  
 **Context:** PLAY-only UI (Basic / Compact / Advanced), 933 factory presets with 1–3 feature macro KOINS.
 
-## Shipped in this pass
+## Shipped in v1.1.0 (Quasar Phase 3 + Morph + Sidechain)
+
+| Priority | Item | Where |
+|----------|------|--------|
+| 1 | **Quasar Phase 3** — dedicated mod destinations, headphone/speaker mode, delay freeze, crossfeed/elevation HRIR-lite, expanded QUASAR FX knobs | `BinauralSpace.hpp`, `ModMatrixTypes.hpp`, `FxChainStrip`, `PluginState` |
+| 2 | **Morph KOIN executor** — `morphPosition` APVTS, 2–4 keyframe lerp, PLAY morph knob | `MorphKoinExecutor.hpp`, `PatchFocusPanel`, `PatchworkEightProcessor` |
+| 3 | **20 Spatial morph presets** — INTIMATE ↔ VOID morphKoin + dissemination | `content/presets/factory/Interstellar/Spatial/001–020` |
+| 4 | **Sidechain follower MVP** — AU input bus, envelope → mod matrix, UI badge | `SidechainFollower.hpp`, `PatchworkEightProcessor`, `EXT_OSCILLATOR_AU_THEORY.md` |
+| 5 | **MCP** — `set_spread_bundle`, Quasar dest IDs, sidechain source | `mcp_server/` |
+
+## Shipped in prior pass (Horizon 2)
 
 | Priority | Item | Where |
 |----------|------|--------|
@@ -17,9 +27,11 @@
 
 | Item | Notes |
 |------|-------|
+| **EngineType::External (op 0)** | Sidechain follower ships; full EXT oscillator deferred — see `EXT_OSCILLATOR_AU_THEORY.md`. |
+| **GLOBAL tab QUASAR sub-panel** | Phase 3 params under Advanced → FX today. |
 | **Dissemination for Macro4–8** | MVP samples featured macros (0–2) only; CC-mapped macros stay live. |
 | **Spread channel weights** | PoliMATHS per-channel attenuverter emulation for unison voices. |
-| **Agent `set_spread_bundle` MCP tool** | Optional channelWeight per destination. |
+| **Meta-mod (macro → mod route depth)** | Engine gap documented in `ASM_MACRO_KOINS_RESEARCH.md`. |
 
 ## Deferred (and why)
 
@@ -27,10 +39,15 @@
 |------|--------|
 | **Dual-filter serial/parallel routing** | Filter 2 DSP + UI already ship serial (Filter1 → Filter2). Parallel/topology routing needs schema v3 field, Voice signal-path refactor, and preset migration — larger than Horizon 2 MVP. |
 | **Full Hydrasynth macro assign UI** | Requires destination-picker screen; mod matrix + MCP cover agent authoring today. |
-| **Meta-mod (macro → mod route depth)** | Engine gap documented in `ASM_MACRO_KOINS_RESEARCH.md`; not in `ModMatrixExecutor`. |
 | **`macroBundles` schema** | Optional Phase 2 polish; flat `modRoutes` + `set_macro_koin` sufficient for agents. |
 
-| 5 | **Global Quasar FX Phase 2** — `BinauralSpace` master slot with ITD/ILD panner, dual embedded `RoomEngine` paths, CNTR anchor, post-sum delay; 20 APVTS params; PLAY QUASAR UI; SPACE macro on Interstellar showcase presets. | `BinauralSpace.hpp`, `RoomEngine.hpp`, `BinauralPanner.hpp`, `FxChainStrip`, `EffectsTests.cpp` |
+## Verify in Logic Pro (v1.1.0)
+
+1. Install AU v1.1.0 (`scripts/install_au_local.sh` or release pkg).
+2. Load **Interstellar/Spatial/001-nebula-drift** — sweep **Morph** knob; spatial distances and SPACE macro should morph INTIMATE ↔ VOID.
+3. **Advanced → FX → QUASAR** — Output Mode Headphone vs Speaker; Crossfeed; delay feedback ≥ 0.99 freezes tail.
+4. **Sidechain (AU)** — route vocal bus to MURMUR sidechain; MOD route SIDECHAIN → target; performance badge shows level.
+5. **MOD tab** — Quasar destination labels (QSR1 Dist, Room, etc.) readable on routes.
 
 ## Verify in Logic Pro (Quasar Phase 2)
 
