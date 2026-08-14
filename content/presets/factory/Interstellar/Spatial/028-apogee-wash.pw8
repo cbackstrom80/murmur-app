@@ -915,6 +915,10 @@
     "maxKnobs": 3,
     "knobs": [
       {
+        "kind": "morph",
+        "label": "SCENE"
+      },
+      {
         "kind": "macro",
         "index": 0,
         "label": "ORBIT"
@@ -923,11 +927,83 @@
         "kind": "macro",
         "index": 2,
         "label": "SPACE"
+      }
+    ]
+  },
+  "morphKoin": {
+    "label": "SCENE",
+    "description": "INTIMATE in-head \u2194 VOID binaural wash \u2014 Quasar distance and room.",
+    "defaultPosition": 0.35,
+    "position": 0.35,
+    "curve": "smooth",
+    "wrap": false,
+    "keyframes": [
+      {
+        "name": "INTIMATE",
+        "position": 0.0,
+        "macroValues": [
+          0.12,
+          0.05,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "paramOverrides": {
+          "masterEffects[2].qsr1Distance": 0.1,
+          "masterEffects[2].qsr2Distance": 0.15,
+          "masterEffects[2].qsr1RoomAmount": 0.12,
+          "masterEffects[2].qsr2RoomAmount": 0.1,
+          "masterEffects[2].cntrLevel": 0.95,
+          "masterEffects[2].mix": 0.14
+        }
       },
       {
-        "kind": "macro",
-        "index": 1,
-        "label": "VOID"
+        "name": "STAGE",
+        "position": 0.45,
+        "macroValues": [
+          0.45,
+          0.28,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "paramOverrides": {
+          "masterEffects[2].qsr1Distance": 0.4,
+          "masterEffects[2].qsr2Distance": 0.45,
+          "masterEffects[2].qsr1RoomAmount": 0.35,
+          "masterEffects[2].qsr2RoomAmount": 0.32,
+          "masterEffects[2].cntrLevel": 0.75,
+          "masterEffects[2].mix": 0.53
+        }
+      },
+      {
+        "name": "VOID",
+        "position": 1.0,
+        "macroValues": [
+          0.78,
+          0.62,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "paramOverrides": {
+          "masterEffects[2].qsr1Distance": 0.85,
+          "masterEffects[2].qsr2Distance": 0.9,
+          "masterEffects[2].qsr1RoomAmount": 0.72,
+          "masterEffects[2].qsr2RoomAmount": 0.68,
+          "masterEffects[2].cntrLevel": 0.45,
+          "masterEffects[2].quasarDelayFeedback": 0.52,
+          "masterEffects[2].mix": 0.76
+        }
       }
     ]
   }

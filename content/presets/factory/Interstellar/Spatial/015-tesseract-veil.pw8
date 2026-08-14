@@ -922,7 +922,7 @@
           "masterEffects[2].qsr1RoomAmount": 0.12,
           "masterEffects[2].qsr2RoomAmount": 0.1,
           "masterEffects[2].cntrLevel": 0.95,
-          "masterEffects[2].mix": 0.15
+          "masterEffects[2].mix": 0.13
         }
       },
       {
@@ -944,7 +944,7 @@
           "masterEffects[2].qsr1RoomAmount": 0.35,
           "masterEffects[2].qsr2RoomAmount": 0.32,
           "masterEffects[2].cntrLevel": 0.75,
-          "masterEffects[2].mix": 0.55
+          "masterEffects[2].mix": 0.52
         }
       },
       {
@@ -966,8 +966,8 @@
           "masterEffects[2].qsr1RoomAmount": 0.72,
           "masterEffects[2].qsr2RoomAmount": 0.68,
           "masterEffects[2].cntrLevel": 0.45,
-          "masterEffects[2].quasarDelayFeedback": 0.55,
-          "masterEffects[2].mix": 0.8
+          "masterEffects[2].quasarDelayFeedback": 0.5,
+          "masterEffects[2].mix": 0.74
         }
       }
     ]
