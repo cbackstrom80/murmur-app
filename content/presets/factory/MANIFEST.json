@@ -2600,6 +2600,381 @@
     "name": "ENTROPY BLOOM"
   },
   {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/001-nebula-drift.pw8",
+    "name": "NEBULA DRIFT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/002-void-cathedral.pw8",
+    "name": "VOID CATHEDRAL"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/003-orbital-hymn.pw8",
+    "name": "ORBITAL HYMN"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/004-stellar-mist.pw8",
+    "name": "STELLAR MIST"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/005-cosmic-veil.pw8",
+    "name": "COSMIC VEIL"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/006-pillars-drift.pw8",
+    "name": "PILLARS DRIFT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/007-amber-nebula.pw8",
+    "name": "AMBER NEBULA"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/008-deep-field-orbit.pw8",
+    "name": "DEEP FIELD ORBIT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/009-solar-wind-pad.pw8",
+    "name": "SOLAR WIND PAD"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/010-event-horizon-veil.pw8",
+    "name": "EVENT HORIZON VEIL"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/011-gravity-well-haze.pw8",
+    "name": "GRAVITY WELL HAZE"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/012-interstellar-bloom.pw8",
+    "name": "INTERSTELLAR BLOOM"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/013-pale-nebula.pw8",
+    "name": "PALE NEBULA"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/014-dust-lane-drift.pw8",
+    "name": "DUST LANE DRIFT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/015-tesseract-veil.pw8",
+    "name": "TESSERACT VEIL"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/016-cathedral-mist.pw8",
+    "name": "CATHEDRAL MIST"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/017-wormhole-drift.pw8",
+    "name": "WORMHOLE DRIFT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/018-stellar-nursery-wash.pw8",
+    "name": "STELLAR NURSERY WASH"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/019-cosmic-lullaby-space.pw8",
+    "name": "COSMIC LULLABY SPACE"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/020-heliosphere-pad.pw8",
+    "name": "HELIOSPHERE PAD"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/021-magnetosphere-veil.pw8",
+    "name": "MAGNETOSPHERE VEIL"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/022-oort-drift.pw8",
+    "name": "OORT DRIFT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/023-redshift-nebula.pw8",
+    "name": "REDSHIFT NEBULA"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/024-quasar-mist.pw8",
+    "name": "QUASAR MIST"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/025-dark-flow-pad.pw8",
+    "name": "DARK FLOW PAD"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/026-orbital-drift.pw8",
+    "name": "ORBITAL DRIFT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/027-lagrange-point.pw8",
+    "name": "LAGRANGE POINT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/028-apogee-wash.pw8",
+    "name": "APOGEE WASH"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/029-perigee-veil.pw8",
+    "name": "PERIGEE VEIL"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/030-synodic-orbit.pw8",
+    "name": "SYNODIC ORBIT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/031-equatorial-drift.pw8",
+    "name": "EQUATORIAL DRIFT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/032-polar-orbit-pad.pw8",
+    "name": "POLAR ORBIT PAD"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/033-kepler-drift.pw8",
+    "name": "KEPLER DRIFT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/034-tidal-orbit.pw8",
+    "name": "TIDAL ORBIT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/035-roche-drift.pw8",
+    "name": "ROCHE DRIFT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/036-eclipse-orbit.pw8",
+    "name": "ECLIPSE ORBIT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/037-zenith-drift.pw8",
+    "name": "ZENITH DRIFT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/038-nadir-wash.pw8",
+    "name": "NADIR WASH"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/039-ascension-orbit.pw8",
+    "name": "ASCENSION ORBIT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/040-descent-veil.pw8",
+    "name": "DESCENT VEIL"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/041-circumlunar-pad.pw8",
+    "name": "CIRCUMLUNAR PAD"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/042-heliocentric-drift.pw8",
+    "name": "HELIOCENTRIC DRIFT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/043-galactic-orbit.pw8",
+    "name": "GALACTIC ORBIT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/044-spiral-arm-drift.pw8",
+    "name": "SPIRAL ARM DRIFT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/045-cosmic-orbit.pw8",
+    "name": "COSMIC ORBIT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/046-parallax-drift.pw8",
+    "name": "PARALLAX DRIFT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/047-precession-pad.pw8",
+    "name": "PRECESSION PAD"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/048-libration-wash.pw8",
+    "name": "LIBRATION WASH"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/049-aphelion-veil.pw8",
+    "name": "APHELION VEIL"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/050-perihelion-drift.pw8",
+    "name": "PERIHELION DRIFT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/051-void-sanctuary.pw8",
+    "name": "VOID SANCTUARY"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/052-cathedral-orbit.pw8",
+    "name": "CATHEDRAL ORBIT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/053-organ-of-stars.pw8",
+    "name": "ORGAN OF STARS"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/054-hymn-of-void.pw8",
+    "name": "HYMN OF VOID"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/055-sacred-nebula.pw8",
+    "name": "SACRED NEBULA"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/056-monolith-pad.pw8",
+    "name": "MONOLITH PAD"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/057-obsidian-cathedral.pw8",
+    "name": "OBSIDIAN CATHEDRAL"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/058-penumbra-hymn.pw8",
+    "name": "PENUMBRA HYMN"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/059-umbra-drift.pw8",
+    "name": "UMBRA DRIFT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/060-abyssal-orbit.pw8",
+    "name": "ABYSSAL ORBIT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/061-chancel-wash.pw8",
+    "name": "CHANCEL WASH"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/062-nave-of-void.pw8",
+    "name": "NAVE OF VOID"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/063-transept-drift.pw8",
+    "name": "TRANSEPT DRIFT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/064-apse-nebula.pw8",
+    "name": "APSE NEBULA"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/065-cloister-pad.pw8",
+    "name": "CLOISTER PAD"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/066-echo-chamber-drift.pw8",
+    "name": "ECHO CHAMBER DRIFT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/067-chamber-orbit.pw8",
+    "name": "CHAMBER ORBIT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/068-resonant-void.pw8",
+    "name": "RESONANT VOID"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/069-hall-of-stars.pw8",
+    "name": "HALL OF STARS"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/070-vault-nebula.pw8",
+    "name": "VAULT NEBULA"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/071-cavern-orbit.pw8",
+    "name": "CAVERN ORBIT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/072-grotto-drift.pw8",
+    "name": "GROTTO DRIFT"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/073-amphitheater-pad.pw8",
+    "name": "AMPHITHEATER PAD"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/074-rotunda-wash.pw8",
+    "name": "ROTUNDA WASH"
+  },
+  {
+    "category": "Interstellar",
+    "file": "factory/Interstellar/Spatial/075-atrium-space.pw8",
+    "name": "ATRIUM SPACE"
+  },
+  {
     "category": "Leads",
     "file": "factory/Leads/01-bronze-stack.pw8",
     "name": "BRONZE STACK"

@@ -1,0 +1,919 @@
+{
+  "schemaVersion": 3,
+  "metadata": {
+    "id": "pw8-interstellar-spatial-054-1726997438",
+    "name": "HYMN OF VOID",
+    "author": "MURMUR Sound Design",
+    "description": "Interstellar spatial pad #054 \u2014 Hymn Of Void. Headphone-first Quasar binaural scene on master M3. Organ-weight mid register; VOID opens room and distance; CNTR holds the hymn body. Engines: Classic, Additive.",
+    "category": "interstellar",
+    "moods": [
+      "cinematic",
+      "cosmic",
+      "spatial",
+      "vast",
+      "headphone"
+    ],
+    "genres": [
+      "cinematic",
+      "score",
+      "ambient",
+      "spatial",
+      "factory"
+    ],
+    "tags": [
+      "interstellar",
+      "spatial",
+      "quasar",
+      "pad",
+      "binaural",
+      "factory",
+      "void-cathedral",
+      "organ-pad"
+    ],
+    "createdAt": "2026-08-14T00:00:00Z",
+    "engineVersion": "0.1.0",
+    "schemaVersion": 3,
+    "seed": 1726997438,
+    "lineage": [],
+    "type": "Interstellar",
+    "masterFx": "quasar",
+    "performanceHints": [
+      "headphone-first binaural wash",
+      "CNTR holds bass \u2014 sweep SPACE for orbit",
+      "slow LFO orbit on Quasar room/distance"
+    ]
+  },
+  "layerMode": 0,
+  "layerMorph": 0.0,
+  "layerA": {
+    "operators": [
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 0.5,
+        "keyTrack": true,
+        "level": 0.38,
+        "pan": 0.0
+      },
+      {
+        "engine": 3,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.82,
+        "pan": 0.0,
+        "additivePartialCount": 36,
+        "additiveTilt": -0.22,
+        "additiveOddEven": 0.55,
+        "additiveStretch": 0.012
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      }
+    ],
+    "algorithm": {
+      "nodes": [
+        {
+          "id": 0,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 1,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 2,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 3,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 4,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 5,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 6,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 7,
+          "engine": 0,
+          "isOutput": true
+        }
+      ],
+      "edges": []
+    },
+    "envelopes": [
+      {
+        "attackSeconds": 2.56,
+        "decaySeconds": 1.6,
+        "sustainLevel": 0.86,
+        "releaseSeconds": 4.0,
+        "curveShape": 2.15,
+        "legato": true
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      }
+    ],
+    "unison": {
+      "mode": 1,
+      "voices": 4
+    },
+    "filter1": {
+      "enabled": true,
+      "mode": 0,
+      "cutoffHz": 1855.0,
+      "resonance": 0.1,
+      "keyTrack": 0.22
+    },
+    "lfos": [
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 0.052000000000000005,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 0.11199999999999999,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.25
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      }
+    ],
+    "modRoutes": [
+      {
+        "source": 29,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 20.0,
+        "scope": 0
+      },
+      {
+        "source": 29,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.425,
+        "scope": 1
+      },
+      {
+        "source": 21,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.36124999999999996,
+        "scope": 1
+      },
+      {
+        "source": 1,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 6.5,
+        "scope": 1
+      },
+      {
+        "source": 2,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.32,
+        "scope": 1
+      },
+      {
+        "source": 18,
+        "destination": 5,
+        "targetIndex": 0,
+        "amount": 0.22,
+        "scope": 0
+      },
+      {
+        "source": 1,
+        "destination": 15,
+        "targetIndex": 2,
+        "amount": 0.2,
+        "scope": 2
+      },
+      {
+        "source": 1,
+        "destination": 17,
+        "targetIndex": 2,
+        "amount": 10.0,
+        "scope": 2
+      },
+      {
+        "source": 2,
+        "destination": 16,
+        "targetIndex": 2,
+        "amount": 0.7100000000000001,
+        "scope": 2
+      },
+      {
+        "source": 2,
+        "destination": 18,
+        "targetIndex": 2,
+        "amount": 0.125,
+        "scope": 2
+      },
+      {
+        "source": 21,
+        "destination": 13,
+        "targetIndex": 2,
+        "amount": 0.32,
+        "scope": 2
+      },
+      {
+        "source": 21,
+        "destination": 16,
+        "targetIndex": 2,
+        "amount": 1.0,
+        "scope": 2
+      },
+      {
+        "source": 21,
+        "destination": 17,
+        "targetIndex": 2,
+        "amount": 24.0,
+        "scope": 2
+      },
+      {
+        "source": 21,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": -12.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 15,
+        "targetIndex": 2,
+        "amount": 0.45,
+        "scope": 2
+      },
+      {
+        "source": 22,
+        "destination": 11,
+        "targetIndex": 1,
+        "amount": 0.48,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.28,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.3,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.18,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 13,
+        "targetIndex": 2,
+        "amount": 0.35,
+        "scope": 2
+      },
+      {
+        "source": 23,
+        "destination": 15,
+        "targetIndex": 2,
+        "amount": 0.52,
+        "scope": 2
+      },
+      {
+        "source": 23,
+        "destination": 16,
+        "targetIndex": 2,
+        "amount": 1.15,
+        "scope": 2
+      },
+      {
+        "source": 23,
+        "destination": 17,
+        "targetIndex": 2,
+        "amount": 16.0,
+        "scope": 2
+      },
+      {
+        "source": 23,
+        "destination": 18,
+        "targetIndex": 2,
+        "amount": 0.26,
+        "scope": 2
+      },
+      {
+        "source": 24,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 14.0,
+        "scope": 0
+      },
+      {
+        "source": 24,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.42,
+        "scope": 1
+      },
+      {
+        "source": 24,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.24,
+        "scope": 0
+      },
+      {
+        "source": 24,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.2,
+        "scope": 1
+      },
+      {
+        "source": 24,
+        "destination": 11,
+        "targetIndex": 1,
+        "amount": 0.32,
+        "scope": 1
+      },
+      {
+        "source": 17,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 30,
+        "destination": 5,
+        "targetIndex": 0,
+        "amount": 0.25,
+        "scope": 0
+      },
+      {
+        "source": 20,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 12.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.22,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.2,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.3,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 5,
+        "targetIndex": 0,
+        "amount": 0.25,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.4,
+        "scope": 0
+      }
+    ],
+    "gain": 1.0,
+    "pan": 0.0,
+    "width": 1.0,
+    "centerGravity": 0.5,
+    "insertEffects": [
+      {
+        "type": 3,
+        "mix": 0.18,
+        "tapeDelayMs": 480.0,
+        "tapeFeedback": 0.28,
+        "tapeDriveDb": 4.0,
+        "tapeDuckAmount": 0.25,
+        "tapeDriftDepthMs": 8.0,
+        "tapeDriftRateHz": 0.12,
+        "tapePanMode": 2
+      }
+    ],
+    "filter2": {
+      "enabled": true,
+      "cutoffHz": 2980,
+      "resonance": 0.22,
+      "drive": 0.12,
+      "keyTrack": 0.25
+    }
+  },
+  "layerB": {
+    "operators": [
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      }
+    ],
+    "algorithm": {
+      "nodes": [
+        {
+          "id": 0,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 1,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 2,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 3,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 4,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 5,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 6,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 7,
+          "engine": 0,
+          "isOutput": false
+        }
+      ],
+      "edges": []
+    },
+    "envelopes": [
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      }
+    ],
+    "gain": 1.0,
+    "pan": 0.0,
+    "width": 1.0,
+    "centerGravity": 0.5
+  },
+  "voiceSettings": {
+    "polyphony": 24,
+    "masterGain": 1.0,
+    "a4Hz": 440.0,
+    "macroDissemination": true,
+    "disseminationDepth": 0.25
+  },
+  "locks": {},
+  "macros": [
+    {
+      "id": "m1",
+      "name": "VOID",
+      "description": "Cathedral void \u2014 room, distance, mix, filter darkness.",
+      "value": 0.0
+    },
+    {
+      "id": "m2",
+      "name": "HYMN",
+      "description": "Organ vowel morph + level + filter warmth.",
+      "value": 0.0
+    },
+    {
+      "id": "m3",
+      "name": "SPACE",
+      "description": "Quasar scene depth \u2014 mix, size, tail, delay.",
+      "value": 0.0
+    },
+    {
+      "id": "m4",
+      "name": "BLOOM",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m5",
+      "name": "DEPTH",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m6",
+      "name": "BODY",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m7",
+      "name": "AIR",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m8",
+      "name": "SHIMMER",
+      "description": "Performance macro.",
+      "value": 0.0
+    }
+  ],
+  "arpeggiator": {
+    "enabled": false
+  },
+  "masterEffects": [
+    {
+      "type": 8,
+      "mix": 1.0,
+      "eqLowFreqHz": 100,
+      "eqLowGainDb": 0.5,
+      "eqMidFreqHz": 600,
+      "eqMidGainDb": -1.0,
+      "eqMidQ": 0.7,
+      "eqHighFreqHz": 6000,
+      "eqHighGainDb": -0.6
+    },
+    {
+      "type": 2,
+      "mix": 0.21,
+      "chorusRateHz": 0.12,
+      "chorusDepthMs": 4.0,
+      "chorusBaseDelayMs": 14.0
+    },
+    {
+      "type": 11,
+      "mix": 0.7200000000000001,
+      "qsr1Level": 0.6157397676086925,
+      "qsr2Level": 0.5948763363364219,
+      "cntrLevel": 0.7786256470170354,
+      "qsr1Height": 0.03,
+      "qsr1Angle": 35.69702728351101,
+      "qsr1Distance": 0.5098595229842827,
+      "qsr1RoomAmount": 0.525,
+      "qsr1RoomSize": 1.34,
+      "qsr1RoomDamping": 0.46119746324487704,
+      "qsr2Height": -0.020000000000000004,
+      "qsr2Angle": 325.0230308671812,
+      "qsr2Distance": 0.57206009344408,
+      "qsr2RoomAmount": 0.485,
+      "qsr2RoomSize": 1.3900000000000001,
+      "qsr2RoomDamping": 0.4388497929450349,
+      "quasarDelayTimeMs": 654.4112635600573,
+      "quasarDelayFeedback": 0.4,
+      "quasarDelayVolume": 0.22
+    },
+    {
+      "type": 9,
+      "mix": 1.0,
+      "compThresholdDb": -16.0,
+      "compRatio": 2.2,
+      "compAttackMs": 22.0,
+      "compReleaseMs": 220.0,
+      "compKneeDb": 6.0,
+      "compMakeupDb": 3.0
+    },
+    {
+      "type": 10,
+      "mix": 1.0,
+      "limiterCeilingDb": -0.8,
+      "limiterLookaheadMs": 4.0,
+      "limiterReleaseMs": 60.0
+    }
+  ],
+  "uiFocus": {
+    "maxKnobs": 3,
+    "knobs": [
+      {
+        "kind": "macro",
+        "index": 0,
+        "label": "VOID"
+      },
+      {
+        "kind": "macro",
+        "index": 1,
+        "label": "HYMN"
+      },
+      {
+        "kind": "macro",
+        "index": 2,
+        "label": "SPACE"
+      }
+    ]
+  }
+}
