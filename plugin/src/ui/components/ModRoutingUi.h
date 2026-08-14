@@ -93,4 +93,12 @@ namespace pw8::plugin::ui
 
     [[nodiscard]] juce::String formatExpressionStatus(const patch::Patch& patch, float expressionValue01) noexcept;
 
+    /// One-line hints from feature macro descriptions (mission card / preset bar).
+    [[nodiscard]] juce::String formatFeatureMacroHints(const patch::Patch& patch,
+                                                       const std::vector<PatchFocusKnobSpec>& featureKnobs);
+
+    /// Preferred performance hint: macro descriptions first, then metadata.description.
+    [[nodiscard]] juce::String performanceHintForPatch(const patch::Patch& patch,
+                                                       const juce::AudioProcessorValueTreeState* apvtsForValidation = nullptr);
+
 } // namespace pw8::plugin::ui

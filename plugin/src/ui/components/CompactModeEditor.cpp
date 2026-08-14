@@ -4,6 +4,7 @@
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "InterstellarHudDraw.h"
+#include "ModRoutingUi.h"
 
 namespace pw8::plugin::ui
 {
@@ -93,7 +94,7 @@ namespace pw8::plugin::ui
             category = "Factory";
         missionCategoryLabel_.setText(category.toUpperCase(), juce::dontSendNotification);
 
-        const auto hint = performanceHintFromDescription(meta.description);
+        const auto hint = performanceHintForPatch(processor_.getCurrentPatch(), &processor_.apvts);
         missionHintLabel_.setText(hint, juce::dontSendNotification);
         missionHintLabel_.setVisible(hint.isNotEmpty());
 

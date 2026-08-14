@@ -55,7 +55,7 @@ namespace pw8::plugin::ui
           filterWireframe_(processor.apvts),
           lfoWireframe_(processor.apvts, 0),
           modSourcePalette_(assignmentController),
-          oscilloscope_(processor)
+          filterScope_(processor)
     {
         addAndMakeVisible(filterPanel_);
         addAndMakeVisible(lfoPanel_);
@@ -70,9 +70,12 @@ namespace pw8::plugin::ui
 
         lfoWaveform_ = std::make_unique<GlowKnob>(processor.apvts, lfoParamId(0, "Waveform"), "Wave", lfoWaveformToText);
         lfoMode_ = std::make_unique<GlowKnob>(processor.apvts, lfoParamId(0, "Mode"), "Mode", lfoModeToText);
-        lfoRate_ = std::make_unique<GlowKnob>(processor.apvts, lfoParamId(0, "RateHz"), "Rate");
-        for (auto* k : {lfoWaveform_.get(), lfoMode_.get(), lfoRate_.get()})
-            lfoPanel_.addAndMakeVisible(*k);
+        lfoMotionKnob_ = std::make_unique<ConcentricGlowKnob>(
+            processor.apvts, lfoParamId(0, "PhaseOffset"), lfoParamId(0, "RateHz"), "Phase", "Rate");
+        lfoMotionKnob_->setInnerAccentColour(palette::kAccentWarm);
+        lfoPanel_.addAndMakeVisible(*lfoWaveform_);
+        lfoPanel_.addAndMakeVisible(*lfoMode_);
+        lfoPanel_.addAndMakeVisible(*lfoMotionKnob_);
         lfoPanel_.addAndMakeVisible(lfoWireframe_);
 
         filter2EnabledButton_ = std::make_unique<GlowRingButton>("Filter 2 Enable");
@@ -85,7 +88,7 @@ namespace pw8::plugin::ui
 
         addAndMakeVisible(filter2Panel_);
         addAndMakeVisible(scopeFrame_);
-        scopeFrame_.addAndMakeVisible(oscilloscope_);
+        scopeFrame_.addAndMakeVisible(filterScope_);
 
         setScope(FilterPanelScope::Global, 0);
     }
@@ -207,7 +210,7 @@ namespace pw8::plugin::ui
 
         auto scopeRow = bounds.removeFromBottom(64);
         scopeFrame_.setBounds(scopeRow.reduced(4, 2));
-        oscilloscope_.setBounds(scopeFrame_.getContentBounds());
+        filterScope_.setBounds(scopeFrame_.getContentBounds());
 
         auto paletteRow = bounds.removeFromTop(30);
         modSourcePalette_.setBounds(paletteRow.reduced(4, 2));
@@ -270,7 +273,7 @@ namespace pw8::plugin::ui
             const int knobWidth = content.getWidth() / 3;
             lfoWaveform_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             lfoMode_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
-            lfoRate_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            lfoMotionKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
         }
     }
 

@@ -93,6 +93,7 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/ModRoutingOverlay.cpp
     src/ui/components/ModSourceStrip.cpp
     src/ui/components/OscilloscopeView.cpp
+    src/ui/components/FilterPanelScopeView.cpp
     src/ui/components/ArpStepStrip.cpp
     src/ui/components/ArpLauncherChip.cpp
     src/ui/components/ArpPanelOverlay.cpp

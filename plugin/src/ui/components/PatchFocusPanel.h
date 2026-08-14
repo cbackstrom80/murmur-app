@@ -51,6 +51,7 @@ namespace pw8::plugin::ui
         SectionPanel panel_{"Performance Controls", palette::kAccentWarm, true};
         juce::Label introLabel_;
         juce::Label subtitleLabel_;
+        juce::Label macroHintsLabel_;
         juce::Label standardSectionLabel_;
         juce::Label modWheelBadge_;
         juce::Label expressionBadge_;

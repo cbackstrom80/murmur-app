@@ -10,7 +10,7 @@
 #include "GlowRingButton.h"
 #include "ModAssignmentController.h"
 #include "ModSourcePalette.h"
-#include "OscilloscopeView.h"
+#include "FilterPanelScopeView.h"
 #include "SectionPanel.h"
 #include "WireframePanel.h"
 #include "processor/PatchworkEightProcessor.h"
@@ -63,7 +63,7 @@ namespace pw8::plugin::ui
 
         std::unique_ptr<GlowKnob> lfoWaveform_;
         std::unique_ptr<GlowKnob> lfoMode_;
-        std::unique_ptr<GlowKnob> lfoRate_;
+        std::unique_ptr<ConcentricGlowKnob> lfoMotionKnob_;
 
         ModSourcePalette modSourcePalette_;
         SectionPanel filter2Panel_{"Filter 2"};
@@ -75,7 +75,7 @@ namespace pw8::plugin::ui
         std::unique_ptr<GlowKnob> filter2Drive_;
         std::unique_ptr<GlowKnob> filter2KeyTrack_;
         WireframePanel scopeFrame_{"SCOPE"};
-        OscilloscopeView oscilloscope_;
+        FilterPanelScopeView filterScope_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FilterLfoPanel)
     };

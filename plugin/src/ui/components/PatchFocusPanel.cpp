@@ -26,11 +26,12 @@ namespace pw8::plugin::ui
         subtitleLabel_.setFont(fonts::value(fonts::kBodyLabelSize));
         subtitleLabel_.setColour(juce::Label::textColourId, palette::kTextPrimary);
 
+        panel_.addAndMakeVisible(macroHintsLabel_);
+        macroHintsLabel_.setJustificationType(juce::Justification::centredLeft);
+        macroHintsLabel_.setFont(fonts::value(fonts::kCaptionSize));
+        macroHintsLabel_.setColour(juce::Label::textColourId, palette::kTextDim);
+
         standardSectionLabel_.setText("Standard controls", juce::dontSendNotification);
-        standardSectionLabel_.setJustificationType(juce::Justification::centredLeft);
-        standardSectionLabel_.setFont(fonts::label(10.0f));
-        standardSectionLabel_.setColour(juce::Label::textColourId, palette::kTextSecondary);
-        panel_.addAndMakeVisible(standardSectionLabel_);
 
         modWheelBadge_.setJustificationType(juce::Justification::centredLeft);
         modWheelBadge_.setFont(fonts::label(11.0f));
@@ -232,6 +233,10 @@ namespace pw8::plugin::ui
 
         standardSectionLabel_.setVisible(!compactLayout_ && !layout.standardKnobs.empty());
 
+        const auto macroHints = formatFeatureMacroHints(patch, layout.featureKnobs);
+        macroHintsLabel_.setText(macroHints, juce::dontSendNotification);
+        macroHintsLabel_.setVisible(!compactLayout_ && macroHints.isNotEmpty());
+
         if (layout != lastLayout_)
         {
             lastLayout_ = layout;
@@ -273,6 +278,7 @@ namespace pw8::plugin::ui
             panel_.removeAllChildren();
             panel_.addAndMakeVisible(introLabel_);
             panel_.addAndMakeVisible(subtitleLabel_);
+            panel_.addAndMakeVisible(macroHintsLabel_);
             panel_.addAndMakeVisible(standardSectionLabel_);
             panel_.addAndMakeVisible(modWheelBadge_);
             panel_.addAndMakeVisible(expressionBadge_);
@@ -409,6 +415,12 @@ namespace pw8::plugin::ui
 
         auto header = bounds.removeFromTop(22);
         subtitleLabel_.setBounds(header);
+
+        if (macroHintsLabel_.isVisible())
+        {
+            bounds.removeFromTop(4);
+            macroHintsLabel_.setBounds(bounds.removeFromTop(32));
+        }
 
         if (modWheelBadge_.isVisible())
         {

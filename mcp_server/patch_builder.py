@@ -268,6 +268,60 @@ def set_filter(patch_id: str, enabled: bool = True, mode="lowpass",
     return warnings
 
 
+def set_macro_koin(patch_id: str, slot: int, name: str, destinations: list[dict],
+                   description: str = "") -> list[str]:
+    """Configure one feature macro KOIN: macro name/description, uiFocus slot, and mod routes.
+
+    slot: 0–2 (Macro1–3). destinations: list of dicts with keys destination, amount,
+    optional target_index (0–7), scope (voice/layer/global). Replaces prior routes for that macro."""
+    if not 0 <= slot <= 2:
+        raise ValueError("slot must be 0-2 (Macro1-3 feature KOINS)")
+    if not destinations:
+        raise ValueError("destinations must contain at least one mod route")
+
+    patch = load_scratch(patch_id)
+    warnings: list[str] = []
+    macro_index = slot
+    macro_key = f"macro{macro_index + 1}"
+    source_id = MOD_SOURCE_IDS[macro_key]
+
+    patch["macros"][macro_index]["name"] = name[:32]
+    if description:
+        patch["macros"][macro_index]["description"] = description
+
+    routes = [r for r in patch["layerA"].get("modRoutes", []) if r.get("source") != source_id]
+    for dest in destinations:
+        dest_name = dest.get("destination")
+        if dest_name is None:
+            raise ValueError("each destination requires 'destination'")
+        dest_id = resolve_from_map(dest_name, MOD_DEST_IDS, "mod destination")
+        target_index = int(dest.get("target_index", 0))
+        amount = float(dest.get("amount", 1.0))
+        scope = dest.get("scope", "voice")
+        scope_id = resolve_from_map(scope, MOD_SCOPE_IDS, "mod scope")
+        if dest_id in MOD_DEST_NEEDS_TARGET and not 0 <= target_index <= 7:
+            raise ValueError(f"destination requires target_index 0-7, got {target_index}")
+        routes.append({
+            "source": source_id,
+            "destination": dest_id,
+            "targetIndex": target_index,
+            "amount": amount,
+            "scope": scope_id,
+        })
+    patch["layerA"]["modRoutes"] = routes
+
+    ui_focus = patch.setdefault("uiFocus", {"maxKnobs": 3, "knobs": []})
+    ui_focus["maxKnobs"] = max(int(ui_focus.get("maxKnobs", 3)), slot + 1)
+    knobs = [k for k in ui_focus.get("knobs", [])
+             if not (k.get("kind") == "macro" and k.get("index") == macro_index)]
+    knobs.append({"kind": "macro", "index": macro_index, "label": name[:32]})
+    knobs.sort(key=lambda k: k.get("index", 0))
+    ui_focus["knobs"] = knobs
+
+    write_scratch(patch_id, patch)
+    return warnings
+
+
 def explain_patch(patch: dict) -> str:
     """A human/LLM-readable summary -- the same information MCP callers would
     otherwise have to reconstruct by reading raw JSON field-by-field."""

@@ -177,6 +177,18 @@ def set_filter(patch_id: str, enabled: bool = True, mode: str = "lowpass",
 
 
 @mcp.tool()
+def set_macro_koin(patch_id: str, slot: int, name: str, destinations: list[dict],
+                   description: str = "") -> dict:
+    """Configure one feature macro KOIN (Macro1–3): name, optional description,
+    uiFocus entry, and mod routes. destinations is a list of dicts, each with
+    destination (see list_mod_sources_and_destinations), amount, and optional
+    target_index / scope."""
+    warnings = patch_builder.set_macro_koin(patch_id, slot, name, destinations, description)
+    return {"patch_id": patch_id, "warnings": warnings,
+            "summary": patch_builder.explain_patch(patch_builder.load_scratch(patch_id))}
+
+
+@mcp.tool()
 def list_scratch_patches() -> list[dict]:
     """Lists patches currently under construction (not yet saved anywhere permanent)."""
     out = []

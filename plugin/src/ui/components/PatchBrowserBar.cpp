@@ -4,6 +4,7 @@
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "InterstellarHudDraw.h"
+#include "ModRoutingUi.h"
 
 namespace pw8::plugin::ui
 {
@@ -125,7 +126,7 @@ namespace pw8::plugin::ui
         if (patchNameLabel_.getText() != name)
             patchNameLabel_.setText(name.isEmpty() ? "INIT" : name, juce::dontSendNotification);
 
-        const auto hint = performanceHintFromDescription(meta.description);
+        const auto hint = performanceHintForPatch(processor_.getCurrentPatch(), &processor_.apvts);
         if (patchHintLabel_.getText() != hint)
             patchHintLabel_.setText(hint, juce::dontSendNotification);
         patchHintLabel_.setVisible(!hint.isEmpty());

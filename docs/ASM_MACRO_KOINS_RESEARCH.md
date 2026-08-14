@@ -347,7 +347,8 @@ Serializer expands `macroBundles` → `modRoutes` on load (single source of trut
 
 1. Optional `macroBundles` schema + serializer expansion.
 2. MCP validation tool + preset linter in CI.
-3. Mission card copy from `macros[i].description` (“WARMTH: opens filter + wavetable”).
+3. ✅ Mission card copy from `macros[i].description` (“WARMTH: opens filter + wavetable”) — `performanceHintForPatch()` in ModRoutingUi; PatchBrowserBar, CompactModeEditor, PatchFocusPanel.
+4. ✅ MCP `set_macro_koin` helper (`mcp_server/patch_builder.py`, `server.py`).
 
 ### Phase 3 — ASM parity (defer)
 

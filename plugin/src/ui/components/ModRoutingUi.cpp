@@ -338,4 +338,67 @@ namespace pw8::plugin::ui
         return "Expression (CC11)  " + juce::String(pct) + "%  ->  " + dest + "  (" + depth + " max)";
     }
 
+    juce::String formatFeatureMacroHints(const patch::Patch& patch, const std::vector<PatchFocusKnobSpec>& featureKnobs)
+    {
+        juce::StringArray parts;
+        for (const auto& spec : featureKnobs)
+        {
+            if (spec.kind != PatchFocusKnobKind::Macro || spec.macroIndex >= patch.macros.size())
+                continue;
+
+            const auto& macro = patch.macros[spec.macroIndex];
+            if (macro.description.empty())
+                continue;
+
+            juce::String line = juce::String::fromUTF8(macro.description.data(),
+                                                      static_cast<int>(macro.description.size()))
+                                    .trim();
+            if (line.isEmpty())
+                continue;
+
+            const juce::String name = spec.label.isNotEmpty() ? spec.label
+                                  : (macro.name.empty() ? juce::String(kMacroParameterNames[spec.macroIndex])
+                                                        : juce::String(macro.name));
+            if (!line.startsWithIgnoreCase(name))
+                line = name + ": " + line;
+
+            if (line.length() > 64)
+                line = line.substring(0, 61).trimEnd() + "...";
+            parts.add(line);
+        }
+
+        return parts.joinIntoString("  ·  ");
+    }
+
+    juce::String performanceHintForPatch(const patch::Patch& patch,
+                                         const juce::AudioProcessorValueTreeState* apvtsForValidation)
+    {
+        const auto layout = inferPatchFocusLayout(patch, kMaxFeatureKoinCount, 0, apvtsForValidation);
+        const auto macroHints = formatFeatureMacroHints(patch, layout.featureKnobs);
+        if (macroHints.isNotEmpty())
+            return macroHints;
+
+        if (patch.metadata.description.empty())
+            return {};
+
+        juce::String text = juce::String::fromUTF8(patch.metadata.description.data(),
+                                                   static_cast<int>(patch.metadata.description.size()))
+                                .trim();
+        int end = -1;
+        for (int i = 0; i < text.length(); ++i)
+        {
+            const juce::juce_wchar c = text[i];
+            if (c == '.' || c == '!' || c == '?')
+            {
+                end = i;
+                break;
+            }
+        }
+
+        juce::String hint = end >= 0 ? text.substring(0, end + 1).trim() : text;
+        if (hint.length() > 80)
+            hint = hint.substring(0, 77).trimEnd() + "...";
+        return hint;
+    }
+
 } // namespace pw8::plugin::ui

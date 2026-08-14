@@ -182,10 +182,10 @@ namespace pw8::plugin::ui
             apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "WtAsymmetry"),
             operatorParamId(static_cast<std::size_t>(selectedNode_), "WtBend"), "WT Asym", "WT Bend");
         wtWarpKnob_->setInnerAccentColour(palette::kMurmurViolet);
-        wtSyncAmountKnob_ = std::make_unique<GlowKnob>(
-            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "WtSyncAmount"), "Sync Amt");
-        wtFormantKnob_ = std::make_unique<GlowKnob>(
-            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "WtFormantShift"), "Formant");
+        wtSyncFormantKnob_ = std::make_unique<ConcentricGlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "WtFormantShift"),
+            operatorParamId(static_cast<std::size_t>(selectedNode_), "WtSyncAmount"), "Formant", "Sync Amt");
+        wtSyncFormantKnob_->setInnerAccentColour(palette::kAccentWarm);
 
         for (auto* k : {waveformKnob_.get(), levelKnob_.get(), panKnob_.get(), ratioKnob_.get(), wavetablePosKnob_.get(),
                          fmModRatioKnob_.get(), fmModIndexKnob_.get(), fmModFeedbackKnob_.get(), fmModWaveformKnob_.get(),
@@ -196,7 +196,7 @@ namespace pw8::plugin::ui
                          resonatorStructureKnob_.get(), resonatorDecayKnob_.get(), resonatorDampingKnob_.get(),
                          resonatorBrightnessKnob_.get(), resonatorModesKnob_.get(),
                          grainDensityKnob_.get(), grainSizeKnob_.get(), grainPosJitterKnob_.get(),
-                         grainPitchJitterKnob_.get(), wtSyncAmountKnob_.get(), wtFormantKnob_.get()})
+                         grainPitchJitterKnob_.get()})
         {
             panel_.addAndMakeVisible(*k);
             if (k != nullptr)
@@ -204,6 +204,8 @@ namespace pw8::plugin::ui
         }
         if (wtWarpKnob_ != nullptr)
             panel_.addAndMakeVisible(*wtWarpKnob_);
+        if (wtSyncFormantKnob_ != nullptr)
+            panel_.addAndMakeVisible(*wtSyncFormantKnob_);
         wireModTargets();
     }
 
@@ -229,17 +231,15 @@ namespace pw8::plugin::ui
                                                      targetIndex);
             wtWarpKnob_->setModAssignmentController(&assignmentController_);
         }
-        if (wtSyncAmountKnob_ != nullptr)
+        if (wtSyncFormantKnob_ != nullptr)
         {
-            wtSyncAmountKnob_->enableModulationTarget(processor_, modulation::ModDestination::OperatorWavetableSyncAmount,
-                                                      targetIndex);
-            wtSyncAmountKnob_->setModAssignmentController(&assignmentController_);
-        }
-        if (wtFormantKnob_ != nullptr)
-        {
-            wtFormantKnob_->enableModulationTarget(processor_, modulation::ModDestination::OperatorWavetableFormant,
-                                                   targetIndex);
-            wtFormantKnob_->setModAssignmentController(&assignmentController_);
+            wtSyncFormantKnob_->enableInnerModulationTarget(processor_,
+                                                            modulation::ModDestination::OperatorWavetableFormant,
+                                                            targetIndex);
+            wtSyncFormantKnob_->enableOuterModulationTarget(processor_,
+                                                            modulation::ModDestination::OperatorWavetableSyncAmount,
+                                                            targetIndex);
+            wtSyncFormantKnob_->setModAssignmentController(&assignmentController_);
         }
         if (panKnob_ != nullptr)
         {
@@ -315,8 +315,7 @@ namespace pw8::plugin::ui
         grainPosJitterKnob_->setVisible(isGranular);
         grainPitchJitterKnob_->setVisible(isGranular);
         wtWarpKnob_->setVisible(isWavetable);
-        wtSyncAmountKnob_->setVisible(isWavetable);
-        wtFormantKnob_->setVisible(isWavetable);
+        wtSyncFormantKnob_->setVisible(isWavetable);
         levelKnob_->setVisible(true);
         panKnob_->setVisible(true);
 
@@ -492,7 +491,7 @@ namespace pw8::plugin::ui
         }
         else if (wtWarpKnob_ && wtWarpKnob_->isVisible())
         {
-            const int knobWidth = content.getWidth() / 7;
+            const int knobWidth = content.getWidth() / 6;
             if (levelKnob_)
                 levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (panKnob_)
@@ -503,10 +502,8 @@ namespace pw8::plugin::ui
                 wavetablePosKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (wtWarpKnob_)
                 wtWarpKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
-            if (wtSyncAmountKnob_)
-                wtSyncAmountKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
-            if (wtFormantKnob_)
-                wtFormantKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            if (wtSyncFormantKnob_)
+                wtSyncFormantKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
         }
         else if (wavetablePosKnob_ && wavetablePosKnob_->isVisible())
         {

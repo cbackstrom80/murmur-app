@@ -78,6 +78,21 @@ def main():
     warnings = patch_builder.set_operator(patch_id, 0, "fm_pm", {"fmModulatorIndex": 99.0})
     check(f"out-of-range value produces a warning: {warnings}", len(warnings) == 1 and "clamped" in warnings[0])
 
+    print("\n== set_macro_koin (feature KOIN helper) ==")
+    warnings = patch_builder.set_macro_koin(
+        patch_id, slot=0, name="BLOOM",
+        description="Opens filter and wavetable motion.",
+        destinations=[
+            {"destination": "filter_cutoff", "amount": 18.0, "scope": "voice"},
+            {"destination": "operator_wavetable_position", "target_index": 0, "amount": 0.35, "scope": "voice"},
+        ],
+    )
+    loaded = patch_builder.load_scratch(patch_id)
+    check(f"set_macro_koin warnings={warnings}", len(warnings) == 0)
+    check("macro name set", loaded["macros"][0]["name"] == "BLOOM")
+    check("uiFocus macro entry", any(k.get("index") == 0 and k.get("kind") == "macro" for k in loaded["uiFocus"]["knobs"]))
+    check("macro routes present", any(r["source"] == 21 for r in loaded["layerA"]["modRoutes"]))
+
     summary = patch_builder.explain_patch(patch_builder.load_scratch(patch_id))
     print("\n--- explain_patch ---")
     print(summary)
