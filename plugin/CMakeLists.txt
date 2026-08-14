@@ -76,6 +76,7 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/EngineSummingStrip.cpp
     src/ui/components/FilterLfoPanel.cpp
     src/ui/components/FxChainStrip.cpp
+    src/ui/components/GlobalPanel.cpp
     src/ui/components/PatchBrowserBar.cpp
     src/ui/components/HeaderSpectrumScope.cpp
     src/ui/components/CircularSpectrumScope.cpp

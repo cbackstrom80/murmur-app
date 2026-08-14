@@ -49,13 +49,11 @@ namespace pw8::plugin::ui
         [[nodiscard]] const SlotUi& selectedSlot() const;
         void refreshSelectorStates();
         void refreshTransformerUi();
-        void refreshQuasarUi();
         void syncTypeRowFromParams();
         void syncTransformerRowsFromParams();
         void setTransformerCore(int coreOrdinal);
         void setTransformerBrand(int brandOrdinal);
         [[nodiscard]] bool showsMasterCompressorControls() const;
-        [[nodiscard]] bool showsQuasarControls() const;
         [[nodiscard]] bool canSwapSelectedSlot(int direction) const;
         void updateFlowPrefixes();
         void timerCallback() override;
@@ -81,7 +79,6 @@ namespace pw8::plugin::ui
         std::unique_ptr<MetadataFacetRow> transCoreRow_;
         std::unique_ptr<MetadataFacetRow> transBrandRow_;
         std::unique_ptr<GlowKnob> transAmountKnob_;
-        std::vector<std::unique_ptr<GlowKnob>> quasarExtraKnobs_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FxChainStrip)
     };

@@ -13,6 +13,7 @@
 #include "components/ContextStrip.h"
 #include "components/FilterLfoPanel.h"
 #include "components/FxChainStrip.h"
+#include "components/GlobalPanel.h"
 #include "components/ModAssignmentController.h"
 #include "components/ModLauncherPanel.h"
 #include "components/ModRoutingOverlay.h"
@@ -58,6 +59,7 @@ namespace pw8::plugin::ui
             Env,
             Mod,
             Fx,
+            Global,
         };
 
         void setViewMode(ViewMode mode);
@@ -88,12 +90,13 @@ namespace pw8::plugin::ui
         juce::TextButton basicViewButton_{"Basic"};
         juce::TextButton advancedViewButton_{"Advanced"};
         std::unique_ptr<juce::TextButton> compactViewButton_;
-        std::array<juce::TextButton, 5> tabButtons_{
+        std::array<juce::TextButton, 6> tabButtons_{
             juce::TextButton{"OSC"},
             juce::TextButton{"FILTER"},
             juce::TextButton{"ENV"},
             juce::TextButton{"MOD"},
             juce::TextButton{"FX"},
+            juce::TextButton{"GLOBAL"},
         };
         ViewMode viewMode_ = ViewMode::Basic;
         Page currentPage_ = Page::Filter;
@@ -102,6 +105,7 @@ namespace pw8::plugin::ui
         juce::Component envPage_;
         juce::Component modPage_;
         juce::Component fxPage_;
+        juce::Component globalPage_;
 
         juce::Label modAssignmentBanner_;
         SectionPanel oscPanel_{"Operator"};
@@ -110,6 +114,7 @@ namespace pw8::plugin::ui
         AmpEnvelopePanel ampEnvelopePanel_;
         ModLauncherPanel modLauncherPanel_;
         FxChainStrip fxChainStrip_;
+        GlobalPanel globalPanel_;
         ModRoutingOverlay modRoutingOverlay_;
         ArpPanelOverlay arpPanelOverlay_;
 

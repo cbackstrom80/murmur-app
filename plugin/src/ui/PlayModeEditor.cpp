@@ -60,6 +60,7 @@ namespace pw8::plugin::ui
           ampEnvelopePanel_(processor),
           modLauncherPanel_(processor, modAssignmentController_),
           fxChainStrip_(processor),
+          globalPanel_(processor),
           modRoutingOverlay_(processor, modAssignmentController_),
           arpPanelOverlay_(processor)
     {
@@ -147,6 +148,7 @@ namespace pw8::plugin::ui
         addChildComponent(envPage_);
         addChildComponent(modPage_);
         addChildComponent(fxPage_);
+        addChildComponent(globalPage_);
 
         oscPage_.addAndMakeVisible(oscPanel_);
         oscPanel_.addAndMakeVisible(operatorEditorPanel_);
@@ -154,6 +156,7 @@ namespace pw8::plugin::ui
         envPage_.addAndMakeVisible(ampEnvelopePanel_);
         modPage_.addAndMakeVisible(modLauncherPanel_);
         fxPage_.addAndMakeVisible(fxChainStrip_);
+        globalPage_.addAndMakeVisible(globalPanel_);
 
         setViewMode(ViewMode::Basic);
     }
@@ -277,6 +280,7 @@ namespace pw8::plugin::ui
             envPage_.setVisible(false);
             modPage_.setVisible(false);
             fxPage_.setVisible(false);
+            globalPage_.setVisible(false);
             modAssignmentBanner_.setVisible(false);
         }
         else if (advanced)
@@ -389,6 +393,7 @@ namespace pw8::plugin::ui
         envPage_.setVisible(page == Page::Env);
         modPage_.setVisible(page == Page::Mod);
         fxPage_.setVisible(page == Page::Fx);
+        globalPage_.setVisible(page == Page::Global);
 
         for (std::size_t i = 0; i < tabButtons_.size(); ++i)
             tabButtons_[i].setToggleState(static_cast<Page>(i) == page, juce::dontSendNotification);
@@ -496,6 +501,7 @@ namespace pw8::plugin::ui
             envPage_.setBounds(bounds);
             modPage_.setBounds(bounds);
             fxPage_.setBounds(bounds);
+            globalPage_.setBounds(bounds);
         }
         else
         {
@@ -505,6 +511,7 @@ namespace pw8::plugin::ui
             envPage_.setBounds(0, 0, 0, 0);
             modPage_.setBounds(0, 0, 0, 0);
             fxPage_.setBounds(0, 0, 0, 0);
+            globalPage_.setBounds(0, 0, 0, 0);
         }
 
         oscPanel_.setBounds(oscPage_.getLocalBounds());
@@ -513,6 +520,7 @@ namespace pw8::plugin::ui
         ampEnvelopePanel_.setBounds(envPage_.getLocalBounds());
         modLauncherPanel_.setBounds(modPage_.getLocalBounds());
         fxChainStrip_.setBounds(fxPage_.getLocalBounds());
+        globalPanel_.setBounds(globalPage_.getLocalBounds());
 
         modRoutingOverlay_.setBounds(getLocalBounds());
         arpPanelOverlay_.setBounds(getLocalBounds());
