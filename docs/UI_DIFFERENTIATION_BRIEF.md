@@ -308,7 +308,8 @@ Tap the strip → **full circular graph overlay** (existing component, fullscree
 | Wt mesh | `plugin/src/ui/components/WavetableStackView.{h,cpp}` |
 | Brand mark | `plugin/src/ui/theme/BrandingAssets.{h,cpp}`, `plugin/resources/branding/murmur_mark_512.png` |
 | Colors | `plugin/src/ui/theme/ObsidianPalette.h` |
-| Decked knobs | `plugin/src/ui/theme/DeckedKnobDraw.h`, `GlowKnob::setDeckedStyle()` |
+| Decked knobs | `plugin/src/ui/theme/DeckedKnobDraw.h`, `GlowKnob::setDeckedStyle()` — **single-parameter depth styling only** |
+| Concentric dual knobs | `plugin/src/ui/components/ConcentricGlowKnob.{h,cpp}` (`ConcentricDualKnob` alias) — **two APVTS params in one footprint**; outer ring = white line + MIN/MAX arc; inner cap = category color + dot. **Not** decorative deck depth. |
 | Product truth | `docs/product/OVERVIEW.md`, `PLAY_MODE.md`, `SOUND_DESIGN.md` |
 | Plan context | `docs/DESIGN_AND_WARPS_PLAN.md`, `docs/UI.md`, `docs/UI_PAGED_LAYOUT.md` |
 
@@ -402,6 +403,27 @@ Treat the mock as **identity + hierarchy inspiration**, not a wireframe to imple
 **Hierarchy (DESIGN):** Graph preview (cyan) + edge list split. Tab labels may use metaphor headers (Nervous System = Matrix) in small caps — not sidebar nav.
 
 **Color lock:** Cyan = topology/signal. Amber = performance/KOINS. Violet = DESIGN chrome + default knob ring. No copper/green/lavender in graph or KOINS.
+
+### Concentric dual-parameter knobs (functional, not decorative)
+
+Curtis Logic reference dials show **two independent controls stacked in one footprint**:
+
+| Ring | Visual | Interaction |
+|------|--------|-------------|
+| **Outer** | Dark ring, white value arc + radial line, MIN/MAX tick labels | Drag near outer edge; wheel over outer zone |
+| **Inner** | Colored cap (param-category accent), white dot on rim | Drag center cap; wheel over inner zone |
+
+**Do not** use concentric deck layers on single-parameter `GlowKnob` — `setDeckedStyle()` is depth decoration for one param only. Use `ConcentricGlowKnob` / `ConcentricDualKnob` when two related params share a footprint.
+
+**Shipped pairs (v1):**
+
+| Location | Outer | Inner |
+|----------|-------|-------|
+| PLAY Filter tab | Cutoff | Resonance |
+| PLAY Operator (Wavetable) | WT Bend | WT Asym |
+| DESIGN Wavetable tab | WT Bend | WT Asym |
+
+Shift+drag = fine adjust (both rings). Mod rings assign independently per ring via `enableOuterModulationTarget` / `enableInnerModulationTarget`.
 
 **Copy lock:** Product tagline = *Eight engines. One voice.* Brand board tagline = marketing overlay only. Performance knob labels come from `.pw8` uiFocus/macro names — never global MORPH/MOVEMENT/TEXTURE/SPACE.
 

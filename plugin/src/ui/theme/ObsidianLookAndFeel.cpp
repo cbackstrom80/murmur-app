@@ -156,7 +156,9 @@ namespace pw8::plugin::ui
         const auto ringRole = slider.getProperties()["knobRingRole"].toString();
         const bool outerOnly = ringRole == "outer";
         const bool innerRole = ringRole == "inner";
-        const bool deckedStyle = slider.getProperties()["knobStyle"].toString() == "decked";
+        const auto knobStyle = slider.getProperties()["knobStyle"].toString();
+        const bool deckedStyle = knobStyle == "decked";
+        const bool concentricStyle = knobStyle == "concentric";
 
         const auto bounds = juce::Rectangle<float>(static_cast<float>(x), static_cast<float>(y),
                                                      static_cast<float>(width), static_cast<float>(height))
@@ -171,6 +173,14 @@ namespace pw8::plugin::ui
         const float proportional = rotary::normalisedProportional(sliderPosProportional, slider);
         const float angle = rotary::proportionalToAngle(proportional);
         const auto accent = slider.findColour(juce::Slider::rotarySliderFillColourId);
+
+        if (concentricStyle)
+        {
+            const bool active = slider.isMouseOverOrDragging();
+            decked::drawConcentricRotarySlider(g, knobBounds, proportional, rotaryStartAngle, rotaryEndAngle, accent,
+                                               outerOnly, innerRole, active);
+            return;
+        }
 
         if (deckedStyle)
         {

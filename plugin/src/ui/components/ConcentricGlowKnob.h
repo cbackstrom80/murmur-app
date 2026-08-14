@@ -11,8 +11,10 @@
 
 namespace pw8::plugin::ui
 {
-    /// Dual-parameter Murmur dial: inner ring = param A (e.g. filter cutoff), outer orbit = param B
-    /// (e.g. resonance). Both remain separate APVTS parameters for host automation.
+    /// Dual-parameter Murmur dial: outer ring = param A (e.g. filter cutoff, WT bend),
+    /// inner cap = param B (e.g. resonance, WT asym). Both remain separate APVTS
+    /// parameters for host automation. Concentric = two controls in one footprint,
+    /// NOT decorative deck depth (see UI_DIFFERENTIATION_BRIEF.md).
     class ConcentricGlowKnob : public juce::Component, public juce::DragAndDropTarget, private juce::Timer
     {
     public:
@@ -34,6 +36,9 @@ namespace pw8::plugin::ui
 
         void setModAssignmentController(ModAssignmentController* controller);
         void setMaxDialDiameter(int diameter);
+
+        /// Category color for the inner cap (outer ring always uses white line indicator).
+        void setInnerAccentColour(juce::Colour colour);
 
     private:
         class FormattedSlider : public juce::Slider
@@ -102,5 +107,8 @@ namespace pw8::plugin::ui
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ConcentricGlowKnob)
     };
+
+    /// Alias — concentric knobs are functional dual-parameter controls, not depth decoration.
+    using ConcentricDualKnob = ConcentricGlowKnob;
 
 } // namespace pw8::plugin::ui

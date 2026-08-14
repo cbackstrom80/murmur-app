@@ -72,11 +72,18 @@ namespace pw8::plugin::ui
         slider.setColour(juce::Slider::textBoxBackgroundColourId, palette::kPanelRaised);
         slider.setColour(juce::Slider::textBoxOutlineColourId, palette::kBorder);
         slider.setColour(juce::Slider::textBoxTextColourId, palette::kTextPrimary);
-        slider.setColour(juce::Slider::rotarySliderFillColourId, palette::kMurmurViolet);
+        if (ringRole == "outer")
+            slider.setColour(juce::Slider::rotarySliderFillColourId, juce::Colours::white);
+        else
+            slider.setColour(juce::Slider::rotarySliderFillColourId, palette::kAccent);
         slider.getProperties().set("knobRingRole", ringRole);
         slider.getProperties().set("maxDialDiameter", maxDialDiameter_);
-        slider.getProperties().set("knobStyle", "decked");
-        slider.getProperties().set("deckedSize", "medium");
+        slider.getProperties().set("knobStyle", "concentric");
+    }
+
+    void ConcentricGlowKnob::setInnerAccentColour(juce::Colour colour)
+    {
+        innerSlider_.setColour(juce::Slider::rotarySliderFillColourId, colour);
     }
 
     void ConcentricGlowKnob::enableInnerModulationTarget(PatchworkEightProcessor& processor,
@@ -171,7 +178,12 @@ namespace pw8::plugin::ui
     void ConcentricGlowKnob::forwardMouseToActiveSlider(const juce::MouseEvent& event, bool isDown)
     {
         auto& slider = activeSlider();
-        auto rel = event.getEventRelativeTo(&slider);
+        const juce::MouseEvent useEvent =
+            event.mods.isShiftDown()
+                ? event.withNewPosition(event.getMouseDownPosition().toFloat()
+                                        + (event.position - event.getMouseDownPosition().toFloat()) * 0.12f)
+                : event;
+        auto rel = useEvent.getEventRelativeTo(&slider);
         if (isDown)
             slider.mouseDown(rel);
         else

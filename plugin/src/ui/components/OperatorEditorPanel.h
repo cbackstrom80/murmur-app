@@ -6,6 +6,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "ConcentricGlowKnob.h"
 #include "GlowKnob.h"
 #include "ModAssignmentController.h"
 #include "SectionPanel.h"
@@ -182,8 +183,7 @@ namespace pw8::plugin::ui
         std::unique_ptr<GlowKnob> grainSizeKnob_;      // Only visible for the Granular engine.
         std::unique_ptr<GlowKnob> grainPosJitterKnob_; // Only visible for the Granular engine.
         std::unique_ptr<GlowKnob> grainPitchJitterKnob_; // Only visible for the Granular engine.
-        std::unique_ptr<GlowKnob> wtBendKnob_;           // Only visible for the Wavetable engine.
-        std::unique_ptr<GlowKnob> wtAsymmetryKnob_;      // Only visible for the Wavetable engine.
+        std::unique_ptr<ConcentricGlowKnob> wtWarpKnob_; // Wavetable: outer Bend + inner Asym.
         std::unique_ptr<GlowKnob> wtSyncAmountKnob_;     // Only visible for the Wavetable engine (Week 4).
         std::unique_ptr<GlowKnob> wtFormantKnob_;        // Only visible for the Wavetable engine (Week 5).
 

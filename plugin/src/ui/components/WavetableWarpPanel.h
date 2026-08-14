@@ -4,6 +4,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "ConcentricGlowKnob.h"
 #include "GlowKnob.h"
 #include "ModAssignmentController.h"
 #include "EngineNodeStrip.h"
@@ -43,8 +44,7 @@ namespace pw8::plugin::ui
         int lastKnownEngine_ = -1;
 
         std::unique_ptr<GlowKnob> wavetablePosKnob_;
-        std::unique_ptr<GlowKnob> wtBendKnob_;
-        std::unique_ptr<GlowKnob> wtAsymmetryKnob_;
+        std::unique_ptr<ConcentricGlowKnob> wtWarpKnob_;
         std::unique_ptr<GlowKnob> wtSyncRatioKnob_;
         std::unique_ptr<GlowKnob> wtSyncAmountKnob_;
         std::unique_ptr<GlowKnob> wtFormantKnob_;

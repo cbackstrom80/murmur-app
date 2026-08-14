@@ -53,8 +53,7 @@ namespace pw8::plugin::ui
     void WavetableWarpPanel::rebuildKnobsForNode()
     {
         wavetablePosKnob_.reset();
-        wtBendKnob_.reset();
-        wtAsymmetryKnob_.reset();
+        wtWarpKnob_.reset();
         wtSyncRatioKnob_.reset();
         wtSyncAmountKnob_.reset();
         wtFormantKnob_.reset();
@@ -63,19 +62,21 @@ namespace pw8::plugin::ui
         const auto op = static_cast<std::size_t>(selectedNode_);
 
         wavetablePosKnob_ = std::make_unique<GlowKnob>(apvts, operatorParamId(op, "WavetablePos"), "WT Pos");
-        wtBendKnob_ = std::make_unique<GlowKnob>(apvts, operatorParamId(op, "WtBend"), "WT Bend");
-        wtAsymmetryKnob_ = std::make_unique<GlowKnob>(apvts, operatorParamId(op, "WtAsymmetry"), "WT Asym");
+        wtWarpKnob_ = std::make_unique<ConcentricGlowKnob>(apvts, operatorParamId(op, "WtAsymmetry"),
+                                                           operatorParamId(op, "WtBend"), "WT Asym", "WT Bend");
+        wtWarpKnob_->setInnerAccentColour(palette::kMurmurViolet);
         wtSyncRatioKnob_ = std::make_unique<GlowKnob>(apvts, operatorParamId(op, "WtSyncRatio"), "Sync Ratio");
         wtSyncAmountKnob_ = std::make_unique<GlowKnob>(apvts, operatorParamId(op, "WtSyncAmount"), "Sync Amt");
         wtFormantKnob_ = std::make_unique<GlowKnob>(apvts, operatorParamId(op, "WtFormantShift"), "Formant");
 
-        for (auto* k : {wavetablePosKnob_.get(), wtBendKnob_.get(), wtAsymmetryKnob_.get(), wtSyncRatioKnob_.get(),
-                        wtSyncAmountKnob_.get(), wtFormantKnob_.get()})
+        for (auto* k : {wavetablePosKnob_.get(), wtSyncRatioKnob_.get(), wtSyncAmountKnob_.get(), wtFormantKnob_.get()})
         {
             addAndMakeVisible(*k);
             if (k != nullptr)
                 k->setDeckedStyle(true, GlowKnob::DeckedKnobSize::Medium);
         }
+        if (wtWarpKnob_ != nullptr)
+            addAndMakeVisible(*wtWarpKnob_);
 
         wireModTargets();
     }
@@ -89,17 +90,13 @@ namespace pw8::plugin::ui
                                                       targetIndex);
             wavetablePosKnob_->setModAssignmentController(&assignmentController_);
         }
-        if (wtBendKnob_ != nullptr)
+        if (wtWarpKnob_ != nullptr)
         {
-            wtBendKnob_->enableModulationTarget(processor_, modulation::ModDestination::OperatorWavetableBend,
-                                                targetIndex);
-            wtBendKnob_->setModAssignmentController(&assignmentController_);
-        }
-        if (wtAsymmetryKnob_ != nullptr)
-        {
-            wtAsymmetryKnob_->enableModulationTarget(processor_, modulation::ModDestination::OperatorWavetableAsymmetry,
+            wtWarpKnob_->enableInnerModulationTarget(processor_, modulation::ModDestination::OperatorWavetableAsymmetry,
                                                      targetIndex);
-            wtAsymmetryKnob_->setModAssignmentController(&assignmentController_);
+            wtWarpKnob_->enableOuterModulationTarget(processor_, modulation::ModDestination::OperatorWavetableBend,
+                                                     targetIndex);
+            wtWarpKnob_->setModAssignmentController(&assignmentController_);
         }
         if (wtSyncRatioKnob_ != nullptr)
         {
@@ -135,12 +132,15 @@ namespace pw8::plugin::ui
         if (showsStack)
             stackView_.ensureDefaultWavetableLoaded();
 
-        for (auto* k : {wavetablePosKnob_.get(), wtBendKnob_.get(), wtAsymmetryKnob_.get(), wtSyncRatioKnob_.get(),
-                        wtSyncAmountKnob_.get(), wtFormantKnob_.get()})
-        {
+        const auto setKnobVisible = [&](juce::Component* k) {
             if (k != nullptr)
                 k->setVisible(isWavetable);
-        }
+        };
+        setKnobVisible(wavetablePosKnob_.get());
+        setKnobVisible(wtWarpKnob_.get());
+        setKnobVisible(wtSyncRatioKnob_.get());
+        setKnobVisible(wtSyncAmountKnob_.get());
+        setKnobVisible(wtFormantKnob_.get());
 
         if (isWavetable)
             engineHint_.setText("Warp preview matches audio — adjust Sync Ratio here (PLAY has Sync Amt only).",
@@ -172,14 +172,17 @@ namespace pw8::plugin::ui
         bounds.removeFromTop(4);
 
         auto knobRow = bounds.removeFromBottom(kKnobRowHeight);
-        const int knobCount = 6;
+        const int knobCount = 5;
         const int knobWidth = knobRow.getWidth() / knobCount;
-        for (auto* k : {wavetablePosKnob_.get(), wtBendKnob_.get(), wtAsymmetryKnob_.get(), wtSyncRatioKnob_.get(),
-                        wtSyncAmountKnob_.get(), wtFormantKnob_.get()})
-        {
+        const auto placeKnob = [&](juce::Component* k) {
             if (k != nullptr && k->isVisible())
                 k->setBounds(knobRow.removeFromLeft(knobWidth).reduced(4));
-        }
+        };
+        placeKnob(wavetablePosKnob_.get());
+        placeKnob(wtWarpKnob_.get());
+        placeKnob(wtSyncRatioKnob_.get());
+        placeKnob(wtSyncAmountKnob_.get());
+        placeKnob(wtFormantKnob_.get());
 
         meshFrame_.setBounds(bounds);
         stackView_.setBounds(meshFrame_.getContentBounds());

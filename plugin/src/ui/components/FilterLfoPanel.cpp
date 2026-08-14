@@ -154,10 +154,11 @@ namespace pw8::plugin::ui
             std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(apvts, enabledId, *filterEnabledButton_);
 
         filterMode_ = std::make_unique<GlowKnob>(apvts, modeId, "Mode", filterModeToText);
-        filterToneKnob_ = std::make_unique<ConcentricGlowKnob>(apvts, cutoffId, resonanceId, "Cutoff", "Reso");
+        filterToneKnob_ = std::make_unique<ConcentricGlowKnob>(apvts, resonanceId, cutoffId, "Reso", "Cutoff");
         filterKeyTrack_ = std::make_unique<GlowKnob>(apvts, keyTrackId, "Key Trk");
-        filterToneKnob_->enableInnerModulationTarget(processor_, cutoffDest, modTarget);
-        filterToneKnob_->enableOuterModulationTarget(processor_, resonanceDest, modTarget);
+        filterToneKnob_->setInnerAccentColour(palette::kAccent);
+        filterToneKnob_->enableInnerModulationTarget(processor_, resonanceDest, modTarget);
+        filterToneKnob_->enableOuterModulationTarget(processor_, cutoffDest, modTarget);
         filterToneKnob_->setModAssignmentController(&assignmentController_);
 
         filterPanel_.removeAllChildren();
