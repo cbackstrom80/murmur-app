@@ -137,11 +137,10 @@ namespace pw8::plugin::ui::decked
     }
 
     inline void drawValueArc(juce::Graphics& g, juce::Point<float> centre, float arcRadius, float trackThickness,
-                             float rotaryStartAngle, float angle, juce::Colour accent)
+                             float rotaryStartAngle, float rotaryEndAngle, float angle, juce::Colour accent)
     {
         juce::Path track;
-        track.addCentredArc(centre.x, centre.y, arcRadius, arcRadius, 0.0f, rotaryStartAngle,
-                            rotary::kEndAngle, true);
+        track.addCentredArc(centre.x, centre.y, arcRadius, arcRadius, 0.0f, rotaryStartAngle, rotaryEndAngle, true);
         g.setColour(palette::kBorder.withAlpha(0.65f));
         g.strokePath(track, juce::PathStrokeType(trackThickness * 0.85f, juce::PathStrokeType::curved,
                                                  juce::PathStrokeType::rounded));
@@ -159,7 +158,7 @@ namespace pw8::plugin::ui::decked
     inline void drawPointer(juce::Graphics& g, juce::Point<float> centre, float angle, float innerRadius,
                             float outerRadius, juce::Colour accent, float widthScale)
     {
-        const juce::Point<float> direction(std::cos(angle), std::sin(angle));
+        const juce::Point<float> direction = rotary::unitDirectionAtAngle(angle);
         const auto pointerStart = centre + direction * innerRadius;
         const auto pointerEnd = centre + direction * outerRadius;
 
@@ -178,8 +177,7 @@ namespace pw8::plugin::ui::decked
         {
             const auto satelliteAngle = -juce::MathConstants<float>::halfPi
                                     + (juce::MathConstants<float>::twoPi * static_cast<float>(i) / 8.0f);
-            const auto point = centre + juce::Point<float>(std::cos(satelliteAngle), std::sin(satelliteAngle))
-                                         * ringRadius;
+            const auto point = centre + rotary::unitDirectionAtAngle(satelliteAngle) * ringRadius;
             draw::fillGlowDot(g, point, dotRadius, accent, alpha, 4);
         }
     }
@@ -193,7 +191,7 @@ namespace pw8::plugin::ui::decked
         {
             const float t = static_cast<float>(i) / static_cast<float>(kTickCount - 1);
             const float angle = rotaryStartAngle + (rotaryEndAngle - rotaryStartAngle) * t;
-            const juce::Point<float> direction(std::cos(angle), std::sin(angle));
+            const juce::Point<float> direction = rotary::unitDirectionAtAngle(angle);
             const float inner = arcRadius - trackThickness * 0.35f;
             const float outer = arcRadius + trackThickness * 0.55f;
             const float tickWidth = (i == 0 || i == kTickCount - 1) ? 1.4f : 0.8f;
@@ -202,8 +200,8 @@ namespace pw8::plugin::ui::decked
 
         g.setFont(juce::Font(juce::FontOptions(juce::jmax(7.5f, arcRadius * 0.16f))));
         g.setColour(palette::kTextSecondary.withAlpha(0.72f));
-        const auto minDir = juce::Point<float>(std::cos(rotaryStartAngle), std::sin(rotaryStartAngle));
-        const auto maxDir = juce::Point<float>(std::cos(rotaryEndAngle), std::sin(rotaryEndAngle));
+        const auto minDir = rotary::unitDirectionAtAngle(rotaryStartAngle);
+        const auto maxDir = rotary::unitDirectionAtAngle(rotaryEndAngle);
         const float labelRadius = arcRadius + trackThickness * 2.8f;
         g.drawText("MIN", juce::Rectangle<float>(centre + minDir * labelRadius - juce::Point<float>(14.0f, 6.0f),
                                                  juce::Point<float>(28.0f, 12.0f)),
@@ -216,7 +214,7 @@ namespace pw8::plugin::ui::decked
     inline void drawWhiteLinePointer(juce::Graphics& g, juce::Point<float> centre, float angle, float innerRadius,
                                      float outerRadius, float widthScale)
     {
-        const juce::Point<float> direction(std::cos(angle), std::sin(angle));
+        const juce::Point<float> direction = rotary::unitDirectionAtAngle(angle);
         const auto pointerStart = centre + direction * innerRadius;
         const auto pointerEnd = centre + direction * outerRadius;
         g.setColour(palette::kShadow.withAlpha(0.35f));
@@ -228,7 +226,7 @@ namespace pw8::plugin::ui::decked
     inline void drawDotPointer(juce::Graphics& g, juce::Point<float> centre, float angle, float orbitRadius,
                                float widthScale)
     {
-        const juce::Point<float> direction(std::cos(angle), std::sin(angle));
+        const juce::Point<float> direction = rotary::unitDirectionAtAngle(angle);
         const auto dotCentre = centre + direction * orbitRadius;
         const float dotRadius = juce::jmax(2.2f, widthScale * 0.038f);
         g.setColour(palette::kShadow.withAlpha(0.45f));
@@ -273,7 +271,7 @@ namespace pw8::plugin::ui::decked
         const auto centre = knobBounds.getCentre();
         const float maxRadius = diameter * 0.5f;
         const float arcRadius = maxRadius * 0.94f;
-        const float angle = rotary::proportionalToAngle(proportional);
+        const float angle = rotary::proportionalToAngle(proportional, rotaryStartAngle, rotaryEndAngle);
         const float trackThickness = juce::jmax(2.0f, maxRadius * 0.08f);
 
         g.setColour(palette::kBackgroundBottom);
@@ -310,17 +308,16 @@ namespace pw8::plugin::ui::decked
     inline void drawDualInnerRotarySlider(juce::Graphics& g, juce::Rectangle<float> knobBounds, float proportional,
                                           float rotaryStartAngle, float rotaryEndAngle, juce::Colour accent, bool active)
     {
-        juce::ignoreUnused(rotaryStartAngle, rotaryEndAngle);
         const float diameter = juce::jmax(16.0f, juce::jmin(knobBounds.getWidth(), knobBounds.getHeight()));
         const auto centre = knobBounds.getCentre();
         const float maxRadius = diameter * 0.5f;
         const float capRadius = juce::jmax(8.0f, maxRadius - 2.0f);
-        const float angle = rotary::proportionalToAngle(proportional);
+        const float angle = rotary::proportionalToAngle(proportional, rotaryStartAngle, rotaryEndAngle);
 
         const juce::Colour fill = accent.isTransparent() ? palette::kPanelRaised : accent;
         fillColouredInnerCap(g, centre, capRadius, fill, active);
 
-        const juce::Point<float> direction(std::cos(angle), std::sin(angle));
+        const juce::Point<float> direction = rotary::unitDirectionAtAngle(angle);
         const float pointerInner = capRadius * 0.22f;
         const float pointerOuter = capRadius * 0.82f;
         const float pointerWidth = juce::jmax(2.4f, capRadius * 0.14f);
@@ -347,12 +344,10 @@ namespace pw8::plugin::ui::decked
                                        float rotaryStartAngle, float rotaryEndAngle, juce::Colour accent, Size size,
                                        bool outerRingOnly, bool innerCapOnly, bool active)
     {
-        juce::ignoreUnused(rotaryEndAngle);
-
         const float diameter = juce::jmax(16.0f, juce::jmin(knobBounds.getWidth(), knobBounds.getHeight()));
         const auto geo = computeGeometry(diameter, size);
         const auto centre = knobBounds.getCentre();
-        const float angle = rotary::proportionalToAngle(proportional);
+        const float angle = rotary::proportionalToAngle(proportional, rotaryStartAngle, rotaryEndAngle);
 
         if (geo.drawDropShadow && !outerRingOnly)
         {
@@ -373,8 +368,8 @@ namespace pw8::plugin::ui::decked
 
         if (outerRingOnly)
         {
-            drawValueArc(g, centre, geo.outerDeckRadius * 0.94f, geo.trackThickness * 0.85f, rotaryStartAngle, angle,
-                         accent);
+            drawValueArc(g, centre, geo.outerDeckRadius * 0.94f, geo.trackThickness * 0.85f, rotaryStartAngle,
+                         rotaryEndAngle, angle, accent);
             drawPointer(g, centre, angle, geo.outerDeckRadius * 0.78f, geo.outerDeckRadius * 0.96f, accent,
                         geo.radius);
             return;
@@ -386,7 +381,8 @@ namespace pw8::plugin::ui::decked
         if (geo.drawLedRing)
             drawLedRing(g, centre, geo.middleDeckRadius, accent, active);
 
-        drawValueArc(g, centre, geo.valueArcRadius, geo.trackThickness, rotaryStartAngle, angle, accent);
+        drawValueArc(g, centre, geo.valueArcRadius, geo.trackThickness, rotaryStartAngle, rotaryEndAngle, angle,
+                     accent);
 
         fillInnerCap(g, centre, geo.innerCapRadius, accent, active);
         drawPointer(g, centre, angle, geo.innerCapRadius * 0.28f, geo.innerCapRadius * 0.74f, accent, geo.radius);

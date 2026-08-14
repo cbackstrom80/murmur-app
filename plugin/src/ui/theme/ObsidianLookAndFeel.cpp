@@ -170,7 +170,7 @@ namespace pw8::plugin::ui
         const float radius = diameter * 0.5f;
         const auto centre = knobBounds.getCentre();
         const float proportional = rotary::normalisedProportional(sliderPosProportional, slider);
-        const float angle = rotary::proportionalToAngle(proportional);
+        const float angle = rotary::proportionalToAngle(proportional, rotaryStartAngle, rotaryEndAngle);
         const auto accent = slider.findColour(juce::Slider::rotarySliderFillColourId);
 
         if (deckedStyle)
@@ -191,7 +191,7 @@ namespace pw8::plugin::ui
         const float bodyRadius = radius * 0.62f;
         const float trackThickness = juce::jmax(1.5f, radius * (drawSatellites ? 0.055f : 0.045f));
         const float valueArcRadius = outerOnly ? orbitRadius : (innerRole ? bodyRadius * 0.92f : orbitRadius);
-        const juce::Point<float> direction(std::cos(angle), std::sin(angle));
+        const juce::Point<float> direction = rotary::unitDirectionAtAngle(angle);
 
         if (outerOnly)
         {
@@ -272,8 +272,7 @@ namespace pw8::plugin::ui
             {
                 const auto satelliteAngle = -juce::MathConstants<float>::halfPi
                                           + (juce::MathConstants<float>::twoPi * static_cast<float>(i) / 8.0f);
-                const auto point = centre + juce::Point<float>(std::cos(satelliteAngle), std::sin(satelliteAngle))
-                                             * orbitRadius;
+                const auto point = centre + rotary::unitDirectionAtAngle(satelliteAngle) * orbitRadius;
                 if (drawSatelliteGlow)
                     draw::fillGlowDot(g, point, dotRadius, palette::kMurmurViolet, satelliteAlpha);
                 else
