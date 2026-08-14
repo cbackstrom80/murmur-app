@@ -295,7 +295,7 @@ namespace pw8::plugin
         std::atomic<float> mirroredExpression_{0.0f};
         std::atomic<float>* morphPositionPointer_ = nullptr;
 
-        dsp::SidechainFollower sidechainFollower_{};
+        ::pw8::dsp::SidechainFollower sidechainFollower_{};
         std::atomic<bool> sidechainActive_{false};
         std::atomic<float> sidechainLevel_{0.0f};
 

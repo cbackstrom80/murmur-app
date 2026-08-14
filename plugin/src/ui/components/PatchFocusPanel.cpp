@@ -47,8 +47,8 @@ namespace pw8::plugin::ui
 
         sidechainBadge_.setJustificationType(juce::Justification::centredLeft);
         sidechainBadge_.setFont(fonts::label(11.0f));
-        sidechainBadge_.setColour(juce::Label::textColourId, palette::kAccentCool);
-        sidechainBadge_.setColour(juce::Label::backgroundColourId, palette::kAccentCool.withAlpha(0.12f));
+        sidechainBadge_.setColour(juce::Label::textColourId, palette::kAccent);
+        sidechainBadge_.setColour(juce::Label::backgroundColourId, palette::kAccent.withAlpha(0.12f));
         panel_.addAndMakeVisible(sidechainBadge_);
 
         advancedButton_.setButtonText("Mod Matrix (M)");
@@ -160,7 +160,7 @@ namespace pw8::plugin::ui
         if (sidechainBadge_.isVisible())
         {
             const bool scActive = processor_.getSidechainActive();
-            const auto base = palette::kAccentCool;
+            const auto base = palette::kAccent;
             sidechainBadge_.setColour(juce::Label::backgroundColourId,
                                       base.withAlpha(scActive ? 0.12f + 0.14f * pulse : 0.12f));
             sidechainBadge_.setColour(juce::Label::textColourId,

@@ -39,19 +39,16 @@ namespace pw8::plugin
             for (std::size_t i = 0; i < fieldSpecs.size(); ++i)
                 pointers[i] = apvts.getRawParameterValue(prefix + fieldSpecs[i].idSuffix);
         }
-
-        [[nodiscard]] juce::AudioProcessor::BusesProperties makeProcessorBuses()
-        {
-            auto props = BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true);
-#if JucePlugin_Build_AU
-            props = props.withInput("Sidechain", juce::AudioChannelSet::stereo(), true);
-#endif
-            return props;
-        }
     } // namespace
 
     PatchworkEightProcessor::PatchworkEightProcessor()
-        : juce::AudioProcessor(makeProcessorBuses()),
+#if JucePlugin_Build_AU
+        : juce::AudioProcessor(BusesProperties()
+                                   .withInput("Sidechain", juce::AudioChannelSet::stereo(), true)
+                                   .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
+#else
+        : juce::AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)),
+#endif
           apvts(*this, nullptr, "PARAMETERS", createParameterLayout())
     {
         cacheParameterPointers();
