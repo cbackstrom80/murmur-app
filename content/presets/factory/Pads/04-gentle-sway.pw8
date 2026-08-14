@@ -15,7 +15,8 @@
     "tags": [
       "factory",
       "pad",
-      "poly-sweet"
+      "poly-sweet",
+      "dissemination"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",
@@ -590,7 +591,8 @@
   "voiceSettings": {
     "polyphony": 16,
     "masterGain": 1.0,
-    "a4Hz": 440.0
+    "a4Hz": 440.0,
+    "macroDissemination": true
   },
   "locks": {},
   "macros": [

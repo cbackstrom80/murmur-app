@@ -1600,6 +1600,506 @@
     "name": "HORIZON SUB"
   },
   {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/001-strata-chord.pw8",
+    "name": "STRATA CHORD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/002-frozen-bloom.pw8",
+    "name": "FROZEN BLOOM"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/003-voice-shadow.pw8",
+    "name": "VOICE SHADOW"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/004-poly-veil.pw8",
+    "name": "POLY VEIL"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/005-layered-hymn.pw8",
+    "name": "LAYERED HYMN"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/006-chord-mist.pw8",
+    "name": "CHORD MIST"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/007-velvet-spread.pw8",
+    "name": "VELVET SPREAD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/008-cathedral-layers.pw8",
+    "name": "CATHEDRAL LAYERS"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/009-amber-strata.pw8",
+    "name": "AMBER STRATA"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/010-halo-wash.pw8",
+    "name": "HALO WASH"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/011-drift-ensemble.pw8",
+    "name": "DRIFT ENSEMBLE"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/012-morphic-pad.pw8",
+    "name": "MORPHIC PAD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/013-glass-strata.pw8",
+    "name": "GLASS STRATA"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/014-warm-bloom.pw8",
+    "name": "WARM BLOOM"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/015-echo-chord.pw8",
+    "name": "ECHO CHORD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/016-swell-matrix.pw8",
+    "name": "SWELL MATRIX"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/017-cloud-stack.pw8",
+    "name": "CLOUD STACK"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/018-prism-hold.pw8",
+    "name": "PRISM HOLD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/019-luminous-veil.pw8",
+    "name": "LUMINOUS VEIL"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/020-tidal-pad.pw8",
+    "name": "TIDAL PAD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/021-horizon-bloom.pw8",
+    "name": "HORIZON BLOOM"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/022-silk-spread.pw8",
+    "name": "SILK SPREAD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/023-dusk-layers.pw8",
+    "name": "DUSK LAYERS"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/024-feather-chord.pw8",
+    "name": "FEATHER CHORD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/025-nova-hold.pw8",
+    "name": "NOVA HOLD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/026-frozen-drift.pw8",
+    "name": "FROZEN DRIFT"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/027-granular-mist.pw8",
+    "name": "GRANULAR MIST"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/028-resonant-cave.pw8",
+    "name": "RESONANT CAVE"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/029-void-bloom.pw8",
+    "name": "VOID BLOOM"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/030-shimmer-field.pw8",
+    "name": "SHIMMER FIELD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/031-tape-haze.pw8",
+    "name": "TAPE HAZE"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/032-sub-strata.pw8",
+    "name": "SUB STRATA"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/033-dust-cloud.pw8",
+    "name": "DUST CLOUD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/034-polar-drone.pw8",
+    "name": "POLAR DRONE"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/035-ember-wash.pw8",
+    "name": "EMBER WASH"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/036-glacier-hold.pw8",
+    "name": "GLACIER HOLD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/037-basin-expanse.pw8",
+    "name": "BASIN EXPANSE"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/038-ochre-field.pw8",
+    "name": "OCHRE FIELD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/039-hollow-echo.pw8",
+    "name": "HOLLOW ECHO"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/040-nebula-wash.pw8",
+    "name": "NEBULA WASH"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/041-tundra-bloom.pw8",
+    "name": "TUNDRA BLOOM"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/042-fathomless-drift.pw8",
+    "name": "FATHOMLESS DRIFT"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/043-ember-hymn.pw8",
+    "name": "EMBER HYMN"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/044-abyssal-swell.pw8",
+    "name": "ABYSSAL SWELL"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/045-midnight-veil.pw8",
+    "name": "MIDNIGHT VEIL"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/046-pale-expanse.pw8",
+    "name": "PALE EXPANSE"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/047-quartz-drone.pw8",
+    "name": "QUARTZ DRONE"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/048-spectral-hold.pw8",
+    "name": "SPECTRAL HOLD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/049-ion-mist.pw8",
+    "name": "ION MIST"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/050-deep-basin.pw8",
+    "name": "DEEP BASIN"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/051-score-bloom.pw8",
+    "name": "SCORE BLOOM"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/052-film-strata.pw8",
+    "name": "FILM STRATA"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/053-tension-hold.pw8",
+    "name": "TENSION HOLD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/054-reveal-chord.pw8",
+    "name": "REVEAL CHORD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/055-memory-layer.pw8",
+    "name": "MEMORY LAYER"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/056-grief-pad.pw8",
+    "name": "GRIEF PAD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/057-hope-spread.pw8",
+    "name": "HOPE SPREAD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/058-epic-wash.pw8",
+    "name": "EPIC WASH"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/059-intimate-hold.pw8",
+    "name": "INTIMATE HOLD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/060-vast-choir.pw8",
+    "name": "VAST CHOIR"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/061-solstice-bloom.pw8",
+    "name": "SOLSTICE BLOOM"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/062-equinox-veil.pw8",
+    "name": "EQUINOX VEIL"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/063-twilight-strata.pw8",
+    "name": "TWILIGHT STRATA"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/064-aurora-hold.pw8",
+    "name": "AURORA HOLD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/065-monolith-pad.pw8",
+    "name": "MONOLITH PAD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/066-passage-bloom.pw8",
+    "name": "PASSAGE BLOOM"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/067-threshold-chord.pw8",
+    "name": "THRESHOLD CHORD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/068-afterglow-spread.pw8",
+    "name": "AFTERGLOW SPREAD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/069-meridian-wash.pw8",
+    "name": "MERIDIAN WASH"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/070-obsidian-layer.pw8",
+    "name": "OBSIDIAN LAYER"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/071-dual-spread.pw8",
+    "name": "DUAL SPREAD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/072-parallel-voices.pw8",
+    "name": "PARALLEL VOICES"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/073-morphic-stack.pw8",
+    "name": "MORPHIC STACK"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/074-binary-bloom.pw8",
+    "name": "BINARY BLOOM"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/075-twin-strata.pw8",
+    "name": "TWIN STRATA"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/076-layered-cosmos.pw8",
+    "name": "LAYERED COSMOS"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/077-echo-stack.pw8",
+    "name": "ECHO STACK"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/078-nebula-layers.pw8",
+    "name": "NEBULA LAYERS"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/079-organ-spread.pw8",
+    "name": "ORGAN SPREAD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/080-stack-of-voices.pw8",
+    "name": "STACK OF VOICES"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/081-multiverse-hold.pw8",
+    "name": "MULTIVERSE HOLD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/082-folded-chord.pw8",
+    "name": "FOLDED CHORD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/083-phase-stack.pw8",
+    "name": "PHASE STACK"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/084-reso-layers.pw8",
+    "name": "RESO LAYERS"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/085-gran-stack.pw8",
+    "name": "GRAN STACK"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/086-formant-freeze.pw8",
+    "name": "FORMANT FREEZE"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/087-wt-strata.pw8",
+    "name": "WT STRATA"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/088-morph-hold.pw8",
+    "name": "MORPH HOLD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/089-spread-formant.pw8",
+    "name": "SPREAD FORMANT"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/090-bend-bloom.pw8",
+    "name": "BEND BLOOM"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/091-sync-layers.pw8",
+    "name": "SYNC LAYERS"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/092-vowel-stack.pw8",
+    "name": "VOWEL STACK"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/093-frame-drift.pw8",
+    "name": "FRAME DRIFT"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/094-position-hold.pw8",
+    "name": "POSITION HOLD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/095-asym-spread.pw8",
+    "name": "ASYM SPREAD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/096-gran-freeze.pw8",
+    "name": "GRAN FREEZE"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/097-cloud-morph.pw8",
+    "name": "CLOUD MORPH"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/098-shimmer-hold.pw8",
+    "name": "SHIMMER HOLD"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/099-phase-bloom.pw8",
+    "name": "PHASE BLOOM"
+  },
+  {
+    "category": "Dissemination",
+    "file": "factory/Dissemination/100-reso-freeze.pw8",
+    "name": "RESO FREEZE"
+  },
+  {
     "category": "Interstellar",
     "file": "factory/Interstellar/001-cathedral-nebula.pw8",
     "name": "CATHEDRAL NEBULA"
