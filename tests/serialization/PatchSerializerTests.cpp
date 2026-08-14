@@ -76,7 +76,7 @@ TEST_CASE("A v1 document's singular ampEnvelope/lfo1 migrate into envelopes[0]/l
     const auto result = loadPatchFromJson(v1Json);
     REQUIRE(result.ok);
     REQUIRE(result.originalSchemaVersion == 1);
-    REQUIRE(result.patch.schemaVersion == pw8::core::kPatchSchemaVersion); // migrated up to current (2).
+    REQUIRE(result.patch.schemaVersion == pw8::core::kPatchSchemaVersion); // migrated up to current (v3).
 
     REQUIRE(result.patch.layerA.envelopes[0].attackSeconds == Catch::Approx(0.09f));
     REQUIRE(result.patch.layerA.envelopes[0].sustainLevel == Catch::Approx(0.55f));
@@ -87,7 +87,7 @@ TEST_CASE("A v1 document's singular ampEnvelope/lfo1 migrate into envelopes[0]/l
     REQUIRE(result.patch.layerA.lfos[0].syncDivisionIndex == 5);
     REQUIRE(result.patch.layerA.lfos[1].rateHz == Catch::Approx(2.0f)); // struct default.
 
-    // Re-saving now writes the current (v2) array shape, not the old singular fields.
+    // Re-saving now writes the current (v3) array shape, not the old singular fields.
     const auto resaved = savePatchToJson(result.patch);
     REQUIRE(resaved.find("\"envelopes\"") != std::string::npos);
     REQUIRE(resaved.find("\"lfos\"") != std::string::npos);

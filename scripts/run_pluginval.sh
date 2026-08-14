@@ -9,7 +9,13 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
 CONFIG="${PLUGINVAL_CONFIG:-Release}"
-ARTEFACT_ROOT="build/plugin/plugin/pw8_plugin_artefacts/${CONFIG}"
+if [[ -n "${PLUGINVAL_ARTEFACT_ROOT:-}" ]]; then
+  ARTEFACT_ROOT="$PLUGINVAL_ARTEFACT_ROOT"
+elif [[ -d "build/plugin-release/plugin/pw8_plugin_artefacts/${CONFIG}" ]]; then
+  ARTEFACT_ROOT="build/plugin-release/plugin/pw8_plugin_artefacts/${CONFIG}"
+else
+  ARTEFACT_ROOT="build/plugin/plugin/pw8_plugin_artefacts/${CONFIG}"
+fi
 VST3="${ARTEFACT_ROOT}/VST3/MURMUR.vst3"
 AU="${ARTEFACT_ROOT}/AU/MURMUR.component"
 PLUGINVAL="${PLUGINVAL_BIN:-/Applications/pluginval.app/Contents/MacOS/pluginval}"
@@ -34,10 +40,33 @@ killall -9 AudioComponentRegistrar 2>/dev/null || true
 echo "==> auval (smoke)"
 auval -v aumu Murm Murr
 
+run_pluginval() {
+  local label="$1"
+  local target="$2"
+  echo "==> pluginval strictness 5 — ${label}"
+  local log
+  log="$(mktemp)"
+  if ! "$PLUGINVAL" --strictness-level 5 --validate "$target" 2>&1 | tee "$log"; then
+    rm -f "$log"
+    return 1
+  fi
+  if grep -q "Segmentation fault" "$log"; then
+    echo "FAIL: pluginval crashed during validation (${label})" >&2
+    rm -f "$log"
+    return 1
+  fi
+  if ! grep -q "Completed tests in pluginval / Plugin state" "$log"; then
+    echo "FAIL: pluginval did not finish Plugin state tests (${label})" >&2
+    rm -f "$log"
+    return 1
+  fi
+  rm -f "$log"
+}
+
 echo "==> pluginval strictness 5 — VST3"
-"$PLUGINVAL" --strictness-level 5 --validate "$VST3"
+run_pluginval "VST3" "$VST3"
 
 echo "==> pluginval strictness 5 — AU"
-"$PLUGINVAL" --strictness-level 5 --validate "$AU"
+run_pluginval "AU" "$AU"
 
 echo "PASS: pluginval strictness 5 (VST3 + AU)"

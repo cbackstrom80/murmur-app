@@ -187,6 +187,19 @@ TEST_CASE("ModMatrixExecutor routes LFO to OperatorWavetableSyncRatio with targe
     REQUIRE(out.operatorWavetableSyncRatioOffset[0] == Catch::Approx(1.5f));
 }
 
+TEST_CASE("ModMatrixExecutor routes LFO to OperatorWavetableSyncAmount with targetIndex", "[modulation][warp]")
+{
+    pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;
+    routes.push_back(ModRoute{ModSource::Lfo4, ModDestination::OperatorWavetableSyncAmount, 1, 0.5f, ModScope::Voice});
+
+    ModSourceValues sources;
+    sources.voiceLfos[3] = 0.8f;
+
+    const auto out = ModMatrixExecutor::apply(routes, sources);
+    REQUIRE(out.operatorWavetableSyncAmountOffset[1] == Catch::Approx(0.4f));
+    REQUIRE(out.operatorWavetableSyncAmountOffset[0] == 0.0f);
+}
+
 TEST_CASE("ModMatrixExecutor routes LFO to OperatorWavetableFormant with targetIndex", "[modulation][warp]")
 {
     pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;

@@ -129,6 +129,24 @@ namespace
             }
         }
 
+        static constexpr const char* kInterstellarGolden[] = {
+            "001-cathedral-nebula.pw8",
+            "038-cornfield-chase.pw8",
+            "058-wormhole-rise.pw8",
+            "007-pillars-of-creation.pw8",
+            "039-no-time-for-caution.pw8",
+        };
+        const fs::path interstellarDir = factoryRoot / "Interstellar";
+        for (const char* filename : kInterstellarGolden)
+        {
+            const fs::path file = interstellarDir / filename;
+            if (fs::is_regular_file(file))
+            {
+                const auto rel = fs::relative(file, repoRoot());
+                paths.push_back(rel.generic_string());
+            }
+        }
+
         return paths;
     }
 

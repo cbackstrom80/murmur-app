@@ -644,3 +644,20 @@ Concrete tasks to start **Monday** — assignable per engineer.
 | **Tests** | `WavetableWarpParamTests.cpp` — warp scalar patch round-trip + JSON key presence |
 
 **Deferred to Week 8+:** v2 mirror/fold warps, embedded wavetable builder, Ben human sign-off, mode-switch accessibility pass.
+
+---
+
+## Week 8 status (Aug 2026 — program exit + polish)
+
+**Goal:** Close accelerated DESIGN + Warps track exit gates — pluginval soak, sync mod drag targets, Interstellar golden coverage, Curtis/Ben sign-off checklist.
+
+| Stream | Delivered |
+|---|---|
+| **QA** | `scripts/run_pluginval.sh` strictness 5 (VST3 + AU); [WEEK8_EXIT_CHECKLIST.md](WEEK8_EXIT_CHECKLIST.md) for Curtis + Ben |
+| **Mod UX** | Sync Ratio drag-to-mod on DESIGN `WavetableWarpPanel`; Sync Amt on PLAY `OperatorEditorPanel`; new `OperatorWavetableSyncAmount` destination |
+| **Golden** | Five Interstellar presets in `tests/golden/presets.json` (Cathedral Nebula, Cornfield Chase, Wormhole Rise, Pillars of Creation, No Time for Caution) |
+| **Polish** | PatchSerializerTests migration comment updated (schema v3, not v2) |
+
+**Human sign-off remaining:** Ben Logic soak per WEEK8_EXIT_CHECKLIST §1–3; Curtis confirms pluginval + ctest green.
+
+**Deferred to Week 9+:** v2 mirror/fold warps, embedded wavetable builder, mode-switch accessibility pass, list/graph hybrid topology view.

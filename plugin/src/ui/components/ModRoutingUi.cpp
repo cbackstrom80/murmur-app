@@ -97,6 +97,7 @@ namespace pw8::plugin::ui
             case modulation::ModDestination::OperatorWavetableAsymmetry: return 0.35f;
             case modulation::ModDestination::OperatorWavetableSyncRatio: return 2.0f;
             case modulation::ModDestination::OperatorWavetableFormant: return 0.35f;
+            case modulation::ModDestination::OperatorWavetableSyncAmount: return 0.35f;
             case modulation::ModDestination::Pan: return 0.4f;
             default: return 0.0f;
         }
@@ -135,6 +136,9 @@ namespace pw8::plugin::ui
             case modulation::ModDestination::OperatorWavetableFormant:
                 return ModDestinationParam{operatorParamId(targetIndex, "WtFormantShift"),
                                            "Op " + juce::String(static_cast<int>(targetIndex)) + " WT Formant"};
+            case modulation::ModDestination::OperatorWavetableSyncAmount:
+                return ModDestinationParam{operatorParamId(targetIndex, "WtSyncAmount"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " WT Sync Amt"};
             case modulation::ModDestination::Pan:
                 return ModDestinationParam{juce::String(kLayerPanId), "Layer Pan"};
             case modulation::ModDestination::None:
@@ -163,6 +167,8 @@ namespace pw8::plugin::ui
                 return {-1.0f, 1.0f};
             case modulation::ModDestination::OperatorWavetableSyncRatio:
                 return {-8.0f, 8.0f};
+            case modulation::ModDestination::OperatorWavetableSyncAmount:
+                return {-1.0f, 1.0f};
             case modulation::ModDestination::Pan:
                 return {-1.0f, 1.0f};
             default:

@@ -95,6 +95,18 @@ namespace pw8::plugin::ui
                                                      targetIndex);
             wtAsymmetryKnob_->setModAssignmentController(&assignmentController_);
         }
+        if (wtSyncRatioKnob_ != nullptr)
+        {
+            wtSyncRatioKnob_->enableModulationTarget(processor_, modulation::ModDestination::OperatorWavetableSyncRatio,
+                                                     targetIndex);
+            wtSyncRatioKnob_->setModAssignmentController(&assignmentController_);
+        }
+        if (wtSyncAmountKnob_ != nullptr)
+        {
+            wtSyncAmountKnob_->enableModulationTarget(processor_, modulation::ModDestination::OperatorWavetableSyncAmount,
+                                                       targetIndex);
+            wtSyncAmountKnob_->setModAssignmentController(&assignmentController_);
+        }
         if (wtFormantKnob_ != nullptr)
         {
             wtFormantKnob_->enableModulationTarget(processor_, modulation::ModDestination::OperatorWavetableFormant,

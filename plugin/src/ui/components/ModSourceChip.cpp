@@ -90,6 +90,8 @@ namespace pw8::plugin::ui
                 return "OP " + juce::String(static_cast<int>(targetIndex)) + " WT SYNC RATIO";
             case ModDestination::OperatorWavetableFormant:
                 return "OP " + juce::String(static_cast<int>(targetIndex)) + " WT FORMANT";
+            case ModDestination::OperatorWavetableSyncAmount:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " WT SYNC AMT";
         }
         return "-";
     }

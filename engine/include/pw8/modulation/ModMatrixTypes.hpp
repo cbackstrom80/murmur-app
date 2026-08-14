@@ -43,6 +43,7 @@ namespace pw8::modulation
         OperatorWavetableAsymmetry,  ///< requires `targetIndex`; additive offset, -1..1 result.
         OperatorWavetableSyncRatio,  ///< requires `targetIndex`; additive offset, 1..16 result.
         OperatorWavetableFormant,    ///< requires `targetIndex`; additive offset, -1..1 result.
+        OperatorWavetableSyncAmount, ///< requires `targetIndex`; additive offset, 0..1 result.
     };
 
     /// VOICE-scoped routes read a per-voice, independently-phased source (each
