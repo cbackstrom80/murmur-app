@@ -322,6 +322,104 @@ def set_macro_koin(patch_id: str, slot: int, name: str, destinations: list[dict]
     return warnings
 
 
+def _normalize_macro_values(raw) -> list[float]:
+    """Accept length-8 list or partial list; pad with zeros."""
+    if raw is None:
+        return []
+    if not isinstance(raw, (list, tuple)):
+        raise ValueError("macroValues must be a list of 0-8 floats in 0..1")
+    out = [float(clamp(v, {"range": [0.0, 1.0]})[0]) for v in raw[:8]]
+    return out
+
+
+def set_morph_koin(patch_id: str, label: str, keyframes: list[dict],
+                   default_position: float = 0.0, description: str = "",
+                   curve: str = "linear", wrap: bool = False,
+                   position: float | None = None,
+                   macro_koins: list[dict] | None = None) -> list[str]:
+    """Configure a Frames-style morph KOIN: top-level morphKoin metadata + uiFocus morph entry.
+
+    keyframes: 2–4 dicts with name (required), optional position (0..1), macroValues (list),
+    paramOverrides (dict of path -> float). Does not run morph DSP (Horizon 3).
+
+    macro_koins: optional list of {slot, name, destinations, description?} passed to set_macro_koin
+    after morph metadata is written (typical: 2 Spread-style macros alongside morph)."""
+    if not 2 <= len(keyframes) <= 4:
+        raise ValueError("keyframes must contain 2-4 snapshot states")
+    for i, kf in enumerate(keyframes):
+        if not kf.get("name"):
+            raise ValueError(f"keyframes[{i}] requires 'name'")
+
+    patch = load_scratch(patch_id)
+    warnings: list[str] = []
+    default_clamped, w0 = clamp(default_position, {"range": [0.0, 1.0]})
+    if w0:
+        warnings.append(w0)
+    if position is None:
+        pos = default_clamped
+    else:
+        pos, w1 = clamp(position, {"range": [0.0, 1.0]})
+        if w1:
+            warnings.append(w1)
+
+    allowed_curves = {"linear", "smooth", "step"}
+    curve_norm = curve if curve in allowed_curves else "linear"
+    if curve not in allowed_curves:
+        warnings.append(f"curve '{curve}' unknown — using linear")
+
+    parsed_keyframes: list[dict] = []
+    for kf in keyframes:
+        entry: dict = {"name": str(kf["name"])[:32]}
+        if "position" in kf:
+            pos_kf, w = clamp(float(kf["position"]), {"range": [0.0, 1.0]})
+            if w:
+                warnings.append(w)
+            entry["position"] = pos_kf
+        mv = _normalize_macro_values(kf.get("macroValues"))
+        if mv:
+            while len(mv) < 8:
+                mv.append(0.0)
+            entry["macroValues"] = mv
+        overrides = kf.get("paramOverrides")
+        if overrides:
+            if not isinstance(overrides, dict):
+                raise ValueError("paramOverrides must be a dict of path -> float")
+            entry["paramOverrides"] = {str(k): float(v) for k, v in overrides.items()}
+        parsed_keyframes.append(entry)
+
+    patch["morphKoin"] = {
+        "label": label[:32],
+        "description": description,
+        "defaultPosition": default_clamped,
+        "position": pos,
+        "curve": curve_norm,
+        "wrap": bool(wrap),
+        "keyframes": parsed_keyframes,
+    }
+
+    ui_focus = patch.setdefault("uiFocus", {"maxKnobs": 3, "knobs": []})
+    ui_focus["maxKnobs"] = 3
+    knobs = [k for k in ui_focus.get("knobs", []) if k.get("kind") != "morph"]
+    knobs.insert(0, {"kind": "morph", "label": label[:32]})
+    ui_focus["knobs"] = knobs[:3]
+
+    write_scratch(patch_id, patch)
+
+    if macro_koins:
+        for mk in macro_koins:
+            slot = int(mk["slot"])
+            macro_warnings = set_macro_koin(
+                patch_id,
+                slot=slot,
+                name=mk["name"],
+                destinations=mk["destinations"],
+                description=mk.get("description", ""),
+            )
+            warnings.extend(macro_warnings)
+
+    return warnings
+
+
 def explain_patch(patch: dict) -> str:
     """A human/LLM-readable summary -- the same information MCP callers would
     otherwise have to reconstruct by reading raw JSON field-by-field."""
@@ -346,6 +444,11 @@ def explain_patch(patch: dict) -> str:
         src = next((k for k, v in MOD_SOURCE_IDS.items() if v == r["source"]), r["source"])
         dst = next((k for k, v in MOD_DEST_IDS.items() if v == r["destination"]), r["destination"])
         lines.append(f"  Mod: {src} -> {dst} (amount={r['amount']})")
+    morph = patch.get("morphKoin")
+    if morph and morph.get("keyframes"):
+        names = " ↔ ".join(k.get("name", "?") for k in morph["keyframes"])
+        pos = morph.get("position", morph.get("defaultPosition", 0.0))
+        lines.append(f"  Morph KOIN: {morph.get('label', 'MORPH')} [{names}] @ {pos:.2f}")
     for slot in patch["layerA"].get("insertEffects", []):
         name = EFFECT_TYPE_NAMES.get(slot.get("type", 0), "?")
         if name != "bypass":

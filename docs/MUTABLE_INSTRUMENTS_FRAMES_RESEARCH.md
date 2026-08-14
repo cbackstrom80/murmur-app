@@ -4,7 +4,7 @@
 **Author:** Agent research pass for Curtis  
 **Goal:** Document what **Mutable Instruments Frames** is (Émilie Gillet / MI, discontinued but influential), how its **keyframe morph** philosophy differs from PoliMATHS **Spread** and ASM **macro bundles**, and extract actionable ideas for MURMUR KOINS, agentic patch generation, and PLAY-only UI.
 
-**Related docs:** `docs/MAKE_NOISE_POLIMATHS_RESEARCH.md`, `docs/ASM_MACRO_KOINS_RESEARCH.md`, `docs/HORIZON2.md`, `docs/PATCH_FORMAT.md`
+**Related docs:** `docs/MAKE_NOISE_POLIMATHS_RESEARCH.md`, `docs/ASM_MACRO_KOINS_RESEARCH.md`, `docs/MORPH_KOIN_SPEC.md`, `docs/HORIZON2.md`, `docs/PATCH_FORMAT.md`
 
 ---
 
@@ -342,7 +342,7 @@ At runtime: `param = lerp(keyframe[i], keyframe[i+1], localT)` with optional eas
 |----------|------|--------|---------|
 | **P1** | Keep **macro KOINS** as Spread analog; don’t conflate with morph | S | 2 |
 | **P2** | Prototype **2-keyframe morph** as paired factory presets + mission copy | S | 2 |
-| **P2** | Spec **`morphKoin` schema** + `set_morph_koin` MCP (metadata first) | M | 2 |
+| **P2** | Spec **`morphKoin` schema** + `set_morph_koin` MCP (metadata first) | M | 2 | ✅ See `docs/MORPH_KOIN_SPEC.md` |
 | **P3** | **Morph executor** + Compact 3-KOIN layout (morph + 2 macros) | L | 3 |
 | **P3** | Morph position + **dissemination freeze** | M | 3 |
 | **P4** | Per-route easing, FR.STEP sync | M | 3 |
@@ -387,6 +387,7 @@ At runtime: `param = lerp(keyframe[i], keyframe[i+1], localT)` with optional eas
 | ASM macro → KOINS research | `docs/ASM_MACRO_KOINS_RESEARCH.md` |
 | Horizon 2 shipped scope | `docs/HORIZON2.md` |
 | Patch format / uiFocus | `docs/PATCH_FORMAT.md` |
+| **Morph KOIN spec (Horizon 2)** | `docs/MORPH_KOIN_SPEC.md` |
 | Prior art (Morphader / layerMorph) | `docs/PRIOR_ART.md` |
 | Dissemination factory bank | `content/presets/factory/Dissemination/` |
 
@@ -402,4 +403,4 @@ At runtime: `param = lerp(keyframe[i], keyframe[i+1], localT)` with optional eas
 
 **Actionable for MURMUR:** Consider a distinct **`morph` KOIN** (2–4 named snapshot states, one timeline knob) **alongside** 1–2 **Spread-style macro KOINS** — Basic/Compact = morph + BLOOM + SPACE. Start **Horizon 2** with schema/metadata + factory A/B demos; **Horizon 3** for morph executor + easing + dissemination freeze. **Do not copy** the 4-channel mixer scope or literal RGB FRAME ring UX.
 
-**Next P2:** Spec `morphKoin` + agent MCP metadata; prototype with paired factory presets before DSP.
+**Next P2:** ~~Spec `morphKoin` + agent MCP metadata~~ Done — `docs/MORPH_KOIN_SPEC.md` + `set_morph_koin`; prototype with paired factory presets before DSP.

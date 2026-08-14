@@ -639,10 +639,15 @@ namespace pw8::patch
 
         void toJson(json& j, const UiFocusKnob& knob)
         {
-            j = json{{"kind", knob.kind == UiFocusKnobKind::Macro ? "macro" : "param"}};
+            const char* kindStr = "macro";
+            if (knob.kind == UiFocusKnobKind::Param)
+                kindStr = "param";
+            else if (knob.kind == UiFocusKnobKind::Morph)
+                kindStr = "morph";
+            j = json{{"kind", kindStr}};
             if (knob.kind == UiFocusKnobKind::Macro)
                 j["index"] = knob.macroIndex;
-            else
+            else if (knob.kind == UiFocusKnobKind::Param)
                 j["paramId"] = knob.paramId;
             if (!knob.label.empty())
                 j["label"] = knob.label;
@@ -656,12 +661,104 @@ namespace pw8::patch
                 knob.kind = UiFocusKnobKind::Param;
                 knob.paramId = j.value("paramId", std::string{});
             }
+            else if (kindStr == "morph")
+            {
+                knob.kind = UiFocusKnobKind::Morph;
+            }
             else
             {
                 knob.kind = UiFocusKnobKind::Macro;
                 knob.macroIndex = static_cast<std::size_t>(clampNum(j.value("index", 0), 0, 7));
             }
             knob.label = j.value("label", std::string{});
+        }
+
+        void toJson(json& j, const MorphKoinKeyframe& kf)
+        {
+            j = json{{"name", kf.name}};
+            if (kf.position >= 0.0f && kf.position <= 1.0f)
+                j["position"] = kf.position;
+            if (kf.hasMacroValues)
+            {
+                json mv = json::array();
+                for (float v : kf.macroValues)
+                    mv.push_back(v);
+                j["macroValues"] = mv;
+            }
+            if (!kf.paramOverrides.empty())
+            {
+                json po = json::object();
+                for (const auto& [key, val] : kf.paramOverrides)
+                    po[key] = val;
+                j["paramOverrides"] = po;
+            }
+        }
+
+        void fromJson(const json& j, MorphKoinKeyframe& kf)
+        {
+            kf.name = j.value("name", std::string{});
+            kf.position = clampNum(j.value("position", 0.0f), 0.0f, 1.0f);
+            kf.hasMacroValues = false;
+            if (j.contains("macroValues") && j.at("macroValues").is_array())
+            {
+                kf.hasMacroValues = true;
+                std::size_t i = 0;
+                for (const auto& v : j.at("macroValues"))
+                {
+                    if (i >= kf.macroValues.size())
+                        break;
+                    kf.macroValues[i] = clampNum(v.get<float>(), 0.0f, 1.0f);
+                    ++i;
+                }
+            }
+            kf.paramOverrides.clear();
+            if (j.contains("paramOverrides") && j.at("paramOverrides").is_object())
+            {
+                for (const auto& [key, val] : j.at("paramOverrides").items())
+                    kf.paramOverrides[key] = val.get<float>();
+            }
+        }
+
+        void toJson(json& j, const MorphKoin& morph)
+        {
+            j = json{{"label", morph.label},
+                     {"defaultPosition", morph.defaultPosition},
+                     {"position", morph.position},
+                     {"curve", morph.curve},
+                     {"wrap", morph.wrap}};
+            if (!morph.description.empty())
+                j["description"] = morph.description;
+            json keyframes = json::array();
+            for (const auto& kf : morph.keyframes)
+            {
+                json jk;
+                toJson(jk, kf);
+                keyframes.push_back(jk);
+            }
+            j["keyframes"] = keyframes;
+        }
+
+        void fromJson(const json& j, MorphKoin& morph)
+        {
+            morph.label = j.value("label", std::string{});
+            morph.description = j.value("description", std::string{});
+            morph.defaultPosition = clampNum(j.value("defaultPosition", 0.0f), 0.0f, 1.0f);
+            morph.position = clampNum(j.value("position", morph.defaultPosition), 0.0f, 1.0f);
+            morph.curve = j.value("curve", std::string{"linear"});
+            morph.wrap = j.value("wrap", false);
+            morph.keyframes.clear();
+            if (!j.contains("keyframes") || !j.at("keyframes").is_array())
+                return;
+            for (const auto& jk : j.at("keyframes"))
+            {
+                if (morph.keyframes.size() >= 4)
+                    break;
+                MorphKoinKeyframe kf;
+                fromJson(jk, kf);
+                if (kf.name.empty())
+                    continue;
+                morph.keyframes.push_back(kf);
+            }
         }
 
         void toJson(json& j, const PatchUiFocus& focus)
@@ -800,6 +897,13 @@ namespace pw8::patch
                 macros.push_back(jm);
             }
             j["macros"] = macros;
+
+            if (!patch.morphKoin.keyframes.empty())
+            {
+                json morph;
+                toJson(morph, patch.morphKoin);
+                j["morphKoin"] = morph;
+            }
 
             if (!patch.uiFocus.knobs.empty() || patch.uiFocus.maxKnobs != 3)
             {
@@ -1009,6 +1113,9 @@ namespace pw8::patch
 
             if (root.contains("uiFocus"))
                 fromJson(root.at("uiFocus"), p.uiFocus);
+
+            if (root.contains("morphKoin"))
+                fromJson(root.at("morphKoin"), p.morphKoin);
 
             if (root.contains("arpeggiator"))
                 fromJson(root.at("arpeggiator"), p.arpeggiator);

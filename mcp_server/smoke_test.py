@@ -93,6 +93,34 @@ def main():
     check("uiFocus macro entry", any(k.get("index") == 0 and k.get("kind") == "macro" for k in loaded["uiFocus"]["knobs"]))
     check("macro routes present", any(r["source"] == 21 for r in loaded["layerA"]["modRoutes"]))
 
+    print("\n== set_morph_koin (Frames-style morph metadata) ==")
+    morph_id, _ = patch_builder.create_patch("MCP Morph Test", "Morph KOIN smoke test")
+    warnings = patch_builder.set_morph_koin(
+        morph_id,
+        label="EVOLVE",
+        description="TIGHT ↔ WIDE pad morph.",
+        default_position=0.25,
+        keyframes=[
+            {"name": "TIGHT", "position": 0.0, "macroValues": [0.1, 0.05]},
+            {"name": "WIDE", "position": 1.0, "macroValues": [0.8, 0.6],
+             "paramOverrides": {"filterCutoffHz": 12000.0}},
+        ],
+        macro_koins=[{
+            "slot": 0,
+            "name": "BLOOM",
+            "destinations": [
+                {"destination": "filter_cutoff", "amount": 14.0, "scope": "voice"},
+            ],
+        }],
+    )
+    morph_loaded = patch_builder.load_scratch(morph_id)
+    check(f"set_morph_koin warnings={warnings}", len(warnings) == 0)
+    check("morphKoin present", "morphKoin" in morph_loaded and len(morph_loaded["morphKoin"]["keyframes"]) == 2)
+    check("uiFocus morph entry", any(k.get("kind") == "morph" for k in morph_loaded["uiFocus"]["knobs"]))
+    morph_summary = patch_builder.explain_patch(morph_loaded)
+    check("summary mentions Morph KOIN", "Morph KOIN" in morph_summary)
+    patch_builder.scratch_path(morph_id).unlink()
+
     summary = patch_builder.explain_patch(patch_builder.load_scratch(patch_id))
     print("\n--- explain_patch ---")
     print(summary)

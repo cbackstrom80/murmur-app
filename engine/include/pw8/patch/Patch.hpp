@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdint>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "pw8/algorithm/AlgorithmTypes.hpp"
@@ -237,6 +238,7 @@ namespace pw8::patch
     {
         Macro,
         Param,
+        Morph, ///< Frames-style morph KOIN — see docs/MORPH_KOIN_SPEC.md (Horizon 3 executor)
     };
 
     /// One feature KOIN in PLAY mode: a macro knob wired via modRoutes (see docs/PATCH_FORMAT.md uiFocus).
@@ -246,6 +248,29 @@ namespace pw8::patch
         std::size_t macroIndex = 0; ///< 0..7 when kind == Macro (Macro1–3 typical for KOINS)
         std::string paramId;          ///< legacy APVTS id when kind == Param (not shown in Basic/Compact)
         std::string label;            ///< optional display override
+    };
+
+    /// One stored snapshot on the morph timeline (see docs/MORPH_KOIN_SPEC.md).
+    struct MorphKoinKeyframe
+    {
+        std::string name;
+        float position = 0.0f; ///< 0..1 timeline slot; evenly spaced when unset in JSON
+        std::array<float, 8> macroValues{}; ///< optional per-keyframe macro levels
+        bool hasMacroValues = false;
+        /// Horizon 3: dotted APVTS / patch paths → float. Parsed in serializer; applied by morph executor.
+        std::unordered_map<std::string, float> paramOverrides;
+    };
+
+    /// Frames-inspired morph between 2–4 keyframes. Metadata round-trips in Horizon 2; executor TODO Horizon 3.
+    struct MorphKoin
+    {
+        std::string label;
+        std::string description;
+        float defaultPosition = 0.0f;
+        float position = 0.0f;
+        std::string curve = "linear"; ///< linear | smooth | step
+        bool wrap = false;
+        std::vector<MorphKoinKeyframe> keyframes;
     };
 
     /// Patch-authored feature macro KOINS (1–3 in Basic/Compact PLAY). When `knobs` is non-empty,
@@ -267,6 +292,7 @@ namespace pw8::patch
         GlobalVoiceSettings voiceSettings{};
         LockFlags locks{};
         std::array<Macro, 8> macros{};
+        MorphKoin morphKoin{}; ///< optional; empty keyframes = no morph KOIN
         PatchUiFocus uiFocus{};
         /// Performance-wide (not per-layer): intercepts noteOn/noteOff before they
         /// reach voices when enabled. See docs/ARPEGGIATOR.md.

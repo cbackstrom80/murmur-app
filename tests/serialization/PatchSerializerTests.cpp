@@ -59,6 +59,51 @@ TEST_CASE("uiFocus roundtrips through JSON", "[patch][serialization]")
     REQUIRE(result.patch.uiFocus.knobs[2].label == "Brightness");
 }
 
+TEST_CASE("morphKoin and uiFocus morph kind roundtrip through JSON", "[patch][serialization]")
+{
+    Patch p = Patch::makeInit();
+    p.morphKoin.label = "EVOLVE";
+    p.morphKoin.description = "Tight to wide";
+    p.morphKoin.defaultPosition = 0.25f;
+    p.morphKoin.position = 0.35f;
+    p.morphKoin.curve = "smooth";
+    p.morphKoin.wrap = false;
+
+    MorphKoinKeyframe kf0;
+    kf0.name = "TIGHT";
+    kf0.position = 0.0f;
+    kf0.hasMacroValues = true;
+    kf0.macroValues[0] = 0.1f;
+    kf0.paramOverrides["filterCutoffHz"] = 800.0f;
+    p.morphKoin.keyframes.push_back(kf0);
+
+    MorphKoinKeyframe kf1;
+    kf1.name = "WIDE";
+    kf1.position = 1.0f;
+    kf1.hasMacroValues = true;
+    kf1.macroValues[0] = 0.8f;
+    p.morphKoin.keyframes.push_back(kf1);
+
+    p.uiFocus.maxKnobs = 3;
+    p.uiFocus.knobs.push_back({UiFocusKnobKind::Morph, 0, {}, "EVOLVE"});
+    p.uiFocus.knobs.push_back({UiFocusKnobKind::Macro, 0, {}, "BLOOM"});
+
+    const auto json = savePatchToJson(p);
+    REQUIRE_FALSE(json.empty());
+
+    const auto result = loadPatchFromJson(json);
+    REQUIRE(result.ok);
+    REQUIRE(result.patch.morphKoin.label == "EVOLVE");
+    REQUIRE(result.patch.morphKoin.keyframes.size() == 2);
+    REQUIRE(result.patch.morphKoin.keyframes[0].name == "TIGHT");
+    REQUIRE(result.patch.morphKoin.keyframes[0].hasMacroValues);
+    REQUIRE(result.patch.morphKoin.keyframes[0].macroValues[0] == Catch::Approx(0.1f));
+    REQUIRE(result.patch.morphKoin.keyframes[0].paramOverrides.at("filterCutoffHz") == Catch::Approx(800.0f));
+    REQUIRE(result.patch.morphKoin.position == Catch::Approx(0.35f));
+    REQUIRE(result.patch.uiFocus.knobs[0].kind == UiFocusKnobKind::Morph);
+    REQUIRE(result.patch.uiFocus.knobs[0].label == "EVOLVE");
+}
+
 TEST_CASE("A v1 document's singular ampEnvelope/lfo1 migrate into envelopes[0]/lfos[0]",
           "[patch][serialization][migration]")
 {
