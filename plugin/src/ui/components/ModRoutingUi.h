@@ -97,7 +97,8 @@ namespace pw8::plugin::ui
     [[nodiscard]] std::optional<modulation::ModRoute> findSidechainRoute(const patch::Patch& patch) noexcept;
 
     [[nodiscard]] juce::String formatSidechainStatus(const patch::Patch& patch, float sidechainLevel01,
-                                                       bool sidechainActive) noexcept;
+                                                       bool sidechainActive,
+                                                       bool auSidechainAvailable = false) noexcept;
 
     /// One-line hints from feature macro descriptions (mission card / preset bar).
     [[nodiscard]] juce::String formatFeatureMacroHints(const patch::Patch& patch,

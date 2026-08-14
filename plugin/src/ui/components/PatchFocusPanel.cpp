@@ -269,7 +269,15 @@ namespace pw8::plugin::ui
         expressionBadge_.setText(exprText, juce::dontSendNotification);
         expressionBadge_.setVisible(!exprText.isEmpty());
 
-        const auto scText = formatSidechainStatus(patch, processor_.getSidechainLevel(), processor_.getSidechainActive());
+        const auto scText = formatSidechainStatus(patch, processor_.getSidechainLevel(), processor_.getSidechainActive()
+#if JucePlugin_Build_AU
+                                                      ,
+                                                  true
+#else
+                                                      ,
+                                                  false
+#endif
+        );
         sidechainBadge_.setText(scText, juce::dontSendNotification);
         sidechainBadge_.setVisible(!scText.isEmpty());
 

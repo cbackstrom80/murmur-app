@@ -427,10 +427,11 @@ namespace pw8::plugin::ui
         return std::nullopt;
     }
 
-    juce::String formatSidechainStatus(const patch::Patch& patch, float sidechainLevel01, bool sidechainActive) noexcept
+    juce::String formatSidechainStatus(const patch::Patch& patch, float sidechainLevel01, bool sidechainActive,
+                                       bool auSidechainAvailable) noexcept
     {
         const auto route = findSidechainRoute(patch);
-        if (!route.has_value() && !sidechainActive)
+        if (!route.has_value() && !sidechainActive && !auSidechainAvailable)
             return {};
 
         juce::String text = "Sidechain (AU)";
@@ -440,6 +441,10 @@ namespace pw8::plugin::ui
             const auto depth = formatModRouteAmount(route->destination, route->amount);
             text += "  ->  " + dest + "  (" + depth + " max)";
         }
+        else if (auSidechainAvailable)
+        {
+            text += "  — add SIDECHAIN route in MOD tab";
+        }
         if (sidechainActive)
         {
             const int pct = juce::roundToInt(juce::jlimit(0.0f, 1.0f, sidechainLevel01) * 100.0f);
@@ -447,7 +452,11 @@ namespace pw8::plugin::ui
         }
         else if (route.has_value())
         {
-            text += "  (no input)";
+            text += "  (pick bus in plugin header — no input)";
+        }
+        else if (auSidechainAvailable)
+        {
+            text += "  (pick bus in plugin header)";
         }
         return text;
     }

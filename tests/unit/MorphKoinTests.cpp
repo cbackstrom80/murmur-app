@@ -53,3 +53,22 @@ TEST_CASE("MorphKoinExecutor applies paramOverrides on master quasar slot", "[mo
     applyMorphKoin(p, 1.0f);
     REQUIRE(p.masterEffects[2].qsr1Distance == Catch::Approx(0.85f));
 }
+
+TEST_CASE("MorphKoinExecutor lerps quasar angle paramOverrides", "[modulation][morph]")
+{
+    Patch p = Patch::makeInit();
+    p.masterEffects[2].type = effects::EffectType::BinauralSpace;
+
+    MorphKoinKeyframe kf0;
+    kf0.position = 0.0f;
+    kf0.paramOverrides["masterEffects[2].qsr1Angle"] = 20.0f;
+
+    MorphKoinKeyframe kf1;
+    kf1.position = 1.0f;
+    kf1.paramOverrides["masterEffects[2].qsr1Angle"] = 200.0f;
+
+    p.morphKoin.keyframes = {kf0, kf1};
+
+    applyMorphKoin(p, 0.5f);
+    REQUIRE(p.masterEffects[2].qsr1AngleDeg == Catch::Approx(110.0f));
+}

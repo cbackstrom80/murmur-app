@@ -21,6 +21,7 @@ namespace pw8::dsp
         {
             envelope_ = 0.0f;
             peakHold_ = 0.0f;
+            peakDecay_ = 0.0f;
             active_ = false;
         }
 
@@ -32,21 +33,33 @@ namespace pw8::dsp
                 return;
             }
 
-            const float attackCoeff = coeffForMs(5.0f);
-            const float releaseCoeff = coeffForMs(150.0f);
+            const float attackCoeff = coeffForMs(12.0f);
+            const float releaseCoeff = coeffForMs(280.0f);
+            const float peakDecayCoeff = coeffForMs(450.0f);
             float blockPeak = 0.0f;
 
             for (std::size_t i = 0; i < numFrames; ++i)
             {
                 const float r = right != nullptr ? right[i] : left[i];
-                const float mono = (std::abs(left[i]) + std::abs(r)) * 0.5f;
+                // RMS-ish mono sum — smoother than half-wave rectified peak.
+                const float mono = std::sqrt((left[i] * left[i] + r * r) * 0.5f);
                 blockPeak = std::max(blockPeak, mono);
                 const float coeff = mono > envelope_ ? attackCoeff : releaseCoeff;
                 envelope_ = mono + coeff * (envelope_ - mono);
             }
 
-            peakHold_ = blockPeak;
-            active_ = envelope_ > 1.0e-4f || blockPeak > 1.0e-4f;
+            if (blockPeak >= peakHold_)
+            {
+                peakHold_ = blockPeak;
+                peakDecay_ = blockPeak;
+            }
+            else
+            {
+                peakDecay_ = blockPeak + peakDecayCoeff * (peakDecay_ - blockPeak);
+                peakHold_ = peakDecay_;
+            }
+
+            active_ = envelope_ > 1.0e-4f || peakHold_ > 1.0e-4f;
         }
 
         [[nodiscard]] float envelope() const noexcept { return envelope_; }
@@ -56,11 +69,15 @@ namespace pw8::dsp
     private:
         void tickRelease(std::size_t numFrames) noexcept
         {
-            const float releaseCoeff = coeffForMs(150.0f);
+            const float releaseCoeff = coeffForMs(280.0f);
+            const float peakDecayCoeff = coeffForMs(450.0f);
             for (std::size_t i = 0; i < numFrames; ++i)
+            {
                 envelope_ = releaseCoeff * envelope_;
+                peakDecay_ = peakDecayCoeff * peakDecay_;
+            }
+            peakHold_ = peakDecay_;
             active_ = envelope_ > 1.0e-4f;
-            peakHold_ = 0.0f;
         }
 
         [[nodiscard]] float coeffForMs(float ms) const noexcept
@@ -72,6 +89,7 @@ namespace pw8::dsp
         double sampleRate_ = 48000.0;
         float envelope_ = 0.0f;
         float peakHold_ = 0.0f;
+        float peakDecay_ = 0.0f;
         bool active_ = false;
     };
 
