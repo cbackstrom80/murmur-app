@@ -10,6 +10,7 @@
 #include "pw8/effects/BinauralPanner.hpp"
 #include "pw8/effects/BinauralSpace.hpp"
 #include "pw8/effects/EffectChain.hpp"
+#include "pw8/effects/Vocoder.hpp"
 
 using namespace pw8;
 using namespace pw8::effects;
@@ -534,7 +535,7 @@ TEST_CASE("EffectChain with every slot Bypass is a transparent passthrough", "[e
 
     std::array<EffectSlotParams, 3> params{}; // all default-constructed Bypass.
     float l = 0.37f, r = -0.81f;
-    chain.process(params, l, r);
+    chain.process(params, l, r, 0.0f, 0.0f);
 
     REQUIRE(l == Catch::Approx(0.37f));
     REQUIRE(r == Catch::Approx(-0.81f));
@@ -552,7 +553,7 @@ TEST_CASE("EffectChain runs slots in series", "[effects][chain]")
     params[1].type = EffectType::Bypass;
 
     float l = 1.5f, r = 1.5f;
-    chain.process(params, l, r);
+    chain.process(params, l, r, 0.0f, 0.0f);
 
     // Slot 1 (Bypass) shouldn't undo slot 0's saturation -- output must still be compressed.
     REQUIRE(l < 1.5f);
@@ -789,7 +790,8 @@ TEST_CASE("Limiter at mix 0 outputs exactly the delayed input, undistorted, rega
         const float t = static_cast<float>(i) / static_cast<float>(kSampleRate);
         inputs[static_cast<std::size_t>(i)] = 3.0f * std::sin(2.0f * dsp::kPi * 440.0f * t); // well above the ceiling.
         float outL = 0.0f, outR = 0.0f;
-        proc.processStereo(inputs[static_cast<std::size_t>(i)], inputs[static_cast<std::size_t>(i)], p, outL, outR);
+        proc.processStereo(inputs[static_cast<std::size_t>(i)], inputs[static_cast<std::size_t>(i)], p, outL,
+                           outR);
         outputs[static_cast<std::size_t>(i)] = outL;
     }
 
@@ -1252,4 +1254,54 @@ TEST_CASE("BinauralSpace quasar delay tempo sync doubles when BPM halves", "[eff
     const auto slowPeak = peakIndex(slow, static_cast<std::size_t>(0.7 * kSampleRate),
                                     static_cast<std::size_t>(1.3 * kSampleRate), true);
     REQUIRE(slowPeak > fastPeak * 15 / 10);
+}
+
+TEST_CASE("Vocoder sidechain modulator gates carrier bands", "[effects][vocoder]")
+{
+    VocoderProcessor proc;
+    proc.prepare(kSampleRate);
+    EffectSlotParams p;
+    p.type = EffectType::Vocoder;
+    p.mix = 1.0f;
+    p.freqShiftLowCutHz = 8.0f;
+    p.fractalMorph = 0.5f;
+    p.freqShiftHz = 0.0f;
+    p.saturationDriveDb = 24.0f;
+
+    float outSilentL = 0.0f, outSilentR = 0.0f;
+    for (int i = 0; i < 600; ++i)
+    {
+        const float mod =
+            0.7f * std::sin(2.0 * M_PI * 440.0 * static_cast<double>(i) / kSampleRate);
+        proc.processStereo(0.0f, 0.0f, mod, mod, p, outSilentL, outSilentR);
+    }
+    REQUIRE(std::abs(outSilentL) < 0.02f);
+    REQUIRE(std::abs(outSilentR) < 0.02f);
+
+    float outL = 0.0f, outR = 0.0f;
+    for (int i = 0; i < 1200; ++i)
+    {
+        const float tone =
+            0.6f * std::sin(2.0 * M_PI * 440.0 * static_cast<double>(i) / kSampleRate);
+        proc.processStereo(tone, tone, tone, tone, p, outL, outR);
+    }
+    REQUIRE(std::abs(outL) > 0.003f);
+    REQUIRE(std::abs(outR) > 0.003f);
+    REQUIRE(std::abs(outL) > std::abs(outSilentL) + 0.002f);
+    REQUIRE(allFinite({{outL, outR}}));
+}
+
+TEST_CASE("Vocoder mix=0 passes carrier dry", "[effects][vocoder]")
+{
+    VocoderProcessor proc;
+    proc.prepare(kSampleRate);
+    EffectSlotParams p;
+    p.type = EffectType::Vocoder;
+    p.mix = 0.0f;
+    p.freqShiftLowCutHz = 8.0f;
+
+    float outL = 0.0f, outR = 0.0f;
+    proc.processStereo(0.42f, -0.33f, 1.0f, 1.0f, p, outL, outR);
+    REQUIRE(outL == Catch::Approx(0.42f));
+    REQUIRE(outR == Catch::Approx(-0.33f));
 }

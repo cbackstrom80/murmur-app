@@ -14,6 +14,7 @@
 #include "pw8/effects/Reverb.hpp"
 #include "pw8/effects/Saturation.hpp"
 #include "pw8/effects/TapeDelay.hpp"
+#include "pw8/effects/Vocoder.hpp"
 
 // One slot's worth of processing state (one instance of each of the ten
 // algorithms) plus `EffectChain<N>`, N slots run in series. Every processor
@@ -43,6 +44,7 @@ namespace pw8::effects
             compressor_.prepare(sampleRate);
             limiter_.prepare(sampleRate);
             binauralSpace_.prepare(sampleRate);
+            vocoder_.prepare(sampleRate);
         }
 
         void reset() noexcept
@@ -58,10 +60,11 @@ namespace pw8::effects
             compressor_.reset();
             limiter_.reset();
             binauralSpace_.reset();
+            vocoder_.reset();
         }
 
-        void processStereo(float inL, float inR, const EffectSlotParams& p, float& outL, float& outR,
-                           float bpm = 120.0f) noexcept
+        void processStereo(float inL, float inR, float sidechainL, float sidechainR, const EffectSlotParams& p,
+                           float& outL, float& outR, float bpm = 120.0f) noexcept
         {
             switch (p.type)
             {
@@ -78,6 +81,9 @@ namespace pw8::effects
                 case EffectType::Limiter: limiter_.processStereo(inL, inR, p, outL, outR); return;
                 case EffectType::BinauralSpace:
                     binauralSpace_.processStereo(inL, inR, p, outL, outR, bpm);
+                    return;
+                case EffectType::Vocoder:
+                    vocoder_.processStereo(inL, inR, sidechainL, sidechainR, p, outL, outR);
                     return;
             }
             outL = inL;
@@ -96,6 +102,7 @@ namespace pw8::effects
         CompressorProcessor compressor_{};
         LimiterProcessor limiter_{};
         BinauralSpaceProcessor binauralSpace_{};
+        VocoderProcessor vocoder_{};
     };
 
     /// `NumSlots` `EffectSlotProcessor`s run in series (slot 0's output feeds slot
@@ -117,13 +124,13 @@ namespace pw8::effects
                 slot.reset();
         }
 
-        void process(const std::array<EffectSlotParams, NumSlots>& params, float& l, float& r,
-                     float bpm = 120.0f) noexcept
+        void process(const std::array<EffectSlotParams, NumSlots>& params, float& l, float& r, float sidechainL,
+                     float sidechainR, float bpm = 120.0f) noexcept
         {
             for (std::size_t i = 0; i < NumSlots; ++i)
             {
                 float outL = l, outR = r;
-                slots_[i].processStereo(l, r, params[i], outL, outR, bpm);
+                slots_[i].processStereo(l, r, sidechainL, sidechainR, params[i], outL, outR, bpm);
                 l = outL;
                 r = outR;
             }

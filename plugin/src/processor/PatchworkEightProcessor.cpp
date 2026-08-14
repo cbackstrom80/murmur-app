@@ -293,7 +293,23 @@ namespace pw8::plugin
 
         core::StereoBlockView view(buffer.getWritePointer(0), buffer.getWritePointer(1),
                                     static_cast<std::size_t>(buffer.getNumSamples()));
+#if JucePlugin_Build_AU
+        const float* scL = nullptr;
+        const float* scR = nullptr;
+        if (getBusCount(true) > 0)
+        {
+            const auto sidechainBlock = getBusBuffer(buffer, true, 0);
+            if (sidechainBlock.getNumChannels() > 0)
+                scL = sidechainBlock.getReadPointer(0);
+            if (sidechainBlock.getNumChannels() > 1)
+                scR = sidechainBlock.getReadPointer(1);
+            else
+                scR = scL;
+        }
+        engine->process(view, blockMidi.data(), blockMidiCount, scL, scR);
+#else
         engine->process(view, blockMidi.data(), blockMidiCount);
+#endif
         if (modWheelParamPointer_ != nullptr)
         {
             const float wheel = engine->getChannelModWheel(0);

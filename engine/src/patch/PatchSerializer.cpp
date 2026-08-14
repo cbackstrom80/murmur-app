@@ -369,7 +369,7 @@ namespace pw8::patch
 
         void fromJson(const json& j, effects::EffectSlotParams& e)
         {
-            e.type = static_cast<effects::EffectType>(clampNum(j.value("type", 0), 0, 11));
+            e.type = static_cast<effects::EffectType>(clampNum(j.value("type", 0), 0, 12));
             e.mix = clampNum(j.value("mix", 1.0f), 0.0f, 1.0f);
 
             e.saturationDriveDb = clampNum(j.value("saturationDriveDb", 6.0f), 0.0f, 48.0f);

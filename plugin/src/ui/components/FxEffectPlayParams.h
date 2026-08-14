@@ -61,6 +61,10 @@ namespace pw8::plugin::ui
             "QUASAR", "QSR",
             {{{"Qsr1Distance", "Distance"}, {"Qsr1Angle", "Angle"}, {"Qsr1RoomAmount", "Room"},
               {"QuasarDelayTimeMs", "Delay"}}}};
+        static constexpr FxTypePlaySpec kVocoder{
+            "VOCODER", "VOC",
+            {{{"FreqShiftLowCutHz", "Bands"}, {"FractalMorph", "Formant"}, {"FreqShiftHz", "Sibilance"},
+              {"SaturationDrive", "SC Gain"}}}};
 
         switch (typeOrdinal)
         {
@@ -75,6 +79,7 @@ namespace pw8::plugin::ui
             case 9: return kCompressor;
             case 10: return kLimiter;
             case 11: return kBinauralSpace;
+            case 12: return kVocoder;
             default: return kBypass;
         }
     }
@@ -92,6 +97,7 @@ namespace pw8::plugin::ui
         if (label == "COMP") return 9;
         if (label == "LIMIT") return 10;
         if (label == "QUASAR" || label == "QSR") return 11;
+        if (label == "VOCODER" || label == "VOC") return 12;
         return 0;
     }
 
@@ -110,6 +116,7 @@ namespace pw8::plugin::ui
             case 9: return "COMP";
             case 10: return "LIMIT";
             case 11: return "QUASAR";
+            case 12: return "VOCODER";
             default: return "OFF";
         }
     }

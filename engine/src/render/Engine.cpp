@@ -924,8 +924,8 @@ namespace pw8::render
         arpeggiator_.setLiveParams(merged);
     }
 
-    void Engine::process(core::StereoBlockView output, const BlockMidiEvent* blockMidi,
-                          std::size_t blockMidiCount) noexcept
+    void Engine::process(core::StereoBlockView output, const BlockMidiEvent* blockMidi, std::size_t blockMidiCount,
+                          const float* sidechainLeft, const float* sidechainRight) noexcept
     {
         const dsp::ScopedDenormalGuard denormalGuard;
 
@@ -964,6 +964,11 @@ namespace pw8::render
 
             for (std::size_t s = subBlockStart; s < subBlockEnd; ++s)
             {
+                const float sidechainSampleL = sidechainLeft != nullptr ? sidechainLeft[s] : 0.0f;
+                const float sidechainSampleR =
+                    sidechainRight != nullptr ? sidechainRight[s]
+                                              : (sidechainLeft != nullptr ? sidechainLeft[s] : 0.0f);
+
                 while (nextMidiIndex < blockMidiCount && blockMidi[nextMidiIndex].sampleOffset == s)
                 {
                     dispatchBlockMidiEvent(blockMidi[nextMidiIndex]);
@@ -1006,7 +1011,8 @@ namespace pw8::render
                     kahanAdd(sumR, kahanR, vr);
                 }
 
-                layerAInsertChain_.process(patch_.layerA.insertEffects, sumL, sumR, bpm_);
+                layerAInsertChain_.process(patch_.layerA.insertEffects, sumL, sumR, sidechainSampleL,
+                                           sidechainSampleR, bpm_);
 
                 if (isStackModeActive())
                 {
@@ -1032,7 +1038,8 @@ namespace pw8::render
                         kahanAdd(sumBR, kahanBR, vr);
                     }
 
-                    layerBInsertChain_.process(patch_.layerB.insertEffects, sumBL, sumBR, bpm_);
+                    layerBInsertChain_.process(patch_.layerB.insertEffects, sumBL, sumBR, sidechainSampleL,
+                                               sidechainSampleR, bpm_);
                     kahanAdd(sumL, kahanL, sumBL);
                     kahanAdd(sumR, kahanR, sumBR);
                 }
@@ -1041,10 +1048,10 @@ namespace pw8::render
                 {
                     sumL *= masterGainMul;
                     sumR *= masterGainMul;
-                    masterChain_.process(moddedMasterEffects, sumL, sumR, bpm_);
+                    masterChain_.process(moddedMasterEffects, sumL, sumR, sidechainSampleL, sidechainSampleR, bpm_);
                 }
                 else
-                    masterChain_.process(patch_.masterEffects, sumL, sumR, bpm_);
+                    masterChain_.process(patch_.masterEffects, sumL, sumR, sidechainSampleL, sidechainSampleR, bpm_);
 
                 left[s] = sumL;
                 right[s] = sumR;

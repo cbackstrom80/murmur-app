@@ -46,6 +46,7 @@ namespace pw8::effects
         Compressor,
         Limiter,
         BinauralSpace, ///< Quasar-inspired global binaural spatial mixer (see docs/GLOBAL_QUASAR_FX_PLAN.md).
+        Vocoder,       ///< Sidechain-driven band vocoder (DEEP CYCLE — see docs/VOCODER_SIDECHAIN_PLAN.md).
     };
 
     enum class DelayPanMode : std::uint8_t

@@ -22,6 +22,8 @@ namespace pw8::plugin::ui::wireframe
                 case 8: return "EQ";
                 case 9: return "COMPRESSOR";
                 case 10: return "LIMITER";
+                case 11: return "QUASAR";
+                case 12: return "VOCODER";
                 default: return "?";
             }
         }

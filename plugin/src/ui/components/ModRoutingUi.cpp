@@ -443,7 +443,7 @@ namespace pw8::plugin::ui
         }
         else if (auSidechainAvailable)
         {
-            text += "  — add SIDECHAIN route in MOD tab";
+            text += "  — route bus for MOD and/or VOCODER FX";
         }
         if (sidechainActive)
         {

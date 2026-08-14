@@ -83,7 +83,7 @@ namespace pw8::plugin::ui
 
         chainTypeRow_ = std::make_unique<MetadataFacetRow>("TYPE");
         chainTypeRow_->setValues(
-            juce::StringArray{"SATUR", "CHORUS", "TAPE", "NODE", "FSHF", "FRACT", "REVERB", "EQ", "COMP", "LIMIT", "QUASAR"});
+            juce::StringArray{"SATUR", "CHORUS", "TAPE", "NODE", "FSHF", "FRACT", "REVERB", "EQ", "COMP", "LIMIT", "QUASAR", "VOCODER"});
         chainTypeRow_->onChange = [this]() {
             const auto chip = chainTypeRow_->getSelectedValue();
             if (chip.isEmpty())

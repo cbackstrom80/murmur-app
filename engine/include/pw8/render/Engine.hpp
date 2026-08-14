@@ -240,8 +240,11 @@ namespace pw8::render
         /// Renders `output.numFrames()` samples into `output`, accumulating from all
         /// active voices. Audio-thread safe. Optional `blockMidi` events are dispatched
         /// at their sampleOffset within this block (must be sorted ascending).
-        void process(core::StereoBlockView output,
-                      const BlockMidiEvent* blockMidi = nullptr, std::size_t blockMidiCount = 0) noexcept;
+        /// Optional sidechain pointers are valid for the duration of this call only
+        /// (vocoder modulator on AU builds).
+        void process(core::StereoBlockView output, const BlockMidiEvent* blockMidi = nullptr,
+                     std::size_t blockMidiCount = 0, const float* sidechainLeft = nullptr,
+                     const float* sidechainRight = nullptr) noexcept;
 
         [[nodiscard]] double getSampleRate() const noexcept { return sampleRate_; }
         [[nodiscard]] const algorithm::CompiledAlgorithm& getCompiledAlgorithm() const noexcept { return compiledLayerA_; }
