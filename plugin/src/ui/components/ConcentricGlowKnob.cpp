@@ -1,5 +1,6 @@
 #include "ConcentricGlowKnob.h"
 
+#include "../theme/DeckedKnobDraw.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "../theme/ObsidianRotary.h"
@@ -29,18 +30,22 @@ namespace pw8::plugin::ui
                                            std::function<juce::String(float)> innerValueToText,
                                            std::function<juce::String(float)> outerValueToText)
     {
-        configureSlider(innerSlider_, "inner");
-        configureSlider(outerSlider_, "outer");
-        innerSlider_.valueToText = std::move(innerValueToText);
+        configureSlider(outerSlider_);
+        configureSlider(innerSlider_);
         outerSlider_.valueToText = std::move(outerValueToText);
+        innerSlider_.valueToText = std::move(innerValueToText);
 
-        innerSlider_.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 76, kTextBoxHeight);
+        outerSlider_.setLookAndFeel(&outerLookAndFeel_);
+        innerSlider_.setLookAndFeel(&innerLookAndFeel_);
+
         outerSlider_.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-        innerSlider_.setInterceptsMouseClicks(false, false);
-        outerSlider_.setInterceptsMouseClicks(false, false);
+        innerSlider_.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 76, kTextBoxHeight);
+        innerSlider_.setColour(juce::Slider::rotarySliderFillColourId, palette::kAccent);
 
-        addAndMakeVisible(innerSlider_);
         addAndMakeVisible(outerSlider_);
+        addAndMakeVisible(innerSlider_);
+        outerSlider_.addMouseListener(this, false);
+        innerSlider_.addMouseListener(this, false);
 
         innerLabel_.setText(innerLabel.toUpperCase(), juce::dontSendNotification);
         innerLabel_.setJustificationType(juce::Justification::centred);
@@ -63,22 +68,20 @@ namespace pw8::plugin::ui
     ConcentricGlowKnob::~ConcentricGlowKnob()
     {
         stopTimer();
+        outerSlider_.removeMouseListener(this);
+        innerSlider_.removeMouseListener(this);
+        outerSlider_.setLookAndFeel(nullptr);
+        innerSlider_.setLookAndFeel(nullptr);
     }
 
-    void ConcentricGlowKnob::configureSlider(FormattedSlider& slider, const juce::String& ringRole)
+    void ConcentricGlowKnob::configureSlider(FormattedSlider& slider)
     {
         slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
         slider.setRotaryParameters(rotary::kStartAngle, rotary::kEndAngle, true);
         slider.setColour(juce::Slider::textBoxBackgroundColourId, palette::kPanelRaised);
         slider.setColour(juce::Slider::textBoxOutlineColourId, palette::kBorder);
         slider.setColour(juce::Slider::textBoxTextColourId, palette::kTextPrimary);
-        if (ringRole == "outer")
-            slider.setColour(juce::Slider::rotarySliderFillColourId, juce::Colours::white);
-        else
-            slider.setColour(juce::Slider::rotarySliderFillColourId, palette::kAccent);
-        slider.getProperties().set("knobRingRole", ringRole);
         slider.getProperties().set("maxDialDiameter", maxDialDiameter_);
-        slider.getProperties().set("knobStyle", "concentric");
     }
 
     void ConcentricGlowKnob::setInnerAccentColour(juce::Colour colour)
@@ -121,6 +124,35 @@ namespace pw8::plugin::ui
         resized();
     }
 
+    ConcentricGlowKnob::ModRingState& ConcentricGlowKnob::modStateForEvent(const juce::MouseEvent& event)
+    {
+        if (event.eventComponent == &outerSlider_ || outerSlider_.isParentOf(event.eventComponent))
+            return outerMod_;
+        return innerMod_;
+    }
+
+    ConcentricGlowKnob::ModRingState& ConcentricGlowKnob::modStateAtPoint(juce::Point<int> localPos)
+    {
+        if (isOuterRingPoint(localPos))
+            return outerMod_;
+        return innerMod_;
+    }
+
+    bool ConcentricGlowKnob::isOuterRingPoint(juce::Point<int> localPos) const
+    {
+        if (!outerSlider_.getBounds().contains(localPos))
+            return false;
+        if (!innerSlider_.getBounds().contains(localPos))
+            return true;
+
+        const auto outerCentre = outerSlider_.getBounds().toFloat().getCentre();
+        const float outerRadius =
+            juce::jmin(static_cast<float>(outerSlider_.getWidth()), static_cast<float>(outerSlider_.getHeight())) * 0.5f;
+        const float innerRadius =
+            juce::jmin(static_cast<float>(innerSlider_.getWidth()), static_cast<float>(innerSlider_.getHeight())) * 0.5f;
+        return localPos.toFloat().getDistanceFrom(outerCentre) >= (innerRadius + outerRadius) * 0.5f;
+    }
+
     void ConcentricGlowKnob::refreshModRingState(ModRingState& state)
     {
         juce::Colour next = juce::Colours::transparentBlack;
@@ -155,39 +187,6 @@ namespace pw8::plugin::ui
     {
         refreshModRingState(innerMod_);
         refreshModRingState(outerMod_);
-    }
-
-    ConcentricGlowKnob::ActiveRing ConcentricGlowKnob::ringAtPoint(juce::Point<float> localPos) const
-    {
-        const auto bounds = getLocalBounds().toFloat().reduced(4.0f);
-        const float diameter =
-            juce::jmin(static_cast<float>(maxDialDiameter_), juce::jmin(bounds.getWidth(), bounds.getHeight()));
-        const float radius = diameter * 0.5f;
-        const float bodyRadius = radius * 0.62f;
-        const float orbitRadius = radius * 0.90f;
-        const float threshold = (bodyRadius + orbitRadius) * 0.5f;
-        const auto centre = bounds.withSizeKeepingCentre(diameter, diameter).getCentre();
-        return localPos.getDistanceFrom(centre) >= threshold ? ActiveRing::Outer : ActiveRing::Inner;
-    }
-
-    juce::Slider& ConcentricGlowKnob::activeSlider() noexcept
-    {
-        return activeRing_ == ActiveRing::Outer ? static_cast<juce::Slider&>(outerSlider_) : innerSlider_;
-    }
-
-    void ConcentricGlowKnob::forwardMouseToActiveSlider(const juce::MouseEvent& event, bool isDown)
-    {
-        auto& slider = activeSlider();
-        const juce::MouseEvent useEvent =
-            event.mods.isShiftDown()
-                ? event.withNewPosition(event.getMouseDownPosition().toFloat()
-                                        + (event.position - event.getMouseDownPosition().toFloat()) * 0.12f)
-                : event;
-        auto rel = useEvent.getEventRelativeTo(&slider);
-        if (isDown)
-            slider.mouseDown(rel);
-        else
-            slider.mouseDrag(rel);
     }
 
     void ConcentricGlowKnob::handleModMouseDown(const juce::MouseEvent& event, ModRingState& state)
@@ -249,8 +248,7 @@ namespace pw8::plugin::ui
 
     void ConcentricGlowKnob::mouseDown(const juce::MouseEvent& event)
     {
-        activeRing_ = ringAtPoint(event.position);
-        auto& modState = activeRing_ == ActiveRing::Outer ? outerMod_ : innerMod_;
+        auto& modState = modStateForEvent(event);
 
         if (modState.showDepthPopover && modState.depthPopoverArea_.contains(event.getPosition()))
         {
@@ -273,52 +271,31 @@ namespace pw8::plugin::ui
         }
 
         handleModMouseDown(event, modState);
-        if (modState.depthDragActive)
-            return;
-
-        forwardMouseToActiveSlider(event, true);
     }
 
     void ConcentricGlowKnob::mouseDrag(const juce::MouseEvent& event)
     {
-        auto& modState = activeRing_ == ActiveRing::Outer ? outerMod_ : innerMod_;
+        auto& modState = modStateForEvent(event);
         if (modState.depthDragActive)
-        {
             handleModMouseDrag(event, modState);
-            return;
-        }
-        forwardMouseToActiveSlider(event, false);
     }
 
-    void ConcentricGlowKnob::mouseUp(const juce::MouseEvent& event)
+    void ConcentricGlowKnob::mouseUp(const juce::MouseEvent&)
     {
         innerMod_.depthDragActive = false;
         outerMod_.depthDragActive = false;
-        activeSlider().mouseUp(event.getEventRelativeTo(&activeSlider()));
-    }
-
-    void ConcentricGlowKnob::mouseDoubleClick(const juce::MouseEvent& event)
-    {
-        activeRing_ = ringAtPoint(event.position);
-        activeSlider().mouseDoubleClick(event.getEventRelativeTo(&activeSlider()));
-    }
-
-    void ConcentricGlowKnob::mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel)
-    {
-        activeRing_ = ringAtPoint(event.position);
-        activeSlider().mouseWheelMove(event.getEventRelativeTo(&activeSlider()), wheel);
     }
 
     bool ConcentricGlowKnob::isInterestedInDragSource(const SourceDetails& details)
     {
-        const auto& modState = activeRing_ == ActiveRing::Outer ? outerMod_ : innerMod_;
-        return modState.destination != modulation::ModDestination::None &&
+        return (innerMod_.destination != modulation::ModDestination::None ||
+                outerMod_.destination != modulation::ModDestination::None) &&
                parseModSourceDragDescription(details.description.toString()).has_value();
     }
 
-    void ConcentricGlowKnob::itemDragEnter(const SourceDetails&)
+    void ConcentricGlowKnob::itemDragEnter(const SourceDetails& details)
     {
-        auto& modState = activeRing_ == ActiveRing::Outer ? outerMod_ : innerMod_;
+        auto& modState = modStateAtPoint(details.localPosition.toInt());
         modState.dragHover = true;
         repaint();
     }
@@ -335,7 +312,7 @@ namespace pw8::plugin::ui
         innerMod_.dragHover = false;
         outerMod_.dragHover = false;
         const auto source = parseModSourceDragDescription(details.description.toString());
-        auto& modState = activeRing_ == ActiveRing::Outer ? outerMod_ : innerMod_;
+        auto& modState = modStateAtPoint(details.localPosition.toInt());
         if (source.has_value() && modProcessor_ != nullptr && modState.destination != modulation::ModDestination::None)
         {
             assignModRoute(*modProcessor_, *source, modState.destination, modState.targetIndex);
@@ -356,13 +333,17 @@ namespace pw8::plugin::ui
         bounds.removeFromTop(1);
         innerLabel_.setBounds(bounds.removeFromBottom(kInnerLabelHeight));
 
-        const int dialDiameter =
+        const int outerDiameter =
             juce::jmin(maxDialDiameter_, bounds.getWidth(), juce::jmax(32, bounds.getHeight() - kTextBoxHeight));
+        const int innerDiameter =
+            juce::jmax(24, outerDiameter - static_cast<int>(decked::kDualKnobInnerInset * 2.0f));
         const int textBoxWidth = juce::jmin(72, juce::jmax(44, bounds.getWidth() - 4));
+
+        const auto dialColumn = bounds.withSizeKeepingCentre(bounds.getWidth(), outerDiameter + kTextBoxHeight);
+        outerSlider_.setBounds(dialColumn.withHeight(outerDiameter));
+
         innerSlider_.setTextBoxStyle(juce::Slider::TextBoxBelow, false, textBoxWidth, kTextBoxHeight);
-        const auto dialBounds = bounds.withSizeKeepingCentre(bounds.getWidth(), dialDiameter + kTextBoxHeight);
-        innerSlider_.setBounds(dialBounds);
-        outerSlider_.setBounds(dialBounds.withHeight(dialDiameter));
+        innerSlider_.setBounds(dialColumn.withSizeKeepingCentre(bounds.getWidth(), innerDiameter + kTextBoxHeight));
 
         if (innerMod_.showDepthPopover || outerMod_.showDepthPopover)
         {
@@ -378,10 +359,11 @@ namespace pw8::plugin::ui
         if (state.colour.isTransparent() && !state.dragHover)
             return;
 
-        const auto sliderBounds = innerSlider_.getBounds().toFloat().reduced(4.0f);
+        const auto& refSlider = outerOrbit ? outerSlider_ : innerSlider_;
+        const auto sliderBounds = refSlider.getBounds().toFloat().reduced(4.0f);
         const float diameter = juce::jmax(16.0f, juce::jmin(sliderBounds.getWidth(), sliderBounds.getHeight()));
-        const auto knobBounds = innerSlider_.getBounds().toFloat().withSizeKeepingCentre(diameter, diameter);
-        const float arcRadius = outerOrbit ? orbitRadius : diameter * 0.31f;
+        const auto knobBounds = refSlider.getBounds().toFloat().withSizeKeepingCentre(diameter, diameter);
+        const float arcRadius = outerOrbit ? orbitRadius : diameter * 0.42f;
 
         if (state.dragHover)
         {
@@ -404,12 +386,16 @@ namespace pw8::plugin::ui
 
     void ConcentricGlowKnob::paintOverChildren(juce::Graphics& g)
     {
-        const auto sliderBounds = innerSlider_.getBounds().toFloat().reduced(4.0f);
-        const float diameter = juce::jmax(16.0f, juce::jmin(sliderBounds.getWidth(), sliderBounds.getHeight()));
-        const float orbitRadius = diameter * 0.45f;
+        const auto outerBounds = outerSlider_.getBounds().toFloat().reduced(4.0f);
+        const float outerDiameter = juce::jmax(16.0f, juce::jmin(outerBounds.getWidth(), outerBounds.getHeight()));
+        const float outerOrbitRadius = outerDiameter * 0.45f;
 
-        paintModRing(g, innerMod_, orbitRadius, false);
-        paintModRing(g, outerMod_, orbitRadius, true);
+        const auto innerBounds = innerSlider_.getBounds().toFloat().reduced(4.0f);
+        const float innerDiameter = juce::jmax(16.0f, juce::jmin(innerBounds.getWidth(), innerBounds.getHeight()));
+        const float innerOrbitRadius = innerDiameter * 0.42f;
+
+        paintModRing(g, outerMod_, outerOrbitRadius, true);
+        paintModRing(g, innerMod_, innerOrbitRadius, false);
 
         const auto drawDepth = [&](const ModRingState& state) {
             if (!state.showDepthPopover || state.depthPopoverArea_.isEmpty())

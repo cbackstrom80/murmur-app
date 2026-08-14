@@ -261,60 +261,84 @@ namespace pw8::plugin::ui::decked
                       juce::jmax(0.9f, capRadius * 0.045f));
     }
 
-    /// Functional dual-parameter concentric dial — NOT decorative deck depth.
-    /// Outer ring = separate parameter (white line, MIN/MAX arc). Inner cap = separate parameter (colored cap, dot).
-    inline void drawConcentricRotarySlider(juce::Graphics& g, juce::Rectangle<float> knobBounds, float proportional,
-                                           float rotaryStartAngle, float rotaryEndAngle, juce::Colour innerAccent,
-                                           bool outerRingOnly, bool innerCapOnly, bool active)
+    constexpr float kDualKnobInnerInset = 22.0f;
+    constexpr float kDualOuterArcStroke = 6.0f;
+
+    /// Outer ring of a stacked dual knob: hollow track + structural accent value arc (leaves centre hole).
+    inline void drawDualOuterRotarySlider(juce::Graphics& g, juce::Rectangle<float> knobBounds, float proportional,
+                                          float rotaryStartAngle, float rotaryEndAngle, bool active)
     {
+        juce::ignoreUnused(active);
         const float diameter = juce::jmax(16.0f, juce::jmin(knobBounds.getWidth(), knobBounds.getHeight()));
-        const auto geo = computeGeometry(diameter, Size::Medium);
         const auto centre = knobBounds.getCentre();
+        const float maxRadius = diameter * 0.5f;
+        const float arcRadius = maxRadius * 0.94f;
+        const float angle = rotary::proportionalToAngle(proportional);
+        const float trackThickness = juce::jmax(2.0f, maxRadius * 0.08f);
+
+        g.setColour(palette::kBackgroundBottom);
+        g.fillEllipse(centre.x - maxRadius, centre.y - maxRadius, maxRadius * 2.0f, maxRadius * 2.0f);
+
+        juce::Path track;
+        track.addCentredArc(centre.x, centre.y, arcRadius, arcRadius, 0.0f, rotaryStartAngle, rotaryEndAngle, true);
+        g.setColour(palette::kBorder.withAlpha(0.72f));
+        g.strokePath(track, juce::PathStrokeType(trackThickness, juce::PathStrokeType::curved,
+                                                 juce::PathStrokeType::rounded));
+
+        if (proportional > 0.001f)
+        {
+            juce::Path value;
+            value.addCentredArc(centre.x, centre.y, arcRadius, arcRadius, 0.0f, rotaryStartAngle, angle, true);
+            g.setColour(palette::kAccent.withAlpha(0.22f));
+            g.strokePath(value, juce::PathStrokeType(kDualOuterArcStroke * 1.35f, juce::PathStrokeType::curved,
+                                                     juce::PathStrokeType::rounded));
+            g.setColour(palette::kAccent.withAlpha(0.95f));
+            g.strokePath(value, juce::PathStrokeType(kDualOuterArcStroke, juce::PathStrokeType::curved,
+                                                     juce::PathStrokeType::rounded));
+        }
+
+        g.setColour(palette::kBorderBright.withAlpha(0.55f));
+        g.drawEllipse(centre.x - maxRadius, centre.y - maxRadius, maxRadius * 2.0f, maxRadius * 2.0f,
+                      juce::jmax(1.0f, trackThickness * 0.55f));
+
+        const float holeRadius = juce::jmax(8.0f, maxRadius - kDualKnobInnerInset);
+        g.setColour(palette::kBackgroundTop);
+        g.fillEllipse(centre.x - holeRadius, centre.y - holeRadius, holeRadius * 2.0f, holeRadius * 2.0f);
+    }
+
+    /// Inner cap of a stacked dual knob: category fill + white pointer rectangle.
+    inline void drawDualInnerRotarySlider(juce::Graphics& g, juce::Rectangle<float> knobBounds, float proportional,
+                                          float rotaryStartAngle, float rotaryEndAngle, juce::Colour accent, bool active)
+    {
+        juce::ignoreUnused(rotaryStartAngle, rotaryEndAngle);
+        const float diameter = juce::jmax(16.0f, juce::jmin(knobBounds.getWidth(), knobBounds.getHeight()));
+        const auto centre = knobBounds.getCentre();
+        const float maxRadius = diameter * 0.5f;
+        const float capRadius = juce::jmax(8.0f, maxRadius - 2.0f);
         const float angle = rotary::proportionalToAngle(proportional);
 
-        if (outerRingOnly)
-        {
-            g.setColour(palette::kBackgroundBottom);
-            g.fillEllipse(centre.x - geo.outerDeckRadius, centre.y - geo.outerDeckRadius, geo.outerDeckRadius * 2.0f,
-                          geo.outerDeckRadius * 2.0f);
-            strokeDeckRing(g, centre, geo.outerDeckRadius, geo.trackThickness * 0.55f,
-                           palette::kBorder.withAlpha(0.55f), palette::kTopHighlight, active);
+        const juce::Colour fill = accent.isTransparent() ? palette::kPanelRaised : accent;
+        fillColouredInnerCap(g, centre, capRadius, fill, active);
 
-            juce::Path track;
-            track.addCentredArc(centre.x, centre.y, geo.outerDeckRadius * 0.94f, geo.outerDeckRadius * 0.94f, 0.0f,
-                                rotaryStartAngle, rotaryEndAngle, true);
-            g.setColour(palette::kBorder.withAlpha(0.45f));
-            g.strokePath(track, juce::PathStrokeType(geo.trackThickness * 0.65f, juce::PathStrokeType::curved,
-                                                     juce::PathStrokeType::rounded));
-
-            if (proportional > 0.001f)
-            {
-                juce::Path value;
-                value.addCentredArc(centre.x, centre.y, geo.outerDeckRadius * 0.94f, geo.outerDeckRadius * 0.94f, 0.0f,
-                                    rotaryStartAngle, angle, true);
-                g.setColour(juce::Colours::white.withAlpha(0.18f));
-                g.strokePath(value, juce::PathStrokeType(geo.trackThickness * 1.4f, juce::PathStrokeType::curved,
-                                                         juce::PathStrokeType::rounded));
-                g.setColour(juce::Colours::white.withAlpha(0.88f));
-                g.strokePath(value, juce::PathStrokeType(geo.trackThickness * 0.42f, juce::PathStrokeType::curved,
-                                                         juce::PathStrokeType::rounded));
-            }
-
-            if (diameter >= 40.0f)
-                drawMinMaxTicks(g, centre, geo.outerDeckRadius * 0.94f, geo.trackThickness, rotaryStartAngle,
-                                rotaryEndAngle);
-
-            drawWhiteLinePointer(g, centre, angle, geo.outerDeckRadius * 0.72f, geo.outerDeckRadius * 0.97f,
-                                 geo.radius);
-            return;
-        }
-
-        if (innerCapOnly)
-        {
-            fillColouredInnerCap(g, centre, geo.innerCapRadius, innerAccent, active);
-            drawDotPointer(g, centre, angle, geo.innerCapRadius * 0.82f, geo.radius);
-            return;
-        }
+        const juce::Point<float> direction(std::cos(angle), std::sin(angle));
+        const float pointerInner = capRadius * 0.22f;
+        const float pointerOuter = capRadius * 0.82f;
+        const float pointerWidth = juce::jmax(2.4f, capRadius * 0.14f);
+        const juce::Point<float> tangent(-direction.y, direction.x);
+        const auto p0 = centre + direction * pointerInner + tangent * pointerWidth * 0.5f;
+        const auto p1 = centre + direction * pointerOuter + tangent * pointerWidth * 0.35f;
+        const auto p2 = centre + direction * pointerOuter - tangent * pointerWidth * 0.35f;
+        const auto p3 = centre + direction * pointerInner - tangent * pointerWidth * 0.5f;
+        juce::Path pointer;
+        pointer.startNewSubPath(p0);
+        pointer.lineTo(p1);
+        pointer.lineTo(p2);
+        pointer.lineTo(p3);
+        pointer.closeSubPath();
+        g.setColour(palette::kShadow.withAlpha(0.35f));
+        g.fillPath(pointer);
+        g.setColour(palette::kTextPrimary);
+        g.fillPath(pointer);
     }
 
     /// Concentric decked rotary — outer recess, accent middle rim, inner cap with value arc.

@@ -57,6 +57,7 @@ target_sources(pw8_plugin PRIVATE
     src/ui/DesignModeEditor.cpp
     src/ui/PlayModeEditor.cpp
     src/ui/theme/ObsidianLookAndFeel.cpp
+    src/ui/theme/DualKnobLookAndFeel.cpp
     src/ui/theme/BrandingAssets.cpp
     src/ui/components/GlowKnob.cpp
     src/ui/components/ConcentricGlowKnob.cpp
