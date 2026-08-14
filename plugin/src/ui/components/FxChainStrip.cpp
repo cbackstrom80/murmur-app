@@ -284,11 +284,13 @@ namespace pw8::plugin::ui
         if (show && quasarExtraKnobs_.empty())
         {
             const auto& prefix = selectedSlot().paramPrefix;
-            const std::array<std::pair<const char*, const char*>, 4> defs = {{
+            const std::array<std::pair<const char*, const char*>, 6> defs = {{
                 {"CntrLevel", "CNTR"},
                 {"Qsr2Distance", "Q2 Dist"},
                 {"Qsr1RoomSize", "Room Sz"},
                 {"QuasarDelayFeedback", "Dly Fdbk"},
+                {"QuasarOutputMode", "Output"},
+                {"QuasarCrossfeed", "X-Feed"},
             }};
             for (const auto& [suffix, label] : defs)
             {

@@ -48,6 +48,7 @@ namespace pw8::plugin::ui
     enum class PatchFocusKnobKind
     {
         Macro,
+        Morph,
         ApvtsParam,
     };
 
@@ -92,6 +93,11 @@ namespace pw8::plugin::ui
     [[nodiscard]] std::optional<modulation::ModRoute> findExpressionRoute(const patch::Patch& patch) noexcept;
 
     [[nodiscard]] juce::String formatExpressionStatus(const patch::Patch& patch, float expressionValue01) noexcept;
+
+    [[nodiscard]] std::optional<modulation::ModRoute> findSidechainRoute(const patch::Patch& patch) noexcept;
+
+    [[nodiscard]] juce::String formatSidechainStatus(const patch::Patch& patch, float sidechainLevel01,
+                                                       bool sidechainActive) noexcept;
 
     /// One-line hints from feature macro descriptions (mission card / preset bar).
     [[nodiscard]] juce::String formatFeatureMacroHints(const patch::Patch& patch,

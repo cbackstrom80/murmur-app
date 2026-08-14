@@ -21,7 +21,7 @@ namespace pw8::plugin::ui
         if (!description.startsWith(kDragDescriptionPrefix))
             return std::nullopt;
         const int ordinal = description.substring(static_cast<int>(std::char_traits<char>::length(kDragDescriptionPrefix))).getIntValue();
-        if (ordinal < 0 || ordinal > 29)
+        if (ordinal < 0 || ordinal > 30)
             return std::nullopt;
         return static_cast<modulation::ModSource>(ordinal);
     }
@@ -62,6 +62,7 @@ namespace pw8::plugin::ui
             case ModSource::Macro6: return "MACRO 6";
             case ModSource::Macro7: return "MACRO 7";
             case ModSource::Macro8: return "MACRO 8";
+            case ModSource::Sidechain: return "SIDECHAIN";
         }
         return "-";
     }
@@ -108,6 +109,26 @@ namespace pw8::plugin::ui
                 return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " REV MOD";
             case ModDestination::MasterGain:
                 return "MASTER GAIN";
+            case ModDestination::QuasarQsr1Distance:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " Q1 DIST";
+            case ModDestination::QuasarQsr2Distance:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " Q2 DIST";
+            case ModDestination::QuasarQsr1Angle:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " Q1 ANG";
+            case ModDestination::QuasarQsr2Angle:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " Q2 ANG";
+            case ModDestination::QuasarQsr1Height:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " Q1 HGT";
+            case ModDestination::QuasarQsr2Height:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " Q2 HGT";
+            case ModDestination::QuasarRoomAmount:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " Q ROOM";
+            case ModDestination::QuasarDelayFeedback:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " Q DLY FB";
+            case ModDestination::QuasarDelayTime:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " Q DLY T";
+            case ModDestination::QuasarCntrLevel:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " CNTR";
         }
         return "-";
     }

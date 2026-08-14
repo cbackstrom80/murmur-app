@@ -45,6 +45,12 @@ namespace pw8::plugin::ui
         expressionBadge_.setColour(juce::Label::backgroundColourId, palette::kModExpression.withAlpha(0.12f));
         panel_.addAndMakeVisible(expressionBadge_);
 
+        sidechainBadge_.setJustificationType(juce::Justification::centredLeft);
+        sidechainBadge_.setFont(fonts::label(11.0f));
+        sidechainBadge_.setColour(juce::Label::textColourId, palette::kAccentCool);
+        sidechainBadge_.setColour(juce::Label::backgroundColourId, palette::kAccentCool.withAlpha(0.12f));
+        panel_.addAndMakeVisible(sidechainBadge_);
+
         advancedButton_.setButtonText("Mod Matrix (M)");
         advancedButton_.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
         advancedButton_.setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
@@ -150,6 +156,16 @@ namespace pw8::plugin::ui
             expressionBadge_.setColour(juce::Label::textColourId,
                                        exprActive ? base.brighter(exprActive ? 0.08f * pulse : 0.0f) : base);
         }
+
+        if (sidechainBadge_.isVisible())
+        {
+            const bool scActive = processor_.getSidechainActive();
+            const auto base = palette::kAccentCool;
+            sidechainBadge_.setColour(juce::Label::backgroundColourId,
+                                      base.withAlpha(scActive ? 0.12f + 0.14f * pulse : 0.12f));
+            sidechainBadge_.setColour(juce::Label::textColourId,
+                                      scActive ? base.brighter(0.08f * pulse) : base);
+        }
     }
 
     void PatchFocusPanel::paint(juce::Graphics& g)
@@ -253,6 +269,10 @@ namespace pw8::plugin::ui
         expressionBadge_.setText(exprText, juce::dontSendNotification);
         expressionBadge_.setVisible(!exprText.isEmpty());
 
+        const auto scText = formatSidechainStatus(patch, processor_.getSidechainLevel(), processor_.getSidechainActive());
+        sidechainBadge_.setText(scText, juce::dontSendNotification);
+        sidechainBadge_.setVisible(!scText.isEmpty());
+
         badgePulsePhase_ += 1.0f / 12.0f;
         if (badgePulsePhase_ > 1.0f)
             badgePulsePhase_ -= 1.0f;
@@ -282,6 +302,7 @@ namespace pw8::plugin::ui
             panel_.addAndMakeVisible(standardSectionLabel_);
             panel_.addAndMakeVisible(modWheelBadge_);
             panel_.addAndMakeVisible(expressionBadge_);
+            panel_.addAndMakeVisible(sidechainBadge_);
             panel_.addAndMakeVisible(advancedButton_);
         }
         else
@@ -299,6 +320,11 @@ namespace pw8::plugin::ui
                     return;
                 knob = std::make_unique<GlowKnob>(processor_.apvts, kMacroParameterIds[spec.macroIndex], spec.label,
                                                   nullptr, featured ? palette::kAccentWarm : juce::Colours::transparentBlack);
+            }
+            else if (spec.kind == PatchFocusKnobKind::Morph)
+            {
+                knob = std::make_unique<GlowKnob>(processor_.apvts, kMorphPositionId, spec.label, nullptr,
+                                                  palette::kAccent);
             }
             else
             {
@@ -432,6 +458,12 @@ namespace pw8::plugin::ui
         {
             bounds.removeFromTop(4);
             expressionBadge_.setBounds(bounds.removeFromTop(18));
+        }
+
+        if (sidechainBadge_.isVisible())
+        {
+            bounds.removeFromTop(4);
+            sidechainBadge_.setBounds(bounds.removeFromTop(18));
         }
 
         bounds.removeFromTop(basicLayout_ ? 8 : 4);

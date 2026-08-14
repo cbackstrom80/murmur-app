@@ -123,6 +123,16 @@ namespace pw8::plugin::ui
             case modulation::ModDestination::MasterReverbDiffusion: return 0.25f;
             case modulation::ModDestination::MasterReverbModDepth: return 0.2f;
             case modulation::ModDestination::MasterGain: return 0.25f;
+            case modulation::ModDestination::QuasarQsr1Distance:
+            case modulation::ModDestination::QuasarQsr2Distance: return 0.4f;
+            case modulation::ModDestination::QuasarQsr1Angle:
+            case modulation::ModDestination::QuasarQsr2Angle: return 90.0f;
+            case modulation::ModDestination::QuasarQsr1Height:
+            case modulation::ModDestination::QuasarQsr2Height: return 0.3f;
+            case modulation::ModDestination::QuasarRoomAmount: return 0.35f;
+            case modulation::ModDestination::QuasarDelayFeedback: return 0.3f;
+            case modulation::ModDestination::QuasarDelayTime: return 200.0f;
+            case modulation::ModDestination::QuasarCntrLevel: return 0.2f;
             default: return 0.0f;
         }
     }
@@ -186,6 +196,36 @@ namespace pw8::plugin::ui
                                            "Master " + juce::String(static_cast<int>(targetIndex)) + " Rev Mod"};
             case modulation::ModDestination::MasterGain:
                 return ModDestinationParam{juce::String(kMasterGainId), "Master Gain"};
+            case modulation::ModDestination::QuasarQsr1Distance:
+                return ModDestinationParam{masterFxParamId(targetIndex, "Qsr1Distance"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Q1 Dist"};
+            case modulation::ModDestination::QuasarQsr2Distance:
+                return ModDestinationParam{masterFxParamId(targetIndex, "Qsr2Distance"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Q2 Dist"};
+            case modulation::ModDestination::QuasarQsr1Angle:
+                return ModDestinationParam{masterFxParamId(targetIndex, "Qsr1Angle"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Q1 Ang"};
+            case modulation::ModDestination::QuasarQsr2Angle:
+                return ModDestinationParam{masterFxParamId(targetIndex, "Qsr2Angle"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Q2 Ang"};
+            case modulation::ModDestination::QuasarQsr1Height:
+                return ModDestinationParam{masterFxParamId(targetIndex, "Qsr1Height"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Q1 Hgt"};
+            case modulation::ModDestination::QuasarQsr2Height:
+                return ModDestinationParam{masterFxParamId(targetIndex, "Qsr2Height"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Q2 Hgt"};
+            case modulation::ModDestination::QuasarRoomAmount:
+                return ModDestinationParam{masterFxParamId(targetIndex, "Qsr1RoomAmount"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Q Room"};
+            case modulation::ModDestination::QuasarDelayFeedback:
+                return ModDestinationParam{masterFxParamId(targetIndex, "QuasarDelayFeedback"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Q Dly Fb"};
+            case modulation::ModDestination::QuasarDelayTime:
+                return ModDestinationParam{masterFxParamId(targetIndex, "QuasarDelayTimeMs"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Q Dly T"};
+            case modulation::ModDestination::QuasarCntrLevel:
+                return ModDestinationParam{masterFxParamId(targetIndex, "CntrLevel"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " CNTR"};
             case modulation::ModDestination::None:
                 break;
         }
@@ -265,6 +305,15 @@ namespace pw8::plugin::ui
             {
                 if (feature.size() >= authoredCap)
                     break;
+                if (entry.kind == patch::UiFocusKnobKind::Morph)
+                {
+                    if (patch.morphKoin.keyframes.size() < 2)
+                        continue;
+                    const auto label = entry.label.empty() ? juce::String(patch.morphKoin.label.c_str())
+                                                           : juce::String(entry.label);
+                    feature.push_back({PatchFocusKnobKind::Morph, 0, kMorphPositionId, label});
+                    continue;
+                }
                 if (entry.kind != patch::UiFocusKnobKind::Macro || entry.macroIndex >= patch.macros.size())
                     continue;
                 if (!macroHasActiveRoute(patch, entry.macroIndex))
@@ -368,11 +417,67 @@ namespace pw8::plugin::ui
         return "Expression (CC11)  " + juce::String(pct) + "%  ->  " + dest + "  (" + depth + " max)";
     }
 
+    std::optional<modulation::ModRoute> findSidechainRoute(const patch::Patch& patch) noexcept
+    {
+        for (const auto& route : patch.layerA.modRoutes)
+        {
+            if (route.source == modulation::ModSource::Sidechain && route.isActive())
+                return route;
+        }
+        return std::nullopt;
+    }
+
+    juce::String formatSidechainStatus(const patch::Patch& patch, float sidechainLevel01, bool sidechainActive) noexcept
+    {
+        const auto route = findSidechainRoute(patch);
+        if (!route.has_value() && !sidechainActive)
+            return {};
+
+        juce::String text = "Sidechain (AU)";
+        if (route.has_value())
+        {
+            const auto dest = modDestinationLabel(route->destination, route->targetIndex);
+            const auto depth = formatModRouteAmount(route->destination, route->amount);
+            text += "  ->  " + dest + "  (" + depth + " max)";
+        }
+        if (sidechainActive)
+        {
+            const int pct = juce::roundToInt(juce::jlimit(0.0f, 1.0f, sidechainLevel01) * 100.0f);
+            text += "  " + juce::String(pct) + "%";
+        }
+        else if (route.has_value())
+        {
+            text += "  (no input)";
+        }
+        return text;
+    }
+
     juce::String formatFeatureMacroHints(const patch::Patch& patch, const std::vector<PatchFocusKnobSpec>& featureKnobs)
     {
         juce::StringArray parts;
         for (const auto& spec : featureKnobs)
         {
+            if (spec.kind == PatchFocusKnobKind::Morph)
+            {
+                juce::String line = spec.label;
+                if (!patch.morphKoin.description.empty())
+                {
+                    juce::String desc = juce::String::fromUTF8(patch.morphKoin.description.data(),
+                                                               static_cast<int>(patch.morphKoin.description.size()))
+                                            .trim();
+                    if (desc.isNotEmpty())
+                        line += ": " + desc;
+                }
+                if (patch.morphKoin.keyframes.size() >= 2)
+                {
+                    line += "  ·  " + juce::String(patch.morphKoin.keyframes.front().name.c_str()) + juce::String(
+                                                                                                      L" \u2194 ") +
+                            juce::String(patch.morphKoin.keyframes.back().name.c_str());
+                }
+                if (line.isNotEmpty())
+                    parts.add(line);
+                continue;
+            }
             if (spec.kind != PatchFocusKnobKind::Macro || spec.macroIndex >= patch.macros.size())
                 continue;
 

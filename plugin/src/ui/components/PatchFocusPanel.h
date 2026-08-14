@@ -55,6 +55,7 @@ namespace pw8::plugin::ui
         juce::Label standardSectionLabel_;
         juce::Label modWheelBadge_;
         juce::Label expressionBadge_;
+        juce::Label sidechainBadge_;
         juce::TextButton advancedButton_{"Mod Matrix (M)"};
         bool basicLayout_ = true;
         bool compactLayout_ = false;
