@@ -71,7 +71,7 @@ namespace pw8::plugin::ui
                 onGraphApplied();
         };
 
-        matrixEditor_ = std::make_unique<ModMatrixDesignPanel>(processor_);
+        matrixEditor_ = std::make_unique<ModMatrixScreen>(processor_);
         matrixPanel_.addAndMakeVisible(*matrixEditor_);
 
         fxEditor_ = std::make_unique<DesignFxDetailPanel>(processor_);

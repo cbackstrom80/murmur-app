@@ -72,6 +72,7 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/EngineNodeStrip.cpp
     src/ui/components/LiveTopologyStrip.cpp
     src/ui/components/TopologyGraphOverlay.cpp
+    src/ui/components/ModMatrixScreen.cpp
     src/ui/components/ModMatrixDesignPanel.cpp
     src/ui/components/DesignFxDetailPanel.cpp
     src/ui/components/WavetableWarpPanel.cpp

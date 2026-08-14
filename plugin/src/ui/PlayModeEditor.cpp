@@ -58,9 +58,8 @@ namespace pw8::plugin::ui
           operatorEditorPanel_(processor, modAssignmentController_),
           filterLfoPanel_(processor, modAssignmentController_),
           ampEnvelopePanel_(processor),
-          modLauncherPanel_(processor, modAssignmentController_),
+          modMatrixScreen_(processor),
           fxChainStrip_(processor),
-          modRoutingOverlay_(processor, modAssignmentController_),
           arpPanelOverlay_(processor)
     {
         setLookAndFeel(&lookAndFeel_);
@@ -74,15 +73,8 @@ namespace pw8::plugin::ui
 
         modAssignmentController_.onChanged = [this] {
             updateModAssignmentBanner();
-            modRoutingOverlay_.repaintModAssignmentState();
-            modLauncherPanel_.repaintModAssignmentState();
             filterLfoPanel_.repaintModAssignmentState();
         };
-
-        modLauncherPanel_.onOpenAdvanced = [this] { openModRoutingOverlay(); };
-
-        addChildComponent(modRoutingOverlay_);
-        modRoutingOverlay_.onClosed = [this] { closeModRoutingOverlay(); };
 
         addChildComponent(arpPanelOverlay_);
         arpPanelOverlay_.onClosed = [this] { closeArpPanel(); };
@@ -154,7 +146,7 @@ namespace pw8::plugin::ui
         oscPanel_.addAndMakeVisible(operatorEditorPanel_);
         filterPage_.addAndMakeVisible(filterLfoPanel_);
         envPage_.addAndMakeVisible(ampEnvelopePanel_);
-        modPage_.addAndMakeVisible(modLauncherPanel_);
+        modPage_.addAndMakeVisible(modMatrixScreen_);
         fxPage_.addAndMakeVisible(fxChainStrip_);
 
         setViewMode(ViewMode::Basic);
@@ -168,6 +160,7 @@ namespace pw8::plugin::ui
         liveTopologyStrip_.repaint();
         patchFocusPanel_.refreshFromPatch();
         compactEditor_.refreshFromPatch();
+        modMatrixScreen_.refreshFromPatch();
     }
 
     void PlayModeEditor::syncNodeSelection(int nodeIndex)
@@ -215,21 +208,12 @@ namespace pw8::plugin::ui
         if (arpPanelOverlay_.isVisible())
             return arpPanelOverlay_.keyPressed(key);
 
-        if (modRoutingOverlay_.isVisible())
-            return modRoutingOverlay_.keyPressed(key);
-
         if (topologyGraphOverlay_.isVisible())
             return topologyGraphOverlay_.keyPressed(key);
 
         if (key == juce::KeyPress('a', juce::ModifierKeys::noModifiers, 0))
         {
             openArpPanel();
-            return true;
-        }
-
-        if (viewMode_ == ViewMode::Advanced && key == juce::KeyPress('m', juce::ModifierKeys::noModifiers, 0))
-        {
-            openModRoutingOverlay();
             return true;
         }
 
@@ -274,7 +258,6 @@ namespace pw8::plugin::ui
 
         if (compact || mode == ViewMode::Basic)
         {
-            closeModRoutingOverlay();
             modAssignmentController_.disarm();
             oscPage_.setVisible(false);
             filterPage_.setVisible(false);
@@ -296,21 +279,6 @@ namespace pw8::plugin::ui
             onLayoutOrViewModeChanged();
         else
             resized();
-    }
-
-    void PlayModeEditor::openModRoutingOverlay()
-    {
-        if (viewMode_ != ViewMode::Advanced)
-            return;
-
-        addAndMakeVisible(modRoutingOverlay_);
-        modRoutingOverlay_.setBounds(getLocalBounds());
-        modRoutingOverlay_.showOverlay();
-    }
-
-    void PlayModeEditor::closeModRoutingOverlay()
-    {
-        removeChildComponent(&modRoutingOverlay_);
     }
 
     void PlayModeEditor::openArpPanel()
@@ -348,9 +316,6 @@ namespace pw8::plugin::ui
             showPage(Page::Filter);
 
         refreshFilterPanelScope();
-        const auto routingScope = global ? FilterPanelScope::Global : FilterPanelScope::Engine;
-        modRoutingOverlay_.setRoutingContext(routingScope, nodeSelectorRow_.getSelectedNode());
-        modLauncherPanel_.setRoutingContext(routingScope, nodeSelectorRow_.getSelectedNode());
         contextStrip_.repaint();
         resized();
     }
@@ -372,8 +337,8 @@ namespace pw8::plugin::ui
             return;
         }
 
-        modAssignmentBanner_.setText("Step 2: click a ringed knob — OSC (Level/WT Pos/Pan), FILTER (Cutoff/Reso), "
-                                     "or destination buttons in MOD.",
+        modAssignmentBanner_.setText("Step 2: click a ringed knob — OSC (Level/WT Pos/Pan) or FILTER (Cutoff/Reso). "
+                                     "Full matrix: MOD tab.",
                                      juce::dontSendNotification);
         modAssignmentBanner_.setVisible(true);
         resized();
@@ -399,6 +364,8 @@ namespace pw8::plugin::ui
 
         if (page == Page::Filter)
             refreshFilterPanelScope();
+        if (page == Page::Mod)
+            modMatrixScreen_.refreshFromPatch();
 
         resized();
     }
@@ -520,10 +487,9 @@ namespace pw8::plugin::ui
         operatorEditorPanel_.setBounds(oscPanel_.getContentBounds());
         filterLfoPanel_.setBounds(filterPage_.getLocalBounds());
         ampEnvelopePanel_.setBounds(envPage_.getLocalBounds());
-        modLauncherPanel_.setBounds(modPage_.getLocalBounds());
+        modMatrixScreen_.setBounds(modPage_.getLocalBounds());
         fxChainStrip_.setBounds(fxPage_.getLocalBounds());
 
-        modRoutingOverlay_.setBounds(getLocalBounds());
         arpPanelOverlay_.setBounds(getLocalBounds());
         topologyGraphOverlay_.setBounds(getLocalBounds());
     }

@@ -14,8 +14,7 @@
 #include "components/FilterLfoPanel.h"
 #include "components/FxChainStrip.h"
 #include "components/ModAssignmentController.h"
-#include "components/ModLauncherPanel.h"
-#include "components/ModRoutingOverlay.h"
+#include "components/ModMatrixScreen.h"
 #include "components/EngineNodeStrip.h"
 #include "components/LiveTopologyStrip.h"
 #include "components/TopologyGraphOverlay.h"
@@ -65,8 +64,6 @@ namespace pw8::plugin::ui
         void updateScopeUi();
         void refreshFilterPanelScope();
         void updateModAssignmentBanner();
-        void openModRoutingOverlay();
-        void closeModRoutingOverlay();
         void openArpPanel();
         void closeArpPanel();
 
@@ -109,9 +106,8 @@ namespace pw8::plugin::ui
         OperatorEditorPanel operatorEditorPanel_;
         FilterLfoPanel filterLfoPanel_;
         AmpEnvelopePanel ampEnvelopePanel_;
-        ModLauncherPanel modLauncherPanel_;
+        ModMatrixScreen modMatrixScreen_;
         FxChainStrip fxChainStrip_;
-        ModRoutingOverlay modRoutingOverlay_;
         ArpPanelOverlay arpPanelOverlay_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlayModeEditor)
