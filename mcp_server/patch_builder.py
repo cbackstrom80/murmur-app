@@ -322,6 +322,12 @@ def set_macro_koin(patch_id: str, slot: int, name: str, destinations: list[dict]
     return warnings
 
 
+def set_spread_bundle(patch_id: str, slot: int, name: str, destinations: list[dict],
+                      description: str = "") -> list[str]:
+    """Alias for set_macro_koin with PoliMATHS Spread semantics — one macro fans to many destinations."""
+    return set_macro_koin(patch_id, slot, name, destinations, description)
+
+
 def _normalize_macro_values(raw) -> list[float]:
     """Accept length-8 list or partial list; pad with zeros."""
     if raw is None:

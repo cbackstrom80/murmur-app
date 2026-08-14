@@ -189,15 +189,22 @@ def set_macro_koin(patch_id: str, slot: int, name: str, destinations: list[dict]
 
 
 @mcp.tool()
+def set_spread_bundle(patch_id: str, slot: int, name: str, destinations: list[dict],
+                      description: str = "") -> dict:
+    """Configure a PoliMATHS Spread-style macro bundle (alias for set_macro_koin)."""
+    warnings = patch_builder.set_spread_bundle(patch_id, slot, name, destinations, description)
+    return {"patch_id": patch_id, "warnings": warnings,
+            "summary": patch_builder.explain_patch(patch_builder.load_scratch(patch_id))}
+
+
+@mcp.tool()
 def set_morph_koin(patch_id: str, label: str, keyframes: list[dict],
                    default_position: float = 0.0, description: str = "",
                    curve: str = "linear", wrap: bool = False,
                    position: float | None = None,
                    macro_koins: list[dict] | None = None) -> dict:
-    """Configure a Frames-style morph KOIN (Horizon 2 metadata): 2–4 named keyframe
-    snapshots interpolated by one performance knob. Writes morphKoin + uiFocus kind morph.
-    Optional macro_koins sets paired Spread-style macro KOINS (slot, name, destinations).
-    Runtime morph lerp is Horizon 3 — this stores patch metadata only."""
+    """Configure a Frames-style morph KOIN: 2–4 named keyframe snapshots interpolated by morphPosition APVTS.
+    Writes morphKoin + uiFocus kind morph. Runtime lerp applies at load and when morph knob moves."""
     warnings = patch_builder.set_morph_koin(
         patch_id, label, keyframes, default_position, description,
         curve, wrap, position, macro_koins)
