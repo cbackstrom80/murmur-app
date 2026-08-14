@@ -27,6 +27,7 @@ namespace pw8::modulation
         Macro1, Macro2, Macro3, Macro4, Macro5, Macro6, Macro7, Macro8,
         ModWheel,   ///< MIDI CC1 (0..1), channel-wide performance source.
         Expression, ///< MIDI CC11 (0..1), channel-wide — expression pedal / knob.
+        Sidechain,  ///< AU sidechain envelope follower (0..1); silent when no bus routed.
     };
 
     enum class ModDestination : std::uint8_t
@@ -53,6 +54,17 @@ namespace pw8::modulation
         MasterReverbDiffusion,  ///< `reverbDiffusion`.
         MasterReverbModDepth,   ///< `reverbModDepth`.
         MasterGain,             ///< `voiceSettings.masterGain` multiplier offset (no targetIndex).
+        /// Quasar / BinauralSpace destinations (Global scope; targetIndex = master slot 0..3).
+        QuasarQsr1Distance,
+        QuasarQsr2Distance,
+        QuasarQsr1Angle,
+        QuasarQsr2Angle,
+        QuasarQsr1Height,
+        QuasarQsr2Height,
+        QuasarRoomAmount,    ///< fans to qsr1+qsr2 room amount average.
+        QuasarDelayFeedback,
+        QuasarDelayTime,     ///< additive ms offset to quasarDelayTimeMs.
+        QuasarCntrLevel,
     };
 
     /// VOICE-scoped routes read a per-voice, independently-phased source (each

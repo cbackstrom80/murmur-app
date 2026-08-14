@@ -46,16 +46,17 @@ namespace pw8::effects
             elevationTiltR_.reset();
         }
 
-        void processMono(float in, const SpatialParams& p, float& outL, float& outR) noexcept
+        void processMono(float in, const SpatialParams& p, float& outL, float& outR,
+                         float itdScale = 1.0f) noexcept
         {
             const float sr = static_cast<float>(sampleRate_);
             const float angleRad = p.angleDeg * dsp::kPi / 180.0f;
             const float dist = dsp::clamp(p.distance, 0.0f, 1.0f);
             const float height = dsp::clamp(p.height, -1.0f, 1.0f);
 
-            // ITD: sin/azimuth law, max ±0.8 ms (plan §2.5).
-            const float itdMs = 0.8f * std::sin(angleRad);
-            const float heightItdMs = height * 0.15f;
+            // ITD: sin/azimuth law, max ±0.8 ms (plan §2.5); scaled for Speaker mode.
+            const float itdMs = 0.8f * std::sin(angleRad) * itdScale;
+            const float heightItdMs = height * 0.15f * itdScale;
             const float itdLeftMs = std::max(-itdMs + heightItdMs, -0.8f);
             const float itdRightMs = std::max(itdMs - heightItdMs, -0.8f);
 
@@ -92,10 +93,11 @@ namespace pw8::effects
             left = airShelfL_.renderSample(left) * distGain;
             right = airShelfR_.renderSample(right) * distGain;
 
-            // Height: spectral tilt (elevation cue).
-            const float tiltDb = height * 4.0f;
-            elevationTiltL_.setHighShelf(3000.0f, tiltDb, sampleRate_);
-            elevationTiltR_.setHighShelf(3000.0f, tiltDb * 0.85f, sampleRate_);
+            // Height: spectral tilt + subtle contralateral elevation cue (HRIR-lite).
+            const float tiltDb = height * 5.5f;
+            const float contralateralTilt = height * 1.2f;
+            elevationTiltL_.setHighShelf(2800.0f, tiltDb, sampleRate_);
+            elevationTiltR_.setHighShelf(2800.0f, tiltDb * 0.82f - contralateralTilt, sampleRate_);
             left = elevationTiltL_.renderSample(left);
             right = elevationTiltR_.renderSample(right);
 

@@ -57,6 +57,7 @@ namespace pw8::modulation
         float mpeSlide = 0.0f;         ///< 0..1
         float modWheel = 0.0f;         ///< 0..1, MIDI CC1
         float expression = 0.0f;       ///< 0..1, MIDI CC11
+        float sidechain = 0.0f;        ///< 0..1, AU sidechain envelope follower
         std::array<float, 8> macros{}; ///< 0..1 each
     };
 
@@ -87,6 +88,16 @@ namespace pw8::modulation
         std::array<float, effects::kNumMasterSlots> reverbDiffusionOffset{};
         std::array<float, effects::kNumMasterSlots> reverbModDepthOffset{};
         float masterGainOffset = 0.0f;
+        std::array<float, effects::kNumMasterSlots> quasarQsr1DistanceOffset{};
+        std::array<float, effects::kNumMasterSlots> quasarQsr2DistanceOffset{};
+        std::array<float, effects::kNumMasterSlots> quasarQsr1AngleOffset{};
+        std::array<float, effects::kNumMasterSlots> quasarQsr2AngleOffset{};
+        std::array<float, effects::kNumMasterSlots> quasarQsr1HeightOffset{};
+        std::array<float, effects::kNumMasterSlots> quasarQsr2HeightOffset{};
+        std::array<float, effects::kNumMasterSlots> quasarRoomAmountOffset{};
+        std::array<float, effects::kNumMasterSlots> quasarDelayFeedbackOffset{};
+        std::array<float, effects::kNumMasterSlots> quasarDelayTimeOffset{};
+        std::array<float, effects::kNumMasterSlots> quasarCntrLevelOffset{};
     };
 
     class ModMatrixExecutor
@@ -240,6 +251,16 @@ namespace pw8::modulation
                     case ModDestination::MasterReverbDiffusion:
                     case ModDestination::MasterReverbModDepth:
                     case ModDestination::MasterGain:
+                    case ModDestination::QuasarQsr1Distance:
+                    case ModDestination::QuasarQsr2Distance:
+                    case ModDestination::QuasarQsr1Angle:
+                    case ModDestination::QuasarQsr2Angle:
+                    case ModDestination::QuasarQsr1Height:
+                    case ModDestination::QuasarQsr2Height:
+                    case ModDestination::QuasarRoomAmount:
+                    case ModDestination::QuasarDelayFeedback:
+                    case ModDestination::QuasarDelayTime:
+                    case ModDestination::QuasarCntrLevel:
                         break; // Master-bus destinations: handled by applyMasterBus() in Engine.
                     case ModDestination::None:
                         break;
@@ -265,6 +286,16 @@ namespace pw8::modulation
                     case ModDestination::MasterReverbDiffusion:
                     case ModDestination::MasterReverbModDepth:
                     case ModDestination::MasterGain:
+                    case ModDestination::QuasarQsr1Distance:
+                    case ModDestination::QuasarQsr2Distance:
+                    case ModDestination::QuasarQsr1Angle:
+                    case ModDestination::QuasarQsr2Angle:
+                    case ModDestination::QuasarQsr1Height:
+                    case ModDestination::QuasarQsr2Height:
+                    case ModDestination::QuasarRoomAmount:
+                    case ModDestination::QuasarDelayFeedback:
+                    case ModDestination::QuasarDelayTime:
+                    case ModDestination::QuasarCntrLevel:
                         return true;
                     default:
                         break;
@@ -311,6 +342,36 @@ namespace pw8::modulation
                     case ModDestination::MasterGain:
                         out.masterGainOffset += sourceValue * route.amount;
                         break;
+                    case ModDestination::QuasarQsr1Distance:
+                        out.quasarQsr1DistanceOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::QuasarQsr2Distance:
+                        out.quasarQsr2DistanceOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::QuasarQsr1Angle:
+                        out.quasarQsr1AngleOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::QuasarQsr2Angle:
+                        out.quasarQsr2AngleOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::QuasarQsr1Height:
+                        out.quasarQsr1HeightOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::QuasarQsr2Height:
+                        out.quasarQsr2HeightOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::QuasarRoomAmount:
+                        out.quasarRoomAmountOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::QuasarDelayFeedback:
+                        out.quasarDelayFeedbackOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::QuasarDelayTime:
+                        out.quasarDelayTimeOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::QuasarCntrLevel:
+                        out.quasarCntrLevelOffset[slot] += sourceValue * route.amount;
+                        break;
                     default:
                         break;
                 }
@@ -347,6 +408,7 @@ namespace pw8::modulation
                 case ModSource::MpeSlide: return s.mpeSlide;
                 case ModSource::ModWheel: return s.modWheel;
                 case ModSource::Expression: return s.expression;
+                case ModSource::Sidechain: return s.sidechain;
                 case ModSource::Macro1: return s.macros[0];
                 case ModSource::Macro2: return s.macros[1];
                 case ModSource::Macro3: return s.macros[2];

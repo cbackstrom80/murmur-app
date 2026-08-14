@@ -358,6 +358,8 @@ namespace pw8::patch
                 {"qsr2RoomDamping", e.qsr2RoomDamping},
                 {"quasarDelayTimeMs", e.quasarDelayTimeMs},         {"quasarDelayFeedback", e.quasarDelayFeedback},
                 {"quasarDelayVolume", e.quasarDelayVolume},
+                {"quasarOutputMode", e.quasarOutputMode},
+                {"quasarCrossfeed", e.quasarCrossfeed},
             };
         }
 
@@ -482,6 +484,8 @@ namespace pw8::patch
             e.quasarDelayTimeMs = clampNum(j.value("quasarDelayTimeMs", 450.0f), 3.0f, 20000.0f);
             e.quasarDelayFeedback = clampNum(j.value("quasarDelayFeedback", 0.35f), 0.0f, 1.0f);
             e.quasarDelayVolume = clampNum(j.value("quasarDelayVolume", 0.25f), 0.0f, 1.0f);
+            e.quasarOutputMode = static_cast<int>(clampNum(j.value("quasarOutputMode", 0.0f), 0.0f, 2.0f));
+            e.quasarCrossfeed = clampNum(j.value("quasarCrossfeed", 0.0f), 0.0f, 1.0f);
         }
 
         void toJson(json& j, const LayerPatch& l)

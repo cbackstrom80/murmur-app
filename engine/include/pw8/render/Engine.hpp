@@ -7,6 +7,7 @@
 
 #include "pw8/algorithm/AlgorithmGraphCompiler.hpp"
 #include "pw8/core/AudioBlock.hpp"
+#include "pw8/dsp/Math.hpp"
 #include "pw8/effects/EffectChain.hpp"
 #include "pw8/oscillator/WavetableTable.hpp"
 #include "pw8/patch/PatchModDefaults.hpp"
@@ -108,6 +109,11 @@ namespace pw8::render
         // frozen to patch-load-only either.
         // Layer B is not voiced yet (Phase 8), so only Layer A has a live API.
         // STACK mode voices both layers; live setters still target Layer A only.
+
+        /// Channel 0 sidechain envelope (AU input bus follower), 0..1.
+        void setSidechainLevel(float level) noexcept { sidechainLevel_ = dsp::clamp(level, 0.0f, 1.0f); }
+
+        [[nodiscard]] float getSidechainLevel() const noexcept { return sidechainLevel_; }
 
         void setFilterLive(const filter::FilterParams& params) noexcept;
         [[nodiscard]] const filter::FilterParams& getFilterParams() const noexcept { return patch_.layerA.filter1; }
@@ -319,6 +325,7 @@ namespace pw8::render
         std::array<bool, 16> sustainPedalHeld_{};
         std::array<float, 16> channelModWheel_{};
         std::array<float, 16> channelExpression_{};
+        float sidechainLevel_ = 0.0f;
     };
 
 } // namespace pw8::render

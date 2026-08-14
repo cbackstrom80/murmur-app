@@ -97,12 +97,14 @@ namespace pw8::render
 
         modulation::ModSourceValues buildMasterBusModSources(const patch::Patch& patch,
                                                              const std::array<float, core::kNumLfosPerLayer>& layerLfoValues,
-                                                             float modWheel, float expression) noexcept
+                                                             float modWheel, float expression,
+                                                             float sidechain) noexcept
         {
             modulation::ModSourceValues sources;
             sources.layerLfos = layerLfoValues;
             sources.modWheel = modWheel;
             sources.expression = expression;
+            sources.sidechain = sidechain;
             for (std::size_t i = 0; i < sources.macros.size() && i < patch.macros.size(); ++i)
                 sources.macros[i] = patch.macros[i].value;
             return sources;
@@ -133,6 +135,25 @@ namespace pw8::render
                     e.qsr2Distance = dsp::clamp(e.qsr2Distance + mod.reverbPreDelayOffset[i] * 0.002f, 0.0f, 1.0f);
                     e.quasarDelayFeedback =
                         dsp::clamp(e.quasarDelayFeedback + mod.reverbDiffusionOffset[i] * 0.15f, 0.0f, 1.0f);
+
+                    e.qsr1Distance =
+                        dsp::clamp(e.qsr1Distance + mod.quasarQsr1DistanceOffset[i], 0.0f, 1.0f);
+                    e.qsr2Distance =
+                        dsp::clamp(e.qsr2Distance + mod.quasarQsr2DistanceOffset[i], 0.0f, 1.0f);
+                    e.qsr1AngleDeg =
+                        std::fmod(e.qsr1AngleDeg + mod.quasarQsr1AngleOffset[i] + 360.0f, 360.0f);
+                    e.qsr2AngleDeg =
+                        std::fmod(e.qsr2AngleDeg + mod.quasarQsr2AngleOffset[i] + 360.0f, 360.0f);
+                    e.qsr1Height = dsp::clamp(e.qsr1Height + mod.quasarQsr1HeightOffset[i], -1.0f, 1.0f);
+                    e.qsr2Height = dsp::clamp(e.qsr2Height + mod.quasarQsr2HeightOffset[i], -1.0f, 1.0f);
+                    const float roomAmt = mod.quasarRoomAmountOffset[i];
+                    e.qsr1RoomAmount = dsp::clamp(e.qsr1RoomAmount + roomAmt, 0.0f, 1.0f);
+                    e.qsr2RoomAmount = dsp::clamp(e.qsr2RoomAmount + roomAmt, 0.0f, 1.0f);
+                    e.quasarDelayFeedback =
+                        dsp::clamp(e.quasarDelayFeedback + mod.quasarDelayFeedbackOffset[i], 0.0f, 1.0f);
+                    e.quasarDelayTimeMs =
+                        dsp::clamp(e.quasarDelayTimeMs + mod.quasarDelayTimeOffset[i], 3.0f, 20000.0f);
+                    e.cntrLevel = dsp::clamp(e.cntrLevel + mod.quasarCntrLevelOffset[i], 0.0f, 1.0f);
                 }
             }
         }
@@ -934,7 +955,7 @@ namespace pw8::render
 
                 const auto modSources =
                     buildMasterBusModSources(patch_, masterModLfoValues, channelModWheel_[0],
-                                             channelExpression_[0]);
+                                             channelExpression_[0], sidechainLevel_);
                 const auto masterMod =
                     modulation::ModMatrixExecutor::applyMasterBus(patch_.layerA.modRoutes, modSources);
                 applyMasterModToEffects(moddedMasterEffects, masterMod);

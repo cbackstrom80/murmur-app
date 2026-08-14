@@ -208,6 +208,9 @@ namespace pw8::effects
         float quasarDelayTimeMs = 450.0f;
         float quasarDelayFeedback = 0.35f;
         float quasarDelayVolume = 0.25f;
+        /// 0 = Headphone, 1 = Speaker, 2 = Auto (default Headphone).
+        int quasarOutputMode = 0;
+        float quasarCrossfeed = 0.0f; ///< 0..1 contralateral mix (Speaker mode).
     };
 
 } // namespace pw8::effects

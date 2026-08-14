@@ -61,6 +61,13 @@ namespace pw8::effects
                 return;
             }
 
+            // Headphone vs Speaker compensation (Phase 3).
+            const int outputMode = p.quasarOutputMode;
+            const bool speakerMode = outputMode == 1;
+            const float itdScale = speakerMode ? 0.3f : 1.0f;
+            const float crossfeedAmt =
+                speakerMode ? dsp::clamp(dsp::lerp(0.25f, 0.4f, p.quasarCrossfeed), 0.0f, 0.5f) : 0.0f;
+
             const float sr = static_cast<float>(sampleRate_);
 
             // Input conditioning HPFs.
@@ -78,7 +85,7 @@ namespace pw8::effects
             // QSR1 path.
             SpatialParams sp1{p.qsr1AngleDeg, p.qsr1Height, p.qsr1Distance};
             float q1L = 0.0f, q1R = 0.0f;
-            pannerQsr1_.processMono(qsrMono, sp1, q1L, q1R);
+            pannerQsr1_.processMono(qsrMono, sp1, q1L, q1R, itdScale);
             RoomParams rp1{p.qsr1RoomSize, p.qsr1RoomDamping, p.qsr1RoomAmount};
             float r1L = 0.0f, r1R = 0.0f;
             roomQsr1_.processMono(qsrMono, rp1, r1L, r1R);
@@ -88,7 +95,7 @@ namespace pw8::effects
             // QSR2 path.
             SpatialParams sp2{p.qsr2AngleDeg, p.qsr2Height, p.qsr2Distance};
             float q2L = 0.0f, q2R = 0.0f;
-            pannerQsr2_.processMono(qsrMono, sp2, q2L, q2R);
+            pannerQsr2_.processMono(qsrMono, sp2, q2L, q2R, itdScale);
             RoomParams rp2{p.qsr2RoomSize, p.qsr2RoomDamping, p.qsr2RoomAmount};
             float r2L = 0.0f, r2R = 0.0f;
             roomQsr2_.processMono(qsrMono, rp2, r2L, r2R);
@@ -103,19 +110,37 @@ namespace pw8::effects
             float wetL = q1L * qsr1Lvl + q2L * qsr2Lvl + cntrL * cntrLvl;
             float wetR = q1R * qsr1Lvl + q2R * qsr2Lvl + cntrR * cntrLvl;
 
-            // Post-sum stereo delay (basic tape-style cross-feedback).
+            if (crossfeedAmt > 1.0e-6f)
+            {
+                const float cfL = wetL * (1.0f - crossfeedAmt) + wetR * crossfeedAmt;
+                const float cfR = wetR * (1.0f - crossfeedAmt) + wetL * crossfeedAmt;
+                wetL = cfL;
+                wetR = cfR;
+            }
+
+            // Post-sum stereo delay (Quasar FW 2.0 — freeze at feedback >= 0.99).
             const float delayMs = dsp::clamp(p.quasarDelayTimeMs, 3.0f, 20000.0f);
             const float delaySamples = dsp::clamp(delayMs * 0.001f * sr, 1.0f, sr * kMaxQuasarDelaySeconds - 4.0f);
             const float feedback = dsp::clamp(p.quasarDelayFeedback, 0.0f, 1.0f);
             const float delayVol = dsp::clamp(p.quasarDelayVolume, 0.0f, 1.0f);
+            const bool freeze = feedback >= 0.99f;
+            const float fbGain = freeze ? 1.0f : feedback;
 
             const float dInL = wetL;
             const float dInR = wetR;
             const float tapL = delayL_.readInterpolated(delaySamples);
             const float tapR = delayR_.readInterpolated(delaySamples);
 
-            delayL_.write(dInL + tapR * feedback);
-            delayR_.write(dInR + tapL * feedback);
+            if (freeze)
+            {
+                delayL_.write(tapL);
+                delayR_.write(tapR);
+            }
+            else
+            {
+                delayL_.write(dInL + tapR * fbGain);
+                delayR_.write(dInR + tapL * fbGain);
+            }
 
             const float delayHpfHz = 180.0f;
             const float delayLpfHz = 4200.0f;
