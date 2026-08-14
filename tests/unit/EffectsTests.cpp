@@ -1167,3 +1167,23 @@ TEST_CASE("BinauralSpace bypass mix=0 passes input unchanged", "[effects][quasar
     REQUIRE(outL == Catch::Approx(0.42f));
     REQUIRE(outR == Catch::Approx(-0.17f));
 }
+
+TEST_CASE("BinauralSpace delay freeze holds tail at feedback 1.0", "[effects][quasar]")
+{
+    BinauralSpaceProcessor proc;
+    proc.prepare(kSampleRate);
+    EffectSlotParams p;
+    p.type = EffectType::BinauralSpace;
+    p.mix = 1.0f;
+    p.quasarDelayVolume = 1.0f;
+    p.quasarDelayTimeMs = 30.0f;
+    p.quasarDelayFeedback = 1.0f;
+    p.cntrLevel = 1.0f;
+    p.qsr1Level = 0.0f;
+    p.qsr2Level = 0.0f;
+
+    float outL = 0.0f, outR = 0.0f;
+    proc.processStereo(1.0f, 1.0f, p, outL, outR);
+    proc.processStereo(0.0f, 0.0f, p, outL, outR);
+    REQUIRE(std::abs(outL) > 0.001f);
+}

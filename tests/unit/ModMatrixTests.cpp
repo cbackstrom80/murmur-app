@@ -241,6 +241,18 @@ TEST_CASE("ModMatrixExecutor applyMasterBus routes Macro2 to master reverb at Gl
     REQUIRE(out.mixOffset[0] == 0.0f);
 }
 
+TEST_CASE("ModMatrixExecutor applyMasterBus routes Sidechain to Quasar distance", "[modulation]")
+{
+    pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;
+    routes.push_back(ModRoute{ModSource::Sidechain, ModDestination::QuasarQsr1Distance, 2, 0.5f, ModScope::Global});
+
+    ModSourceValues sources;
+    sources.sidechain = 0.8f;
+
+    const auto out = ModMatrixExecutor::applyMasterBus(routes, sources);
+    REQUIRE(out.quasarQsr1DistanceOffset[2] == Catch::Approx(0.4f));
+}
+
 TEST_CASE("ModMatrixExecutor applyMasterBus ignores Voice-scoped master routes", "[modulation]")
 {
     pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;
