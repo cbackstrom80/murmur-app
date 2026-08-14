@@ -102,8 +102,6 @@ namespace pw8::plugin::ui
         liveTopologyStrip_.onExpandRequested = [this] { openGraphOverlay(); };
         liveTopologyStrip_.onNodeSelected = [this](int node) { syncNodeSelection(node); };
 
-        patchFocusPanel_.onPerformanceActivity = [this](int opHint) { notifyPerformancePulse(opHint); };
-
         compactViewButton_ = std::make_unique<CompactViewIconButton>();
         for (auto* btn : {&basicViewButton_, &advancedViewButton_, compactViewButton_.get()})
         {
@@ -165,7 +163,8 @@ namespace pw8::plugin::ui
     void PlayModeEditor::refreshFromPatch()
     {
         nodeSelectorRow_.repaint();
-        liveTopologyStrip_.repaint();
+        if (viewMode_ == ViewMode::Advanced)
+            liveTopologyStrip_.repaint();
         patchFocusPanel_.refreshFromPatch();
         compactEditor_.refreshFromPatch();
     }
@@ -181,17 +180,11 @@ namespace pw8::plugin::ui
         updateScopeUi();
     }
 
-    void PlayModeEditor::notifyPerformancePulse(int operatorHint)
-    {
-        if (operatorHint >= 0)
-            liveTopologyStrip_.setActiveOperator(operatorHint);
-        else
-            liveTopologyStrip_.setActiveOperator(nodeSelectorRow_.getSelectedNode());
-        liveTopologyStrip_.triggerPerformancePulse();
-    }
-
     void PlayModeEditor::openGraphOverlay()
     {
+        if (viewMode_ != ViewMode::Advanced)
+            return;
+
         addAndMakeVisible(topologyGraphOverlay_);
         topologyGraphOverlay_.setBounds(getLocalBounds());
         topologyGraphOverlay_.showOverlay(nodeSelectorRow_.getSelectedNode());
@@ -218,7 +211,7 @@ namespace pw8::plugin::ui
         if (modRoutingOverlay_.isVisible())
             return modRoutingOverlay_.keyPressed(key);
 
-        if (topologyGraphOverlay_.isVisible())
+        if (viewMode_ == ViewMode::Advanced && topologyGraphOverlay_.isVisible())
             return topologyGraphOverlay_.keyPressed(key);
 
         if (key == juce::KeyPress('a', juce::ModifierKeys::noModifiers, 0))
@@ -263,8 +256,11 @@ namespace pw8::plugin::ui
         }
 
         nodeSelectorRow_.setVisible(advanced);
-        liveTopologyStrip_.setVisible(!compact);
+        liveTopologyStrip_.setVisible(advanced);
         contextStrip_.setVisible(advanced);
+
+        if (!advanced)
+            closeGraphOverlay();
 
         for (auto& btn : tabButtons_)
             btn.setVisible(advanced);
@@ -468,11 +464,6 @@ namespace pw8::plugin::ui
             bounds.removeFromTop(layout::kSectionGap);
             contextStrip_.setBounds(bounds.removeFromTop(layout::kContextRowHeight));
             bounds.removeFromTop(layout::kBlockGap);
-        }
-        else if (viewMode_ == ViewMode::Basic)
-        {
-            liveTopologyStrip_.setBounds(bounds.removeFromBottom(layout::kTopologyStripHeight));
-            bounds.removeFromBottom(layout::kSectionGap);
         }
 
         if (advanced)

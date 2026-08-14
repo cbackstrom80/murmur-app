@@ -73,7 +73,6 @@ namespace pw8::plugin::ui
         void openGraphOverlay();
         void closeGraphOverlay();
         void syncNodeSelection(int nodeIndex);
-        void notifyPerformancePulse(int operatorHint = 0);
 
         ModAssignmentController modAssignmentController_;
         ObsidianLookAndFeel lookAndFeel_;
