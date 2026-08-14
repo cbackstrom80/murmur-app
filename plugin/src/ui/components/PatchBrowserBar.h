@@ -55,6 +55,7 @@ namespace pw8::plugin::ui
         content::PresetMetadataFilter browseFilter_;
         content::FavoritesStore* favoritesStore_ = nullptr;
         std::unique_ptr<juce::FileChooser> fileChooser_;
+        juce::String lastPresetCategory_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PatchBrowserBar)
     };

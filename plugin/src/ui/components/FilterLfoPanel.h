@@ -12,6 +12,7 @@
 #include "ModSourcePalette.h"
 #include "OscilloscopeView.h"
 #include "SectionPanel.h"
+#include "WireframePanel.h"
 #include "processor/PatchworkEightProcessor.h"
 #include "wireframe/FilterWireframeView.h"
 #include "wireframe/LfoWireframeView.h"
@@ -73,6 +74,7 @@ namespace pw8::plugin::ui
         std::unique_ptr<GlowKnob> filter2Resonance_;
         std::unique_ptr<GlowKnob> filter2Drive_;
         std::unique_ptr<GlowKnob> filter2KeyTrack_;
+        WireframePanel scopeFrame_{"SCOPE"};
         OscilloscopeView oscilloscope_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FilterLfoPanel)

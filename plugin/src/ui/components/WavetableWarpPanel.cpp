@@ -21,7 +21,8 @@ namespace pw8::plugin::ui
         nodeSelector_.setGlobalPillVisible(false);
         addAndMakeVisible(nodeSelector_);
 
-        addAndMakeVisible(stackView_);
+        addAndMakeVisible(meshFrame_);
+        meshFrame_.addAndMakeVisible(stackView_);
 
         engineHint_.setFont(fonts::value(11.0f));
         engineHint_.setColour(juce::Label::textColourId, palette::kTextDim);
@@ -129,6 +130,7 @@ namespace pw8::plugin::ui
         const bool showsStack = isWavetable || isGranular;
 
         stackView_.setVisible(showsStack);
+        meshFrame_.setVisible(showsStack);
         stackView_.setGranularOverlay(isGranular);
         if (showsStack)
             stackView_.ensureDefaultWavetableLoaded();
@@ -179,7 +181,8 @@ namespace pw8::plugin::ui
                 k->setBounds(knobRow.removeFromLeft(knobWidth).reduced(4));
         }
 
-        stackView_.setBounds(bounds);
+        meshFrame_.setBounds(bounds);
+        stackView_.setBounds(meshFrame_.getContentBounds());
     }
 
     void WavetableWarpPanel::timerCallback()

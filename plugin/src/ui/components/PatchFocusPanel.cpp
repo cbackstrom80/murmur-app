@@ -81,7 +81,15 @@ namespace pw8::plugin::ui
             basicLayout_ = false;
         introLabel_.setVisible(basicLayout_ && !compactLayout_);
         panel_.setVisible(!compactLayout_);
+        if (!compactLayout_)
+            orbitHole_ = {};
         applyLayoutMode();
+        resized();
+    }
+
+    void PatchFocusPanel::setOrbitHole(juce::Rectangle<int> centerHole)
+    {
+        orbitHole_ = centerHole;
         resized();
     }
 
@@ -274,6 +282,28 @@ namespace pw8::plugin::ui
     {
         if (compactLayout_)
         {
+            if (!orbitHole_.isEmpty() && !knobs_.empty())
+            {
+                subtitleLabel_.setBounds(0, 0, 0, 0);
+                const auto centre = orbitHole_.getCentre();
+                const int orbitRadius = juce::jmax(orbitHole_.getWidth(), orbitHole_.getHeight()) / 2 + 36;
+                const int knobSize = 64;
+                static constexpr float kAngles[] = {
+                    -juce::MathConstants<float>::halfPi,
+                    0.0f,
+                    juce::MathConstants<float>::halfPi,
+                    juce::MathConstants<float>::pi,
+                };
+                for (std::size_t i = 0; i < knobs_.size() && i < 4; ++i)
+                {
+                    const float a = kAngles[i];
+                    const int cx = centre.x + static_cast<int>(std::cos(a) * static_cast<float>(orbitRadius));
+                    const int cy = centre.y + static_cast<int>(std::sin(a) * static_cast<float>(orbitRadius));
+                    knobs_[i]->setBounds(cx - knobSize / 2, cy - knobSize / 2, knobSize, knobSize);
+                }
+                return;
+            }
+
             auto bounds = getLocalBounds().reduced(2, 0);
             subtitleLabel_.setBounds(bounds.removeFromTop(16));
             bounds.removeFromTop(4);

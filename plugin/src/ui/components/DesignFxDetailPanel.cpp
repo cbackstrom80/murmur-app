@@ -73,9 +73,10 @@ namespace pw8::plugin::ui
         deferredLabel_.setJustificationType(juce::Justification::centredLeft);
         addAndMakeVisible(deferredLabel_);
 
+        addAndMakeVisible(detailFrame_);
+        detailFrame_.addAndMakeVisible(knobViewport_);
         knobViewport_.setViewedComponent(&knobContainer_, false);
         knobViewport_.setScrollBarsShown(true, false);
-        addAndMakeVisible(knobViewport_);
 
         selectSlot(0);
         startTimerHz(4);
@@ -170,10 +171,13 @@ namespace pw8::plugin::ui
         if (deferredLabel_.isVisible())
         {
             deferredLabel_.setBounds(bounds);
+            detailFrame_.setVisible(false);
             return;
         }
 
-        knobViewport_.setBounds(bounds);
+        detailFrame_.setVisible(true);
+        detailFrame_.setBounds(bounds);
+        knobViewport_.setBounds(detailFrame_.getContentBounds());
 
         constexpr int kKnobWidth = 72;
         constexpr int kKnobHeight = 88;

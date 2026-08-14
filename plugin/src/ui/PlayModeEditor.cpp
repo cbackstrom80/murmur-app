@@ -1,5 +1,7 @@
 #include "PlayModeEditor.h"
 
+#include <cmath>
+
 #include "PlayModeLayout.h"
 #include "components/ModSourceChip.h"
 #include "theme/BrandingAssets.h"
@@ -8,6 +10,42 @@
 
 namespace pw8::plugin::ui
 {
+    namespace
+    {
+        class CompactViewIconButton : public juce::TextButton
+        {
+        public:
+            CompactViewIconButton() : juce::TextButton(juce::String())
+            {
+                setTooltip("Compact teleprompter (320px performance HUD)");
+            }
+
+            void paintButton(juce::Graphics& g, bool highlighted, bool down) override
+            {
+                juce::TextButton::paintButton(g, highlighted, down);
+
+                auto bounds = getLocalBounds().toFloat().reduced(6.0f);
+                const auto centre = bounds.getCentre();
+                const float outerR = juce::jmin(bounds.getWidth(), bounds.getHeight()) * 0.42f;
+                const float innerR = outerR * 0.55f;
+                const auto colour = getToggleState() ? palette::kAccentWarm : palette::kTextSecondary;
+
+                g.setColour(colour.withAlpha(getToggleState() ? 0.85f : 0.65f));
+                g.drawEllipse(centre.x - outerR, centre.y - outerR, outerR * 2.0f, outerR * 2.0f, 1.3f);
+                g.drawEllipse(centre.x - innerR, centre.y - innerR, innerR * 2.0f, innerR * 2.0f, 1.0f);
+
+                for (int i = 0; i < 4; ++i)
+                {
+                    const float a = static_cast<float>(i) * juce::MathConstants<float>::halfPi;
+                    const float dotR = 2.0f;
+                    const float orbit = outerR * 0.78f;
+                    g.fillEllipse(centre.x + std::cos(a) * orbit - dotR, centre.y + std::sin(a) * orbit - dotR,
+                                  dotR * 2.0f, dotR * 2.0f);
+                }
+            }
+        };
+    } // namespace
+
     PlayModeEditor::PlayModeEditor(PatchworkEightProcessor& processor, SharedEditorChrome& chrome)
         : chrome_(chrome),
           arpLauncherChip_(processor),
@@ -66,7 +104,8 @@ namespace pw8::plugin::ui
 
         patchFocusPanel_.onPerformanceActivity = [this](int opHint) { notifyPerformancePulse(opHint); };
 
-        for (auto* btn : {&basicViewButton_, &advancedViewButton_, &compactViewButton_})
+        compactViewButton_ = std::make_unique<CompactViewIconButton>();
+        for (auto* btn : {&basicViewButton_, &advancedViewButton_, compactViewButton_.get()})
         {
             btn->setClickingTogglesState(true);
             btn->setRadioGroupId(9000);
@@ -78,7 +117,7 @@ namespace pw8::plugin::ui
         }
         basicViewButton_.onClick = [this] { setViewMode(ViewMode::Basic); };
         advancedViewButton_.onClick = [this] { setViewMode(ViewMode::Advanced); };
-        compactViewButton_.onClick = [this] { setViewMode(ViewMode::Compact); };
+        compactViewButton_->onClick = [this] { setViewMode(ViewMode::Compact); };
 
         addChildComponent(nodeSelectorRow_);
         nodeSelectorRow_.onNodeSelected = [this](int node) { syncNodeSelection(node); };
@@ -205,7 +244,7 @@ namespace pw8::plugin::ui
         viewMode_ = mode;
         basicViewButton_.setToggleState(mode == ViewMode::Basic, juce::dontSendNotification);
         advancedViewButton_.setToggleState(mode == ViewMode::Advanced, juce::dontSendNotification);
-        compactViewButton_.setToggleState(mode == ViewMode::Compact, juce::dontSendNotification);
+        compactViewButton_->setToggleState(mode == ViewMode::Compact, juce::dontSendNotification);
 
         const bool compact = mode == ViewMode::Compact;
         const bool advanced = mode == ViewMode::Advanced;
@@ -213,8 +252,8 @@ namespace pw8::plugin::ui
         arpLauncherChip_.setVisible(!compact);
 
         basicViewButton_.setVisible(true);
-        advancedViewButton_.setVisible(true);
-        compactViewButton_.setVisible(true);
+        advancedViewButton_.setVisible(!compact);
+        compactViewButton_->setVisible(true);
 
         compactEditor_.setVisible(compact);
         if (compact)
@@ -404,9 +443,8 @@ namespace pw8::plugin::ui
         {
             auto bounds = getLocalBounds().reduced(layout::kCompactOuterMargin);
             auto modeRow = bounds.removeFromTop(layout::kViewModeRowHeight);
-            basicViewButton_.setBounds(modeRow.removeFromLeft(72).reduced(2));
-            advancedViewButton_.setBounds(modeRow.removeFromLeft(88).reduced(2));
-            compactViewButton_.setBounds(modeRow.removeFromLeft(80).reduced(2));
+            basicViewButton_.setBounds(modeRow.removeFromLeft(64).reduced(2));
+            compactViewButton_->setBounds(modeRow.removeFromLeft(layout::kCompactViewButtonWidth).reduced(2));
             compactEditor_.setBounds(bounds);
             return;
         }
@@ -414,9 +452,9 @@ namespace pw8::plugin::ui
         auto bounds = getLocalBounds();
 
         auto modeRow = bounds.removeFromTop(layout::kViewModeRowHeight);
-        basicViewButton_.setBounds(modeRow.removeFromLeft(72).reduced(2));
-        advancedViewButton_.setBounds(modeRow.removeFromLeft(88).reduced(2));
-        compactViewButton_.setBounds(modeRow.removeFromLeft(80).reduced(2));
+        basicViewButton_.setBounds(modeRow.removeFromLeft(64).reduced(2));
+        advancedViewButton_.setBounds(modeRow.removeFromLeft(80).reduced(2));
+        compactViewButton_->setBounds(modeRow.removeFromLeft(layout::kCompactViewButtonWidth).reduced(2));
         arpLauncherChip_.setBounds(modeRow.removeFromRight(168).reduced(2, 1));
         bounds.removeFromTop(layout::kBlockGap);
 

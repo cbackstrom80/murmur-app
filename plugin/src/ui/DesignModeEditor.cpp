@@ -1,25 +1,57 @@
 #include "DesignModeEditor.h"
 
 #include "PlayModeLayout.h"
+#include "components/DesignTabIconGrid.h"
+#include "theme/ObsidianFonts.h"
 #include "theme/ObsidianPalette.h"
 
 namespace pw8::plugin::ui
 {
+    namespace
+    {
+        class DesignTabButton : public juce::TextButton
+        {
+        public:
+            DesignTabButton(const juce::String& label, designtabicons::DesignTab tab)
+                : juce::TextButton(label), tab_(tab)
+            {
+            }
+
+            void paintButton(juce::Graphics& g, bool highlighted, bool down) override
+            {
+                juce::TextButton::paintButton(g, highlighted, down);
+
+                auto bounds = getLocalBounds().toFloat().reduced(4.0f, 3.0f);
+                auto iconArea = bounds.removeFromLeft(18.0f);
+                const auto colour = getToggleState() ? palette::kMurmurViolet : palette::kTextSecondary;
+                designtabicons::drawTabIcon(g, tab_, iconArea.reduced(2.0f), colour, 1.3f);
+            }
+
+        private:
+            designtabicons::DesignTab tab_;
+        };
+    } // namespace
+
     DesignModeEditor::DesignModeEditor(PatchworkEightProcessor& processor) : processor_(processor)
     {
         setLookAndFeel(&lookAndFeel_);
 
+        tabButtons_[0] = std::make_unique<DesignTabButton>("Graph", designtabicons::DesignTab::Graph);
+        tabButtons_[1] = std::make_unique<DesignTabButton>("Matrix", designtabicons::DesignTab::Matrix);
+        tabButtons_[2] = std::make_unique<DesignTabButton>("FX", designtabicons::DesignTab::Fx);
+        tabButtons_[3] = std::make_unique<DesignTabButton>("Wavetable", designtabicons::DesignTab::Wavetable);
+
         for (std::size_t i = 0; i < tabButtons_.size(); ++i)
         {
-            auto& btn = tabButtons_[i];
-            btn.setClickingTogglesState(true);
-            btn.setRadioGroupId(9100);
-            btn.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
-            btn.setColour(juce::TextButton::buttonOnColourId, palette::kMurmurVioletDeep.withAlpha(0.45f));
-            btn.setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
-            btn.setColour(juce::TextButton::textColourOnId, palette::kMurmurViolet);
-            btn.onClick = [this, page = static_cast<Page>(i)] { showPage(page); };
-            addAndMakeVisible(btn);
+            auto* btn = tabButtons_[i].get();
+            btn->setClickingTogglesState(true);
+            btn->setRadioGroupId(9100);
+            btn->setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
+            btn->setColour(juce::TextButton::buttonOnColourId, palette::kMurmurVioletDeep.withAlpha(0.45f));
+            btn->setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
+            btn->setColour(juce::TextButton::textColourOnId, palette::kMurmurViolet);
+            btn->onClick = [this, page = static_cast<Page>(i)] { showPage(page); };
+            addAndMakeVisible(*btn);
         }
 
         addChildComponent(graphPage_);
@@ -81,7 +113,7 @@ namespace pw8::plugin::ui
         wavetablePage_.setVisible(page == Page::Wavetable);
 
         for (std::size_t i = 0; i < tabButtons_.size(); ++i)
-            tabButtons_[i].setToggleState(static_cast<Page>(i) == page, juce::dontSendNotification);
+            tabButtons_[i]->setToggleState(static_cast<Page>(i) == page, juce::dontSendNotification);
 
         resized();
     }
@@ -101,7 +133,7 @@ namespace pw8::plugin::ui
         auto tabRow = bounds.removeFromTop(layout::kTabRowHeight);
         const int tabWidth = tabRow.getWidth() / static_cast<int>(tabButtons_.size());
         for (auto& btn : tabButtons_)
-            btn.setBounds(tabRow.removeFromLeft(tabWidth).reduced(2, 2));
+            btn->setBounds(tabRow.removeFromLeft(tabWidth).reduced(2, 2));
         bounds.removeFromTop(layout::kBlockGap);
 
         graphPage_.setBounds(bounds);

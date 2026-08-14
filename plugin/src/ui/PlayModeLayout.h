@@ -15,6 +15,7 @@ namespace pw8::plugin::ui::layout
     inline constexpr int kEngineRowHeight = 36;
     inline constexpr int kContextRowHeight = 28;
     inline constexpr int kViewModeRowHeight = 30;
+    inline constexpr int kCompactViewButtonWidth = 34;
     inline constexpr int kPatchFocusHeight = 132;
     inline constexpr int kTopologyStripHeight = 52;
     inline constexpr int kTabRowHeight = 32;

@@ -20,6 +20,7 @@ namespace pw8::plugin::ui
 
         void refreshFromPatch();
         void resized() override;
+        void paint(juce::Graphics& g) override;
         void paintOverChildren(juce::Graphics& g) override;
         void mouseDown(const juce::MouseEvent& event) override;
         void mouseDrag(const juce::MouseEvent& event) override;
@@ -48,6 +49,7 @@ namespace pw8::plugin::ui
         void continueAmountDrag(float currentX);
         void endAmountDrag();
         void timerCallback() override;
+        void paintRoutePreview(juce::Graphics& g, juce::Rectangle<int> area) const;
 
         PatchworkEightProcessor& processor_;
         ModAssignmentController assignmentController_;
@@ -58,6 +60,7 @@ namespace pw8::plugin::ui
         juce::ComboBox targetCombo_;
         juce::TextButton addRouteButton_{"Add Route"};
         juce::Label routesHint_{"", "Routes (multiple per destination sum):"};
+        juce::Rectangle<int> previewArea_;
         juce::Rectangle<int> connectionsArea_;
 
         std::vector<DestChoice> destChoices_;

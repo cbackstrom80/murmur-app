@@ -3,6 +3,7 @@
 #include "../theme/BrandingAssets.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
+#include "InterstellarHudDraw.h"
 
 namespace pw8::plugin::ui
 {
@@ -128,6 +129,15 @@ namespace pw8::plugin::ui
         if (patchHintLabel_.getText() != hint)
             patchHintLabel_.setText(hint, juce::dontSendNotification);
         patchHintLabel_.setVisible(!hint.isEmpty());
+
+        juce::String category;
+        if (const auto presetPath = processor_.getCurrentPresetPath(); presetPath.isNotEmpty())
+            category = juce::File(presetPath).getParentDirectory().getFileName();
+        if (category != lastPresetCategory_)
+        {
+            lastPresetCategory_ = category;
+            repaint();
+        }
     }
 
     void PatchBrowserBar::paint(juce::Graphics& g)
@@ -184,6 +194,9 @@ namespace pw8::plugin::ui
             g.fillRoundedRectangle(pill, 4.0f);
             g.setColour(palette::kBorder.withAlpha(0.55f));
             g.drawRoundedRectangle(pill, 4.0f, 1.0f);
+
+            if (interstellar::isInterstellarCategory(lastPresetCategory_))
+                interstellar::paintHudBadge(g, pill.expanded(1.0f), true);
         }
     }
 

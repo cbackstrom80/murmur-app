@@ -4,6 +4,7 @@
 #include "../theme/ObsidianPalette.h"
 #include "ModRoutingUi.h"
 #include "ModSourceChip.h"
+#include "WireframePanel.h"
 
 namespace pw8::plugin::ui
 {
@@ -14,6 +15,7 @@ namespace pw8::plugin::ui
         constexpr int kConnectionRowHeight = 22;
         constexpr int kRemoveButtonWidth = 16;
         constexpr int kAmountColumnWidth = 72;
+        constexpr int kPreviewHeight = 72;
     } // namespace
 
     ModMatrixDesignPanel::ModMatrixDesignPanel(PatchworkEightProcessor& processor) : processor_(processor),
@@ -133,6 +135,9 @@ namespace pw8::plugin::ui
         addRouteButton_.setBounds(pickerRow.removeFromLeft(96).reduced(0, 2));
         bounds.removeFromTop(8);
 
+        previewArea_ = bounds.removeFromTop(kPreviewHeight);
+        bounds.removeFromTop(6);
+
         routesHint_.setBounds(bounds.removeFromTop(18));
         bounds.removeFromTop(4);
 
@@ -220,6 +225,112 @@ namespace pw8::plugin::ui
     void ModMatrixDesignPanel::timerCallback()
     {
         repaint();
+    }
+
+    void ModMatrixDesignPanel::paint(juce::Graphics& g)
+    {
+        if (previewArea_.isEmpty())
+            return;
+
+        WireframePanel::paintFrame(g, previewArea_.toFloat(), "ROUTE MAP", palette::kAccent);
+        paintRoutePreview(g, previewArea_.reduced(8, 22));
+    }
+
+    void ModMatrixDesignPanel::paintRoutePreview(juce::Graphics& g, juce::Rectangle<int> area) const
+    {
+        if (area.isEmpty())
+            return;
+
+        const auto routeArea = area.toFloat().reduced(4.0f, 2.0f);
+        const auto& routes = processor_.getCurrentPatch().layerA.modRoutes;
+
+        struct SourceAnchor
+        {
+            modulation::ModSource source = modulation::ModSource::None;
+            juce::Point<float> pt;
+        };
+        struct DestAnchor
+        {
+            modulation::ModDestination destination = modulation::ModDestination::None;
+            std::uint8_t targetIndex = 0;
+            juce::Point<float> pt;
+        };
+
+        std::vector<SourceAnchor> sources;
+        std::vector<DestAnchor> destinations;
+
+        auto sourcePt = [&](modulation::ModSource src) -> juce::Point<float> {
+            for (const auto& s : sources)
+                if (s.source == src)
+                    return s.pt;
+            const float y = routeArea.getY() + routeArea.getHeight() * (0.18f + static_cast<float>(sources.size()) * 0.22f);
+            const auto pt = juce::Point<float>{routeArea.getX() + routeArea.getWidth() * 0.08f, y};
+            sources.push_back({src, pt});
+            return pt;
+        };
+
+        auto destPt = [&](modulation::ModDestination dest, std::uint8_t target) -> juce::Point<float> {
+            for (const auto& d : destinations)
+            {
+                if (d.destination == dest && d.targetIndex == target)
+                    return d.pt;
+            }
+            const float y =
+                routeArea.getY() + routeArea.getHeight() * (0.22f + static_cast<float>(destinations.size()) * 0.24f);
+            const auto pt = juce::Point<float>{routeArea.getRight() - routeArea.getWidth() * 0.08f, y};
+            destinations.push_back({dest, target, pt});
+            return pt;
+        };
+
+        bool anyActive = false;
+        for (const auto& route : routes)
+        {
+            if (!route.isActive())
+                continue;
+            anyActive = true;
+
+            const auto from = sourcePt(route.source);
+            const auto to = destPt(route.destination, route.targetIndex);
+            const auto colour = palette::modSourceColour(static_cast<int>(route.source));
+
+            juce::Path link;
+            link.startNewSubPath(from);
+            const float cx = (from.x + to.x) * 0.5f;
+            link.quadraticTo(cx, from.y - 8.0f, to.x, to.y);
+
+            g.setColour(colour.withAlpha(0.18f));
+            g.strokePath(link, juce::PathStrokeType(3.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+            g.setColour(colour.withAlpha(0.78f));
+            g.strokePath(link, juce::PathStrokeType(1.4f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+        }
+
+        g.setFont(fonts::label(7.5f));
+        for (const auto& s : sources)
+        {
+            g.setColour(palette::modSourceColour(static_cast<int>(s.source)));
+            g.fillEllipse(s.pt.x - 4.0f, s.pt.y - 4.0f, 8.0f, 8.0f);
+            g.drawText(modSourceLabel(s.source),
+                       juce::Rectangle<float>(s.pt.x - 22.0f, s.pt.y + 5.0f, 44.0f, 10.0f),
+                       juce::Justification::centred);
+        }
+
+        for (const auto& d : destinations)
+        {
+            g.setColour(palette::kAccent.withAlpha(0.22f));
+            g.fillEllipse(d.pt.x - 5.0f, d.pt.y - 5.0f, 10.0f, 10.0f);
+            g.setColour(palette::kAccent);
+            g.drawEllipse(d.pt.x - 5.0f, d.pt.y - 5.0f, 10.0f, 10.0f, 1.2f);
+            g.drawText(modDestinationLabel(d.destination, d.targetIndex),
+                       juce::Rectangle<float>(d.pt.x - 36.0f, d.pt.y + 6.0f, 72.0f, 10.0f),
+                       juce::Justification::centred);
+        }
+
+        if (!anyActive)
+        {
+            g.setColour(palette::kTextDim);
+            g.setFont(fonts::value(9.0f));
+            g.drawText("Route preview — add routes below", routeArea, juce::Justification::centred);
+        }
     }
 
     void ModMatrixDesignPanel::paintOverChildren(juce::Graphics& g)

@@ -6,6 +6,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "GlowKnob.h"
+#include "WireframePanel.h"
 #include "processor/PatchworkEightProcessor.h"
 
 namespace pw8::plugin::ui
@@ -35,6 +36,7 @@ namespace pw8::plugin::ui
         };
         juce::Label typeLabel_;
         juce::Label deferredLabel_;
+        WireframePanel detailFrame_{"FX PARAMS"};
         juce::Viewport knobViewport_;
         juce::Component knobContainer_;
         std::vector<std::unique_ptr<GlowKnob>> paramKnobs_;

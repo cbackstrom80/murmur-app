@@ -6,6 +6,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "components/DesignTabIconGrid.h"
 #include "components/AlgorithmGraphEditor.h"
 #include "components/DesignFxDetailPanel.h"
 #include "components/ModMatrixDesignPanel.h"
@@ -43,12 +44,7 @@ namespace pw8::plugin::ui
 
         PatchworkEightProcessor& processor_;
         ObsidianLookAndFeel lookAndFeel_;
-        std::array<juce::TextButton, 4> tabButtons_{
-            juce::TextButton{"Graph"},
-            juce::TextButton{"Matrix"},
-            juce::TextButton{"FX"},
-            juce::TextButton{"Wavetable"},
-        };
+        std::array<std::unique_ptr<juce::TextButton>, 4> tabButtons_;
         Page currentPage_ = Page::Graph;
         juce::Component graphPage_;
         juce::Component matrixPage_;

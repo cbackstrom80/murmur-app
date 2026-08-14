@@ -3,6 +3,7 @@
 #include "../theme/ObsidianDraw.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
+#include "InterstellarHudDraw.h"
 
 namespace pw8::plugin::ui
 {
@@ -308,6 +309,9 @@ namespace pw8::plugin::ui
         g.setColour(palette::kTextSecondary);
         g.setFont(fonts::label(fonts::kBodyLabelSize));
         g.drawText(formatEntrySubline(entry), bounds, juce::Justification::centredLeft, true);
+
+        if (interstellar::isInterstellarCategory(entry.category))
+            interstellar::paintHudBadge(g, rowBounds.expanded(0.0f, 1.0f), false);
 
         const bool starred = favoritesStore_.isFavorite(entry.absolutePath);
         g.setColour(starred ? palette::kAccent : palette::kTextSecondary);

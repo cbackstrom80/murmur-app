@@ -5,17 +5,15 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "CircularSpectrumScope.h"
-#include "ScopeModeToggle.h"
 #include "content/FavoritesStore.h"
 #include "content/PresetIndex.h"
-#include "GlowKnob.h"
 #include "PatchFocusPanel.h"
 #include "processor/PatchworkEightProcessor.h"
 #include "state/PluginState.h"
 
 namespace pw8::plugin::ui
 {
-    /// 320px-wide performance strip: patch header, circular FFT, volume, Knobs of Interest.
+    /// 320px-wide performance teleprompter: mission card, circular scope hub, 4 KOINS orbit.
     class CompactModeEditor : public juce::Component, private juce::Timer
     {
     public:
@@ -23,6 +21,7 @@ namespace pw8::plugin::ui
 
         ~CompactModeEditor() override;
 
+        void paint(juce::Graphics& g) override;
         void resized() override;
 
         void setPresetIndex(content::PresetIndex* presetIndex) { presetIndex_ = presetIndex; }
@@ -36,19 +35,23 @@ namespace pw8::plugin::ui
     private:
         void timerCallback() override;
         void stepPreset(int direction);
+        void updateMissionCard();
 
         PatchworkEightProcessor& processor_;
         content::PresetIndex* presetIndex_ = nullptr;
         content::FavoritesStore* favoritesStore_ = nullptr;
         content::PresetMetadataFilter browseFilter_;
 
-        juce::Label patchNameLabel_;
         juce::TextButton prevButton_{"<"};
         juce::TextButton nextButton_{">"};
+        juce::Label missionNameLabel_;
+        juce::Label missionCategoryLabel_;
+        juce::Label missionHintLabel_;
         CircularSpectrumScope circularScope_;
-        ScopeModeToggle scopeModeToggle_;
-        std::unique_ptr<GlowKnob> volumeKnob_;
         PatchFocusPanel focusPanel_;
+
+        juce::String lastCategory_;
+        juce::String lastHint_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CompactModeEditor)
     };

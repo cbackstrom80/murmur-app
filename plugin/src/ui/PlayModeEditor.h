@@ -88,7 +88,7 @@ namespace pw8::plugin::ui
         CompactModeEditor compactEditor_;
         juce::TextButton basicViewButton_{"Basic"};
         juce::TextButton advancedViewButton_{"Advanced"};
-        juce::TextButton compactViewButton_{"Compact"};
+        std::unique_ptr<juce::TextButton> compactViewButton_;
         std::array<juce::TextButton, 5> tabButtons_{
             juce::TextButton{"OSC"},
             juce::TextButton{"FILTER"},

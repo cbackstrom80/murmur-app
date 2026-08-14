@@ -84,7 +84,8 @@ namespace pw8::plugin::ui
         filter2Panel_.addAndMakeVisible(filter2EnabledLabel_);
 
         addAndMakeVisible(filter2Panel_);
-        addAndMakeVisible(oscilloscope_);
+        addAndMakeVisible(scopeFrame_);
+        scopeFrame_.addAndMakeVisible(oscilloscope_);
 
         setScope(FilterPanelScope::Global, 0);
     }
@@ -203,8 +204,9 @@ namespace pw8::plugin::ui
     {
         auto bounds = getLocalBounds();
 
-        auto scopeRow = bounds.removeFromBottom(56);
-        oscilloscope_.setBounds(scopeRow.reduced(4, 2));
+        auto scopeRow = bounds.removeFromBottom(64);
+        scopeFrame_.setBounds(scopeRow.reduced(4, 2));
+        oscilloscope_.setBounds(scopeFrame_.getContentBounds());
 
         auto paletteRow = bounds.removeFromTop(30);
         modSourcePalette_.setBounds(paletteRow.reduced(4, 2));

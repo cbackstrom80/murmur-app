@@ -8,6 +8,7 @@
 #include "ModAssignmentController.h"
 #include "EngineNodeStrip.h"
 #include "WavetableStackView.h"
+#include "WireframePanel.h"
 #include "processor/PatchworkEightProcessor.h"
 
 namespace pw8::plugin::ui
@@ -34,6 +35,7 @@ namespace pw8::plugin::ui
         PatchworkEightProcessor& processor_;
         ModAssignmentController assignmentController_;
         EngineNodeStrip nodeSelector_;
+        WireframePanel meshFrame_{"WT MESH"};
         WavetableStackView stackView_;
         juce::Label engineHint_{"", ""};
 

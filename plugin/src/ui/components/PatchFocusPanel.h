@@ -31,6 +31,9 @@ namespace pw8::plugin::ui
         /// Compact 320px column: smaller knobs, tighter grid, max 4 focus controls.
         void setCompactLayout(bool compactLayout);
 
+        /// Teleprompter: orbit up to 4 KOINS around `centerHole` (cardinal positions).
+        void setOrbitHole(juce::Rectangle<int> centerHole);
+
         /// Force rebuild from the processor's current patch (e.g. immediately after preset load).
         void refreshFromPatch();
 
@@ -53,6 +56,7 @@ namespace pw8::plugin::ui
         juce::TextButton advancedButton_{"Mod Matrix (M)"};
         bool basicLayout_ = true;
         bool compactLayout_ = false;
+        juce::Rectangle<int> orbitHole_;
         std::vector<PatchFocusKnobSpec> lastSpecs_;
         std::vector<std::unique_ptr<GlowKnob>> knobs_;
         float lastModWheel_ = -1.0f;
