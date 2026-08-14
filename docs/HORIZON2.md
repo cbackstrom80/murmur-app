@@ -3,6 +3,16 @@
 **Branch:** `cursor/favorites-unison-stack-daw`  
 **Context:** PLAY-only UI (Basic / Compact / Advanced), 933 factory presets with 1–3 feature macro KOINS.
 
+## Shipped in v1.1.1 (GLOBAL panel + morph rollout)
+
+| Item | Where |
+|------|--------|
+| **GLOBAL → QUASAR panel** | `GlobalPanel` — CHAIN / QUASAR / OUTPUT sub-tabs in Advanced PLAY |
+| **Morph on all 75 Spatial presets** | `scripts/add_morph_koin_spatial_presets.py` |
+| **Quasar paramOverrides in morph** | `MorphKoinExecutor.hpp` — angles, heights, room damping |
+| **Sidechain polish** | Smoother RMS follower; AU connect hints in performance badge |
+| **Meta-mod stub** | `docs/META_MOD_PLAN.md` |
+
 ## Shipped in v1.1.0 (Quasar Phase 3 + Morph + Sidechain)
 
 | Priority | Item | Where |
@@ -28,10 +38,10 @@
 | Item | Notes |
 |------|-------|
 | **EngineType::External (op 0)** | Sidechain follower ships; full EXT oscillator deferred — see `EXT_OSCILLATOR_AU_THEORY.md`. |
-| **GLOBAL tab QUASAR sub-panel** | Phase 3 params under Advanced → FX today. |
+| **GLOBAL tab QUASAR sub-panel** | Shipped v1.1.1 — `GlobalPanel` |
 | **Dissemination for Macro4–8** | MVP samples featured macros (0–2) only; CC-mapped macros stay live. |
 | **Spread channel weights** | PoliMATHS per-channel attenuverter emulation for unison voices. |
-| **Meta-mod (macro → mod route depth)** | Engine gap documented in `ASM_MACRO_KOINS_RESEARCH.md`. |
+| **Meta-mod (macro → mod route depth)** | Documented in `docs/META_MOD_PLAN.md`; executor deferred. |
 
 ## Deferred (and why)
 
