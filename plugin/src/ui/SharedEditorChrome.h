@@ -6,7 +6,7 @@
 
 namespace pw8::plugin::ui
 {
-    /// Header chrome shared between PLAY and DESIGN modes (owned by MurmurRootEditor).
+    /// Header chrome shared across PLAY view modes (owned by MurmurRootEditor).
     struct SharedEditorChrome
     {
         PatchBrowserBar& patchBrowserBar;

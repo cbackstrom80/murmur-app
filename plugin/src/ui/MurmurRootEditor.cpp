@@ -2,7 +2,6 @@
 
 #include "PlayModeLayout.h"
 #include "theme/BrandingAssets.h"
-#include "theme/ObsidianFonts.h"
 #include "theme/ObsidianPalette.h"
 
 namespace pw8::plugin::ui
@@ -11,8 +10,7 @@ namespace pw8::plugin::ui
         : juce::AudioProcessorEditor(&processor),
           patchBrowserBar_(processor),
           presetBrowserOverlay_(processor, patchBrowserBar_.getPresetIndex(), favoritesStore_),
-          playModeEditor_(processor, chrome_),
-          designModeEditor_(processor)
+          playModeEditor_(processor, chrome_)
     {
         setLookAndFeel(&lookAndFeel_);
 
@@ -30,19 +28,6 @@ namespace pw8::plugin::ui
 
         wireSharedChrome();
 
-        for (auto* btn : {&playModeButton_, &designModeButton_})
-        {
-            btn->setClickingTogglesState(true);
-            btn->setRadioGroupId(9050);
-            btn->setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
-            btn->setColour(juce::TextButton::buttonOnColourId, palette::kAccentDim.withAlpha(0.55f));
-            btn->setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
-            btn->setColour(juce::TextButton::textColourOnId, palette::kAccent);
-            addAndMakeVisible(*btn);
-        }
-        playModeButton_.onClick = [this] { setAppMode(AppMode::Play); };
-        designModeButton_.onClick = [this] { setAppMode(AppMode::Design); };
-
         playModeEditor_.onLayoutOrViewModeChanged = [this] {
             syncChromeVisibility();
             applyWindowConstraints();
@@ -51,22 +36,16 @@ namespace pw8::plugin::ui
 
         addAndMakeVisible(patchBrowserBar_);
         addAndMakeVisible(playModeEditor_);
-        addChildComponent(designModeEditor_);
-
-        designModeEditor_.onGraphApplied = [this] { playModeEditor_.refreshFromPatch(); };
 
         processor.onPatchLoaded = [this, &processor] {
             juce::ignoreUnused(processor);
             playModeEditor_.refreshFromPatch();
-            designModeEditor_.refreshFromPatch();
         };
 
-        processor.onPatchMetadataChanged = [this] {
-            playModeEditor_.refreshFromPatch();
-            designModeEditor_.refreshFromPatch();
-        };
+        processor.onPatchMetadataChanged = [this] { playModeEditor_.refreshFromPatch(); };
 
-        setAppMode(AppMode::Play);
+        syncChromeVisibility();
+        applyWindowConstraints();
         setSize(layout::kDefaultWidth, layout::kDefaultHeight);
     }
 
@@ -94,34 +73,14 @@ namespace pw8::plugin::ui
         };
     }
 
-    void MurmurRootEditor::setAppMode(AppMode mode)
-    {
-        appMode_ = mode;
-        playModeButton_.setToggleState(mode == AppMode::Play, juce::dontSendNotification);
-        designModeButton_.setToggleState(mode == AppMode::Design, juce::dontSendNotification);
-
-        playModeEditor_.setVisible(mode == AppMode::Play);
-        designModeEditor_.setVisible(mode == AppMode::Design);
-
-        if (mode == AppMode::Design)
-            designModeEditor_.refreshFromPatch();
-
-        syncChromeVisibility();
-        applyWindowConstraints();
-        resized();
-    }
-
     void MurmurRootEditor::syncChromeVisibility()
     {
-        const bool compactPlay = appMode_ == AppMode::Play && playModeEditor_.isCompactView();
-        patchBrowserBar_.setVisible(!compactPlay);
-        designModeButton_.setVisible(appMode_ == AppMode::Play || appMode_ == AppMode::Design);
-        playModeButton_.setVisible(true);
+        patchBrowserBar_.setVisible(!playModeEditor_.isCompactView());
     }
 
     void MurmurRootEditor::applyWindowConstraints()
     {
-        if (appMode_ == AppMode::Play && playModeEditor_.isCompactView())
+        if (playModeEditor_.isCompactView())
         {
             setConstrainer(&compactConstrainer_);
             setResizeLimits(layout::kCompactWidth, layout::kCompactMinHeight, layout::kCompactWidth,
@@ -160,20 +119,12 @@ namespace pw8::plugin::ui
             content.removeFromTop(layout::kBlockGap);
         }
 
-        auto modeRow = content.removeFromTop(layout::kViewModeRowHeight);
-        playModeButton_.setBounds(modeRow.removeFromLeft(72).reduced(2));
-        designModeButton_.setBounds(modeRow.removeFromLeft(88).reduced(2));
-        content.removeFromTop(layout::kBlockGap);
-
         playModeEditor_.setBounds(content);
-        designModeEditor_.setBounds(content);
     }
 
     bool MurmurRootEditor::keyPressed(const juce::KeyPress& key)
     {
-        if (appMode_ == AppMode::Play)
-            return playModeEditor_.keyPressed(key);
-        return false;
+        return playModeEditor_.keyPressed(key);
     }
 
 } // namespace pw8::plugin::ui

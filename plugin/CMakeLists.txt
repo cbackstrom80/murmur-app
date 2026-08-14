@@ -8,7 +8,7 @@
 # 44.1k/48k/96k/192k Hz and multiple block sizes, MIDI test). createEditor() now
 # returns a real custom editor (plugin/src/ui/PlayModeEditor -- the OBSIDIAN skin,
 # docs/UI.md), not JUCE's generic parameter list. What's still missing: a real
-# DAW host-matrix pass, and DESIGN/LAB modes (PLAY mode is the only mode today).
+# DAW host-matrix pass.
 #
 # To attempt a build:
 #   cmake --preset plugin && cmake --build --preset plugin
@@ -54,7 +54,6 @@ target_sources(pw8_plugin PRIVATE
     src/content/WavetableIndex.cpp
     src/content/FavoritesStore.cpp
     src/ui/MurmurRootEditor.cpp
-    src/ui/DesignModeEditor.cpp
     src/ui/PlayModeEditor.cpp
     src/ui/theme/ObsidianLookAndFeel.cpp
     src/ui/theme/DualKnobLookAndFeel.cpp
@@ -64,18 +63,13 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/GlowRingButton.cpp
     src/ui/components/SectionPanel.cpp
     src/ui/components/WireframePanel.cpp
-    src/ui/components/DesignTabIconGrid.cpp
     src/ui/components/InterstellarHudDraw.cpp
     src/ui/components/AlgorithmGraphView.cpp
-    src/ui/components/AlgorithmGraphEditor.cpp
     src/ui/components/EngineIconGrid.cpp
     src/ui/components/EdgeIconGrid.cpp
     src/ui/components/EngineNodeStrip.cpp
     src/ui/components/LiveTopologyStrip.cpp
     src/ui/components/TopologyGraphOverlay.cpp
-    src/ui/components/ModMatrixDesignPanel.cpp
-    src/ui/components/DesignFxDetailPanel.cpp
-    src/ui/components/WavetableWarpPanel.cpp
     src/ui/components/ContextStrip.cpp
     src/ui/components/OperatorEditorPanel.cpp
     src/ui/components/MacroStrip.cpp
