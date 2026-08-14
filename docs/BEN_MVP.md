@@ -1,4 +1,4 @@
-# Ben MVP — MURMUR 1.0.5
+# Ben MVP — MURMUR 1.0.9
 
 First installable release for **Ben** on **Apple Silicon Mac + Logic Pro + Kawai MP11SE**.
 
@@ -13,7 +13,7 @@ First installable release for **Ben** on **Apple Silicon Mac + Logic Pro + Kawai
 
 ## Install
 
-1. Download `MURMUR-1.0.6.1-macOS-arm64.pkg` from [GitHub Releases](https://github.com/cbackstrom80/patchwork-eight/releases).
+1. Download `MURMUR-1.0.9-macOS-arm64.pkg` from [GitHub Releases](https://github.com/cbackstrom80/patchwork-eight/releases).
 2. Double-click the `.pkg` → follow the installer (no admin password; installs to your home folder).
 3. **Quit Logic** completely, reopen.
 4. **Logic → Settings → Plug-in Manager → Reset & Rescan Selection** (or full rescan).
