@@ -12,7 +12,8 @@
 #include "pw8/core/AudioBlock.hpp"
 #include "pw8/patch/PatchModDefaults.hpp"
 #include "pw8/patch/PatchSerializer.hpp"
-#include "pw8/render/BlockMidi.hpp"
+#include "pw8/dsp/SidechainFollower.hpp"
+#include "pw8/modulation/MorphKoinExecutor.hpp"
 #include "pw8/sequencer/ArpeggiatorTypes.hpp"
 #include "processor/EffectLatency.hpp"
 #include "ui/MurmurRootEditor.h"
@@ -38,10 +39,19 @@ namespace pw8::plugin
             for (std::size_t i = 0; i < fieldSpecs.size(); ++i)
                 pointers[i] = apvts.getRawParameterValue(prefix + fieldSpecs[i].idSuffix);
         }
+
+        [[nodiscard]] juce::AudioProcessor::BusesProperties makeProcessorBuses()
+        {
+            auto props = BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true);
+#if JucePlugin_Build_AU
+            props = props.withInput("Sidechain", juce::AudioChannelSet::stereo(), true);
+#endif
+            return props;
+        }
     } // namespace
 
     PatchworkEightProcessor::PatchworkEightProcessor()
-        : juce::AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)),
+        : juce::AudioProcessor(makeProcessorBuses()),
           apvts(*this, nullptr, "PARAMETERS", createParameterLayout())
     {
         cacheParameterPointers();
@@ -117,12 +127,30 @@ namespace pw8::plugin
         masterGainPointer_ = apvts.getRawParameterValue(kMasterGainId);
         modWheelParamPointer_ = apvts.getRawParameterValue(kModWheelId);
         expressionParamPointer_ = apvts.getRawParameterValue(kExpressionId);
+        morphPositionPointer_ = apvts.getRawParameterValue(kMorphPositionId);
+    }
+
+    bool PatchworkEightProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
+    {
+        if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
+            return false;
+#if JucePlugin_Build_AU
+        if (layouts.inputBuses.size() > 0)
+        {
+            const auto sidechain = layouts.getChannelSet(true, 0);
+            if (!sidechain.isDisabled() && sidechain != juce::AudioChannelSet::mono() &&
+                sidechain != juce::AudioChannelSet::stereo())
+                return false;
+        }
+#endif
+        return true;
     }
 
     void PatchworkEightProcessor::prepareToPlay(double sampleRate, int /*samplesPerBlock*/)
     {
         currentSampleRate_ = sampleRate;
         scopeAudioTap_.reset();
+        sidechainFollower_.prepare(sampleRate);
         // Rebuild both storage slots at the new sample rate and republish -- this always
         // runs on the message thread (JUCE guarantees prepareToPlay isn't concurrent with
         // processBlock), so a plain rebuild-then-swap is safe without extra locking.
@@ -175,6 +203,29 @@ namespace pw8::plugin
                 applyPerformanceCcToApvts(msg.getControllerNumber(), msg.getControllerValue(), macroParamPointers_,
                                           masterGainPointer_);
         }
+
+#if JucePlugin_Build_AU
+        if (getBusCount(true) > 0)
+        {
+            const auto sidechainBlock = getBusBuffer(buffer, true, 0);
+            const float* scL = sidechainBlock.getNumChannels() > 0 ? sidechainBlock.getReadPointer(0) : nullptr;
+            const float* scR = sidechainBlock.getNumChannels() > 1 ? sidechainBlock.getReadPointer(1) : scL;
+            sidechainFollower_.processBlock(scL, scR, static_cast<std::size_t>(sidechainBlock.getNumSamples()));
+            const float scLevel = sidechainFollower_.envelope();
+            sidechainLevel_.store(scLevel, std::memory_order_relaxed);
+            sidechainActive_.store(sidechainFollower_.isActive(), std::memory_order_relaxed);
+            engine->setSidechainLevel(scLevel);
+        }
+        else
+        {
+            sidechainLevel_.store(0.0f, std::memory_order_relaxed);
+            sidechainActive_.store(false, std::memory_order_relaxed);
+            engine->setSidechainLevel(0.0f);
+        }
+#else
+        sidechainActive_.store(false, std::memory_order_relaxed);
+        engine->setSidechainLevel(0.0f);
+#endif
 
         pushLiveParametersToEngine(*engine);
 
@@ -493,6 +544,8 @@ namespace pw8::plugin
             p.quasarDelayTimeMs = loadF(ptrs[74]);
             p.quasarDelayFeedback = loadF(ptrs[75]);
             p.quasarDelayVolume = loadF(ptrs[76]);
+            p.quasarOutputMode = loadI(ptrs[77]);
+            p.quasarCrossfeed = loadF(ptrs[78]);
             engine.setInsertEffectLive(slot, p);
         }
 
@@ -580,6 +633,8 @@ namespace pw8::plugin
             p.quasarDelayTimeMs = loadF(ptrs[74]);
             p.quasarDelayFeedback = loadF(ptrs[75]);
             p.quasarDelayVolume = loadF(ptrs[76]);
+            p.quasarOutputMode = loadI(ptrs[77]);
+            p.quasarCrossfeed = loadF(ptrs[78]);
             engine.setMasterEffectLive(slot, p);
         }
 
@@ -632,6 +687,12 @@ namespace pw8::plugin
         patch::ensureDefaultModWheelRoute(currentPatch_.layerA);
         patch::ensureDefaultExpressionRoute(currentPatch_.layerA);
         patch::ensureMinimumMacroKoinRoutes(currentPatch_.layerA);
+        if (currentPatch_.morphKoin.keyframes.size() >= 2)
+        {
+            const float pos = currentPatch_.morphKoin.position > 0.0f ? currentPatch_.morphKoin.position
+                                                                        : currentPatch_.morphKoin.defaultPosition;
+            modulation::applyMorphKoin(currentPatch_, pos);
+        }
         syncAllParametersFromPatch();
         auto fresh = std::make_unique<render::Engine>();
         fresh->prepare(getSampleRate() > 0.0 ? getSampleRate() : 48000.0);
@@ -773,6 +834,59 @@ namespace pw8::plugin
         return table != nullptr;
     }
 
+    void PatchworkEightProcessor::applyMorphFromPosition(float position) noexcept
+    {
+        if (currentPatch_.morphKoin.keyframes.size() < 2)
+            return;
+
+        modulation::applyMorphKoin(currentPatch_, position);
+        currentPatch_.morphKoin.position = position;
+
+        auto setParam = [this](const juce::String& id, float value) {
+            if (auto* param = apvts.getParameter(id))
+                param->setValueNotifyingHost(param->convertTo0to1(value));
+        };
+
+        for (std::size_t i = 0; i < kMacroParameterIds.size(); ++i)
+            setParam(kMacroParameterIds[i], currentPatch_.macros[i].value);
+
+        setParam(juce::String(kFilterIdPrefix) + "CutoffHz", currentPatch_.layerA.filter1.cutoffHz);
+        setParam(juce::String(kFilterIdPrefix) + "Resonance", currentPatch_.layerA.filter1.resonance);
+
+        auto syncFx = [&](const effects::EffectSlotParams& p, const juce::String& id) {
+            const std::array<float, kNumEffectSlotFields> values = {
+                static_cast<float>(p.type), p.mix,        p.saturationDriveDb, p.chorusRateHz,   p.chorusDepthMs,
+                p.chorusBaseDelayMs,        p.tapeDelayMs, p.tapeFeedback,      p.tapeDriveDb,    p.tapeDuckAmount,
+                p.tapeDriftDepthMs,         p.tapeDriftRateHz, static_cast<float>(p.tapePanMode), p.nodeInsanity,
+                p.freqShiftHz,              p.freqShiftDelayMs, p.freqShiftFeedback, p.freqShiftLowCutHz,
+                p.freqShiftHighCutHz,       p.fractalMorph, p.fractalBaseDelayMs, p.fractalRatio, p.fractalSpreadMs,
+                p.reverbSizeParam,          p.reverbDecaySeconds, p.reverbPreDelayMs,
+                p.reverbHighRatio,          p.reverbHighCrossoverHz, p.reverbLowRatio, p.reverbLowCrossoverHz,
+                p.reverbDiffusion,          p.reverbDensity, p.reverbModDepth,    p.reverbModRateHz,
+                p.reverbEarlyLevel,         p.reverbLateLevel, p.reverbRollOffHz, p.reverbVlfCutDb,
+                p.eqLowFreqHz,              p.eqLowGainDb,  p.eqMidFreqHz,       p.eqMidGainDb,    p.eqMidQ,
+                p.eqHighFreqHz,             p.eqHighGainDb,
+                p.compThresholdDb,          p.compRatio,    p.compAttackMs,      p.compReleaseMs,  p.compKneeDb,
+                p.compMakeupDb,
+                p.compTransformerCore,      p.compTransformerBrand, p.compTransformerAmount,
+                p.limiterCeilingDb,         p.limiterLookaheadMs, p.limiterReleaseMs,
+                p.qsr1Level,                p.qsr2Level,          p.cntrLevel,
+                p.inputSplitHpfHz,          p.cntrHpfHz,          p.qsr1Height,
+                p.qsr1AngleDeg,             p.qsr1Distance,       p.qsr2Height,
+                p.qsr2AngleDeg,             p.qsr2Distance,       p.qsr1RoomAmount,
+                p.qsr1RoomSize,             p.qsr1RoomDamping,    p.qsr2RoomAmount,
+                p.qsr2RoomSize,             p.qsr2RoomDamping,    p.quasarDelayTimeMs,
+                p.quasarDelayFeedback,      p.quasarDelayVolume,
+                static_cast<float>(p.quasarOutputMode), p.quasarCrossfeed,
+            };
+            for (std::size_t i = 0; i < kNumEffectSlotFields; ++i)
+                setParam(id + kEffectSlotFieldSpecs[i].idSuffix, values[i]);
+        };
+
+        for (std::size_t slot = 0; slot < kNumMasterFxSlots; ++slot)
+            syncFx(currentPatch_.masterEffects[slot], juce::String("masterFx") + juce::String(static_cast<int>(slot)));
+    }
+
     ParamGroup PatchworkEightProcessor::paramGroupForId(const juce::String& parameterID) const noexcept
     {
         if (parameterID.startsWith("macro"))
@@ -826,6 +940,13 @@ namespace pw8::plugin
     {
         if (parameterID == kModWheelId || parameterID == kExpressionId)
             return;
+
+        if (parameterID == kMorphPositionId)
+        {
+            applyMorphFromPosition(apvts.getRawParameterValue(kMorphPositionId)->load());
+            paramChangeQueue_.pushAllGroups();
+            return;
+        }
 
         paramChangeQueue_.push(paramGroupForId(parameterID));
 
@@ -933,6 +1054,9 @@ namespace pw8::plugin
         for (std::size_t i = 0; i < kMacroParameterIds.size(); ++i)
             setParam(kMacroParameterIds[i], currentPatch_.macros[i].value);
 
+        if (!currentPatch_.morphKoin.keyframes.empty())
+            setParam(kMorphPositionId, currentPatch_.morphKoin.position);
+
         const auto& filter = currentPatch_.layerA.filter1;
         const std::array<float, kNumFilterFields> filterValues = {
             filter.enabled ? 1.0f : 0.0f, static_cast<float>(filter.mode), filter.cutoffHz, filter.resonance,
@@ -1034,6 +1158,7 @@ namespace pw8::plugin
                 p.qsr1RoomSize,             p.qsr1RoomDamping,    p.qsr2RoomAmount,
                 p.qsr2RoomSize,             p.qsr2RoomDamping,    p.quasarDelayTimeMs,
                 p.quasarDelayFeedback,      p.quasarDelayVolume,
+                static_cast<float>(p.quasarOutputMode), p.quasarCrossfeed,
             };
             for (std::size_t i = 0; i < kNumEffectSlotFields; ++i)
                 setParam(id + kEffectSlotFieldSpecs[i].idSuffix, values[i]);
@@ -1236,6 +1361,8 @@ namespace pw8::plugin
             p.quasarDelayTimeMs = loadF(ptrs[74]);
             p.quasarDelayFeedback = loadF(ptrs[75]);
             p.quasarDelayVolume = loadF(ptrs[76]);
+            p.quasarOutputMode = loadI(ptrs[77]);
+            p.quasarCrossfeed = loadF(ptrs[78]);
         };
         for (std::size_t slot = 0; slot < kNumInsertFxSlots; ++slot)
             readFxSlot(insertFxParamPointers_[slot], currentPatch_.layerA.insertEffects[slot]);

@@ -183,6 +183,8 @@ namespace pw8::plugin
         {"QuasarDelayTimeMs",  "Quasar Delay Time Ms",  3.0f,     20000.0f, 450.0f, false},
         {"QuasarDelayFeedback","Quasar Delay Feedback", 0.0f,     1.0f,     0.35f,  false},
         {"QuasarDelayVolume",  "Quasar Delay Volume",   0.0f,     1.0f,     0.25f,  false},
+        {"QuasarOutputMode",   "Quasar Output Mode",    0.0f,     2.0f,     0.0f,   true},
+        {"QuasarCrossfeed",    "Quasar Crossfeed",      0.0f,     1.0f,     0.0f,   false},
     }};
 
     // Matches sequencer::ArpeggiatorParams's scalar fields (excludes `steps[]`).
@@ -260,6 +262,10 @@ namespace pw8::plugin
 
         params.push_back(std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID{kExpressionId, 1}, kExpressionName, juce::NormalisableRange<float>(0.0f, 1.0f), 0.0f));
+
+        params.push_back(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{kMorphPositionId, 1}, kMorphPositionName, juce::NormalisableRange<float>(0.0f, 1.0f),
+            0.0f));
 
         for (const auto& spec : kFilterFieldSpecs)
             addParam(params, juce::String(kFilterIdPrefix) + spec.idSuffix, spec);

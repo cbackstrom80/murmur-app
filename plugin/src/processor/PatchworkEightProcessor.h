@@ -23,6 +23,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 
 #include "pw8/patch/Patch.hpp"
+#include "pw8/dsp/SidechainFollower.hpp"
 #include "pw8/algorithm/AlgorithmGraphCompiler.hpp"
 #include "pw8/render/Engine.hpp"
 #include "processor/ScopeAudioTap.h"
@@ -57,6 +58,8 @@ namespace pw8::plugin
         bool acceptsMidi() const override { return true; }
         bool producesMidi() const override { return false; }
         double getTailLengthSeconds() const override { return 4.0; }
+
+        bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
 
         int getNumPrograms() override { return 1; }
         int getCurrentProgram() override { return 0; }
@@ -181,6 +184,17 @@ namespace pw8::plugin
         /// Message-thread only: channel 0 expression pedal position (MIDI CC11), 0..1.
         [[nodiscard]] float getExpressionValue() const noexcept;
 
+        /// AU sidechain follower active this block (message-thread read of atomic).
+        [[nodiscard]] bool getSidechainActive() const noexcept
+        {
+            return sidechainActive_.load(std::memory_order_relaxed);
+        }
+
+        [[nodiscard]] float getSidechainLevel() const noexcept
+        {
+            return sidechainLevel_.load(std::memory_order_relaxed);
+        }
+
         [[nodiscard]] ui::ScopeViewMode getScopeViewMode() const noexcept { return scopeViewMode_; }
 
         void setScopeViewMode(ui::ScopeViewMode mode) noexcept { scopeViewMode_ = mode; }
@@ -253,6 +267,8 @@ namespace pw8::plugin
         /// consumes it via `pendingModRoutes_.exchange(nullptr, ...)`.
         void publishModRoutesLive(const core::FixedVector<modulation::ModRoute, core::kMaxModRoutes>& routes);
 
+        void applyMorphFromPosition(float position) noexcept;
+
         patch::Patch currentPatch_ = patch::Patch::makeInit();
         juce::String currentPresetPath_;
 
@@ -277,6 +293,11 @@ namespace pw8::plugin
         std::atomic<float> mirroredModWheel_{0.0f};
         std::atomic<float>* expressionParamPointer_ = nullptr;
         std::atomic<float> mirroredExpression_{0.0f};
+        std::atomic<float>* morphPositionPointer_ = nullptr;
+
+        dsp::SidechainFollower sidechainFollower_{};
+        std::atomic<bool> sidechainActive_{false};
+        std::atomic<float> sidechainLevel_{0.0f};
 
         /// Tracks host transport so we can all-sound-off when playback stops (Logic rarely
         /// sends note-offs on stop).
