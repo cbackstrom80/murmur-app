@@ -60,7 +60,7 @@ namespace pw8::plugin::ui::decked
                 geo.outerDeckRadius = geo.radius * 0.96f;
                 geo.middleDeckRadius = geo.radius * 0.82f;
                 geo.innerCapRadius = geo.radius * 0.56f;
-                geo.trackThickness = juce::jmax(2.0f, geo.radius * 0.045f);
+                geo.trackThickness = juce::jmax(2.4f, geo.radius * 0.058f);
                 geo.drawLedRing = true;
                 geo.drawDropShadow = true;
                 geo.drawRimGlow = true;
@@ -69,13 +69,13 @@ namespace pw8::plugin::ui::decked
                 geo.outerDeckRadius = geo.radius * 0.94f;
                 geo.middleDeckRadius = geo.radius * 0.78f;
                 geo.innerCapRadius = geo.radius * 0.52f;
-                geo.trackThickness = juce::jmax(1.2f, geo.radius * 0.05f);
+                geo.trackThickness = juce::jmax(1.6f, geo.radius * 0.062f);
                 break;
             default:
                 geo.outerDeckRadius = geo.radius * 0.95f;
                 geo.middleDeckRadius = geo.radius * 0.80f;
                 geo.innerCapRadius = geo.radius * 0.55f;
-                geo.trackThickness = juce::jmax(1.5f, geo.radius * 0.048f);
+                geo.trackThickness = juce::jmax(2.0f, geo.radius * 0.060f);
                 geo.drawDropShadow = diameter >= 44.0f;
                 geo.drawRimGlow = diameter >= 58.0f;
                 break;
@@ -148,10 +148,10 @@ namespace pw8::plugin::ui::decked
         juce::Path value;
         value.addCentredArc(centre.x, centre.y, arcRadius, arcRadius, 0.0f, rotaryStartAngle, angle, true);
         g.setColour(accent.withAlpha(0.20f));
-        g.strokePath(value, juce::PathStrokeType(trackThickness * 1.9f, juce::PathStrokeType::curved,
+        g.strokePath(value, juce::PathStrokeType(trackThickness * 2.75f, juce::PathStrokeType::curved,
                                                  juce::PathStrokeType::rounded));
-        g.setColour(accent.withAlpha(0.92f));
-        g.strokePath(value, juce::PathStrokeType(trackThickness * 0.52f, juce::PathStrokeType::curved,
+        g.setColour(accent.withAlpha(0.94f));
+        g.strokePath(value, juce::PathStrokeType(trackThickness * 0.78f, juce::PathStrokeType::curved,
                                                  juce::PathStrokeType::rounded));
     }
 

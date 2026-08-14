@@ -21,6 +21,16 @@ namespace pw8::plugin::ui
         introLabel_.setColour(juce::Label::textColourId, palette::kTextSecondary);
         panel_.addAndMakeVisible(introLabel_);
 
+        ringLegendLabel_.setText(
+            juce::String(juce::CharPointer_UTF8("\xe2\x97\x8f")) + " value arc   "
+                + juce::String(juce::CharPointer_UTF8("\xe2\x97\x8b")) + " mod route   "
+                + juce::String(juce::CharPointer_UTF8("\xc2\xb7")) + " live mod",
+            juce::dontSendNotification);
+        ringLegendLabel_.setJustificationType(juce::Justification::centredLeft);
+        ringLegendLabel_.setFont(fonts::value(fonts::kCaptionSize));
+        ringLegendLabel_.setColour(juce::Label::textColourId, palette::kTextDim);
+        panel_.addAndMakeVisible(ringLegendLabel_);
+
         panel_.addAndMakeVisible(subtitleLabel_);
         subtitleLabel_.setJustificationType(juce::Justification::centredLeft);
         subtitleLabel_.setFont(fonts::value(fonts::kBodyLabelSize));
@@ -77,6 +87,7 @@ namespace pw8::plugin::ui
         if (basicLayout)
             compactLayout_ = false;
         introLabel_.setVisible(basicLayout && !compactLayout_);
+        ringLegendLabel_.setVisible(basicLayout && !compactLayout_);
         if (!compactLayout_)
         {
             panel_.setVisible(true);
@@ -93,6 +104,7 @@ namespace pw8::plugin::ui
         if (compactLayout)
             basicLayout_ = false;
         introLabel_.setVisible(basicLayout_ && !compactLayout_);
+        ringLegendLabel_.setVisible(basicLayout_ && !compactLayout_);
         panel_.setVisible(!compactLayout_);
         if (!compactLayout_)
             orbitHole_ = {};
@@ -305,6 +317,7 @@ namespace pw8::plugin::ui
         {
             panel_.removeAllChildren();
             panel_.addAndMakeVisible(introLabel_);
+            panel_.addAndMakeVisible(ringLegendLabel_);
             panel_.addAndMakeVisible(subtitleLabel_);
             panel_.addAndMakeVisible(macroHintsLabel_);
             panel_.addAndMakeVisible(standardSectionLabel_);
@@ -447,6 +460,12 @@ namespace pw8::plugin::ui
         if (introLabel_.isVisible())
         {
             introLabel_.setBounds(bounds.removeFromTop(20));
+            bounds.removeFromTop(4);
+        }
+
+        if (ringLegendLabel_.isVisible())
+        {
+            ringLegendLabel_.setBounds(bounds.removeFromTop(14));
             bounds.removeFromTop(4);
         }
 

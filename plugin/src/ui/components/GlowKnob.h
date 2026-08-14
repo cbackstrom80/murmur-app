@@ -132,6 +132,7 @@ namespace pw8::plugin::ui
         bool headerCompactMode_ = false;
         bool deckedStyle_ = false;
         DeckedKnobSize deckedSize_ = DeckedKnobSize::Medium;
+        bool featuredPerformanceMacro_ = false;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GlowKnob)
     };

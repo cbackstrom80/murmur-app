@@ -1,6 +1,7 @@
 #include "ConcentricGlowKnob.h"
 
 #include "../theme/DeckedKnobDraw.h"
+#include "../theme/KnobRingDraw.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "../theme/ObsidianRotary.h"
@@ -363,25 +364,19 @@ namespace pw8::plugin::ui
         const auto sliderBounds = refSlider.getBounds().toFloat().reduced(4.0f);
         const float diameter = juce::jmax(16.0f, juce::jmin(sliderBounds.getWidth(), sliderBounds.getHeight()));
         const auto knobBounds = refSlider.getBounds().toFloat().withSizeKeepingCentre(diameter, diameter);
-        const float arcRadius = outerOrbit ? orbitRadius : diameter * 0.42f;
+        const float dialRadius = diameter * 0.5f;
+        const float modGap = juce::jmax(3.5f, dialRadius * (outerOrbit ? 0.09f : 0.07f));
+        const float modRingRadius = orbitRadius + modGap;
+        const float modStrokeWidth = juce::jmax(3.6f, dialRadius * (outerOrbit ? 0.082f : 0.068f));
+
+        knobrings::Layout ringLayout{knobBounds.getCentre(), dialRadius, orbitRadius, modRingRadius, modStrokeWidth};
 
         if (state.dragHover)
-        {
-            g.setColour(palette::kMurmurViolet.withAlpha(0.7f));
-            g.drawEllipse(knobBounds.expanded(outerOrbit ? 2.0f : 1.0f), 1.6f);
-        }
+            knobrings::drawDragHoverRing(g, ringLayout);
 
         if (!state.colour.isTransparent())
-        {
-            const float endAngle =
-                rotary::kStartAngle + rotary::kSweep * juce::jlimit(0.0f, 1.0f, state.amountNormalized);
-            juce::Path arc;
-            arc.addCentredArc(knobBounds.getCentreX(), knobBounds.getCentreY(), arcRadius, arcRadius, 0.0f,
-                              rotary::kStartAngle, endAngle, true);
-            g.setColour(state.colour.withAlpha(0.85f));
-            g.strokePath(arc, juce::PathStrokeType(outerOrbit ? 2.4f : 2.0f, juce::PathStrokeType::curved,
-                                                   juce::PathStrokeType::rounded));
-        }
+            knobrings::strokeModRouteArc(g, ringLayout, state.amountNormalized, state.colour,
+                                         outerOrbit ? 1.15f : 1.0f);
     }
 
     void ConcentricGlowKnob::paintOverChildren(juce::Graphics& g)

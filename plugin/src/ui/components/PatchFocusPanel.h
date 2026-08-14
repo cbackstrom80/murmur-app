@@ -52,6 +52,7 @@ namespace pw8::plugin::ui
         juce::Label introLabel_;
         juce::Label subtitleLabel_;
         juce::Label macroHintsLabel_;
+        juce::Label ringLegendLabel_;
         juce::Label standardSectionLabel_;
         juce::Label modWheelBadge_;
         juce::Label expressionBadge_;

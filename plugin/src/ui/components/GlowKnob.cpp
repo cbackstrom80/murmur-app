@@ -1,6 +1,7 @@
 #include "GlowKnob.h"
 
 #include "../ModPreview.hpp"
+#include "../theme/KnobRingDraw.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "../theme/ObsidianRotary.h"
@@ -116,6 +117,7 @@ namespace pw8::plugin::ui
 
     void GlowKnob::setFeaturedPerformanceMacro(bool featured)
     {
+        featuredPerformanceMacro_ = featured;
         slider_.getProperties().set("featuredKoin", featured);
         slider_.repaint();
     }
@@ -342,40 +344,30 @@ namespace pw8::plugin::ui
             g.drawText("DEPTH", depthPopoverArea_, juce::Justification::centred);
         }
 
-        if (ringColour_.isTransparent() && !dragHover_)
-            return;
-
-        auto sliderBounds = slider_.getBounds().toFloat().reduced(4.0f);
-        const float diameter = juce::jmax(16.0f, juce::jmin(sliderBounds.getWidth(), sliderBounds.getHeight()));
-        const auto knobBounds =
-            slider_.getBounds().toFloat().withSizeKeepingCentre(diameter, diameter).expanded(3.5f);
+        const auto sliderBounds = slider_.getBounds().toFloat().reduced(4.0f);
+        const auto ringLayout =
+            knobrings::computeLayout(sliderBounds, static_cast<float>(maxDialDiameter_), deckedStyle_);
+        const float strokeScale = featuredPerformanceMacro_ ? 1.22f : 1.0f;
 
         if (dragHover_)
-        {
-            g.setColour(palette::kMurmurViolet.withAlpha(0.7f));
-            g.drawEllipse(knobBounds.expanded(2.0f), 1.6f);
-        }
+            knobrings::drawDragHoverRing(g, ringLayout);
+
         if (!ringColour_.isTransparent())
         {
-            const float endAngle = rotary::kStartAngle + rotary::kSweep * juce::jlimit(0.0f, 1.0f, ringAmountNormalized_);
-            juce::Path arc;
-            arc.addCentredArc(knobBounds.getCentreX(), knobBounds.getCentreY(), knobBounds.getWidth() * 0.5f,
-                              knobBounds.getHeight() * 0.5f, 0.0f, rotary::kStartAngle, endAngle, true);
-            g.setColour(ringColour_.withAlpha(0.85f));
-            g.strokePath(arc, juce::PathStrokeType(2.2f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+            if (macroActivityMode_)
+            {
+                knobrings::strokeModRouteTrack(g, ringLayout,
+                                               palette::kAccentWarmDim.withAlpha(featuredPerformanceMacro_ ? 0.55f
+                                                                                                           : 0.38f),
+                                               strokeScale);
+            }
+            knobrings::strokeModRouteArc(g, ringLayout, ringAmountNormalized_, ringColour_, strokeScale);
         }
 
         if (liveModNormalized_ >= 0.0f)
         {
-            const float ghostAngle =
-                rotary::kStartAngle + rotary::kSweep * juce::jlimit(0.0f, 1.0f, liveModNormalized_);
-            const float cx = knobBounds.getCentreX();
-            const float cy = knobBounds.getCentreY();
-            const float r = knobBounds.getWidth() * 0.38f;
-            const float px = cx + std::cos(ghostAngle - juce::MathConstants<float>::halfPi) * r;
-            const float py = cy + std::sin(ghostAngle - juce::MathConstants<float>::halfPi) * r;
-            g.setColour((ringColour_.isTransparent() ? palette::kAccent : ringColour_).withAlpha(0.55f));
-            g.fillEllipse(px - 3.0f, py - 3.0f, 6.0f, 6.0f);
+            const auto ghostAccent = ringColour_.isTransparent() ? palette::kAccent : ringColour_;
+            knobrings::drawLiveModGhost(g, ringLayout, liveModNormalized_, ghostAccent);
         }
     }
 

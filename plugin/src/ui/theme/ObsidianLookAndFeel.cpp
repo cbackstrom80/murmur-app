@@ -197,7 +197,7 @@ namespace pw8::plugin::ui
 
         const float orbitRadius = radius * 0.90f;
         const float bodyRadius = radius * 0.62f;
-        const float trackThickness = juce::jmax(1.5f, radius * (drawSatellites ? 0.055f : 0.045f));
+        const float trackThickness = juce::jmax(2.0f, radius * (drawSatellites ? 0.068f : 0.058f));
         const float valueArcRadius = outerOnly ? orbitRadius : (innerRole ? bodyRadius * 0.92f : orbitRadius);
         const juce::Point<float> direction = rotary::unitDirectionAtAngle(angle);
 
@@ -214,11 +214,11 @@ namespace pw8::plugin::ui
             {
                 juce::Path value;
                 value.addCentredArc(centre.x, centre.y, orbitRadius, orbitRadius, 0.0f, rotaryStartAngle, angle, true);
-                g.setColour(accent.withAlpha(0.18f));
-                g.strokePath(value, juce::PathStrokeType(trackThickness * 1.8f, juce::PathStrokeType::curved,
+                g.setColour(accent.withAlpha(0.22f));
+                g.strokePath(value, juce::PathStrokeType(trackThickness * 2.85f, juce::PathStrokeType::curved,
                                                          juce::PathStrokeType::rounded));
-                g.setColour(accent.withAlpha(0.95f));
-                g.strokePath(value, juce::PathStrokeType(trackThickness * 0.5f, juce::PathStrokeType::curved,
+                g.setColour(accent.withAlpha(0.94f));
+                g.strokePath(value, juce::PathStrokeType(trackThickness * 0.78f, juce::PathStrokeType::curved,
                                                          juce::PathStrokeType::rounded));
             }
 
@@ -257,11 +257,11 @@ namespace pw8::plugin::ui
             juce::Path value;
             value.addCentredArc(centre.x, centre.y, valueArcRadius, valueArcRadius, 0.0f, rotaryStartAngle, angle,
                                 true);
-            g.setColour(accent.withAlpha(0.22f));
-            g.strokePath(value, juce::PathStrokeType(trackThickness * 2.0f, juce::PathStrokeType::curved,
+            g.setColour(accent.withAlpha(0.24f));
+            g.strokePath(value, juce::PathStrokeType(trackThickness * 2.85f, juce::PathStrokeType::curved,
                                                      juce::PathStrokeType::rounded));
-            g.setColour(accent.withAlpha(0.92f));
-            g.strokePath(value, juce::PathStrokeType(trackThickness * 0.55f, juce::PathStrokeType::curved,
+            g.setColour(accent.withAlpha(0.94f));
+            g.strokePath(value, juce::PathStrokeType(trackThickness * 0.78f, juce::PathStrokeType::curved,
                                                      juce::PathStrokeType::rounded));
         }
 
