@@ -1,4 +1,4 @@
-#include "NodeSelectorRow.h"
+#include "EngineNodeStrip.h"
 
 #include "../theme/ObsidianDraw.h"
 #include "../theme/ObsidianFonts.h"
@@ -30,36 +30,43 @@ namespace pw8::plugin::ui
         }
     }
 
-    NodeSelectorRow::NodeSelectorRow(PatchworkEightProcessor& processor) : processor_(processor) {}
+    EngineNodeStrip::EngineNodeStrip(PatchworkEightProcessor& processor) : processor_(processor) {}
 
-    void NodeSelectorRow::setSelectedNode(int nodeIndex)
+    void EngineNodeStrip::setGlobalPillVisible(bool visible)
+    {
+        globalPillVisible_ = visible;
+        repaint();
+    }
+
+    void EngineNodeStrip::setSelectedNode(int nodeIndex)
     {
         selectedNode_ = juce::jlimit(0, kNumNodes - 1, nodeIndex);
         globalScope_ = false;
         repaint();
     }
 
-    void NodeSelectorRow::setGlobalScope(bool global)
+    void EngineNodeStrip::setGlobalScope(bool global)
     {
         globalScope_ = global;
         repaint();
     }
 
-    juce::Rectangle<int> NodeSelectorRow::pillBounds(int nodeIndex) const
+    juce::Rectangle<int> EngineNodeStrip::pillBounds(int nodeIndex) const
     {
         auto row = getLocalBounds().reduced(2, 4);
-        row.removeFromRight(kGlobalWidth + 6);
+        if (globalPillVisible_)
+            row.removeFromRight(kGlobalWidth + 6);
         const int pillWidth = row.getWidth() / kNumNodes;
         return row.withX(row.getX() + pillWidth * nodeIndex).withWidth(pillWidth).reduced(2, 0);
     }
 
-    juce::Rectangle<int> NodeSelectorRow::globalPillBounds() const
+    juce::Rectangle<int> EngineNodeStrip::globalPillBounds() const
     {
         auto row = getLocalBounds().reduced(2, 4);
         return row.removeFromRight(kGlobalWidth);
     }
 
-    void NodeSelectorRow::paint(juce::Graphics& g)
+    void EngineNodeStrip::paint(juce::Graphics& g)
     {
         g.setColour(palette::kTextSecondary);
         g.setFont(fonts::label(fonts::kBodyLabelSize));
@@ -108,6 +115,7 @@ namespace pw8::plugin::ui
             g.drawText(label, textBounds, juce::Justification::centred);
         }
 
+        if (globalPillVisible_)
         {
             const auto bounds = globalPillBounds();
             const auto boundsF = bounds.toFloat();
@@ -135,11 +143,11 @@ namespace pw8::plugin::ui
         }
     }
 
-    void NodeSelectorRow::resized() {}
+    void EngineNodeStrip::resized() {}
 
-    void NodeSelectorRow::mouseDown(const juce::MouseEvent& event)
+    void EngineNodeStrip::mouseDown(const juce::MouseEvent& event)
     {
-        if (globalPillBounds().contains(event.getPosition()))
+        if (globalPillVisible_ && globalPillBounds().contains(event.getPosition()))
         {
             globalScope_ = true;
             repaint();

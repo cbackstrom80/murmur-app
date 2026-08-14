@@ -18,6 +18,7 @@ namespace pw8::plugin::ui
         : processor_(processor), nodeSelector_(processor), stackView_(processor)
     {
         nodeSelector_.onNodeSelected = [this](int nodeIndex) { showNode(nodeIndex); };
+        nodeSelector_.setGlobalPillVisible(false);
         addAndMakeVisible(nodeSelector_);
 
         addAndMakeVisible(stackView_);

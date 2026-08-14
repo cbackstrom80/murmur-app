@@ -8,13 +8,14 @@
 
 namespace pw8::plugin::ui
 {
-    class NodeSelectorRow : public juce::Component
+    /// Unified 8-node operator strip — shared across PLAY Advanced, DESIGN wt panel, etc.
+    class EngineNodeStrip : public juce::Component
     {
     public:
         std::function<void(int nodeIndex)> onNodeSelected;
         std::function<void()> onGlobalSelected;
 
-        explicit NodeSelectorRow(PatchworkEightProcessor& processor);
+        explicit EngineNodeStrip(PatchworkEightProcessor& processor);
 
         void paint(juce::Graphics& g) override;
         void resized() override;
@@ -25,6 +26,9 @@ namespace pw8::plugin::ui
         [[nodiscard]] bool isGlobalScope() const noexcept { return globalScope_; }
         [[nodiscard]] int getSelectedNode() const noexcept { return selectedNode_; }
 
+        /// Hide GLOBAL pill (DESIGN wt panel uses node-only selection).
+        void setGlobalPillVisible(bool visible);
+
     private:
         [[nodiscard]] juce::Rectangle<int> pillBounds(int nodeIndex) const;
         [[nodiscard]] juce::Rectangle<int> globalPillBounds() const;
@@ -32,6 +36,10 @@ namespace pw8::plugin::ui
         PatchworkEightProcessor& processor_;
         int selectedNode_ = 0;
         bool globalScope_ = false;
+        bool globalPillVisible_ = true;
     };
+
+    /// Backward-compatible alias — prefer EngineNodeStrip in new code.
+    using NodeSelectorRow = EngineNodeStrip;
 
 } // namespace pw8::plugin::ui

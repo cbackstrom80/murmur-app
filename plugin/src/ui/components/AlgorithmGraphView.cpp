@@ -5,6 +5,7 @@
 
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
+#include "EdgeIconGrid.h"
 #include "pw8/algorithm/AlgorithmTypes.hpp"
 
 namespace pw8::plugin::ui
@@ -80,6 +81,18 @@ namespace pw8::plugin::ui
     void AlgorithmGraphView::setGraphPreview(const algorithm::AlgorithmGraphDefinition* preview) noexcept
     {
         previewGraph_ = preview;
+        repaint();
+    }
+
+    void AlgorithmGraphView::setSelectedNode(int nodeIndex)
+    {
+        selectedNode_ = juce::jlimit(0, static_cast<int>(core::kNodesPerLayer) - 1, nodeIndex);
+        repaint();
+    }
+
+    void AlgorithmGraphView::setActiveOperator(int nodeIndex)
+    {
+        activeOperator_ = juce::jlimit(0, static_cast<int>(core::kNodesPerLayer) - 1, nodeIndex);
         repaint();
     }
 
@@ -208,6 +221,13 @@ namespace pw8::plugin::ui
                 continue; // Defensive: a malformed edge shouldn't crash the editor.
 
             const auto colour = palette::edgeColour(static_cast<int>(edge.type));
+            const bool activeEdge = [&] {
+                if (activeOperator_ < 0 || static_cast<std::size_t>(activeOperator_) >= nodeCount)
+                    return false;
+                const auto nodeId = algo.nodes[static_cast<std::size_t>(activeOperator_)].id;
+                return edge.source == nodeId || edge.destination == nodeId;
+            }();
+            const float edgeAlpha = activeEdge ? 0.85f : 0.55f;
             const float edgePhase = std::fmod(pulsePhase_ + static_cast<float>(e) * 0.13f, 1.0f);
 
             if (srcIdx == dstIdx)
@@ -243,8 +263,8 @@ namespace pw8::plugin::ui
             path.startNewSubPath(p1);
             path.quadraticTo(bow, p2);
 
-            g.setColour(colour.withAlpha(0.55f));
-            g.strokePath(path, juce::PathStrokeType(1.4f));
+            g.setColour(colour.withAlpha(edgeAlpha));
+            g.strokePath(path, juce::PathStrokeType(activeEdge ? 2.0f : 1.4f));
 
             // Directional arrowhead, stopped just outside the destination node's
             // circle rather than pointing into its centre -- the other half of the
@@ -366,10 +386,9 @@ namespace pw8::plugin::ui
                     continue;
                 const auto type = static_cast<algorithm::EdgeType>(t);
                 const auto colour = palette::edgeColour(t);
-                auto dotBounds = legendRow.removeFromLeft(9.0f).withSizeKeepingCentre(7.0f, 7.0f);
-                g.setColour(colour);
-                g.fillEllipse(dotBounds);
-                legendRow.removeFromLeft(3.0f);
+                auto iconBounds = legendRow.removeFromLeft(14.0f).withSizeKeepingCentre(12.0f, 12.0f).toFloat();
+                edgeicons::drawEdgeIcon(g, type, iconBounds, colour, 1.1f);
+                legendRow.removeFromLeft(2.0f);
                 const auto label = juce::String(edgeShortLabel(type));
                 juce::GlyphArrangement glyphs;
                 glyphs.addLineOfText(g.getCurrentFont(), label, 0.0f, 0.0f);

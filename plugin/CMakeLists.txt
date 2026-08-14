@@ -65,10 +65,13 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/AlgorithmGraphView.cpp
     src/ui/components/AlgorithmGraphEditor.cpp
     src/ui/components/EngineIconGrid.cpp
+    src/ui/components/EdgeIconGrid.cpp
+    src/ui/components/EngineNodeStrip.cpp
+    src/ui/components/LiveTopologyStrip.cpp
+    src/ui/components/TopologyGraphOverlay.cpp
     src/ui/components/ModMatrixDesignPanel.cpp
     src/ui/components/DesignFxDetailPanel.cpp
     src/ui/components/WavetableWarpPanel.cpp
-    src/ui/components/NodeSelectorRow.cpp
     src/ui/components/ContextStrip.cpp
     src/ui/components/OperatorEditorPanel.cpp
     src/ui/components/MacroStrip.cpp

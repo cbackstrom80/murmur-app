@@ -6,7 +6,7 @@
 
 #include "GlowKnob.h"
 #include "ModAssignmentController.h"
-#include "NodeSelectorRow.h"
+#include "EngineNodeStrip.h"
 #include "WavetableStackView.h"
 #include "processor/PatchworkEightProcessor.h"
 
@@ -33,7 +33,7 @@ namespace pw8::plugin::ui
 
         PatchworkEightProcessor& processor_;
         ModAssignmentController assignmentController_;
-        NodeSelectorRow nodeSelector_;
+        EngineNodeStrip nodeSelector_;
         WavetableStackView stackView_;
         juce::Label engineHint_{"", ""};
 

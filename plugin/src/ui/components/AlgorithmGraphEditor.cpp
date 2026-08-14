@@ -3,6 +3,7 @@
 #include "AlgorithmGraphView.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
+#include "EdgeIconGrid.h"
 
 namespace pw8::plugin::ui
 {
@@ -97,9 +98,18 @@ namespace pw8::plugin::ui
             return edge;
         }
 
+        void paint(juce::Graphics& g) override
+        {
+            const auto type = edgeTypeFromIndex(typeBox_.getSelectedId() - 1);
+            auto iconArea = getLocalBounds().removeFromLeft(20).reduced(2).toFloat();
+            edgeicons::drawEdgeIcon(g, type, iconArea, palette::edgeColour(static_cast<int>(type)), 1.1f);
+        }
+
         void resized() override
         {
             auto bounds = getLocalBounds().reduced(2);
+            bounds.removeFromLeft(20);
+            bounds.removeFromLeft(2);
             sourceBox_.setBounds(bounds.removeFromLeft(44));
             bounds.removeFromLeft(4);
             destBox_.setBounds(bounds.removeFromLeft(44));

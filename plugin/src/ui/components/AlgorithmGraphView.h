@@ -64,6 +64,11 @@ namespace pw8::plugin::ui
 
         [[nodiscard]] int getSelectedNode() const noexcept { return selectedNode_; }
 
+        void setSelectedNode(int nodeIndex);
+
+        /// Highlight edges touching this operator (performance pulse MVP).
+        void setActiveOperator(int nodeIndex);
+
         /// When set, paint/read from this graph instead of the processor patch (DESIGN preview).
         void setGraphPreview(const algorithm::AlgorithmGraphDefinition* preview) noexcept;
 
@@ -83,6 +88,7 @@ namespace pw8::plugin::ui
         const algorithm::AlgorithmGraphDefinition* previewGraph_ = nullptr;
         float pulsePhase_ = 0.0f;
         int selectedNode_ = 0; // Matches OperatorEditorPanel's own initial showNode(0).
+        int activeOperator_ = 0;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AlgorithmGraphView)
     };

@@ -1,5 +1,7 @@
 #include "PatchFocusPanel.h"
 
+#include <cmath>
+
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "ModRoutingUi.h"
@@ -47,7 +49,7 @@ namespace pw8::plugin::ui
         advancedButton_.setVisible(false);
 
         setBasicPerformanceLayout(true);
-        startTimerHz(2);
+        startTimerHz(12);
         timerCallback();
     }
 
@@ -102,6 +104,81 @@ namespace pw8::plugin::ui
         timerCallback();
     }
 
+    void PatchFocusPanel::updateBadgePulse()
+    {
+        const float wheel = processor_.getModWheelValue();
+        const float expr = processor_.getExpressionValue();
+        const bool wheelActive = wheel > 0.02f;
+        const bool exprActive = expr > 0.02f;
+        const float pulse = 0.5f + 0.5f * std::sin(badgePulsePhase_ * juce::MathConstants<float>::twoPi);
+
+        if (modWheelBadge_.isVisible())
+        {
+            const auto base = palette::kModModWheel;
+            modWheelBadge_.setColour(juce::Label::backgroundColourId,
+                                     base.withAlpha(wheelActive ? 0.12f + 0.14f * pulse : 0.12f));
+            modWheelBadge_.setColour(juce::Label::textColourId,
+                                     wheelActive ? base.brighter(wheelActive ? 0.08f * pulse : 0.0f) : base);
+        }
+
+        if (expressionBadge_.isVisible())
+        {
+            const auto base = palette::kModExpression;
+            expressionBadge_.setColour(juce::Label::backgroundColourId,
+                                     base.withAlpha(exprActive ? 0.12f + 0.14f * pulse : 0.12f));
+            expressionBadge_.setColour(juce::Label::textColourId,
+                                       exprActive ? base.brighter(exprActive ? 0.08f * pulse : 0.0f) : base);
+        }
+    }
+
+    void PatchFocusPanel::paint(juce::Graphics& g)
+    {
+        if (!basicLayout_ || compactLayout_)
+            return;
+
+        const auto frame = panel_.getBounds().toFloat().expanded(3.0f);
+        juce::Path card;
+        card.addRoundedRectangle(frame, 9.0f);
+
+        g.setColour(palette::kAccentWarm.withAlpha(0.06f));
+        g.fillPath(card);
+
+        g.setColour(palette::kAccentWarm.withAlpha(0.32f));
+        g.strokePath(card, juce::PathStrokeType(1.1f));
+
+        constexpr float tick = 10.0f;
+        const juce::Point<float> corners[] = {
+            frame.getTopLeft(),
+            frame.getTopRight(),
+            frame.getBottomLeft(),
+            frame.getBottomRight(),
+        };
+        for (const auto& c : corners)
+        {
+            g.setColour(palette::kAccentWarm.withAlpha(0.55f));
+            if (c == frame.getTopLeft())
+            {
+                g.drawLine(c.x, c.y, c.x + tick, c.y, 1.4f);
+                g.drawLine(c.x, c.y, c.x, c.y + tick, 1.4f);
+            }
+            else if (c == frame.getTopRight())
+            {
+                g.drawLine(c.x, c.y, c.x - tick, c.y, 1.4f);
+                g.drawLine(c.x, c.y, c.x, c.y + tick, 1.4f);
+            }
+            else if (c == frame.getBottomLeft())
+            {
+                g.drawLine(c.x, c.y, c.x + tick, c.y, 1.4f);
+                g.drawLine(c.x, c.y, c.x, c.y - tick, 1.4f);
+            }
+            else
+            {
+                g.drawLine(c.x, c.y, c.x - tick, c.y, 1.4f);
+                g.drawLine(c.x, c.y, c.x, c.y - tick, 1.4f);
+            }
+        }
+    }
+
     void PatchFocusPanel::timerCallback()
     {
         const auto& patch = processor_.getCurrentPatch();
@@ -136,6 +213,21 @@ namespace pw8::plugin::ui
         const auto exprText = formatExpressionStatus(patch, processor_.getExpressionValue());
         expressionBadge_.setText(exprText, juce::dontSendNotification);
         expressionBadge_.setVisible(!exprText.isEmpty());
+
+        badgePulsePhase_ += 1.0f / 12.0f;
+        if (badgePulsePhase_ > 1.0f)
+            badgePulsePhase_ -= 1.0f;
+        updateBadgePulse();
+
+        const float wheel = processor_.getModWheelValue();
+        const float expr = processor_.getExpressionValue();
+        const bool midiMoved =
+            (lastModWheel_ >= 0.0f && std::abs(wheel - lastModWheel_) > 0.005f) ||
+            (lastExpression_ >= 0.0f && std::abs(expr - lastExpression_) > 0.005f);
+        lastModWheel_ = wheel;
+        lastExpression_ = expr;
+        if (midiMoved && onPerformanceActivity)
+            onPerformanceActivity(-1);
     }
 
     void PatchFocusPanel::rebuildKnobs(const std::vector<PatchFocusKnobSpec>& specs)

@@ -35,11 +35,14 @@ namespace pw8::plugin::ui
         void refreshFromPatch();
 
         std::function<void()> onAdvancedClicked;
+        std::function<void(int operatorHint)> onPerformanceActivity;
 
     private:
         void timerCallback() override;
+        void paint(juce::Graphics& g) override;
         void rebuildKnobs(const std::vector<PatchFocusKnobSpec>& specs);
         void applyLayoutMode();
+        void updateBadgePulse();
 
         PatchworkEightProcessor& processor_;
         SectionPanel panel_{"Knobs of Interest", palette::kAccentWarm, true};
@@ -52,6 +55,9 @@ namespace pw8::plugin::ui
         bool compactLayout_ = false;
         std::vector<PatchFocusKnobSpec> lastSpecs_;
         std::vector<std::unique_ptr<GlowKnob>> knobs_;
+        float lastModWheel_ = -1.0f;
+        float lastExpression_ = -1.0f;
+        float badgePulsePhase_ = 0.0f;
     };
 
 } // namespace pw8::plugin::ui

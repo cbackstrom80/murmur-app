@@ -16,7 +16,9 @@
 #include "components/ModAssignmentController.h"
 #include "components/ModLauncherPanel.h"
 #include "components/ModRoutingOverlay.h"
-#include "components/NodeSelectorRow.h"
+#include "components/EngineNodeStrip.h"
+#include "components/LiveTopologyStrip.h"
+#include "components/TopologyGraphOverlay.h"
 #include "components/OperatorEditorPanel.h"
 #include "components/SectionPanel.h"
 #include "content/PresetIndex.h"
@@ -68,12 +70,19 @@ namespace pw8::plugin::ui
         void openArpPanel();
         void closeArpPanel();
 
+        void openGraphOverlay();
+        void closeGraphOverlay();
+        void syncNodeSelection(int nodeIndex);
+        void notifyPerformancePulse(int operatorHint = 0);
+
         ModAssignmentController modAssignmentController_;
         ObsidianLookAndFeel lookAndFeel_;
         SharedEditorChrome& chrome_;
 
         ArpLauncherChip arpLauncherChip_;
-        NodeSelectorRow nodeSelectorRow_;
+        EngineNodeStrip nodeSelectorRow_;
+        LiveTopologyStrip liveTopologyStrip_;
+        TopologyGraphOverlay topologyGraphOverlay_;
         ContextStrip contextStrip_;
         PatchFocusPanel patchFocusPanel_;
         CompactModeEditor compactEditor_;
