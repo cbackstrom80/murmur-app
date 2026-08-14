@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-039-113759060",
+    "id": "pw8-interstellar-039-963692518",
     "name": "NO TIME FOR CAUTION",
     "author": "MURMUR Sound Design",
     "description": "Interstellar cinematic preset #039 \u2014 No Time For Caution. Melodic lines G3\u2013B4; legato portamento; mod wheel adds bite and filter sweep. Engines: FM/PM, NoiseChaos.",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 113759060,
+    "seed": 963692518,
     "lineage": []
   },
   "layerMode": 0,
@@ -53,9 +53,9 @@
         "frequencyRatio": 1.0,
         "keyTrack": true,
         "level": 0.88,
-        "pan": -0.1018036527872357,
+        "pan": 0.09158180956097686,
         "noiseVariant": 2,
-        "noiseRate": 63.26702321514364
+        "noiseRate": 59.84815688171863
       },
       {
         "engine": 0,
@@ -365,17 +365,73 @@
         "scope": 0
       },
       {
-        "source": 21,
-        "destination": 1,
-        "targetIndex": 0,
-        "amount": 10.0,
-        "scope": 1
-      },
-      {
         "source": 20,
         "destination": 1,
         "targetIndex": 0,
         "amount": 14.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 16.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.35,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.3,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 5,
+        "targetIndex": 0,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.3,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.35,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.5,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.4,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 8.0,
         "scope": 0
       }
     ],
@@ -681,7 +737,7 @@
     }
   ],
   "uiFocus": {
-    "maxKnobs": 6,
+    "maxKnobs": 3,
     "knobs": [
       {
         "kind": "macro",
@@ -689,29 +745,14 @@
         "label": "EDGE"
       },
       {
-        "kind": "param",
-        "paramId": "filterCutoffHz",
-        "label": "Cutoff"
+        "kind": "macro",
+        "index": 1,
+        "label": "BLOOM"
       },
       {
-        "kind": "param",
-        "paramId": "op1WavetablePos",
-        "label": "WT Pos"
-      },
-      {
-        "kind": "param",
-        "paramId": "filterResonance",
-        "label": "Reso"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerGain",
-        "label": "Layer"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerPan",
-        "label": "Pan"
+        "kind": "macro",
+        "index": 2,
+        "label": "SWEEP"
       }
     ]
   }

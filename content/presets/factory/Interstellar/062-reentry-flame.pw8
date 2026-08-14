@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-062-2650835593",
+    "id": "pw8-interstellar-062-1139762064",
     "name": "REENTRY FLAME",
     "author": "MURMUR Sound Design",
     "description": "Interstellar cinematic preset #062 \u2014 Reentry Flame. Long notes or single triggers; sweep mod wheel for riser/drop; use as transition layer. Engines: Wavetable, Granular, NoiseChaos.",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 2650835593,
+    "seed": 1139762064,
     "lineage": []
   },
   "layerMode": 0,
@@ -50,8 +50,8 @@
         "frequencyRatio": 1.0,
         "keyTrack": true,
         "level": 0.88,
-        "pan": -0.050111574262106176,
-        "wavetableId": "content/wavetables/gran-cloud-drift.json",
+        "pan": -0.07297437978386323,
+        "wavetableId": "content/wavetables/texture-granular-shimmer.json",
         "wavetableFramePosition": 0.3,
         "grainDensity": 12.0,
         "grainSizeMs": 120.0,
@@ -60,17 +60,17 @@
       },
       {
         "engine": 1,
-        "wavetableId": "content/wavetables/chord-fifth-stack.json",
+        "wavetableId": "content/wavetables/ambient-airy-drift.json",
         "wavetableFramePosition": 0.4,
         "frequencyRatio": 1.0,
         "keyTrack": true,
         "level": 0.62,
-        "pan": 0.05119524049131852,
-        "wtBend": 0.2939036545510102,
-        "wtAsymmetry": 0.3282070024748638,
-        "wtSyncRatio": 2.3684703080909513,
-        "wtSyncAmount": 0.55218541572661,
-        "wtFormantShift": 0.11598607008747897
+        "pan": 0.15132320743954342,
+        "wtBend": 0.2871273421020511,
+        "wtAsymmetry": 0.3224252167674304,
+        "wtSyncRatio": 1.7598826315578462,
+        "wtSyncAmount": 0.3913720613885384,
+        "wtFormantShift": 0.010889199807841976
       },
       {
         "engine": 0,
@@ -402,6 +402,90 @@
         "targetIndex": 0,
         "amount": 12.0,
         "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 7,
+        "targetIndex": 2,
+        "amount": 0.5,
+        "scope": 1
+      },
+      {
+        "source": 21,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.22,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 7,
+        "targetIndex": 2,
+        "amount": 0.4,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 8.0,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.35,
+        "scope": 0
+      },
+      {
+        "source": 26,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.25,
+        "scope": 0
+      },
+      {
+        "source": 26,
+        "destination": 5,
+        "targetIndex": 2,
+        "amount": 0.3,
+        "scope": 1
+      },
+      {
+        "source": 26,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 8.0,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 12.0,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 5,
+        "targetIndex": 2,
+        "amount": 0.28,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.4,
+        "scope": 0
       }
     ],
     "gain": 1.0,
@@ -699,7 +783,7 @@
     }
   ],
   "uiFocus": {
-    "maxKnobs": 6,
+    "maxKnobs": 3,
     "knobs": [
       {
         "kind": "macro",
@@ -707,29 +791,14 @@
         "label": "RISE"
       },
       {
-        "kind": "param",
-        "paramId": "filterCutoffHz",
-        "label": "Cutoff"
+        "kind": "macro",
+        "index": 1,
+        "label": "IMPACT"
       },
       {
-        "kind": "param",
-        "paramId": "op1WavetablePos",
-        "label": "WT Pos"
-      },
-      {
-        "kind": "param",
-        "paramId": "filterResonance",
-        "label": "Reso"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerGain",
-        "label": "Layer"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerPan",
-        "label": "Pan"
+        "kind": "macro",
+        "index": 5,
+        "label": "TENSION"
       }
     ]
   }

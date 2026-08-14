@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "metadata": {
-    "id": "pw8-genre-expansion-bass-137919261",
+    "id": "pw8-genre-expansion-bass-1626247613",
     "name": "TURBINE BLAST",
     "author": "MURMUR Sound Design",
     "description": "Genre expansion Basse patch #085. Rave hoover bass \u2014 detuned saws, resonant filter sweep. Engines: Classic, PhaseShape.",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 2,
-    "seed": 137919261,
+    "seed": 1626247613,
     "lineage": []
   },
   "layerMode": 0,
@@ -50,7 +50,7 @@
         "frequencyRatio": 1.0,
         "keyTrack": true,
         "level": 0.55,
-        "pan": 0.06158264575260472
+        "pan": 0.0985935563997819
       },
       {
         "engine": 0,
@@ -58,7 +58,7 @@
         "frequencyRatio": 1.01,
         "keyTrack": true,
         "level": 0.47000000000000003,
-        "pan": 0.023607250681291464
+        "pan": 0.10723423762329384
       },
       {
         "engine": 0,
@@ -66,7 +66,7 @@
         "frequencyRatio": 0.994,
         "keyTrack": true,
         "level": 0.39,
-        "pan": -0.08728002289542407
+        "pan": -0.1329019861700029
       },
       {
         "engine": 4,
@@ -327,13 +327,6 @@
         "scope": 0
       },
       {
-        "source": 21,
-        "destination": 1,
-        "targetIndex": 0,
-        "amount": 12.0,
-        "scope": 1
-      },
-      {
         "source": 30,
         "destination": 2,
         "targetIndex": 0,
@@ -345,6 +338,62 @@
         "destination": 1,
         "targetIndex": 0,
         "amount": 12.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 14.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.32,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 5,
+        "targetIndex": 2,
+        "amount": 0.4,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.28,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.45,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 8.0,
         "scope": 0
       }
     ],
@@ -631,7 +680,7 @@
     }
   ],
   "uiFocus": {
-    "maxKnobs": 6,
+    "maxKnobs": 2,
     "knobs": [
       {
         "kind": "macro",
@@ -639,29 +688,9 @@
         "label": "SWEEP"
       },
       {
-        "kind": "param",
-        "paramId": "filterCutoffHz",
-        "label": "Cutoff"
-      },
-      {
-        "kind": "param",
-        "paramId": "filterResonance",
-        "label": "Reso"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerGain",
-        "label": "Layer"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerPan",
-        "label": "Pan"
-      },
-      {
-        "kind": "param",
-        "paramId": "masterGain",
-        "label": "Master"
+        "kind": "macro",
+        "index": 1,
+        "label": "BITE"
       }
     ]
   }

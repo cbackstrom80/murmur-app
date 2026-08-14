@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "metadata": {
-    "id": "pw8-mew-m83-ambient-4109644551",
+    "id": "pw8-mew-m83-ambient-453742200",
     "name": "MIDNIGHT HAZE",
     "author": "MURMUR Sound Design",
     "description": "Mew/M83-inspired Ambient patch #57. Midnight haze \u2014 neon nostalgia drone. Engines: Classic, Wavetable, Resonator. Archetype: wavetable wash drone.",
@@ -30,7 +30,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 2,
-    "seed": 4109644551,
+    "seed": 453742200,
     "lineage": []
   },
   "layerMode": 0,
@@ -59,7 +59,7 @@
       },
       {
         "engine": 1,
-        "wavetableId": "content/wavetables/ambient-airy-drift.json",
+        "wavetableId": "content/wavetables/formant-vowel-morph-o-to-u.json",
         "wavetableFramePosition": 0.4,
         "frequencyRatio": 0.5,
         "keyTrack": true,
@@ -310,7 +310,7 @@
       },
       {
         "source": 2,
-        "destination": 5,
+        "destination": 7,
         "targetIndex": 1,
         "amount": 0.4,
         "scope": 1
@@ -330,13 +330,6 @@
         "scope": 0
       },
       {
-        "source": 26,
-        "destination": 1,
-        "targetIndex": 0,
-        "amount": 10.0,
-        "scope": 1
-      },
-      {
         "source": 18,
         "destination": 1,
         "targetIndex": 0,
@@ -345,7 +338,7 @@
       },
       {
         "source": 30,
-        "destination": 3,
+        "destination": 5,
         "targetIndex": 0,
         "amount": 0.25,
         "scope": 0
@@ -355,6 +348,90 @@
         "destination": 1,
         "targetIndex": 0,
         "amount": 12.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 7,
+        "targetIndex": 2,
+        "amount": 0.5,
+        "scope": 1
+      },
+      {
+        "source": 21,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.22,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 7,
+        "targetIndex": 2,
+        "amount": 0.4,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 8.0,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.35,
+        "scope": 0
+      },
+      {
+        "source": 26,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.25,
+        "scope": 0
+      },
+      {
+        "source": 26,
+        "destination": 5,
+        "targetIndex": 2,
+        "amount": 0.3,
+        "scope": 1
+      },
+      {
+        "source": 26,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 8.0,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 12.0,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 5,
+        "targetIndex": 2,
+        "amount": 0.28,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.4,
         "scope": 0
       }
     ],
@@ -659,37 +736,22 @@
     }
   ],
   "uiFocus": {
-    "maxKnobs": 6,
+    "maxKnobs": 3,
     "knobs": [
+      {
+        "kind": "macro",
+        "index": 0,
+        "label": "DRIFT"
+      },
+      {
+        "kind": "macro",
+        "index": 1,
+        "label": "DEPTH"
+      },
       {
         "kind": "macro",
         "index": 5,
         "label": "SPACE"
-      },
-      {
-        "kind": "param",
-        "paramId": "filterCutoffHz",
-        "label": "Cutoff"
-      },
-      {
-        "kind": "param",
-        "paramId": "op1WavetablePos",
-        "label": "WT Pos"
-      },
-      {
-        "kind": "param",
-        "paramId": "filterResonance",
-        "label": "Reso"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerGain",
-        "label": "Layer"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerPan",
-        "label": "Pan"
       }
     ]
   }

@@ -209,6 +209,55 @@
         "targetIndex": 0,
         "amount": 12.0,
         "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.35,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 5,
+        "targetIndex": 0,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.45,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.3,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.4,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
       }
     ],
     "gain": 0.95,
@@ -606,7 +655,7 @@
     }
   ],
   "uiFocus": {
-    "maxKnobs": 6,
+    "maxKnobs": 2,
     "knobs": [
       {
         "kind": "macro",
@@ -614,29 +663,9 @@
         "label": "DRIVE"
       },
       {
-        "kind": "param",
-        "paramId": "filterCutoffHz",
-        "label": "Cutoff"
-      },
-      {
-        "kind": "param",
-        "paramId": "filterResonance",
-        "label": "Reso"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerGain",
-        "label": "Layer"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerPan",
-        "label": "Pan"
-      },
-      {
-        "kind": "param",
-        "paramId": "masterGain",
-        "label": "Master"
+        "kind": "macro",
+        "index": 1,
+        "label": "BITE"
       }
     ]
   },

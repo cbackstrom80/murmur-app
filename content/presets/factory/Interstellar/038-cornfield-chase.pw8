@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-038-3146199241",
+    "id": "pw8-interstellar-038-605267390",
     "name": "CORNFIELD CHASE",
     "author": "MURMUR Sound Design",
     "description": "Interstellar cinematic preset #038 \u2014 Cornfield Chase. Melodic lines G3\u2013B4; legato portamento; mod wheel adds bite and filter sweep. Engines: Wavetable, Granular.",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 3146199241,
+    "seed": 605267390,
     "lineage": []
   },
   "layerMode": 0,
@@ -38,25 +38,25 @@
     "operators": [
       {
         "engine": 1,
-        "wavetableId": "content/wavetables/classic-saw-to-square.json",
+        "wavetableId": "content/wavetables/metallic-ratio-stack-b.json",
         "wavetableFramePosition": 0.4,
         "frequencyRatio": 1.0,
         "keyTrack": true,
         "level": 0.32,
         "pan": 0.0,
-        "wtSyncRatio": 2.5248949165895676,
-        "wtSyncAmount": 0.6230350565291247,
-        "wtBend": 0.3444364223757752,
-        "wtAsymmetry": 0.24600761943426946,
-        "wtFormantShift": -0.22853177307288008
+        "wtSyncRatio": 1.783590551780973,
+        "wtSyncAmount": 0.46173180244051215,
+        "wtBend": 0.45184404104000464,
+        "wtAsymmetry": 0.2564200201925914,
+        "wtFormantShift": -0.19542511784750083
       },
       {
         "engine": 5,
         "frequencyRatio": 1.0,
         "keyTrack": true,
         "level": 0.88,
-        "pan": 0.03421768973719261,
-        "wavetableId": "content/wavetables/gran-ocean-swell.json",
+        "pan": -0.04159819856167048,
+        "wavetableId": "content/wavetables/gran-shimmer-voice.json",
         "wavetableFramePosition": 0.3,
         "grainDensity": 12.0,
         "grainSizeMs": 120.0,
@@ -404,6 +404,69 @@
         "targetIndex": 0,
         "amount": 14.0,
         "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 16.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.35,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.3,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 5,
+        "targetIndex": 0,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.3,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.35,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.5,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 7,
+        "targetIndex": 0,
+        "amount": 0.4,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 8.0,
+        "scope": 0
       }
     ],
     "gain": 1.0,
@@ -708,7 +771,7 @@
     }
   ],
   "uiFocus": {
-    "maxKnobs": 6,
+    "maxKnobs": 3,
     "knobs": [
       {
         "kind": "macro",
@@ -716,29 +779,14 @@
         "label": "EDGE"
       },
       {
-        "kind": "param",
-        "paramId": "filterCutoffHz",
-        "label": "Cutoff"
+        "kind": "macro",
+        "index": 1,
+        "label": "BLOOM"
       },
       {
-        "kind": "param",
-        "paramId": "op1WavetablePos",
-        "label": "WT Pos"
-      },
-      {
-        "kind": "param",
-        "paramId": "filterResonance",
-        "label": "Reso"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerGain",
-        "label": "Layer"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerPan",
-        "label": "Pan"
+        "kind": "macro",
+        "index": 2,
+        "label": "SWEEP"
       }
     ]
   }

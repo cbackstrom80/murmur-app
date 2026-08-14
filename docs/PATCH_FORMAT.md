@@ -110,7 +110,13 @@ When omitted or empty, PLAY mode infers up to 3 routed macros (Macro1–3 prefer
 Each KOIN is a **macro knob** whose destinations live in `layerA.modRoutes` — not a
 direct APVTS parameter binding. Mod Wheel and Expression remain separate MIDI badges.
 
-See `content/presets/factory/Pads/06-velvet-glow.pw8` for a factory example.
+**Factory curation rules** (`scripts/generate_factory_presets.py`):
+
+- 1–3 macro KOINS per patch (category-dependent: bass 1–2, pad/lead 2–3).
+- Each featured macro has **2–4 `modRoutes`** to audible targets (filter, level, WT pos, pan).
+- `uiFocus` lists macro entries only — no `param`-kind padding on the performance surface.
+
+See any regenerated factory pad (e.g. `content/presets/factory/Pads/01-pale-glow.pw8`) for an example.
 
 ## `LayerMode`
 

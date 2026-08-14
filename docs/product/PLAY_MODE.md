@@ -58,6 +58,7 @@ This is MURMUR's signature visual — you see *how* a sound is wired, not just a
 **1–3 contextual performance macros** curated per preset for hands-on PLAY:
 
 - Each KOIN = a **Macro knob** (Macro1–3 typically) wired via **`modRoutes`** to patch-specific destinations — e.g. BLOOM + SPACE on a pad, PUNCH + GRIT on a bass patch.
+- Factory curation: **2–4 modRoutes per featured macro** so each knob audibly reshapes the sound; simpler patches ship **1 KOIN**, rich pads **2–3**.
 - Authored in each `.pw8` file (`uiFocus` block), or **inferred** from the first routed macros (Macro1–3 preferred).
 - **Not** direct APVTS param knobs (cutoff, reso, etc.) on the Basic/Compact performance surface — use Advanced FILTER tab or mod matrix for those.
 - Mod Wheel (CC1) and Expression (CC11) badges stay separate — expressive MIDI, not KOINS.

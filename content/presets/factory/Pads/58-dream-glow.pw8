@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "metadata": {
-    "id": "pw8-mew-m83-pad-2655084276",
+    "id": "pw8-mew-m83-pad-3633470200",
     "name": "DREAM GLOW",
     "author": "MURMUR Sound Design",
     "description": "Mew/M83-inspired Pad patch #58. Dream glow \u2014 shimmer unison pad. Engines: Classic, Additive, PhaseShape. Archetype: evolving wavetable pad.",
@@ -30,7 +30,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 2,
-    "seed": 2655084276,
+    "seed": 3633470200,
     "lineage": []
   },
   "layerMode": 0,
@@ -312,7 +312,7 @@
       },
       {
         "source": 2,
-        "destination": 5,
+        "destination": 7,
         "targetIndex": 1,
         "amount": 0.35,
         "scope": 1
@@ -332,13 +332,6 @@
         "scope": 0
       },
       {
-        "source": 21,
-        "destination": 5,
-        "targetIndex": 1,
-        "amount": 0.35,
-        "scope": 1
-      },
-      {
         "source": 18,
         "destination": 1,
         "targetIndex": 0,
@@ -347,7 +340,7 @@
       },
       {
         "source": 30,
-        "destination": 3,
+        "destination": 5,
         "targetIndex": 0,
         "amount": 0.25,
         "scope": 0
@@ -357,6 +350,69 @@
         "destination": 1,
         "targetIndex": 0,
         "amount": 12.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 12.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.22,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.2,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.45,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.3,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 5,
+        "targetIndex": 0,
+        "amount": 0.25,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.4,
         "scope": 0
       }
     ],
@@ -668,7 +724,7 @@
     }
   ],
   "uiFocus": {
-    "maxKnobs": 6,
+    "maxKnobs": 3,
     "knobs": [
       {
         "kind": "macro",
@@ -676,29 +732,14 @@
         "label": "WARMTH"
       },
       {
-        "kind": "param",
-        "paramId": "filterCutoffHz",
-        "label": "Cutoff"
+        "kind": "macro",
+        "index": 1,
+        "label": "BLOOM"
       },
       {
-        "kind": "param",
-        "paramId": "op1WavetablePos",
-        "label": "WT Pos"
-      },
-      {
-        "kind": "param",
-        "paramId": "filterResonance",
-        "label": "Reso"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerGain",
-        "label": "Layer"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerPan",
-        "label": "Pan"
+        "kind": "macro",
+        "index": 2,
+        "label": "SHIMMER"
       }
     ]
   }

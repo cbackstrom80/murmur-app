@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-088-3949253318",
+    "id": "pw8-interstellar-088-1857715561",
     "name": "LAYERED COSMOS",
     "author": "MURMUR Sound Design",
     "description": "Interstellar cinematic preset #088 \u2014 Layered Cosmos. Chords in mid register; macro MORPH crossfades dual layers; mod wheel = bloom. Engines: Classic, Additive, PhaseShape.",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 3949253318,
+    "seed": 1857715561,
     "lineage": []
   },
   "layerMode": 2,
@@ -371,7 +371,7 @@
       },
       {
         "source": 30,
-        "destination": 3,
+        "destination": 5,
         "targetIndex": 0,
         "amount": 0.25,
         "scope": 0
@@ -381,6 +381,69 @@
         "destination": 1,
         "targetIndex": 0,
         "amount": 12.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 12.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.22,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.2,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.45,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.3,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 5,
+        "targetIndex": 0,
+        "amount": 0.25,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.4,
         "scope": 0
       }
     ],
@@ -413,7 +476,7 @@
     "operators": [
       {
         "engine": 1,
-        "wavetableId": "content/wavetables/ambient-dreamy-veil.json",
+        "wavetableId": "content/wavetables/formant-vowel-aa.json",
         "wavetableFramePosition": 0.4,
         "frequencyRatio": 1.0,
         "keyTrack": true,
@@ -424,7 +487,7 @@
       },
       {
         "engine": 5,
-        "wavetableId": "content/wavetables/gran-shimmer-voice.json",
+        "wavetableId": "content/wavetables/gran-frozen-grit.json",
         "wavetableFramePosition": 0.2,
         "frequencyRatio": 1.0,
         "keyTrack": true,
@@ -746,7 +809,7 @@
     }
   ],
   "uiFocus": {
-    "maxKnobs": 6,
+    "maxKnobs": 3,
     "knobs": [
       {
         "kind": "macro",
@@ -754,29 +817,14 @@
         "label": "MORPH"
       },
       {
-        "kind": "param",
-        "paramId": "filterCutoffHz",
-        "label": "Cutoff"
+        "kind": "macro",
+        "index": 1,
+        "label": "BLOOM"
       },
       {
-        "kind": "param",
-        "paramId": "op1WavetablePos",
-        "label": "WT Pos"
-      },
-      {
-        "kind": "param",
-        "paramId": "filterResonance",
-        "label": "Reso"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerGain",
-        "label": "Layer"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerPan",
-        "label": "Pan"
+        "kind": "macro",
+        "index": 2,
+        "label": "ORGAN"
       }
     ]
   }

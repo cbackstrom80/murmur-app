@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-002-2606512269",
+    "id": "pw8-interstellar-002-902654305",
     "name": "DUST LANE HYMN",
     "author": "MURMUR Sound Design",
     "description": "Interstellar cinematic preset #002 \u2014 Dust Lane Hymn. Hold mid register C3\u2013C5; mod wheel blooms filter and wavetable; pressure adds shimmer. Engines: Classic, Wavetable, FM/PM.",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 2606512269,
+    "seed": 902654305,
     "lineage": []
   },
   "layerMode": 0,
@@ -49,14 +49,14 @@
         "frequencyRatio": 1.0,
         "keyTrack": true,
         "level": 0.88,
-        "pan": -0.112062456994619,
-        "wavetableId": "content/wavetables/chord-octave-stack.json",
+        "pan": -0.009129171941189562,
+        "wavetableId": "content/wavetables/classic-sine-to-triangle.json",
         "wavetableFramePosition": 0.35,
-        "wtBend": 0.3661125546340044,
-        "wtFormantShift": -0.054806881624714365,
-        "wtAsymmetry": 0.2958588550073604,
-        "wtSyncRatio": 2.194636566750855,
-        "wtSyncAmount": 0.4166736358863449
+        "wtBend": 0.3726452795545417,
+        "wtFormantShift": 0.18546291222131084,
+        "wtAsymmetry": 0.3015061952149071,
+        "wtSyncRatio": 2.593496850906617,
+        "wtSyncAmount": 0.44086538336551395
       },
       {
         "engine": 2,
@@ -389,6 +389,69 @@
         "targetIndex": 0,
         "amount": 12.0,
         "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 12.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.22,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.2,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.45,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.3,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 5,
+        "targetIndex": 0,
+        "amount": 0.25,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.4,
+        "scope": 0
       }
     ],
     "gain": 1.0,
@@ -699,7 +762,7 @@
     }
   ],
   "uiFocus": {
-    "maxKnobs": 6,
+    "maxKnobs": 3,
     "knobs": [
       {
         "kind": "macro",
@@ -707,29 +770,14 @@
         "label": "BLOOM"
       },
       {
-        "kind": "param",
-        "paramId": "filterCutoffHz",
-        "label": "Cutoff"
+        "kind": "macro",
+        "index": 1,
+        "label": "WARMTH"
       },
       {
-        "kind": "param",
-        "paramId": "op1WavetablePos",
-        "label": "WT Pos"
-      },
-      {
-        "kind": "param",
-        "paramId": "filterResonance",
-        "label": "Reso"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerGain",
-        "label": "Layer"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerPan",
-        "label": "Pan"
+        "kind": "macro",
+        "index": 2,
+        "label": "MORPH"
       }
     ]
   }

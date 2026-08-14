@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-086-2124946491",
+    "id": "pw8-interstellar-086-2415293425",
     "name": "DUAL CATHEDRAL",
     "author": "MURMUR Sound Design",
     "description": "Interstellar cinematic preset #086 \u2014 Dual Cathedral. Chords in mid register; macro MORPH crossfades dual layers; mod wheel = bloom. Engines: Classic, Wavetable, Additive.",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 2124946491,
+    "seed": 2415293425,
     "lineage": []
   },
   "layerMode": 2,
@@ -57,17 +57,17 @@
       },
       {
         "engine": 1,
-        "wavetableId": "content/wavetables/ambient-airy-drift.json",
+        "wavetableId": "content/wavetables/texture-drone-evolve.json",
         "wavetableFramePosition": 0.4,
         "frequencyRatio": 1.0,
         "keyTrack": true,
         "level": 0.62,
-        "pan": -0.12173825954436777,
-        "wtBend": 0.4844502834335148,
-        "wtAsymmetry": 0.2485739952161775,
-        "wtSyncRatio": 1.795131677807643,
-        "wtSyncAmount": 0.6060451038515634,
-        "wtFormantShift": -0.00021720883287401627
+        "pan": 0.08722644751986058,
+        "wtBend": 0.4110979636906012,
+        "wtAsymmetry": 0.34830002063351195,
+        "wtSyncRatio": 1.4402237332326986,
+        "wtSyncAmount": 0.595666230193947,
+        "wtFormantShift": -0.1551858406330861
       },
       {
         "engine": 0,
@@ -406,6 +406,69 @@
         "targetIndex": 0,
         "amount": 12.0,
         "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 12.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.22,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.2,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 7,
+        "targetIndex": 2,
+        "amount": 0.45,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.3,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 7,
+        "targetIndex": 2,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 5,
+        "targetIndex": 2,
+        "amount": 0.25,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.4,
+        "scope": 0
       }
     ],
     "gain": 1.0,
@@ -437,7 +500,7 @@
     "operators": [
       {
         "engine": 1,
-        "wavetableId": "content/wavetables/formant-vowel-oo.json",
+        "wavetableId": "content/wavetables/chord-fifth-stack.json",
         "wavetableFramePosition": 0.3,
         "frequencyRatio": 1.0,
         "keyTrack": true,
@@ -448,7 +511,7 @@
       },
       {
         "engine": 5,
-        "wavetableId": "content/wavetables/gran-frozen-grit.json",
+        "wavetableId": "content/wavetables/gran-digital-glitch.json",
         "wavetableFramePosition": 0.2,
         "frequencyRatio": 1.0,
         "keyTrack": true,
@@ -770,7 +833,7 @@
     }
   ],
   "uiFocus": {
-    "maxKnobs": 6,
+    "maxKnobs": 3,
     "knobs": [
       {
         "kind": "macro",
@@ -778,29 +841,14 @@
         "label": "MORPH"
       },
       {
-        "kind": "param",
-        "paramId": "filterCutoffHz",
-        "label": "Cutoff"
+        "kind": "macro",
+        "index": 1,
+        "label": "BLOOM"
       },
       {
-        "kind": "param",
-        "paramId": "op1WavetablePos",
-        "label": "WT Pos"
-      },
-      {
-        "kind": "param",
-        "paramId": "filterResonance",
-        "label": "Reso"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerGain",
-        "label": "Layer"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerPan",
-        "label": "Pan"
+        "kind": "macro",
+        "index": 2,
+        "label": "ORGAN"
       }
     ]
   }

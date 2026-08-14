@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-034-2558174143",
+    "id": "pw8-interstellar-034-2943926120",
     "name": "CHRONOS GATE",
     "author": "MURMUR Sound Design",
     "description": "Interstellar cinematic preset #034 \u2014 Chronos Gate. Short notes or arp; mod wheel sharpens sync warp; works at 60\u2013120 BPM. Engines: Classic, Wavetable, NoiseChaos.",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 2558174143,
+    "seed": 2943926120,
     "lineage": []
   },
   "layerMode": 0,
@@ -49,8 +49,8 @@
         "frequencyRatio": 1.0,
         "keyTrack": true,
         "level": 0.88,
-        "pan": 0.08125273501849731,
-        "wavetableId": "content/wavetables/ambient-dreamy-veil.json",
+        "pan": -0.0038041192100548987,
+        "wavetableId": "content/wavetables/ambient-evolving-swell.json",
         "wavetableFramePosition": 0.35,
         "wtBend": 0.18,
         "wtFormantShift": 0.12
@@ -365,17 +365,10 @@
       },
       {
         "source": 17,
-        "destination": 3,
+        "destination": 5,
         "targetIndex": 0,
         "amount": 0.35,
         "scope": 0
-      },
-      {
-        "source": 21,
-        "destination": 1,
-        "targetIndex": 0,
-        "amount": 8.0,
-        "scope": 1
       },
       {
         "source": 30,
@@ -390,6 +383,62 @@
         "targetIndex": 0,
         "amount": 12.0,
         "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 14.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.35,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.45,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 5,
+        "targetIndex": 0,
+        "amount": 0.3,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.4,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
       }
     ],
     "gain": 1.0,
@@ -700,7 +749,7 @@
     }
   ],
   "uiFocus": {
-    "maxKnobs": 6,
+    "maxKnobs": 2,
     "knobs": [
       {
         "kind": "macro",
@@ -708,29 +757,9 @@
         "label": "TICK"
       },
       {
-        "kind": "param",
-        "paramId": "filterCutoffHz",
-        "label": "Cutoff"
-      },
-      {
-        "kind": "param",
-        "paramId": "op1WavetablePos",
-        "label": "WT Pos"
-      },
-      {
-        "kind": "param",
-        "paramId": "filterResonance",
-        "label": "Reso"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerGain",
-        "label": "Layer"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerPan",
-        "label": "Pan"
+        "kind": "macro",
+        "index": 1,
+        "label": "SYNC"
       }
     ]
   }

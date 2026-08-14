@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-030-2308433977",
+    "id": "pw8-interstellar-030-2215842768",
     "name": "PULSAR GRID",
     "author": "MURMUR Sound Design",
     "description": "Interstellar cinematic preset #030 \u2014 Pulsar Grid. Short notes or arp; mod wheel sharpens sync warp; works at 60\u2013120 BPM. Engines: Classic, Granular, NoiseChaos.",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 2308433977,
+    "seed": 2215842768,
     "lineage": []
   },
   "layerMode": 0,
@@ -49,8 +49,8 @@
         "frequencyRatio": 1.0,
         "keyTrack": true,
         "level": 0.88,
-        "pan": -0.045386802156833245,
-        "wavetableId": "content/wavetables/gran-crystal-burst.json",
+        "pan": 0.06487601482984959,
+        "wavetableId": "content/wavetables/texture-granular-shimmer.json",
         "wavetableFramePosition": 0.3,
         "grainDensity": 12.0,
         "grainSizeMs": 120.0,
@@ -367,17 +367,10 @@
       },
       {
         "source": 17,
-        "destination": 3,
+        "destination": 5,
         "targetIndex": 0,
         "amount": 0.35,
         "scope": 0
-      },
-      {
-        "source": 21,
-        "destination": 1,
-        "targetIndex": 0,
-        "amount": 8.0,
-        "scope": 1
       },
       {
         "source": 30,
@@ -392,6 +385,62 @@
         "targetIndex": 0,
         "amount": 12.0,
         "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 14.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.35,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.45,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 5,
+        "targetIndex": 0,
+        "amount": 0.3,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.4,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
       }
     ],
     "gain": 1.0,
@@ -702,7 +751,7 @@
     }
   ],
   "uiFocus": {
-    "maxKnobs": 6,
+    "maxKnobs": 2,
     "knobs": [
       {
         "kind": "macro",
@@ -710,29 +759,9 @@
         "label": "TICK"
       },
       {
-        "kind": "param",
-        "paramId": "filterCutoffHz",
-        "label": "Cutoff"
-      },
-      {
-        "kind": "param",
-        "paramId": "op1WavetablePos",
-        "label": "WT Pos"
-      },
-      {
-        "kind": "param",
-        "paramId": "filterResonance",
-        "label": "Reso"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerGain",
-        "label": "Layer"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerPan",
-        "label": "Pan"
+        "kind": "macro",
+        "index": 1,
+        "label": "SYNC"
       }
     ]
   }

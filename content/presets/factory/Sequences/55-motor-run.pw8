@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "metadata": {
-    "id": "pw8-mew-m83-seq-2165529603",
+    "id": "pw8-mew-m83-seq-362474575",
     "name": "MOTOR RUN",
     "author": "MURMUR Sound Design",
     "description": "Mew/M83-inspired Sequence patch #55. Motor run \u2014 driving M83 motor line. Engines: Classic, PhaseShape. Archetype: sync oscillator sequence.",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 2,
-    "seed": 2165529603,
+    "seed": 362474575,
     "lineage": []
   },
   "layerMode": 0,
@@ -313,13 +313,6 @@
         "scope": 0
       },
       {
-        "source": 21,
-        "destination": 1,
-        "targetIndex": 0,
-        "amount": 8.0,
-        "scope": 1
-      },
-      {
         "source": 30,
         "destination": 2,
         "targetIndex": 0,
@@ -332,6 +325,62 @@
         "targetIndex": 0,
         "amount": 12.0,
         "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 14.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.35,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 5,
+        "targetIndex": 0,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.45,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.3,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.4,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
       }
     ],
     "gain": 1.0,
@@ -623,7 +672,7 @@
     }
   ],
   "uiFocus": {
-    "maxKnobs": 6,
+    "maxKnobs": 2,
     "knobs": [
       {
         "kind": "macro",
@@ -631,29 +680,9 @@
         "label": "RATE"
       },
       {
-        "kind": "param",
-        "paramId": "filterCutoffHz",
-        "label": "Cutoff"
-      },
-      {
-        "kind": "param",
-        "paramId": "filterResonance",
-        "label": "Reso"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerGain",
-        "label": "Layer"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerPan",
-        "label": "Pan"
-      },
-      {
-        "kind": "param",
-        "paramId": "masterGain",
-        "label": "Master"
+        "kind": "macro",
+        "index": 1,
+        "label": "SWING"
       }
     ]
   }

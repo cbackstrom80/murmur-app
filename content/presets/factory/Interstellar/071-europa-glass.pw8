@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "metadata": {
-    "id": "pw8-interstellar-071-3857925057",
+    "id": "pw8-interstellar-071-116605423",
     "name": "EUROPA GLASS",
     "author": "MURMUR Sound Design",
     "description": "Interstellar cinematic preset #071 \u2014 Europa Glass. Staccato C4\u2013C5; velocity controls brightness; mod wheel adds space. Engines: Classic, Wavetable, PhaseShape.",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 3,
-    "seed": 3857925057,
+    "seed": 116605423,
     "lineage": []
   },
   "layerMode": 0,
@@ -57,17 +57,17 @@
       },
       {
         "engine": 1,
-        "wavetableId": "content/wavetables/chord-fifth-stack.json",
+        "wavetableId": "content/wavetables/classic-sine-to-triangle.json",
         "wavetableFramePosition": 0.4,
         "frequencyRatio": 1.0,
         "keyTrack": true,
         "level": 0.62,
-        "pan": -0.08440655602051512,
-        "wtBend": 0.336419041473758,
-        "wtAsymmetry": 0.39238545901695093,
-        "wtSyncRatio": 2.561682098970881,
-        "wtSyncAmount": 0.4328780023858303,
-        "wtFormantShift": -0.1587788522024699
+        "pan": 0.15671807911221808,
+        "wtBend": 0.3697009154194033,
+        "wtAsymmetry": 0.22893141628958893,
+        "wtSyncRatio": 2.309575776899754,
+        "wtSyncAmount": 0.4176825186994001,
+        "wtFormantShift": 0.12293384935426593
       },
       {
         "engine": 0,
@@ -371,6 +371,62 @@
         "targetIndex": 0,
         "amount": 12.0,
         "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 14.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.35,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.45,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 5,
+        "targetIndex": 2,
+        "amount": 0.3,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.4,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 7,
+        "targetIndex": 2,
+        "amount": 0.35,
+        "scope": 1
       }
     ],
     "gain": 1.0,
@@ -674,7 +730,7 @@
     }
   ],
   "uiFocus": {
-    "maxKnobs": 6,
+    "maxKnobs": 2,
     "knobs": [
       {
         "kind": "macro",
@@ -682,29 +738,9 @@
         "label": "SPARK"
       },
       {
-        "kind": "param",
-        "paramId": "filterCutoffHz",
-        "label": "Cutoff"
-      },
-      {
-        "kind": "param",
-        "paramId": "filterResonance",
-        "label": "Reso"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerGain",
-        "label": "Layer"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerPan",
-        "label": "Pan"
-      },
-      {
-        "kind": "param",
-        "paramId": "masterGain",
-        "label": "Master"
+        "kind": "macro",
+        "index": 1,
+        "label": "DECAY"
       }
     ]
   }

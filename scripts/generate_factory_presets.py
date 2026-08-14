@@ -151,42 +151,54 @@ def build_patch(name, description, category, moods, tags, seed, operators, ampEn
         "masterEffects": masterEffects,
     }
     routes = ensure_standard_midi_layout(modRoutes, category)
+    routes = ensure_macro_koin_routes(routes, category, macroNames, operators)
     patch["layerA"]["modRoutes"] = routes
     patch["uiFocus"] = infer_ui_focus(macroNames, routes, category)
     return patch
 
 def infer_ui_focus(macro_names, mod_routes, category, target=KOINS_TARGET, minimum=KOINS_MINIMUM):
-    """1–3 macro-only feature KOINS — contextual performance macros wired via modRoutes."""
+    """1–3 macro-only feature KOINS — pick routed macros with the strongest bundles."""
+    min_k, max_k = CATEGORY_KOIN_RANGE.get(category, (minimum, target))
+
+    def route_count(idx):
+        return sum(1 for r in mod_routes if r.get("source", 0) == SRC_MACRO1 + idx)
+
+    priority = list(MACRO_INDICES_BY_CATEGORY.get(category, [0, 1, 2]))
+    for idx in range(min(3, len(macro_names))):
+        if idx not in priority:
+            priority.append(idx)
+
     knobs = []
     seen = set()
+    for idx in priority:
+        if idx >= len(macro_names) or idx in seen or route_count(idx) < 2:
+            continue
+        seen.add(idx)
+        knobs.append({"kind": "macro", "index": idx, "label": macro_names[idx]})
+        if len(knobs) >= max_k:
+            break
 
-    def macro_has_route(idx):
-        return any(r.get("source", 0) == SRC_MACRO1 + idx for r in mod_routes)
+    if len(knobs) < min_k:
+        for idx in priority:
+            if len(knobs) >= min_k:
+                break
+            if idx >= len(macro_names) or idx in seen or route_count(idx) < 1:
+                continue
+            seen.add(idx)
+            knobs.append({"kind": "macro", "index": idx, "label": macro_names[idx]})
 
-    def add_macro(idx):
-        if idx in seen or len(knobs) >= target or idx >= len(macro_names):
-            return
-        if not macro_has_route(idx):
-            return
+    for idx in range(min(8, len(macro_names))):
+        if len(knobs) >= max_k:
+            break
+        if idx in seen or route_count(idx) < 1:
+            continue
         seen.add(idx)
         knobs.append({"kind": "macro", "index": idx, "label": macro_names[idx]})
 
-    primary_macros = {
-        "bass": [0, 1],
-        "lead": [0, 1, 2],
-        "pad": [0, 1, 2],
-        "seq": [0, 1, 2],
-        "ambient": [0, 1, 2],
-    }
-    for idx in primary_macros.get(category, [0, 1, 2]):
-        add_macro(idx)
-
-    for idx in range(3):
-        add_macro(idx)
-    for idx in range(3, min(8, len(macro_names))):
-        add_macro(idx)
-
-    return {"maxKnobs": min(target, len(knobs)) if knobs else 1, "knobs": knobs[:target]}
+    knobs = knobs[:max_k]
+    if not knobs and macro_names:
+        knobs = [{"kind": "macro", "index": 0, "label": macro_names[0]}]
+    return {"maxKnobs": len(knobs), "knobs": knobs}
 
 def reverb(mix, size, decay, predelay=25.0):
     return {"type": 7, "mix": mix, "reverbSizeParam": size, "reverbDecaySeconds": decay,
@@ -229,16 +241,171 @@ SRC_MPE_SLIDE = 20
 SRC_MACRO1 = 21
 SRC_MOD_WHEEL = 29
 SRC_EXPRESSION = 30
-DST_FILTER_CUTOFF, DST_FILTER_RES, DST_OP_LEVEL, DST_PAN, DST_WT_POS = 1, 2, 3, 4, 5
+# ModDestination ordinals — must match engine/include/pw8/modulation/ModMatrixTypes.hpp
+DST_FILTER_CUTOFF = 1
+DST_FILTER_RES = 2
+DST_OP_FILTER_CUTOFF = 3
+DST_OP_FILTER_RES = 4
+DST_OP_LEVEL = 5
+DST_PAN = 6
+DST_WT_POS = 7
+DST_WT_BEND = 8
+DST_WT_ASYM = 9
+DST_WT_SYNC = 10
+DST_WT_FORMANT = 11
+DST_WT_SYNC_AMT = 12
 MAX_MOD_ROUTES = 64
+
+CATEGORY_KOIN_RANGE = {
+    "bass": (1, 2),
+    "lead": (2, 3),
+    "pad": (2, 3),
+    "seq": (1, 2),
+    "ambient": (2, 3),
+}
+
+MACRO_INDICES_BY_CATEGORY = {
+    "bass": [0, 1],
+    "lead": [0, 1, 2],
+    "pad": [0, 1, 2],
+    "seq": [0, 1],
+    "ambient": [0, 1, 5],
+}
 
 def _has_mod_source(modRoutes, source):
     return any(r.get("source", 0) == source for r in modRoutes)
+
+def _has_route(modRoutes, source, destination, target_index=0):
+    return any(
+        r.get("source") == source
+        and r.get("destination") == destination
+        and r.get("targetIndex", 0) == target_index
+        for r in modRoutes
+    )
+
+def _macro_route_count(modRoutes, macro_idx):
+    src = SRC_MACRO1 + macro_idx
+    return sum(1 for r in modRoutes if r.get("source") == src)
+
+def _primary_wt_op(operators):
+    best_i, best_lvl = 1, 0.0
+    for i, op in enumerate(operators[:8]):
+        if op.get("engine") == 1 and op.get("level", 0) > best_lvl:
+            best_i, best_lvl = i, op.get("level", 0)
+    return best_i
+
+def _primary_voice_op(operators):
+    best_i, best_lvl = 0, 0.0
+    for i, op in enumerate(operators[:8]):
+        if op.get("level", 0) > best_lvl:
+            best_i, best_lvl = i, op.get("level", 0)
+    return best_i
+
+def _second_voice_op(operators, skip):
+    candidates = [(i, op.get("level", 0)) for i, op in enumerate(operators[:8])
+                  if i != skip and op.get("level", 0) > 0.05]
+    if not candidates:
+        return 1 if skip == 0 else 0
+    return max(candidates, key=lambda x: x[1])[0]
 
 def _append_mod_route(modRoutes, route):
     if len(modRoutes) >= MAX_MOD_ROUTES:
         return modRoutes
     return list(modRoutes) + [route]
+
+def _add_macro_route(modRoutes, macro_idx, destination, target_index, amount, scope=1):
+    src = SRC_MACRO1 + macro_idx
+    if _has_route(modRoutes, src, destination, target_index):
+        return modRoutes
+    return _append_mod_route(modRoutes, {
+        "source": src, "destination": destination, "targetIndex": target_index,
+        "amount": amount, "scope": scope,
+    })
+
+def _macro_bundle(category, macro_idx, wt_op, voice_op, voice_op2):
+    """Performance destinations for a category macro (2–4 audible routes each)."""
+    bundles = {
+        "bass": {
+            0: [(DST_FILTER_CUTOFF, 0, 14.0, 0), (DST_FILTER_RES, 0, 0.32, 0),
+                (DST_OP_LEVEL, voice_op, 0.35, 1)],
+            1: [(DST_FILTER_CUTOFF, 0, 10.0, 0), (DST_OP_LEVEL, voice_op2, 0.4, 1),
+                (DST_FILTER_RES, 0, 0.28, 0)],
+            2: [(DST_OP_LEVEL, voice_op, 0.45, 1), (DST_FILTER_CUTOFF, 0, 8.0, 0)],
+        },
+        "lead": {
+            0: [(DST_FILTER_CUTOFF, 0, 16.0, 0), (DST_FILTER_RES, 0, 0.35, 0),
+                (DST_OP_LEVEL, voice_op, 0.3, 1)],
+            1: [(DST_OP_LEVEL, voice_op2, 0.35, 1), (DST_FILTER_RES, 0, 0.3, 0),
+                (DST_PAN, 0, 0.35, 0)],
+            2: [(DST_PAN, 0, 0.5, 0), (DST_WT_POS, wt_op, 0.4, 1),
+                (DST_FILTER_CUTOFF, 0, 8.0, 0)],
+        },
+        "pad": {
+            0: [(DST_FILTER_CUTOFF, 0, 12.0, 0), (DST_FILTER_RES, 0, 0.22, 0),
+                (DST_OP_LEVEL, voice_op, 0.2, 1)],
+            1: [(DST_WT_POS, wt_op, 0.45, 1), (DST_FILTER_CUTOFF, 0, 10.0, 0),
+                (DST_PAN, 0, 0.3, 0)],
+            2: [(DST_WT_POS, wt_op, 0.35, 1), (DST_OP_LEVEL, voice_op2, 0.25, 1),
+                (DST_PAN, 0, 0.4, 0)],
+        },
+        "seq": {
+            0: [(DST_FILTER_CUTOFF, 0, 14.0, 0), (DST_FILTER_RES, 0, 0.35, 0),
+                (DST_OP_LEVEL, voice_op, 0.35, 1)],
+            1: [(DST_PAN, 0, 0.45, 0), (DST_FILTER_CUTOFF, 0, 10.0, 0),
+                (DST_OP_LEVEL, voice_op2, 0.3, 1)],
+            2: [(DST_FILTER_RES, 0, 0.4, 0), (DST_WT_POS, wt_op, 0.35, 1)],
+        },
+        "ambient": {
+            0: [(DST_WT_POS, wt_op, 0.5, 1), (DST_FILTER_CUTOFF, 0, 10.0, 0),
+                (DST_OP_LEVEL, voice_op, 0.22, 1)],
+            1: [(DST_WT_POS, wt_op, 0.4, 1), (DST_FILTER_CUTOFF, 0, 8.0, 0),
+                (DST_PAN, 0, 0.35, 0)],
+            2: [(DST_FILTER_CUTOFF, 0, 12.0, 0), (DST_OP_LEVEL, voice_op2, 0.28, 1),
+                (DST_PAN, 0, 0.4, 0)],
+            5: [(DST_FILTER_RES, 0, 0.25, 0), (DST_OP_LEVEL, voice_op2, 0.3, 1),
+                (DST_FILTER_CUTOFF, 0, 8.0, 0)],
+        },
+    }
+    return bundles.get(category, bundles["pad"]).get(macro_idx, [])
+
+def ensure_macro_koin_routes(modRoutes, category, macro_names, operators):
+    """Wire Macro1–3 (category-specific) with 2–4 audible modRoutes each."""
+    routes = list(modRoutes)
+    wt_op = _primary_wt_op(operators)
+    voice_op = _primary_voice_op(operators)
+    voice_op2 = _second_voice_op(operators, voice_op)
+
+    for idx in MACRO_INDICES_BY_CATEGORY.get(category, [0, 1, 2]):
+        if idx >= len(macro_names):
+            continue
+        for dest, target, amount, scope in _macro_bundle(category, idx, wt_op, voice_op, voice_op2):
+            routes = _add_macro_route(routes, idx, dest, target, amount, scope)
+
+    for idx in range(min(3, len(macro_names))):
+        if _macro_route_count(routes, idx) >= 2:
+            continue
+        for dest, target, amount, scope in _macro_bundle(category, idx, wt_op, voice_op, voice_op2):
+            routes = _add_macro_route(routes, idx, dest, target, amount, scope)
+    return routes
+
+def routing_category(patch):
+    """Map metadata category/tags to synthesis routing buckets."""
+    meta = patch.get("metadata", {})
+    cat = meta.get("category") or "pad"
+    tags = meta.get("tags") or []
+    if cat == "interstellar":
+        if any(t in tags for t in ("sub-gravity", "fm-sub", "mono-growl")):
+            return "bass"
+        if any(t in tags for t in ("singable-lead", "portamento", "sync-lead")):
+            return "lead"
+        if any(t in tags for t in ("clock-tick", "pulsar", "crystalline-keys", "fm-bell", "acid-seq")):
+            return "seq"
+        if any(t in tags for t in ("gran-cloud", "fx-riser", "noise-drone", "experimental")):
+            return "ambient"
+        return "pad"
+    if cat in CATEGORY_KOIN_RANGE:
+        return cat
+    return "pad"
 
 def ensure_mod_wheel_route(modRoutes, amount=24.0):
     """Append Mod Wheel -> Filter Cutoff if the patch has no mod-wheel route yet."""
@@ -274,21 +441,6 @@ def ensure_standard_midi_layout(modRoutes, category):
             "amount": vel_amount, "scope": 0,
         })
 
-    macro_by_category = {
-        "bass": (0, DST_FILTER_CUTOFF, 12.0, 0),
-        "lead": (0, DST_FILTER_CUTOFF, 10.0, 0),
-        "pad": (0, DST_WT_POS, 0.35, 1),
-        "seq": (0, DST_FILTER_CUTOFF, 8.0, 0),
-        "ambient": (5, DST_FILTER_CUTOFF, 10.0, 0),
-    }
-    if not any(SRC_MACRO1 <= r.get("source", 0) <= SRC_MACRO1 + 7 for r in routes):
-        macro_idx, dest, amount, target = macro_by_category.get(
-            category, (0, DST_FILTER_CUTOFF, 10.0, 0))
-        routes = _append_mod_route(routes, {
-            "source": SRC_MACRO1 + macro_idx, "destination": dest, "targetIndex": target,
-            "amount": amount, "scope": 1,
-        })
-
     if category in ("pad", "ambient") and not _has_mod_source(routes, SRC_CHANNEL_PRESSURE):
         routes = _append_mod_route(routes, {
             "source": SRC_CHANNEL_PRESSURE, "destination": DST_FILTER_CUTOFF, "targetIndex": 0,
@@ -314,16 +466,20 @@ def ensure_standard_midi_layout(modRoutes, category):
     return routes
 
 def normalize_preset_standards(patch):
-    """Apply MIDI layout + uiFocus standards to an existing .pw8 dict."""
-    category = patch.get("metadata", {}).get("category") or "pad"
+    """Apply MIDI layout + macro KOINS + uiFocus standards to an existing .pw8 dict."""
+    route_cat = routing_category(patch)
+    play_cat = patch.get("metadata", {}).get("category") or "pad"
     macro_names = [m.get("name", f"M{i + 1}") for i, m in enumerate(patch.get("macros", []))]
     if not macro_names:
         macro_names = [f"M{i + 1}" for i in range(8)]
     layer_a = patch.setdefault("layerA", {})
+    operators = layer_a.get("operators", [])
     routes = layer_a.get("modRoutes", [])
-    layer_a["modRoutes"] = ensure_standard_midi_layout(routes, category)
-    patch["uiFocus"] = infer_ui_focus(macro_names, layer_a["modRoutes"], category)
-    if category == "pad":
+    routes = ensure_standard_midi_layout(routes, route_cat)
+    routes = ensure_macro_koin_routes(routes, route_cat, macro_names, operators)
+    layer_a["modRoutes"] = routes
+    patch["uiFocus"] = infer_ui_focus(macro_names, routes, route_cat)
+    if play_cat == "pad" or route_cat == "pad":
         ensure_pad_playability(patch)
     return patch
 

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "metadata": {
-    "id": "pw8-genre-expansion-lead-752241822",
+    "id": "pw8-genre-expansion-lead-1846157590",
     "name": "PULSE PULSE",
     "author": "MURMUR Sound Design",
     "description": "Genre expansion Lead patch #104. House/club energy \u2014 pumped compression, gated motion. Engines: Classic.",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 2,
-    "seed": 752241822,
+    "seed": 1846157590,
     "lineage": []
   },
   "layerMode": 0,
@@ -310,11 +310,11 @@
         "scope": 0
       },
       {
-        "source": 21,
-        "destination": 1,
+        "source": 30,
+        "destination": 2,
         "targetIndex": 0,
-        "amount": 10.0,
-        "scope": 1
+        "amount": 0.35,
+        "scope": 0
       },
       {
         "source": 20,
@@ -324,10 +324,66 @@
         "scope": 0
       },
       {
-        "source": 30,
+        "source": 21,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 16.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
         "destination": 2,
         "targetIndex": 0,
         "amount": 0.35,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 5,
+        "targetIndex": 0,
+        "amount": 0.3,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.3,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.35,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.5,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.4,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 8.0,
         "scope": 0
       }
     ],
@@ -607,7 +663,7 @@
     }
   ],
   "uiFocus": {
-    "maxKnobs": 6,
+    "maxKnobs": 3,
     "knobs": [
       {
         "kind": "macro",
@@ -615,29 +671,14 @@
         "label": "STAB"
       },
       {
-        "kind": "param",
-        "paramId": "filterCutoffHz",
-        "label": "Cutoff"
+        "kind": "macro",
+        "index": 1,
+        "label": "BITE"
       },
       {
-        "kind": "param",
-        "paramId": "filterResonance",
-        "label": "Reso"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerGain",
-        "label": "Layer"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerPan",
-        "label": "Pan"
-      },
-      {
-        "kind": "param",
-        "paramId": "masterGain",
-        "label": "Master"
+        "kind": "macro",
+        "index": 2,
+        "label": "DRIVE"
       }
     ]
   }

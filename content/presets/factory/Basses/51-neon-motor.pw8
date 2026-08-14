@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "metadata": {
-    "id": "pw8-mew-m83-bass-1492847918",
+    "id": "pw8-mew-m83-bass-3008415043",
     "name": "NEON MOTOR",
     "author": "MURMUR Sound Design",
     "description": "Mew/M83-inspired Basse patch #51. M83 motor bass \u2014 rubber funk pulse, sidechain-ready. Engines: Classic. Archetype: rubber funk bass with portamento.",
@@ -29,7 +29,7 @@
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",
     "schemaVersion": 2,
-    "seed": 1492847918,
+    "seed": 3008415043,
     "lineage": []
   },
   "layerMode": 0,
@@ -317,13 +317,6 @@
         "scope": 0
       },
       {
-        "source": 21,
-        "destination": 1,
-        "targetIndex": 0,
-        "amount": 12.0,
-        "scope": 1
-      },
-      {
         "source": 30,
         "destination": 2,
         "targetIndex": 0,
@@ -335,6 +328,62 @@
         "destination": 1,
         "targetIndex": 0,
         "amount": 12.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 14.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.32,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 5,
+        "targetIndex": 0,
+        "amount": 0.4,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.28,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.45,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 8.0,
         "scope": 0
       }
     ],
@@ -614,7 +663,7 @@
     }
   ],
   "uiFocus": {
-    "maxKnobs": 6,
+    "maxKnobs": 2,
     "knobs": [
       {
         "kind": "macro",
@@ -622,29 +671,9 @@
         "label": "PUNCH"
       },
       {
-        "kind": "param",
-        "paramId": "filterCutoffHz",
-        "label": "Cutoff"
-      },
-      {
-        "kind": "param",
-        "paramId": "filterResonance",
-        "label": "Reso"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerGain",
-        "label": "Layer"
-      },
-      {
-        "kind": "param",
-        "paramId": "layerPan",
-        "label": "Pan"
-      },
-      {
-        "kind": "param",
-        "paramId": "masterGain",
-        "label": "Master"
+        "kind": "macro",
+        "index": 1,
+        "label": "GLOW"
       }
     ]
   }
