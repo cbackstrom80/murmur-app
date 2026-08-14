@@ -9,7 +9,7 @@
 #include "components/DesignTabIconGrid.h"
 #include "components/AlgorithmGraphEditor.h"
 #include "components/DesignFxDetailPanel.h"
-#include "components/ModMatrixScreen.h"
+#include "components/ModMatrixDesignPanel.h"
 #include "components/SectionPanel.h"
 #include "components/WavetableWarpPanel.h"
 #include "processor/PatchworkEightProcessor.h"
@@ -55,7 +55,7 @@ namespace pw8::plugin::ui
         SectionPanel fxPanel_{"FX Detail"};
         SectionPanel wavetablePanel_{"Wavetable"};
         std::unique_ptr<AlgorithmGraphEditor> graphEditor_;
-        std::unique_ptr<ModMatrixScreen> matrixEditor_;
+        std::unique_ptr<ModMatrixDesignPanel> matrixEditor_;
         std::unique_ptr<DesignFxDetailPanel> fxEditor_;
         std::unique_ptr<WavetableWarpPanel> wavetableEditor_;
         juce::TextButton openBuilderButton_{"Open Builder…"};
