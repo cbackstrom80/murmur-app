@@ -1,6 +1,7 @@
 #include "ModRoutingUi.h"
 
 #include "ModSourceChip.h"
+#include "pw8/modulation/MacroSpread.hpp"
 #include "state/PluginState.h"
 
 namespace pw8::plugin::ui
@@ -347,24 +348,47 @@ namespace pw8::plugin::ui
                 continue;
 
             const auto& macro = patch.macros[spec.macroIndex];
-            if (macro.description.empty())
-                continue;
-
-            juce::String line = juce::String::fromUTF8(macro.description.data(),
-                                                      static_cast<int>(macro.description.size()))
-                                    .trim();
-            if (line.isEmpty())
-                continue;
-
             const juce::String name = spec.label.isNotEmpty() ? spec.label
                                   : (macro.name.empty() ? juce::String(kMacroParameterNames[spec.macroIndex])
                                                         : juce::String(macro.name));
-            if (!line.startsWithIgnoreCase(name))
-                line = name + ": " + line;
 
-            if (line.length() > 64)
-                line = line.substring(0, 61).trimEnd() + "...";
-            parts.add(line);
+            const auto spread = modulation::spreadSummaryForMacro(spec.macroIndex, patch.layerA.modRoutes);
+            const auto targetCount = modulation::spreadDestinationCountForMacro(spec.macroIndex, patch.layerA.modRoutes);
+
+            juce::String line;
+            if (!spread.empty())
+            {
+                line = name + juce::String::charToString(juce::juce_wchar(0x2192)) + " " + juce::String(spread);
+                if (targetCount > 1)
+                    line += " (" + juce::String(static_cast<int>(targetCount)) + " targets)";
+            }
+
+            if (macro.description.empty())
+            {
+                if (line.isNotEmpty())
+                    parts.add(line);
+                continue;
+            }
+
+            juce::String desc = juce::String::fromUTF8(macro.description.data(),
+                                                      static_cast<int>(macro.description.size()))
+                                    .trim();
+            if (desc.isEmpty())
+            {
+                if (line.isNotEmpty())
+                    parts.add(line);
+                continue;
+            }
+
+            if (!desc.startsWithIgnoreCase(name))
+                desc = name + ": " + desc;
+
+            if (line.isNotEmpty())
+                desc += "  ·  " + line;
+
+            if (desc.length() > 72)
+                desc = desc.substring(0, 69).trimEnd() + "...";
+            parts.add(desc);
         }
 
         return parts.joinIntoString("  ·  ");

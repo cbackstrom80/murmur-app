@@ -645,14 +645,15 @@
   "voiceSettings": {
     "polyphony": 24,
     "masterGain": 1.0,
-    "a4Hz": 440.0
+    "a4Hz": 440.0,
+    "macroDissemination": true
   },
   "locks": {},
   "macros": [
     {
       "id": "m1",
       "name": "BLOOM",
-      "description": "Performance macro.",
+      "description": "Opens filter and wavetable motion.",
       "value": 0.0
     },
     {

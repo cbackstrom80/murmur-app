@@ -4,6 +4,7 @@
 #include "pw8/content/WavetableCache.hpp"
 #include "pw8/dsp/Denormal.hpp"
 #include "pw8/dsp/Math.hpp"
+#include "pw8/dsp/Random.hpp"
 #include "pw8/modulation/ModMatrixExecutor.hpp"
 #include "pw8/oscillator/WavetableTableLoader.hpp"
 
@@ -28,6 +29,35 @@ namespace pw8::render
         float centsToRatio(float cents) noexcept
         {
             return std::pow(2.0f, cents / 1200.0f);
+        }
+
+        /// PoliMATHS Modulation Dissemination (MVP): sample featured macro values at note-on.
+        void assignVoiceMacroValues(voice::Voice& voice, const patch::Patch& patch, std::uint64_t voiceSeed,
+                                    std::uint64_t noteGenerationId) noexcept
+        {
+            if (!patch.voiceSettings.macroDissemination)
+            {
+                for (std::size_t i = 0; i < voice.macroValues.size(); ++i)
+                    voice.macroValues[i] = patch.macros[i].value;
+                return;
+            }
+
+            constexpr float kFeaturedSpread = 0.06f; ///< ±6% per-voice variation on Macro1–3
+            const auto rngSeed =
+                dsp::DeterministicRng::deriveSeed(voiceSeed, noteGenerationId, patch.seed ^ 0xD155E111u);
+            dsp::DeterministicRng rng(rngSeed);
+
+            for (std::size_t i = 0; i < voice.macroValues.size(); ++i)
+            {
+                const float base = patch.macros[i].value;
+                if (i < 3)
+                {
+                    const float offset = (rng.nextFloat() * 2.0f - 1.0f) * kFeaturedSpread;
+                    voice.macroValues[i] = dsp::clamp(base + offset, 0.0f, 1.0f);
+                }
+                else
+                    voice.macroValues[i] = base;
+            }
         }
 
         float layerOutputGain(const patch::LayerPatch& layer, float masterGain) noexcept
@@ -272,17 +302,16 @@ namespace pw8::render
             for (std::size_t i = 0; i < core::kNodesPerLayer; ++i)
                 v.operatorFilterParams_[i] = layer.operators[i].filter1;
             v.lfoParams = layer.lfos;
-            for (std::size_t i = 0; i < v.macroValues.size(); ++i)
-                v.macroValues[i] = patch_.macros[i].value;
+            const auto age = allocator.nextAge();
+            const auto noteGen = ++noteGenerationCounter_;
+            const auto voiceSeed = patch_.seed ^ static_cast<std::uint64_t>(u + 1);
+            assignVoiceMacroValues(v, patch_, voiceSeed, noteGen);
 
             float detuneCents = 0.0f;
             float unisonPan = 0.0f;
             unisonSpread(unison, u, unisonVoices, detuneCents, unisonPan);
 
             const float detunedHz = baseFreqHz * centsToRatio(detuneCents);
-            const auto age = allocator.nextAge();
-            const auto noteGen = ++noteGenerationCounter_;
-            const auto voiceSeed = patch_.seed ^ static_cast<std::uint64_t>(u + 1);
             const bool crossfadeRetrigger = !sameNoteRetrigger &&
                                             (allocationResult == voice::AllocateResult::Stolen
                                              || (allocationResult == voice::AllocateResult::Released && v.isSounding()));
@@ -638,6 +667,9 @@ namespace pw8::render
             return;
 
         patch_.macros[index].value = value;
+        if (patch_.voiceSettings.macroDissemination)
+            return;
+
         for (auto& v : voices_)
             if (index < v.macroValues.size())
                 v.macroValues[index] = value;

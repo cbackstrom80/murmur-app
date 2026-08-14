@@ -782,7 +782,8 @@ namespace pw8::patch
             j["voiceSettings"] = json{{"polyphony", patch.voiceSettings.polyphony},
                                        {"masterGain", patch.voiceSettings.masterGain},
                                        {"a4Hz", patch.voiceSettings.a4Hz},
-                                       {"portamentoSeconds", patch.voiceSettings.portamentoSeconds}};
+                                       {"portamentoSeconds", patch.voiceSettings.portamentoSeconds},
+                                       {"macroDissemination", patch.voiceSettings.macroDissemination}};
 
             j["locks"] = json{
                 {"lockSources", patch.locks.lockSources},       {"lockAlgorithm", patch.locks.lockAlgorithm},
@@ -977,6 +978,7 @@ namespace pw8::patch
                 p.voiceSettings.masterGain = clampNum(vs.value("masterGain", 1.0f), 0.0f, 4.0f);
                 p.voiceSettings.a4Hz = clampNum(vs.value("a4Hz", 440.0f), 220.0f, 880.0f);
                 p.voiceSettings.portamentoSeconds = clampNum(vs.value("portamentoSeconds", 0.0f), 0.0f, 10.0f);
+                p.voiceSettings.macroDissemination = vs.value("macroDissemination", false);
             }
 
             if (root.contains("locks"))

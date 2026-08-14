@@ -10,6 +10,16 @@
 | 1 | **Spectrum analyzer on FILTER tab** — WAVE \| FFT toggle on Advanced PLAY FILTER scope (waveform + log-frequency FFT). Header scope unchanged. | `FilterPanelScopeView`, `FilterLfoPanel` |
 | 2 | **KOINS Phase 2 polish** — preset bar / mission card / Basic KOINS hints from `macros[i].description`; MCP `set_macro_koin`. | `ModRoutingUi`, `PatchBrowserBar`, `CompactModeEditor`, `PatchFocusPanel`, `mcp_server/` |
 | 3 | **Concentric dual knobs** — Sync Amt + Formant (OSC wavetable); LFO Rate + Phase (FILTER tab). | `OperatorEditorPanel`, `FilterLfoPanel` |
+| 4 | **PoliMATHS Spread KOINS** — preset bar / mission card / Basic hints show `BLOOM → Filter, WT, …` from active `modRoutes` (`spreadSummaryForMacro`). | `MacroSpread.hpp`, `ModRoutingUi` |
+| 5 | **Modulation Dissemination (MVP)** — per-note macro capture for Macro1–3 when `voiceSettings.macroDissemination: true`; held voices ignore live macro sweeps. | `Engine.cpp`, `Patch.hpp`, `PatchSerializer` |
+
+## Horizon 3 (PoliMATHS follow-ups)
+
+| Item | Notes |
+|------|-------|
+| **Dissemination for Macro4–8** | MVP samples featured macros (0–2) only; CC-mapped macros stay live. |
+| **Spread channel weights** | PoliMATHS per-channel attenuverter emulation for unison voices. |
+| **Agent `set_spread_bundle` MCP tool** | Optional channelWeight per destination. |
 
 ## Deferred (and why)
 
@@ -23,7 +33,7 @@
 ## Verify in Logic Pro
 
 1. Build and install AU (see `WEEK8_EXIT_CHECKLIST.md`).
-2. Load **Interstellar/001-cathedral-nebula** — Basic view shows macro KOINS; preset bar hint uses macro descriptions when present.
+2. Load **Interstellar/001-cathedral-nebula** — Basic view shows macro KOINS; preset bar hint shows spread lines (`BLOOM → Filter, WT, Formant, …`) and macro descriptions. **Dissemination** is on: each held note keeps its macro snapshot — sweep BLOOM before a chord, then hold; re-sweep mid-chord does not retune active voices.
 3. **Advanced → FILTER** — bottom scope: tap **FFT** for live spectrum while holding a note; **WAVE** for oscilloscope.
 4. **Advanced → OSC** (wavetable op) — concentric **Sync Amt / Formant** and **WT Bend / Asym** knobs.
 5. **Compact** — mission card hint line follows macro descriptions.

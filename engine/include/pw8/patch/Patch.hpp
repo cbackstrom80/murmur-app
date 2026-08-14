@@ -215,6 +215,9 @@ namespace pw8::patch
         float masterGain = 1.0f;
         float a4Hz = 440.0f; ///< tuning reference; full tuning service is PLANNED (docs/ROADMAP.md).
         float portamentoSeconds = 0.0f; ///< 0 = off; glide pitch on legato note changes.
+        /// PoliMATHS Modulation Dissemination (MVP): when true, Macro1–3 values are sampled
+        /// per voice at note-on with subtle variation; held voices ignore live macro sweeps.
+        bool macroDissemination = false;
     };
 
     struct Macro

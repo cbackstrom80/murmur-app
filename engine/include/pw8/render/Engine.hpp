@@ -63,12 +63,9 @@ namespace pw8::render
 
         /// Live-updates macro `index` (0..7) so it takes effect immediately on every
         /// currently-sustaining voice, not just the next note-on -- what a DAW
-        /// automating a macro parameter mid-hold needs. Audio-thread safe: writes a
-        /// plain float into `patch_.macros[index].value` (never touches the Macro's
-        /// string fields) and into every voice's `macroValues[index]` (a plain
-        /// per-voice array already read live, per-sample, by the mod matrix -- see
-        /// `Voice::renderSample`). No allocation, no locking. Out-of-range `index` is
-        /// a no-op. See docs/PLUGIN_ARCHITECTURE.md "Automation".
+        /// automating a macro parameter mid-hold needs. When `macroDissemination` is
+        /// enabled on the patch, held voices keep values sampled at note-on; only new
+        /// notes pick up the updated macro (PoliMATHS Modulation Dissemination MVP).
         void setMacroValue(std::size_t index, float value) noexcept;
 
         [[nodiscard]] float getMacroValue(std::size_t index) const noexcept
