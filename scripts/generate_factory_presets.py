@@ -196,9 +196,13 @@ def infer_ui_focus(macro_names, mod_routes, category, target=KOINS_TARGET, minim
         knobs.append({"kind": "macro", "index": idx, "label": macro_names[idx]})
 
     knobs = knobs[:max_k]
-    if not knobs and macro_names:
-        knobs = [{"kind": "macro", "index": 0, "label": macro_names[0]}]
-    return {"maxKnobs": len(knobs), "knobs": knobs}
+    if not knobs:
+        for idx in priority:
+            if idx >= len(macro_names) or route_count(idx) < 1:
+                continue
+            knobs.append({"kind": "macro", "index": idx, "label": macro_names[idx]})
+            break
+    return {"maxKnobs": max(len(knobs), min_k), "knobs": knobs}
 
 def reverb(mix, size, decay, predelay=25.0):
     return {"type": 7, "mix": mix, "reverbSizeParam": size, "reverbDecaySeconds": decay,

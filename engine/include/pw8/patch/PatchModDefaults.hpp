@@ -54,4 +54,48 @@ namespace pw8::patch
         layer.modRoutes.push_back(route);
     }
 
+    [[nodiscard]] inline bool layerHasActiveMacroRoute(const LayerPatch& layer) noexcept
+    {
+        for (const auto& route : layer.modRoutes)
+        {
+            if (!route.isActive())
+                continue;
+            if (route.source >= modulation::ModSource::Macro1 && route.source <= modulation::ModSource::Macro8)
+                return true;
+        }
+        return false;
+    }
+
+    /// Ensures at least one audible feature-macro KOIN route (Macro1 → filter) when a patch has
+    /// no macro mod routes — safe on every load so Init and hand-authored patches still expose
+    /// a working performance macro in Basic/Compact PLAY.
+    inline void ensureMinimumMacroKoinRoutes(LayerPatch& layer) noexcept
+    {
+        if (layerHasActiveMacroRoute(layer))
+            return;
+
+        if (layer.modRoutes.size() + 2 > core::kMaxModRoutes)
+            return;
+
+        {
+            modulation::ModRoute route{};
+            route.source = modulation::ModSource::Macro1;
+            route.destination = modulation::ModDestination::FilterCutoff;
+            route.targetIndex = 0;
+            route.amount = 18.0f;
+            route.scope = modulation::ModScope::Voice;
+            layer.modRoutes.push_back(route);
+        }
+        if (layer.modRoutes.size() < core::kMaxModRoutes)
+        {
+            modulation::ModRoute route{};
+            route.source = modulation::ModSource::Macro1;
+            route.destination = modulation::ModDestination::FilterResonance;
+            route.targetIndex = 0;
+            route.amount = 0.25f;
+            route.scope = modulation::ModScope::Voice;
+            layer.modRoutes.push_back(route);
+        }
+    }
+
 } // namespace pw8::patch

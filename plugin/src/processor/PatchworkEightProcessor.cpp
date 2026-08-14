@@ -591,6 +591,7 @@ namespace pw8::plugin
         currentPatch_ = newPatch;
         patch::ensureDefaultModWheelRoute(currentPatch_.layerA);
         patch::ensureDefaultExpressionRoute(currentPatch_.layerA);
+        patch::ensureMinimumMacroKoinRoutes(currentPatch_.layerA);
         syncAllParametersFromPatch();
         auto fresh = std::make_unique<render::Engine>();
         fresh->prepare(getSampleRate() > 0.0 ? getSampleRate() : 48000.0);

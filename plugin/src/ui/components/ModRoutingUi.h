@@ -14,6 +14,10 @@ namespace pw8::plugin::ui
     inline constexpr std::size_t kMaxFeatureKoinCount = 3;
     inline constexpr std::size_t kMinFeatureKoinCount = 1;
 
+    /// Consistent direct APVTS performance knobs shown alongside feature KOINS in Basic PLAY.
+    inline constexpr std::size_t kStandardParamKoinCount = 5;
+    inline constexpr std::size_t kCompactStandardParamKoinCount = 3;
+
     struct ModDestinationParam
     {
         juce::String paramId;
@@ -61,10 +65,22 @@ namespace pw8::plugin::ui
         }
     };
 
-    /// Returns 0–3 macro KOINS (Macro1–8) that have active mod routes, or patch-authored
-    /// `uiFocus` macro entries. Never pads with direct APVTS param knobs.
-    [[nodiscard]] std::vector<PatchFocusKnobSpec> inferPatchFocusKnobs(const patch::Patch& patch,
-                                                                       std::size_t maxKnobs = kMaxFeatureKoinCount);
+    struct PatchFocusLayout
+    {
+        std::vector<PatchFocusKnobSpec> featureKnobs;
+        std::vector<PatchFocusKnobSpec> standardKnobs;
+
+        [[nodiscard]] bool operator==(const PatchFocusLayout& other) const noexcept
+        {
+            return featureKnobs == other.featureKnobs && standardKnobs == other.standardKnobs;
+        }
+    };
+
+    /// 1–3 routed feature macro KOINS plus consistent standard APVTS param knobs.
+    [[nodiscard]] PatchFocusLayout inferPatchFocusLayout(
+        const patch::Patch& patch, std::size_t maxFeatureKnobs = kMaxFeatureKoinCount,
+        std::size_t maxStandardKnobs = kStandardParamKoinCount,
+        const juce::AudioProcessorValueTreeState* apvtsForValidation = nullptr);
 
     [[nodiscard]] juce::String formatModRouteAmount(modulation::ModDestination destination, float amount);
 

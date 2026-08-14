@@ -14,8 +14,7 @@
 
 namespace pw8::plugin::ui
 {
-    /// Per-patch feature KOINS — contextual macro/mod-matrix performance controls
-    /// (patch-authored via `uiFocus` in .pw8, or inferred from routed macros).
+    /// Basic/Compact PLAY performance surface: 1–3 feature macro KOINS plus consistent standard APVTS knobs.
     class PatchFocusPanel : public juce::Component, private juce::Timer
     {
     public:
@@ -43,21 +42,24 @@ namespace pw8::plugin::ui
     private:
         void timerCallback() override;
         void paint(juce::Graphics& g) override;
-        void rebuildKnobs(const std::vector<PatchFocusKnobSpec>& specs);
+        void rebuildKnobs(const PatchFocusLayout& layout);
         void applyLayoutMode();
         void updateBadgePulse();
+        void layoutKnobGrid(juce::Rectangle<int> bounds, std::size_t startIndex, std::size_t count, int minCellWidth);
 
         PatchworkEightProcessor& processor_;
-        SectionPanel panel_{"Feature Macros", palette::kAccentWarm, true};
+        SectionPanel panel_{"Performance Controls", palette::kAccentWarm, true};
         juce::Label introLabel_;
         juce::Label subtitleLabel_;
+        juce::Label standardSectionLabel_;
         juce::Label modWheelBadge_;
         juce::Label expressionBadge_;
         juce::TextButton advancedButton_{"Mod Matrix (M)"};
         bool basicLayout_ = true;
         bool compactLayout_ = false;
         juce::Rectangle<int> orbitHole_;
-        std::vector<PatchFocusKnobSpec> lastSpecs_;
+        PatchFocusLayout lastLayout_;
+        std::size_t featureKnobCount_ = 0;
         std::vector<std::unique_ptr<GlowKnob>> knobs_;
         float lastModWheel_ = -1.0f;
         float lastExpression_ = -1.0f;

@@ -188,6 +188,7 @@ namespace pw8::render
         patch_ = patchToLoad;
         patch::ensureDefaultModWheelRoute(patch_.layerA);
         patch::ensureDefaultExpressionRoute(patch_.layerA);
+        patch::ensureMinimumMacroKoinRoutes(patch_.layerA);
 
         // Only SingleA and Stack are rendered today; other layer modes stay clamped.
         if (patch_.layerMode != patch::LayerMode::SingleA && patch_.layerMode != patch::LayerMode::Stack)
