@@ -325,10 +325,116 @@ Horizon 3 differentiation (`PRODUCT_GAP_PLAN.md`): sampler + DESIGN + LAB — Po
 
 ---
 
+## 8. Additional learnings & MURMUR opportunities
+
+**Context (already shipped):** Spread-style KOIN destination summaries (`BLOOM → Filter, WT, …`), Modulation Dissemination MVP (`voiceSettings.macroDissemination`, Macro1–3 per-note capture), and the 100-preset **Dissemination** factory bank. Everything below is **beyond that baseline** — ideas PoliMATHS still teaches us.
+
+Each row: **PoliMATHS behavior** → **MURMUR actionable idea** → **effort** (S/M/L) → **Horizon** (2 = plugin parity, 3 = differentiation/LAB, hardware = CM5/controller).
+
+### 8.1 Span modes — voice routing as performance
+
+| Span mode | PoliMATHS behavior | MURMUR idea | Effort | Horizon |
+|-----------|-------------------|-------------|--------|---------|
+| **Channel Index** | Span knob picks which channel(s) fire; unpatch Activate → **strum** by turning Span; patched Activate → **masked** gate stream only fires selected channels | Compact **voice lane picker**: one control selects which unison detune slot or layer gets the next note/chord voice. Visual: highlight active lane on graph (E0–E7 ring) | M | 2 |
+| **Round** | Each trigger advances N channels (Span = step width); Reset returns to Ch1 — classic **round-robin arp** across eight functions | **Round-robin macro dissemination**: each new note advances which macro snapshot slot applies (voice 1 gets macro A at note-on, voice 2 gets B, …). Complements per-note freeze with **sequential** variation from one mono LFO/CC | M | 3 |
+| **Parallel** | Activate = clock; Span sets **per-channel clock divisions** — polyrhythm from one pulse | Arp/seq mode: one clock, per-voice **phase/divisor** on env retrig or macro sample timing. Good for stutter pads without eight arp instances | L | 3 |
+| **Binary Counter** *(fw 1.6.0)* | Activate increments a 3-bit counter; channels 1–8 are **bits** — on/off rhythmic masks (e.g. channels 1+3+5 = pattern 101…) | **Bitmask voice activation** for unison: toggle which of 8 detune voices participate per step. UI: 8-dot pattern editor on Compact mission card; agent sets default mask in patch metadata | M | 2 / hardware |
+
+**UX principle:** Span is **not** timbre — it is **which voice fires when**. MURMUR should keep that split: KOINS = Spread (timbre bus); Span-equivalent = voice index / arp / round-robin (hidden in Advanced or Compact gesture, not a fourth KOIN).
+
+### 8.2 Eight channels, one surface — unison without eight knob rows
+
+| PoliMATHS behavior | MURMUR idea | Effort | Horizon |
+|-------------------|-------------|--------|---------|
+| One Rise/Fall/Rate panel drives **eight independent channel outputs**; player never sees eight envelope UIs | **Unison-as-channels UI**: show **one** env/LFO block in Basic PLAY; engine runs N detune voices internally. Compact scope shows **aggregate** waveform, not per-voice strips | S (copy/UX) | 2 |
+| **Channel Index Out** (0.5 V per channel) + daisy-chain → 16 channels across two modules | **Voice index bus** in patch schema: `voiceActivationPattern` or FLAM-style stagger (ms offsets per unison voice) for chord spread without width knob only | M | 3 |
+| **Accumulate** holds activations until gate release — **held chord of functions** | **Accumulate mode** for dissemination: notes added during sustain **queue** macro snapshots; release retriggers env as a group (organ-style swell) | L | 3 |
+| **Follow the Leader** — Fall end on Ch N triggers Ch N+1 | **Cascade retrigger**: env2/env3 fire in sequence per voice index — cinematic riser stacks on pads | M | 3 |
+
+**Already partial:** 8-op graph (E0–E7) is the structural analog; gap is **performance routing** (who plays when), not operator count.
+
+### 8.3 Rise / Fall / Curve — dual-purpose envelope + oscillator
+
+| PoliMATHS behavior | MURMUR idea | Effort | Horizon |
+|-------------------|-------------|--------|---------|
+| Each channel = **function (Rise/Fall/Curve)** + **variable-shape osc** (Rate/Shape/Osc depth); same block serves AM envelope **or** audio-rate source | **Dual-role ENV slots**: one env modulates level **and** optionally drives FM/wt scan rate at audio-ish depths (Hydrasynth env→pitch exists; PoliMATHS makes it *one panel*) | L | 3 |
+| **Curve** CV is **global live** — immediate bend across all active channels | Keep **Curve/Shape as non-KOIN globals** in Advanced PLAY (already aligned with §6): filter cutoff + WT morph as “live bend” separate from macro freeze | S | 2 |
+| **Oscillation Bias** (long-press): unipolar AM vs bipolar FM/vibrato | Per-route **polarity mode** in `modRoutes`: unipolar vs bipolar depth (engine may already scale; expose in agent/MCP + Advanced matrix) | S | 2 |
+
+### 8.4 Submix & header norming — default patch topology
+
+| PoliMATHS behavior | MURMUR idea | Effort | Horizon |
+|-------------------|-------------|--------|---------|
+| **Submix** (Cycle+Mode): unpatched channel outs **sum to the left** — one cable, eight internal activations | **Default signal norming** in new patches: osc→filter→VCA wired in algorithm graph without user patching; agent generates **one audible bus** + internal layers | S | 2 |
+| Rear **header** normals Ch1–8 → QXG control — **zero front-panel cable** 8-voice VCA chain | **Patch templates** with pre-linked layer routes (`layerA` → filter → FX); “NUSS skiff” = Interstellar/Dissemination init recipes in generator scripts | S | 2 |
+| Player chooses **how many outputs to patch** (1 submix vs 8) | **`uiFocus.maxKnobs` + hide internal macro routes** = submix philosophy: one performance surface, many internal mod paths (already policy; extend to **layer mute/solo** in Compact only) | S | 2 |
+
+### 8.5 No preset memory — PLAY-only validation
+
+| PoliMATHS behavior | MURMUR idea | Effort | Horizon |
+|-------------------|-------------|--------|---------|
+| **No patch recall** — knob positions are physical only; modes (Span, Cycle, submix) persist in EEPROM after ~10 s | **PLAY session validation**: factory + user patches tested in **Basic/Compact only** — no Advanced tab, no preset morph. Dissemination bank is the template: hold chord → sweep → confirm freeze | S (process) | 2 |
+| **Init recipe** in manual (Spread noon, Osc CCW, Channel Index) — complexity is opt-in | Agent **`init_performance_patch`** recipe: macro routes at moderate depth, dissemination on for pad archetypes, 1–3 KOINS, everything else Advanced | S | 2 |
+| Curation = **gold attenuverters at noon** until needed | **`uiFocus` + empty route omission**: macros with no `modRoutes` never appear as KOINS (already shipped inference; enforce in audit scripts) | S | 2 |
+
+**MURMUR difference:** We *do* have `.pw8` recall — PoliMATHS says the **performance surface** should still feel like “init + play,” not “browse 500 params.” Preset load should land on **musical defaults**, not editor state.
+
+### 8.6 Button modes vs knob modes (Hydrasynth parallel)
+
+PoliMATHS has no macro buttons, but **ASM Hydrasynth** (same research arc) documents Toggle / Trigger / Switch / Reset on macro **buttons** while knobs sweep continuously. PoliMATHS **gates** (Activate, Accumulate, Reset, Cycle) are the hardware equivalent.
+
+| PoliMATHS / ASM behavior | MURMUR idea | Effort | Horizon |
+|--------------------------|-------------|--------|---------|
+| Activate / Reset / Cycle gates = **event** performance | **Macro button modes** on featured KOIN (long-press or side button): Toggle macro 0↔1, Trigger one-shot env bump, Reset to patch default | M | 2 |
+| **Cycle All** vs **Follow the Leader** = mode persistence across power | Persist **performance mode flags** in `.pw8` (`voiceSettings`, `uiFocus`) separate from macro **values** — like PoliMATHS saving Span mode but not Rise knob | S | 2 |
+| INIT + turn = jump to 0 without passing through (Hydrasynth) | **Double-tap KOIN** or modifier+click = snap macro to default; prevents live-sweep accidents during performance | S | 2 |
+
+### 8.7 Strength & bias — global bipolar amplitude
+
+| PoliMATHS behavior | MURMUR idea | Effort | Horizon |
+|-------------------|-------------|--------|---------|
+| **Strength** = bipolar global amplitude per channel (Spread-weighted) — invert/scale entire channel output | **Master macro polarity**: optional `macroStrength` or layer gain route on every featured macro (push macro down = invert filter sweep direction on selected routes) | M | 3 |
+| **Oscillation Bias** unipolar vs bipolar | Route-level **`curve` or `bipolar`** on mod destinations (WT pos unipolar, pitch bipolar) — agent sets in `set_macro_koin` | S | 2 |
+| Spread attenuverters = **how much Strength** each param gets per channel | **Spread channel weights** (Horizon 2 backlog): per-unison-voice weight on same macro destination — emulate gold attenuverters | M | 2 |
+
+### 8.8 OTA firmware & Binary Counter — agile feature flags
+
+| PoliMATHS behavior | MURMUR idea | Effort | Horizon |
+|-------------------|-------------|--------|---------|
+| **v1.6.0** post-ship: Binary Counter Span, Spread CV range fix, NUSS timing — shipped **new performance mode** without hardware change | **Schema version + feature flags**: `voiceSettings.distributionMode: round \| binary \| parallel` gated behind patch version; old hosts ignore unknown fields | S | 2 |
+| Browser **Chrome firmware updater** — user opt-in | Plugin: **appcast + delta presets** for new dissemination modes; hardware (CM5): OTA for LAB features | M | hardware |
+| Binary Counter = **teachable** new idiom (bitmask rhythms) | **LAB mode** sandbox: prototype Span modes on test patches before promoting to factory generator | S | 3 |
+
+### 8.9 What NOT to copy
+
+| PoliMATHS constraint | Why skip for MURMUR | Instead |
+|---------------------|---------------------|---------|
+| **No patch memory on module** | Users expect DAW preset recall, A/B, automation | Keep full `.pw8` + host state; apply philosophy to **PLAY curation**, not storage |
+| **No screen / no preset names** | Software can afford labels, hints, spread summaries | KOINS + `macros[i].description` + mission card (shipped) |
+| **Eurorack HP / cable cognitive load** | Plugin has unlimited virtual patching | Don't expose 8 macro strips in PLAY — PoliMATHS also hides complexity via one Spread |
+| **Physical knob = absolute position** | Host automation and preset recall need param values | Dissemination **freezes at note-on**; live sweep for new notes only — hybrid of both worlds |
+| **40 Spread targets always available** | Overwhelming in UI | Cap featured macro at **2–4 routes**; agent audit rejects “macro wallpaper” |
+| **Audio-rate function gen as primary osc** | MURMUR has dedicated engines (WT, FM, granular) | Borrow **routing/idempot**, not slope-as-oscillator DSP |
+
+### 8.10 Priority backlog (Curtis)
+
+| Priority | Item | Effort | Horizon | Rationale |
+|----------|------|--------|---------|-----------|
+| **P1** | Spread **channel weights** for unison | M | 2 | Completes Spread emulation; Dissemination MVP is per-note flat capture |
+| **P1** | Dissemination for **Macro4–8** + CC macros | S | 2 | H2 backlog; featured-only is arbitrary |
+| **P2** | **Span / voice-index** UX on Compact (Channel Index + Round) | M | 2 | Distinct from macros; unlocks strum/round-robin performance |
+| **P2** | Macro **button modes** (Toggle/Reset) | M | 2 | ASM parity; low DSP risk |
+| **P3** | Binary Counter **bitmask** unison pattern | M | 2 / 3 | Novel rhythm; fw 1.6.0 poster child |
+| **P3** | **Accumulate / Follow the Leader** voice cascades | L | 3 | LAB-first; organ swell / riser stacks |
+| **P4** | Dual-purpose env+osc routing | L | 3 | DSP design change |
+| **Hardware** | Encoder + Spread strip + voice LED ring | L | hardware | CM5 NUSS-style controller sketch |
+
+---
+
 ## Executive summary (for Curtis)
 
 **PoliMATHS is real, shipping, and spelled with capital MATHS.** It is a 20 HP Eurorack **8-channel function/oscillator generator** ($459, Oct 2025) — the modulation/amplitude brain of Make Noise’s **New Universal Synthesizer System**, pairing with MultiWAVE + dual QXG for an 8-voice polysynth without eight knob rows.
 
 Its performance philosophy is **“from one comes many”**: **Spread** is a single performance control that weighted-modulates up to **40 targets** (5 parameters × 8 channels); **Modulation Dissemination** captures CV **per channel at activation** for polyphonic variation from mono sources. There are **no presets** — only mode persistence — so curation means **choosing which parameters are on the bus** (gold attenuverters) and **how many outputs you patch** (submix).
 
-**For MURMUR:** PoliMATHS validates the **1–3 KOINS** direction more strongly than Hydrasynth alone — macros should behave like **Spread buses** (one knob, multiple signed depths), not eight independent params. Agentic generation should **wire `modRoutes` first**, then surface **only routed macros** in `uiFocus`. Future hardware (Horizon 3 / CM5) can borrow **Channel Index + Spread** as a compact multi-voice performance idiom and **OTA mode flags** (Binary Counter-style post-ship features). **Modulation Dissemination** is the standout novel concept — worth a DSP experiment for per-note macro capture on MURMUR voices.
+**For MURMUR:** PoliMATHS validates the **1–3 KOINS** direction more strongly than Hydrasynth alone — macros should behave like **Spread buses** (one knob, multiple signed depths), not eight independent params. **Shipped:** spread destination hints, Dissemination MVP (Macro1–3 per-note capture), 100-preset Dissemination bank. **§8 backlog:** Span/voice-index UX (Channel Index, Round, Binary Counter), spread **channel weights**, macro button modes, submix-style patch templates, PLAY-only validation discipline, and CM5 hardware sketch — while **not** copying no-recall Eurorack constraints. Next P1: channel weights + Macro4–8 dissemination.
