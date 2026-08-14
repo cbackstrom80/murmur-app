@@ -3,6 +3,7 @@
 #include "pw8/dsp/Biquad.hpp"
 #include "pw8/dsp/DelayLine.hpp"
 #include "pw8/dsp/Math.hpp"
+#include "pw8/dsp/TempoSync.hpp"
 #include "pw8/effects/BinauralPanner.hpp"
 #include "pw8/effects/EffectTypes.hpp"
 #include "pw8/effects/RoomEngine.hpp"
@@ -51,7 +52,8 @@ namespace pw8::effects
             delayLpfR_.reset();
         }
 
-        void processStereo(float inL, float inR, const EffectSlotParams& p, float& outL, float& outR) noexcept
+        void processStereo(float inL, float inR, const EffectSlotParams& p, float& outL, float& outR,
+                           float bpm = 120.0f) noexcept
         {
             const float mix = dsp::clamp(p.mix, 0.0f, 1.0f);
             if (mix <= 1.0e-6f)
@@ -119,7 +121,8 @@ namespace pw8::effects
             }
 
             // Post-sum stereo delay (Quasar FW 2.0 — freeze at feedback >= 0.99).
-            const float delayMs = dsp::clamp(p.quasarDelayTimeMs, 3.0f, 20000.0f);
+            const float delayMs = dsp::effectiveDelayMs(p.quasarDelaySync, p.quasarDelaySyncDivisionIndex,
+                                                        p.quasarDelayTimeMs, bpm, 3.0f, 20000.0f);
             const float delaySamples = dsp::clamp(delayMs * 0.001f * sr, 1.0f, sr * kMaxQuasarDelaySeconds - 4.0f);
             const float feedback = dsp::clamp(p.quasarDelayFeedback, 0.0f, 1.0f);
             const float delayVol = dsp::clamp(p.quasarDelayVolume, 0.0f, 1.0f);

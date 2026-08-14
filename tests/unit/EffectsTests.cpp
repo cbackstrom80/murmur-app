@@ -1187,3 +1187,69 @@ TEST_CASE("BinauralSpace delay freeze holds tail at feedback 1.0", "[effects][qu
     proc.processStereo(0.0f, 0.0f, p, outL, outR);
     REQUIRE(std::abs(outL) > 0.001f);
 }
+
+TEST_CASE("TapeDelay tempo sync at 120 BPM 1/4 note lands echo near 500ms", "[effects][tapedelay][tempo]")
+{
+    TapeDelayProcessor proc;
+    proc.prepare(kSampleRate);
+    EffectSlotParams p;
+    p.type = EffectType::TapeDelay;
+    p.mix = 1.0f;
+    p.tapeDelaySync = true;
+    p.tapeDelaySyncDivisionIndex = 2; // 1/4 note
+    p.tapeFeedback = 0.0f;
+    p.tapeDriftDepthMs = 0.0f;
+    p.tapePanMode = DelayPanMode::Static;
+
+    std::vector<StereoSample> response;
+    response.reserve(static_cast<std::size_t>(kSampleRate * 0.75));
+    for (int i = 0; i < static_cast<int>(kSampleRate * 0.75); ++i)
+    {
+        const float in = (i == 0) ? 1.0f : 0.0f;
+        float outL = 0.0f, outR = 0.0f;
+        proc.processStereo(in, in, p, outL, outR, 120.0f);
+        response.push_back({outL, outR});
+    }
+    const auto delaySamples = static_cast<std::size_t>(500.0 * 0.001 * kSampleRate);
+    const auto echo = peakIndex(response, delaySamples / 2, delaySamples + delaySamples / 2, true);
+    REQUIRE(echo >= delaySamples - 8);
+    REQUIRE(echo <= delaySamples + 80);
+}
+
+TEST_CASE("BinauralSpace quasar delay tempo sync doubles when BPM halves", "[effects][quasar][tempo]")
+{
+    BinauralSpaceProcessor proc;
+    proc.prepare(kSampleRate);
+    EffectSlotParams p;
+    p.type = EffectType::BinauralSpace;
+    p.mix = 1.0f;
+    p.quasarDelaySync = true;
+    p.quasarDelaySyncDivisionIndex = 2;
+    p.quasarDelayVolume = 1.0f;
+    p.quasarDelayFeedback = 0.0f;
+    p.cntrLevel = 1.0f;
+    p.qsr1Level = 0.0f;
+    p.qsr2Level = 0.0f;
+
+    auto renderAtBpm = [&](float bpm, int numSamples) {
+        std::vector<StereoSample> out;
+        out.reserve(static_cast<std::size_t>(numSamples));
+        for (int i = 0; i < numSamples; ++i)
+        {
+            const float in = (i == 0) ? 1.0f : 0.0f;
+            float outL = 0.0f, outR = 0.0f;
+            proc.processStereo(in, in, p, outL, outR, bpm);
+            out.push_back({outL, outR});
+        }
+        return out;
+    };
+
+    const auto fast = renderAtBpm(120.0f, static_cast<int>(kSampleRate * 0.75));
+    proc.reset();
+    const auto slow = renderAtBpm(60.0f, static_cast<int>(kSampleRate * 1.5));
+    const auto fastPeak = peakIndex(fast, static_cast<std::size_t>(0.35 * kSampleRate),
+                                    static_cast<std::size_t>(0.65 * kSampleRate), true);
+    const auto slowPeak = peakIndex(slow, static_cast<std::size_t>(0.7 * kSampleRate),
+                                    static_cast<std::size_t>(1.3 * kSampleRate), true);
+    REQUIRE(slowPeak > fastPeak * 15 / 10);
+}

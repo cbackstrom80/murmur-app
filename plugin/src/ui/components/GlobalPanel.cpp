@@ -25,6 +25,13 @@ namespace pw8::plugin::ui
         {
             return masterFxParamId(localIndex, "");
         }
+
+        [[nodiscard]] int readIntParam(juce::AudioProcessorValueTreeState& apvts, const juce::String& id)
+        {
+            if (auto* raw = apvts.getRawParameterValue(id))
+                return static_cast<int>(raw->load() + 0.5f);
+            return 0;
+        }
     } // namespace
 
     GlobalPanel::GlobalPanel(PatchworkEightProcessor& processor)
@@ -123,6 +130,42 @@ namespace pw8::plugin::ui
         quasarSlotLabel_.setFont(fonts::label(11.0f));
         quasarSlotLabel_.setColour(juce::Label::textColourId, palette::kAccent);
         panel_.addAndMakeVisible(quasarSlotLabel_);
+
+        quasarDelaySyncRow_ = std::make_unique<MetadataFacetRow>("DLY SYNC");
+        quasarDelaySyncRow_->setValues(juce::StringArray{"FREE", "TEMPO"});
+        quasarDelaySyncRow_->onChange = [this]() {
+            if (quasarPrefix_.isEmpty())
+                return;
+            const bool sync = quasarDelaySyncRow_->getSelectedValue() == "TEMPO";
+            if (auto* param = apvts_.getParameter(quasarPrefix_ + "QuasarDelaySync"))
+                param->setValueNotifyingHost(param->convertTo0to1(sync ? 1.0f : 0.0f));
+            if (quasarDelayDivisionRow_ != nullptr)
+                quasarDelayDivisionRow_->setVisible(sync);
+            resized();
+        };
+        panel_.addAndMakeVisible(*quasarDelaySyncRow_);
+
+        quasarDelayDivisionRow_ = std::make_unique<MetadataFacetRow>("DLY DIV");
+        quasarDelayDivisionRow_->setValues(
+            juce::StringArray{"1/1", "1/2", "1/4", "1/8", "1/16", "1/4.", "1/4T", "1/8.", "1/8T"});
+        quasarDelayDivisionRow_->onChange = [this]() {
+            if (quasarPrefix_.isEmpty())
+                return;
+            const auto& v = quasarDelayDivisionRow_->getSelectedValue();
+            int idx = 2;
+            if (v == "1/1") idx = 0;
+            else if (v == "1/2") idx = 1;
+            else if (v == "1/4") idx = 2;
+            else if (v == "1/8") idx = 3;
+            else if (v == "1/16") idx = 4;
+            else if (v == "1/4.") idx = 5;
+            else if (v == "1/4T") idx = 6;
+            else if (v == "1/8.") idx = 7;
+            else if (v == "1/8T") idx = 8;
+            if (auto* param = apvts_.getParameter(quasarPrefix_ + "QuasarDelaySyncDivision"))
+                param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(idx)));
+        };
+        panel_.addAndMakeVisible(*quasarDelayDivisionRow_);
 
         outputHelp_.setText("Master output level before DAW. Limiter ceiling reads from the active LIMITER master slot.",
                             juce::dontSendNotification);
@@ -263,6 +306,17 @@ namespace pw8::plugin::ui
         {
             quasarSlotLabel_.setText("Editing master M" + juce::String(quasarSlot + 1) + " QUASAR",
                                      juce::dontSendNotification);
+            const bool syncOn =
+                readIntParam(apvts_, qPrefix + "QuasarDelaySync") != 0;
+            const int div = readIntParam(apvts_, qPrefix + "QuasarDelaySyncDivision");
+            if (quasarDelaySyncRow_ != nullptr)
+                quasarDelaySyncRow_->setSelectedValue(syncOn ? "TEMPO" : "FREE");
+            if (quasarDelayDivisionRow_ != nullptr)
+            {
+                static constexpr const char* kLabels[] = {"1/1", "1/2", "1/4", "1/8", "1/16", "1/4.", "1/4T", "1/8.", "1/8T"};
+                quasarDelayDivisionRow_->setSelectedValue(kLabels[juce::jlimit(0, 8, div)]);
+                quasarDelayDivisionRow_->setVisible(subTab_ == SubTab::Quasar && syncOn);
+            }
             for (auto& knob : quasarKnobs_)
                 knob->setVisible(subTab_ == SubTab::Quasar);
         }
@@ -304,6 +358,12 @@ namespace pw8::plugin::ui
         quasarHelp_.setVisible(quasar);
         quasarScopeLabel_.setVisible(quasar);
         quasarSlotLabel_.setVisible(quasar);
+        if (quasarDelaySyncRow_ != nullptr)
+            quasarDelaySyncRow_->setVisible(quasar && !quasarPrefix_.isEmpty());
+        if (quasarDelayDivisionRow_ != nullptr)
+            quasarDelayDivisionRow_->setVisible(quasar && !quasarPrefix_.isEmpty() &&
+                                                 quasarDelaySyncRow_ != nullptr &&
+                                                 quasarDelaySyncRow_->getSelectedValue() == "TEMPO");
         for (auto& knob : quasarKnobs_)
             knob->setVisible(quasar);
 
@@ -378,6 +438,17 @@ namespace pw8::plugin::ui
             content.removeFromTop(4);
             quasarSlotLabel_.setBounds(content.removeFromTop(18));
             content.removeFromTop(6);
+
+            if (quasarDelaySyncRow_ != nullptr && quasarDelaySyncRow_->isVisible())
+            {
+                quasarDelaySyncRow_->setBounds(content.removeFromTop(34));
+                content.removeFromTop(4);
+            }
+            if (quasarDelayDivisionRow_ != nullptr && quasarDelayDivisionRow_->isVisible())
+            {
+                quasarDelayDivisionRow_->setBounds(content.removeFromTop(34));
+                content.removeFromTop(6);
+            }
 
             if (!quasarKnobs_.empty())
             {

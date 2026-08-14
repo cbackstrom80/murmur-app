@@ -24,6 +24,7 @@
 
 #include "pw8/patch/Patch.hpp"
 #include "pw8/dsp/SidechainFollower.hpp"
+#include "pw8/lfo/Lfo.hpp"
 #include "pw8/algorithm/AlgorithmGraphCompiler.hpp"
 #include "pw8/render/Engine.hpp"
 #include "processor/ScopeAudioTap.h"
@@ -195,6 +196,13 @@ namespace pw8::plugin
             return sidechainLevel_.load(std::memory_order_relaxed);
         }
 
+        /// Message-thread mod preview for UI ghost rings (macros, MW, LFO layer tick).
+        [[nodiscard]] float getHostBpm() const noexcept;
+        [[nodiscard]] modulation::ModSourceValues buildModPreviewSources(float bpm) noexcept;
+        [[nodiscard]] bool hasModRouteTo(modulation::ModDestination destination,
+                                         std::uint8_t targetIndex) const noexcept;
+        [[nodiscard]] bool macroHasActiveRoutes(std::size_t macroIndex) const noexcept;
+
         [[nodiscard]] ui::ScopeViewMode getScopeViewMode() const noexcept { return scopeViewMode_; }
 
         void setScopeViewMode(ui::ScopeViewMode mode) noexcept { scopeViewMode_ = mode; }
@@ -298,6 +306,7 @@ namespace pw8::plugin
         ::pw8::dsp::SidechainFollower sidechainFollower_{};
         std::atomic<bool> sidechainActive_{false};
         std::atomic<float> sidechainLevel_{0.0f};
+        std::array<lfo::Lfo, kNumLfos> modPreviewLfos_{};
 
         /// Tracks host transport so we can all-sound-off when playback stops (Logic rarely
         /// sends note-offs on stop).

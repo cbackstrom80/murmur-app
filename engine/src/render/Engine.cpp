@@ -1006,7 +1006,7 @@ namespace pw8::render
                     kahanAdd(sumR, kahanR, vr);
                 }
 
-                layerAInsertChain_.process(patch_.layerA.insertEffects, sumL, sumR);
+                layerAInsertChain_.process(patch_.layerA.insertEffects, sumL, sumR, bpm_);
 
                 if (isStackModeActive())
                 {
@@ -1032,7 +1032,7 @@ namespace pw8::render
                         kahanAdd(sumBR, kahanBR, vr);
                     }
 
-                    layerBInsertChain_.process(patch_.layerB.insertEffects, sumBL, sumBR);
+                    layerBInsertChain_.process(patch_.layerB.insertEffects, sumBL, sumBR, bpm_);
                     kahanAdd(sumL, kahanL, sumBL);
                     kahanAdd(sumR, kahanR, sumBR);
                 }
@@ -1041,10 +1041,10 @@ namespace pw8::render
                 {
                     sumL *= masterGainMul;
                     sumR *= masterGainMul;
-                    masterChain_.process(moddedMasterEffects, sumL, sumR);
+                    masterChain_.process(moddedMasterEffects, sumL, sumR, bpm_);
                 }
                 else
-                    masterChain_.process(patch_.masterEffects, sumL, sumR);
+                    masterChain_.process(patch_.masterEffects, sumL, sumR, bpm_);
 
                 left[s] = sumL;
                 right[s] = sumR;

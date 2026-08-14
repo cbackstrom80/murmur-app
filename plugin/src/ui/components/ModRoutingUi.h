@@ -108,4 +108,7 @@ namespace pw8::plugin::ui
     [[nodiscard]] juce::String performanceHintForPatch(const patch::Patch& patch,
                                                        const juce::AudioProcessorValueTreeState* apvtsForValidation = nullptr);
 
+    [[nodiscard]] std::optional<std::pair<modulation::ModDestination, std::uint8_t>>
+    findModDestinationForApvtsParam(const juce::String& paramId) noexcept;
+
 } // namespace pw8::plugin::ui

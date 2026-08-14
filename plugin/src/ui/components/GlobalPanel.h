@@ -69,6 +69,8 @@ namespace pw8::plugin::ui
         juce::Label quasarScopeLabel_;
         juce::Label quasarSlotLabel_;
         juce::String quasarPrefix_;
+        std::unique_ptr<MetadataFacetRow> quasarDelaySyncRow_;
+        std::unique_ptr<MetadataFacetRow> quasarDelayDivisionRow_;
         std::vector<std::unique_ptr<GlowKnob>> quasarKnobs_;
 
         // OUTPUT sub-tab

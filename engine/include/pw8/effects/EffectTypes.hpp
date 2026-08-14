@@ -3,6 +3,8 @@
 #include <array>
 #include <cstdint>
 
+#include "pw8/dsp/TempoSync.hpp"
+
 // Pure data model for the FX bank (docs/FX_BANK.md). Included by Patch.hpp, so --
 // like every other *Types.hpp in this codebase -- it must stay free of any
 // stateful DSP or JSON dependency. The stateful processors live in
@@ -111,6 +113,8 @@ namespace pw8::effects
         float tapeDriftDepthMs = 1.5f;    ///< wow/flutter depth.
         float tapeDriftRateHz = 0.3f;
         DelayPanMode tapePanMode = DelayPanMode::Static;
+        bool tapeDelaySync = false;
+        int tapeDelaySyncDivisionIndex = static_cast<int>(dsp::kDefaultDelaySyncDivisionIndex);
 
         // -- NodeDelay (docs/FX_BANK.md "ChowMatrix") --
         std::array<DelayNodeParams, kMaxDelayNodes> nodes{};
@@ -211,6 +215,8 @@ namespace pw8::effects
         /// 0 = Headphone, 1 = Speaker, 2 = Auto (default Headphone).
         int quasarOutputMode = 0;
         float quasarCrossfeed = 0.0f; ///< 0..1 contralateral mix (Speaker mode).
+        bool quasarDelaySync = false;
+        int quasarDelaySyncDivisionIndex = static_cast<int>(dsp::kDefaultDelaySyncDivisionIndex);
     };
 
 } // namespace pw8::effects

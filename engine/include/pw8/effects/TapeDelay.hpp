@@ -4,6 +4,7 @@
 
 #include "pw8/dsp/DelayLine.hpp"
 #include "pw8/dsp/Math.hpp"
+#include "pw8/dsp/TempoSync.hpp"
 #include "pw8/effects/EffectTypes.hpp"
 
 // Warm analog/tape-style stereo delay, informed by Cocoa Delay's feature set
@@ -33,7 +34,8 @@ namespace pw8::effects
             circularPhase_ = 0.0f;
         }
 
-        void processStereo(float inL, float inR, const EffectSlotParams& p, float& outL, float& outR) noexcept
+        void processStereo(float inL, float inR, const EffectSlotParams& p, float& outL, float& outR,
+                           float bpm = 120.0f) noexcept
         {
             const float sr = static_cast<float>(sampleRate_);
 
@@ -41,7 +43,9 @@ namespace pw8::effects
             driftPhase_ = dsp::wrapPhase(driftPhase_ + p.tapeDriftRateHz / sr);
             const float driftSamples = std::sin(dsp::kTwoPi * driftPhase_) * p.tapeDriftDepthMs * 0.001f * sr;
 
-            const float baseSamples = dsp::clamp(p.tapeDelayMs, 1.0f, kMaxEffectDelaySeconds * 1000.0f) * 0.001f * sr;
+            const float delayMs = dsp::effectiveDelayMs(p.tapeDelaySync, p.tapeDelaySyncDivisionIndex, p.tapeDelayMs,
+                                                        bpm, 1.0f, kMaxEffectDelaySeconds * 1000.0f);
+            const float baseSamples = delayMs * 0.001f * sr;
             const float delaySamples =
                 dsp::clamp(baseSamples + driftSamples, 1.0f, sr * kMaxEffectDelaySeconds - 4.0f);
 

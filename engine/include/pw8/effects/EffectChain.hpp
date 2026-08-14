@@ -60,14 +60,15 @@ namespace pw8::effects
             binauralSpace_.reset();
         }
 
-        void processStereo(float inL, float inR, const EffectSlotParams& p, float& outL, float& outR) noexcept
+        void processStereo(float inL, float inR, const EffectSlotParams& p, float& outL, float& outR,
+                           float bpm = 120.0f) noexcept
         {
             switch (p.type)
             {
                 case EffectType::Bypass: outL = inL; outR = inR; return;
                 case EffectType::Saturation: saturation_.processStereo(inL, inR, p, outL, outR); return;
                 case EffectType::Chorus: chorus_.processStereo(inL, inR, p, outL, outR); return;
-                case EffectType::TapeDelay: tapeDelay_.processStereo(inL, inR, p, outL, outR); return;
+                case EffectType::TapeDelay: tapeDelay_.processStereo(inL, inR, p, outL, outR, bpm); return;
                 case EffectType::NodeDelay: nodeDelay_.processStereo(inL, inR, p, outL, outR); return;
                 case EffectType::FreqShiftEcho: freqShiftEcho_.processStereo(inL, inR, p, outL, outR); return;
                 case EffectType::FractalEcho: fractalEcho_.processStereo(inL, inR, p, outL, outR); return;
@@ -76,7 +77,7 @@ namespace pw8::effects
                 case EffectType::Compressor: compressor_.processStereo(inL, inR, p, outL, outR); return;
                 case EffectType::Limiter: limiter_.processStereo(inL, inR, p, outL, outR); return;
                 case EffectType::BinauralSpace:
-                    binauralSpace_.processStereo(inL, inR, p, outL, outR);
+                    binauralSpace_.processStereo(inL, inR, p, outL, outR, bpm);
                     return;
             }
             outL = inL;
@@ -116,12 +117,13 @@ namespace pw8::effects
                 slot.reset();
         }
 
-        void process(const std::array<EffectSlotParams, NumSlots>& params, float& l, float& r) noexcept
+        void process(const std::array<EffectSlotParams, NumSlots>& params, float& l, float& r,
+                     float bpm = 120.0f) noexcept
         {
             for (std::size_t i = 0; i < NumSlots; ++i)
             {
                 float outL = l, outR = r;
-                slots_[i].processStereo(l, r, params[i], outL, outR);
+                slots_[i].processStereo(l, r, params[i], outL, outR, bpm);
                 l = outL;
                 r = outR;
             }

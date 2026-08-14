@@ -161,6 +161,32 @@ namespace pw8::plugin::ui
         };
         panel_.addAndMakeVisible(*transBrandRow_);
 
+        delaySyncRow_ = std::make_unique<MetadataFacetRow>("SYNC");
+        delaySyncRow_->setValues(juce::StringArray{"FREE", "TEMPO"});
+        delaySyncRow_->onChange = [this]() {
+            setDelaySyncEnabled(delaySyncRow_->getSelectedValue() == "TEMPO");
+        };
+        panel_.addAndMakeVisible(*delaySyncRow_);
+
+        delayDivisionRow_ = std::make_unique<MetadataFacetRow>("DIV");
+        delayDivisionRow_->setValues(
+            juce::StringArray{"1/1", "1/2", "1/4", "1/8", "1/16", "1/4.", "1/4T", "1/8.", "1/8T"});
+        delayDivisionRow_->onChange = [this]() {
+            const auto& v = delayDivisionRow_->getSelectedValue();
+            int idx = 2;
+            if (v == "1/1") idx = 0;
+            else if (v == "1/2") idx = 1;
+            else if (v == "1/4") idx = 2;
+            else if (v == "1/8") idx = 3;
+            else if (v == "1/16") idx = 4;
+            else if (v == "1/4.") idx = 5;
+            else if (v == "1/4T") idx = 6;
+            else if (v == "1/8.") idx = 7;
+            else if (v == "1/8T") idx = 8;
+            setDelaySyncDivision(idx);
+        };
+        panel_.addAndMakeVisible(*delayDivisionRow_);
+
         selectSlot(0);
         startTimerHz(8);
     }
@@ -182,6 +208,12 @@ namespace pw8::plugin::ui
     bool FxChainStrip::showsMasterCompressorControls() const
     {
         return selectedSlotIndex_ >= 3 && readEffectType(apvts_, selectedSlot().paramPrefix) == 9;
+    }
+
+    bool FxChainStrip::showsDelaySyncControls() const
+    {
+        const int type = readEffectType(apvts_, selectedSlot().paramPrefix);
+        return type == 3 || type == 11;
     }
 
     bool FxChainStrip::canSwapSelectedSlot(int direction) const
@@ -244,7 +276,10 @@ namespace pw8::plugin::ui
         wireframe_.bindToSlot(selectedSlot().paramPrefix);
         refreshSelectorStates();
         refreshTransformerUi();
+        refreshDelaySyncUi();
+        syncTypeRowFromParams();
         syncTransformerRowsFromParams();
+        syncDelaySyncRowsFromParams();
         resized();
     }
 
@@ -258,8 +293,10 @@ namespace pw8::plugin::ui
             selectedSlot().lastEnabledType = type;
         refreshSelectorStates();
         refreshTransformerUi();
+        refreshDelaySyncUi();
         syncTypeRowFromParams();
         syncTransformerRowsFromParams();
+        syncDelaySyncRowsFromParams();
         swapLeft_.setEnabled(canSwapSelectedSlot(-1));
         swapRight_.setEnabled(canSwapSelectedSlot(1));
     }
@@ -304,6 +341,53 @@ namespace pw8::plugin::ui
                 transformerBrandName(readIntParam(apvts_, prefix + "CompTransformerBrand")));
     }
 
+    void FxChainStrip::refreshDelaySyncUi()
+    {
+        const bool show = showsDelaySyncControls();
+        if (delaySyncRow_ != nullptr)
+            delaySyncRow_->setVisible(show);
+        if (delayDivisionRow_ != nullptr)
+            delayDivisionRow_->setVisible(show && delaySyncRow_ != nullptr &&
+                                          delaySyncRow_->getSelectedValue() == "TEMPO");
+    }
+
+    void FxChainStrip::syncDelaySyncRowsFromParams()
+    {
+        if (!showsDelaySyncControls())
+            return;
+        const int type = readEffectType(apvts_, selectedSlot().paramPrefix);
+        const auto& prefix = selectedSlot().paramPrefix;
+        const bool syncOn = type == 3 ? readIntParam(apvts_, prefix + "TapeDelaySync") != 0
+                                      : readIntParam(apvts_, prefix + "QuasarDelaySync") != 0;
+        const int div = type == 3 ? readIntParam(apvts_, prefix + "TapeDelaySyncDivision")
+                                  : readIntParam(apvts_, prefix + "QuasarDelaySyncDivision");
+        if (delaySyncRow_ != nullptr)
+            delaySyncRow_->setSelectedValue(syncOn ? "TEMPO" : "FREE");
+        if (delayDivisionRow_ != nullptr)
+        {
+            static constexpr const char* kLabels[] = {"1/1", "1/2", "1/4", "1/8", "1/16", "1/4.", "1/4T", "1/8.", "1/8T"};
+            const int idx = juce::jlimit(0, 8, div);
+            delayDivisionRow_->setSelectedValue(kLabels[idx]);
+        }
+        refreshDelaySyncUi();
+    }
+
+    void FxChainStrip::setDelaySyncEnabled(bool enabled)
+    {
+        const int type = readEffectType(apvts_, selectedSlot().paramPrefix);
+        const auto suffix = type == 3 ? juce::String("TapeDelaySync") : juce::String("QuasarDelaySync");
+        setIntParam(apvts_, selectedSlot().paramPrefix + suffix, enabled ? 1 : 0);
+        refreshDelaySyncUi();
+    }
+
+    void FxChainStrip::setDelaySyncDivision(int divisionIndex)
+    {
+        const int type = readEffectType(apvts_, selectedSlot().paramPrefix);
+        const auto suffix =
+            type == 3 ? juce::String("TapeDelaySyncDivision") : juce::String("QuasarDelaySyncDivision");
+        setIntParam(apvts_, selectedSlot().paramPrefix + suffix, divisionIndex);
+    }
+
     void FxChainStrip::setTransformerCore(int coreOrdinal)
     {
         setIntParam(apvts_, selectedSlot().paramPrefix + "CompTransformerCore", coreOrdinal);
@@ -330,8 +414,10 @@ namespace pw8::plugin::ui
         rebuildParamKnobs();
         refreshSelectorStates();
         refreshTransformerUi();
+        refreshDelaySyncUi();
         syncTypeRowFromParams();
         syncTransformerRowsFromParams();
+        syncDelaySyncRowsFromParams();
 
         const int type = readEffectType(apvts_, selectedSlot().paramPrefix);
         slotTitleLabel_.setText(selectedSlot().shortLabel + " · " + fxPlaySpecForType(type).name,
@@ -417,6 +503,20 @@ namespace pw8::plugin::ui
             if (transBrandRow_ != nullptr)
                 transBrandRow_->setBounds(main.removeFromTop(34));
             main.removeFromTop(6);
+        }
+
+        const bool showDelaySync = showsDelaySyncControls();
+        if (showDelaySync)
+        {
+            main.removeFromTop(4);
+            if (delaySyncRow_ != nullptr)
+                delaySyncRow_->setBounds(main.removeFromTop(34));
+            if (delayDivisionRow_ != nullptr && delayDivisionRow_->isVisible())
+            {
+                main.removeFromTop(4);
+                delayDivisionRow_->setBounds(main.removeFromTop(34));
+            }
+            main.removeFromTop(4);
         }
 
         auto knobRow = main.removeFromTop(96);

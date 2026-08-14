@@ -49,11 +49,16 @@ namespace pw8::plugin::ui
         [[nodiscard]] const SlotUi& selectedSlot() const;
         void refreshSelectorStates();
         void refreshTransformerUi();
+        void refreshDelaySyncUi();
         void syncTypeRowFromParams();
         void syncTransformerRowsFromParams();
+        void syncDelaySyncRowsFromParams();
         void setTransformerCore(int coreOrdinal);
         void setTransformerBrand(int brandOrdinal);
+        void setDelaySyncEnabled(bool enabled);
+        void setDelaySyncDivision(int divisionIndex);
         [[nodiscard]] bool showsMasterCompressorControls() const;
+        [[nodiscard]] bool showsDelaySyncControls() const;
         [[nodiscard]] bool canSwapSelectedSlot(int direction) const;
         void updateFlowPrefixes();
         void timerCallback() override;
@@ -79,6 +84,9 @@ namespace pw8::plugin::ui
         std::unique_ptr<MetadataFacetRow> transCoreRow_;
         std::unique_ptr<MetadataFacetRow> transBrandRow_;
         std::unique_ptr<GlowKnob> transAmountKnob_;
+
+        std::unique_ptr<MetadataFacetRow> delaySyncRow_;
+        std::unique_ptr<MetadataFacetRow> delayDivisionRow_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FxChainStrip)
     };

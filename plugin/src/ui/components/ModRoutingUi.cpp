@@ -568,4 +568,54 @@ namespace pw8::plugin::ui
         return hint;
     }
 
+    std::optional<std::pair<modulation::ModDestination, std::uint8_t>>
+    findModDestinationForApvtsParam(const juce::String& paramId) noexcept
+    {
+        for (std::uint8_t op = 0; op < 8; ++op)
+        {
+            for (const auto dest :
+                 {modulation::ModDestination::OperatorFilterCutoff, modulation::ModDestination::OperatorFilterResonance,
+                  modulation::ModDestination::OperatorLevel, modulation::ModDestination::OperatorWavetablePosition,
+                  modulation::ModDestination::OperatorWavetableBend, modulation::ModDestination::OperatorWavetableAsymmetry,
+                  modulation::ModDestination::OperatorWavetableSyncRatio,
+                  modulation::ModDestination::OperatorWavetableFormant,
+                  modulation::ModDestination::OperatorWavetableSyncAmount})
+            {
+                const auto mapped = modDestinationParam(dest, op);
+                if (mapped.has_value() && mapped->paramId == paramId)
+                    return std::make_pair(dest, op);
+            }
+        }
+
+        for (std::uint8_t slot = 0; slot < 4; ++slot)
+        {
+            for (const auto dest :
+                 {modulation::ModDestination::MasterFxMix, modulation::ModDestination::MasterReverbMix,
+                  modulation::ModDestination::MasterReverbSize, modulation::ModDestination::MasterReverbDecay,
+                  modulation::ModDestination::MasterReverbPreDelay, modulation::ModDestination::MasterReverbDiffusion,
+                  modulation::ModDestination::MasterReverbModDepth, modulation::ModDestination::QuasarQsr1Distance,
+                  modulation::ModDestination::QuasarQsr2Distance, modulation::ModDestination::QuasarQsr1Angle,
+                  modulation::ModDestination::QuasarQsr2Angle, modulation::ModDestination::QuasarQsr1Height,
+                  modulation::ModDestination::QuasarQsr2Height, modulation::ModDestination::QuasarRoomAmount,
+                  modulation::ModDestination::QuasarDelayFeedback, modulation::ModDestination::QuasarDelayTime,
+                  modulation::ModDestination::QuasarCntrLevel})
+            {
+                const auto mapped = modDestinationParam(dest, slot);
+                if (mapped.has_value() && mapped->paramId == paramId)
+                    return std::make_pair(dest, slot);
+            }
+        }
+
+        for (const auto dest :
+             {modulation::ModDestination::FilterCutoff, modulation::ModDestination::FilterResonance,
+              modulation::ModDestination::Pan, modulation::ModDestination::MasterGain})
+        {
+            const auto mapped = modDestinationParam(dest, 0);
+            if (mapped.has_value() && mapped->paramId == paramId)
+                return std::make_pair(dest, static_cast<std::uint8_t>(0));
+        }
+
+        return std::nullopt;
+    }
+
 } // namespace pw8::plugin::ui

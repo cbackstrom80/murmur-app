@@ -1,10 +1,12 @@
 #include "GlowKnob.h"
 
+#include "../ModPreview.hpp"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "../theme/ObsidianRotary.h"
 #include "ModRoutingUi.h"
 #include "ModSourceChip.h"
+#include "state/PluginState.h"
 
 namespace pw8::plugin::ui
 {
@@ -26,6 +28,7 @@ namespace pw8::plugin::ui
     GlowKnob::GlowKnob(juce::AudioProcessorValueTreeState& apvts, const juce::String& paramId,
                         const juce::String& name, std::function<juce::String(float)> valueToText,
                         juce::Colour accentColour)
+        : paramId_(paramId)
     {
         slider_.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
         slider_.setRotaryParameters(rotary::kStartAngle, rotary::kEndAngle, true);
@@ -63,6 +66,15 @@ namespace pw8::plugin::ui
         modTargetIndex_ = targetIndex;
         setHelpText("Click after selecting a mod source, drag a source chip here, or right-click to remove.");
         startTimerHz(8);
+        timerCallback();
+    }
+
+    void GlowKnob::enableMacroActivityRing(PatchworkEightProcessor& processor, std::size_t macroIndex)
+    {
+        modProcessor_ = &processor;
+        macroActivityMode_ = true;
+        macroActivityIndex_ = macroIndex;
+        startTimerHz(12);
         timerCallback();
     }
 
@@ -125,7 +137,21 @@ namespace pw8::plugin::ui
         juce::Colour next = juce::Colours::transparentBlack;
         auto nextSource = modulation::ModSource::None;
         float nextAmountNorm = 0.0f;
-        if (modProcessor_ != nullptr)
+        float nextLiveMod = -1.0f;
+
+        if (macroActivityMode_ && modProcessor_ != nullptr)
+        {
+            if (modProcessor_->macroHasActiveRoutes(macroActivityIndex_))
+            {
+                next = palette::kAccentWarm.withAlpha(0.85f);
+                if (macroActivityIndex_ < kMacroParameterIds.size())
+                {
+                    if (auto* raw = modProcessor_->apvts.getRawParameterValue(kMacroParameterIds[macroActivityIndex_]))
+                        nextAmountNorm = juce::jlimit(0.0f, 1.0f, raw->load());
+                }
+            }
+        }
+        else if (modProcessor_ != nullptr)
         {
             for (const auto& route : modProcessor_->getCurrentPatch().layerA.modRoutes)
             {
@@ -133,19 +159,36 @@ namespace pw8::plugin::ui
                 {
                     next = palette::modSourceColour(static_cast<int>(route.source));
                     nextSource = route.source;
-                    const auto range = modAmountRangeFor(route.destination);
-                    const float def = defaultModAmountFor(route.destination);
-                    const float span = juce::jmax(0.001f, range.max - range.min);
-                    nextAmountNorm = juce::jlimit(0.0f, 1.0f, std::abs(route.amount) / juce::jmax(0.001f, std::abs(def)));
+                    const auto def = defaultModAmountFor(route.destination);
+                    nextAmountNorm =
+                        juce::jlimit(0.0f, 1.0f, std::abs(route.amount) / juce::jmax(0.001f, std::abs(def)));
                     break;
                 }
             }
+
+            if (modDestination_ != modulation::ModDestination::None &&
+                modProcessor_->hasModRouteTo(modDestination_, modTargetIndex_))
+            {
+                const auto sources = modProcessor_->buildModPreviewSources(modProcessor_->getHostBpm());
+                const auto modOut =
+                    modulation::ModMatrixExecutor::apply(modProcessor_->getCurrentPatch().layerA.modRoutes, sources);
+                const float offset =
+                    modOffsetForDestination(modOut, modDestination_, modTargetIndex_);
+                if (auto* param = modProcessor_->apvts.getParameter(paramId_))
+                {
+                    const float base = static_cast<float>(slider_.getValue());
+                    nextLiveMod = normalizedModulatedValue(param, base, modDestination_, offset);
+                }
+            }
         }
-        if (next != ringColour_ || nextAmountNorm != ringAmountNormalized_ || nextSource != ringSource_)
+
+        if (next != ringColour_ || nextAmountNorm != ringAmountNormalized_ || nextSource != ringSource_ ||
+            nextLiveMod != liveModNormalized_)
         {
             ringColour_ = next;
             ringSource_ = nextSource;
             ringAmountNormalized_ = nextAmountNorm;
+            liveModNormalized_ = nextLiveMod;
             repaint();
         }
     }
@@ -320,6 +363,19 @@ namespace pw8::plugin::ui
                               knobBounds.getHeight() * 0.5f, 0.0f, rotary::kStartAngle, endAngle, true);
             g.setColour(ringColour_.withAlpha(0.85f));
             g.strokePath(arc, juce::PathStrokeType(2.2f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+        }
+
+        if (liveModNormalized_ >= 0.0f)
+        {
+            const float ghostAngle =
+                rotary::kStartAngle + rotary::kSweep * juce::jlimit(0.0f, 1.0f, liveModNormalized_);
+            const float cx = knobBounds.getCentreX();
+            const float cy = knobBounds.getCentreY();
+            const float r = knobBounds.getWidth() * 0.38f;
+            const float px = cx + std::cos(ghostAngle - juce::MathConstants<float>::halfPi) * r;
+            const float py = cy + std::sin(ghostAngle - juce::MathConstants<float>::halfPi) * r;
+            g.setColour((ringColour_.isTransparent() ? palette::kAccent : ringColour_).withAlpha(0.55f));
+            g.fillEllipse(px - 3.0f, py - 3.0f, 6.0f, 6.0f);
         }
     }
 

@@ -185,6 +185,10 @@ namespace pw8::plugin
         {"QuasarDelayVolume",  "Quasar Delay Volume",   0.0f,     1.0f,     0.25f,  false},
         {"QuasarOutputMode",   "Quasar Output Mode",    0.0f,     2.0f,     0.0f,   true},
         {"QuasarCrossfeed",    "Quasar Crossfeed",      0.0f,     1.0f,     0.0f,   false},
+        {"TapeDelaySync",      "Tape Delay Sync",       0.0f,     1.0f,     0.0f,   true},
+        {"TapeDelaySyncDivision", "Tape Delay Sync Division", 0.0f, 8.0f, 2.0f, true},
+        {"QuasarDelaySync",    "Quasar Delay Sync",     0.0f,     1.0f,     0.0f,   true},
+        {"QuasarDelaySyncDivision", "Quasar Delay Sync Division", 0.0f, 8.0f, 2.0f, true},
     }};
 
     // Matches sequencer::ArpeggiatorParams's scalar fields (excludes `steps[]`).

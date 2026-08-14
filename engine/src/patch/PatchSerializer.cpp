@@ -360,6 +360,10 @@ namespace pw8::patch
                 {"quasarDelayVolume", e.quasarDelayVolume},
                 {"quasarOutputMode", e.quasarOutputMode},
                 {"quasarCrossfeed", e.quasarCrossfeed},
+                {"tapeDelaySync", e.tapeDelaySync},
+                {"tapeDelaySyncDivisionIndex", e.tapeDelaySyncDivisionIndex},
+                {"quasarDelaySync", e.quasarDelaySync},
+                {"quasarDelaySyncDivisionIndex", e.quasarDelaySyncDivisionIndex},
             };
         }
 
@@ -486,6 +490,12 @@ namespace pw8::patch
             e.quasarDelayVolume = clampNum(j.value("quasarDelayVolume", 0.25f), 0.0f, 1.0f);
             e.quasarOutputMode = static_cast<int>(clampNum(j.value("quasarOutputMode", 0.0f), 0.0f, 2.0f));
             e.quasarCrossfeed = clampNum(j.value("quasarCrossfeed", 0.0f), 0.0f, 1.0f);
+            e.tapeDelaySync = j.value("tapeDelaySync", false);
+            e.tapeDelaySyncDivisionIndex =
+                static_cast<int>(clampNum(j.value("tapeDelaySyncDivisionIndex", 2.0f), 0.0f, 8.0f));
+            e.quasarDelaySync = j.value("quasarDelaySync", false);
+            e.quasarDelaySyncDivisionIndex =
+                static_cast<int>(clampNum(j.value("quasarDelaySyncDivisionIndex", 2.0f), 0.0f, 8.0f));
         }
 
         void toJson(json& j, const LayerPatch& l)

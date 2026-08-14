@@ -53,6 +53,9 @@ namespace pw8::plugin::ui
         void enableModulationTarget(PatchworkEightProcessor& processor, modulation::ModDestination destination,
                                      std::uint8_t targetIndex = 0);
 
+        /// Shows a warm activity ring when this macro fans out to active mod routes.
+        void enableMacroActivityRing(PatchworkEightProcessor& processor, std::size_t macroIndex);
+
         void setModAssignmentController(ModAssignmentController* controller);
 
         /// Overrides the name label set at construction -- e.g. MacroStrip calling
@@ -115,6 +118,10 @@ namespace pw8::plugin::ui
         modulation::ModSource ringSource_ = modulation::ModSource::None; ///< The route currently shown by ringColour_, so right-click-remove can identify it exactly.
         juce::Colour ringColour_ = juce::Colours::transparentBlack; ///< transparent == no route assigned.
         float ringAmountNormalized_ = 0.0f;
+        float liveModNormalized_ = -1.0f; ///< Ghost pointer: modulated effective value 0..1; <0 hides.
+        juce::String paramId_;
+        bool macroActivityMode_ = false;
+        std::size_t macroActivityIndex_ = 0;
         bool dragHover_ = false;
         bool showDepthPopover_ = false;
         juce::Rectangle<int> depthPopoverArea_;

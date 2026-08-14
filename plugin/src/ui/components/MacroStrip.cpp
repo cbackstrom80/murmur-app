@@ -16,6 +16,7 @@ namespace pw8::plugin::ui
             // switches it to the patch-authored one, if any, once a patch loads.
             knobs_[i] = std::make_unique<GlowKnob>(processor_.apvts, kMacroParameterIds[i], kMacroParameterNames[i],
                                                      nullptr, palette::kAccentWarm);
+            knobs_[i]->enableMacroActivityRing(processor_, i);
             knobs_[i]->setDeckedStyle(true, GlowKnob::DeckedKnobSize::Medium);
             panel_.addAndMakeVisible(*knobs_[i]);
         }

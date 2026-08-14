@@ -328,6 +328,7 @@ namespace pw8::plugin::ui
                     return;
                 knob = std::make_unique<GlowKnob>(processor_.apvts, kMacroParameterIds[spec.macroIndex], spec.label,
                                                   nullptr, featured ? palette::kAccentWarm : juce::Colours::transparentBlack);
+                knob->enableMacroActivityRing(processor_, spec.macroIndex);
             }
             else if (spec.kind == PatchFocusKnobKind::Morph)
             {
@@ -339,6 +340,8 @@ namespace pw8::plugin::ui
                 if (processor_.apvts.getParameter(spec.paramId) == nullptr)
                     return;
                 knob = std::make_unique<GlowKnob>(processor_.apvts, spec.paramId, spec.label);
+                if (const auto mapped = findModDestinationForApvtsParam(spec.paramId))
+                    knob->enableModulationTarget(processor_, mapped->first, mapped->second);
             }
 
             knob->setFeaturedPerformanceMacro(featured);

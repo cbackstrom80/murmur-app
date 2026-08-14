@@ -148,6 +148,8 @@ namespace pw8::plugin
         currentSampleRate_ = sampleRate;
         scopeAudioTap_.reset();
         sidechainFollower_.prepare(sampleRate);
+        for (auto& lfo : modPreviewLfos_)
+            lfo.prepare(sampleRate);
         // Rebuild both storage slots at the new sample rate and republish -- this always
         // runs on the message thread (JUCE guarantees prepareToPlay isn't concurrent with
         // processBlock), so a plain rebuild-then-swap is safe without extra locking.
@@ -543,6 +545,10 @@ namespace pw8::plugin
             p.quasarDelayVolume = loadF(ptrs[76]);
             p.quasarOutputMode = loadI(ptrs[77]);
             p.quasarCrossfeed = loadF(ptrs[78]);
+            p.tapeDelaySync = loadB(ptrs[79]);
+            p.tapeDelaySyncDivisionIndex = loadI(ptrs[80]);
+            p.quasarDelaySync = loadB(ptrs[81]);
+            p.quasarDelaySyncDivisionIndex = loadI(ptrs[82]);
             engine.setInsertEffectLive(slot, p);
         }
 
@@ -632,6 +638,10 @@ namespace pw8::plugin
             p.quasarDelayVolume = loadF(ptrs[76]);
             p.quasarOutputMode = loadI(ptrs[77]);
             p.quasarCrossfeed = loadF(ptrs[78]);
+            p.tapeDelaySync = loadB(ptrs[79]);
+            p.tapeDelaySyncDivisionIndex = loadI(ptrs[80]);
+            p.quasarDelaySync = loadB(ptrs[81]);
+            p.quasarDelaySyncDivisionIndex = loadI(ptrs[82]);
             engine.setMasterEffectLive(slot, p);
         }
 
@@ -782,6 +792,62 @@ namespace pw8::plugin
         return mirroredExpression_.load(std::memory_order_relaxed);
     }
 
+    float PatchworkEightProcessor::getHostBpm() const noexcept
+    {
+        float bpm = 120.0f;
+        if (auto* playHead = getPlayHead())
+        {
+            if (const auto position = playHead->getPosition(); position.hasValue())
+            {
+                if (const auto hostBpm = position->getBpm())
+                    bpm = static_cast<float>(*hostBpm);
+            }
+        }
+        return bpm;
+    }
+
+    modulation::ModSourceValues PatchworkEightProcessor::buildModPreviewSources(float bpm) noexcept
+    {
+        modulation::ModSourceValues sources;
+        sources.modWheel = getModWheelValue();
+        sources.expression = getExpressionValue();
+        sources.sidechain = getSidechainLevel();
+        for (std::size_t i = 0; i < kMacroParameterIds.size(); ++i)
+        {
+            if (macroParamPointers_[i] != nullptr)
+                sources.macros[i] = macroParamPointers_[i]->load(std::memory_order_relaxed);
+        }
+        for (std::size_t i = 0; i < modPreviewLfos_.size() && i < currentPatch_.layerA.lfos.size(); ++i)
+            sources.layerLfos[i] =
+                modPreviewLfos_[i].renderSample(currentPatch_.layerA.lfos[i], bpm > 0.0f ? bpm : 120.0f);
+        return sources;
+    }
+
+    bool PatchworkEightProcessor::hasModRouteTo(modulation::ModDestination destination,
+                                                 std::uint8_t targetIndex) const noexcept
+    {
+        for (const auto& route : currentPatch_.layerA.modRoutes)
+        {
+            if (route.isActive() && route.destination == destination && route.targetIndex == targetIndex)
+                return true;
+        }
+        return false;
+    }
+
+    bool PatchworkEightProcessor::macroHasActiveRoutes(std::size_t macroIndex) const noexcept
+    {
+        if (macroIndex >= 8)
+            return false;
+        const auto source = static_cast<modulation::ModSource>(
+            static_cast<int>(modulation::ModSource::Macro1) + static_cast<int>(macroIndex));
+        for (const auto& route : currentPatch_.layerA.modRoutes)
+        {
+            if (route.isActive() && route.source == source)
+                return true;
+        }
+        return false;
+    }
+
     void PatchworkEightProcessor::syncCurrentPatchFromApvts() noexcept
     {
         syncPatchFromAllParameters();
@@ -875,6 +941,8 @@ namespace pw8::plugin
                 p.qsr2RoomSize,             p.qsr2RoomDamping,    p.quasarDelayTimeMs,
                 p.quasarDelayFeedback,      p.quasarDelayVolume,
                 static_cast<float>(p.quasarOutputMode), p.quasarCrossfeed,
+                static_cast<float>(p.tapeDelaySync), static_cast<float>(p.tapeDelaySyncDivisionIndex),
+                static_cast<float>(p.quasarDelaySync), static_cast<float>(p.quasarDelaySyncDivisionIndex),
             };
             for (std::size_t i = 0; i < kNumEffectSlotFields; ++i)
                 setParam(id + kEffectSlotFieldSpecs[i].idSuffix, values[i]);
@@ -1156,6 +1224,8 @@ namespace pw8::plugin
                 p.qsr2RoomSize,             p.qsr2RoomDamping,    p.quasarDelayTimeMs,
                 p.quasarDelayFeedback,      p.quasarDelayVolume,
                 static_cast<float>(p.quasarOutputMode), p.quasarCrossfeed,
+                static_cast<float>(p.tapeDelaySync), static_cast<float>(p.tapeDelaySyncDivisionIndex),
+                static_cast<float>(p.quasarDelaySync), static_cast<float>(p.quasarDelaySyncDivisionIndex),
             };
             for (std::size_t i = 0; i < kNumEffectSlotFields; ++i)
                 setParam(id + kEffectSlotFieldSpecs[i].idSuffix, values[i]);
@@ -1360,6 +1430,10 @@ namespace pw8::plugin
             p.quasarDelayVolume = loadF(ptrs[76]);
             p.quasarOutputMode = loadI(ptrs[77]);
             p.quasarCrossfeed = loadF(ptrs[78]);
+            p.tapeDelaySync = loadB(ptrs[79]);
+            p.tapeDelaySyncDivisionIndex = loadI(ptrs[80]);
+            p.quasarDelaySync = loadB(ptrs[81]);
+            p.quasarDelaySyncDivisionIndex = loadI(ptrs[82]);
         };
         for (std::size_t slot = 0; slot < kNumInsertFxSlots; ++slot)
             readFxSlot(insertFxParamPointers_[slot], currentPatch_.layerA.insertEffects[slot]);
