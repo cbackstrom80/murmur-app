@@ -75,6 +75,8 @@ namespace pw8::plugin::ui
         slider.setColour(juce::Slider::rotarySliderFillColourId, palette::kMurmurViolet);
         slider.getProperties().set("knobRingRole", ringRole);
         slider.getProperties().set("maxDialDiameter", maxDialDiameter_);
+        slider.getProperties().set("knobStyle", "decked");
+        slider.getProperties().set("deckedSize", "medium");
     }
 
     void ConcentricGlowKnob::enableInnerModulationTarget(PatchworkEightProcessor& processor,

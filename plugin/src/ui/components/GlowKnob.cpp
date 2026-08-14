@@ -78,6 +78,30 @@ namespace pw8::plugin::ui
         resized();
     }
 
+    void GlowKnob::setDeckedStyle(bool enabled, DeckedKnobSize size)
+    {
+        deckedStyle_ = enabled;
+        deckedSize_ = size;
+        if (enabled)
+        {
+            slider_.getProperties().set("knobStyle", "decked");
+            juce::String sizeProp;
+            switch (size)
+            {
+                case DeckedKnobSize::Large: sizeProp = "large"; break;
+                case DeckedKnobSize::Small: sizeProp = "small"; break;
+                default: sizeProp = "medium"; break;
+            }
+            slider_.getProperties().set("deckedSize", sizeProp);
+        }
+        else
+        {
+            slider_.getProperties().remove("knobStyle");
+            slider_.getProperties().remove("deckedSize");
+        }
+        slider_.repaint();
+    }
+
     void GlowKnob::setHeaderCompactMode(bool compact)
     {
         headerCompactMode_ = compact;

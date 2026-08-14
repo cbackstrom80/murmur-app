@@ -308,8 +308,104 @@ Tap the strip → **full circular graph overlay** (existing component, fullscree
 | Wt mesh | `plugin/src/ui/components/WavetableStackView.{h,cpp}` |
 | Brand mark | `plugin/src/ui/theme/BrandingAssets.{h,cpp}`, `plugin/resources/branding/murmur_mark_512.png` |
 | Colors | `plugin/src/ui/theme/ObsidianPalette.h` |
+| Decked knobs | `plugin/src/ui/theme/DeckedKnobDraw.h`, `GlowKnob::setDeckedStyle()` |
 | Product truth | `docs/product/OVERVIEW.md`, `PLAY_MODE.md`, `SOUND_DESIGN.md` |
 | Plan context | `docs/DESIGN_AND_WARPS_PLAN.md`, `docs/UI.md`, `docs/UI_PAGED_LAYOUT.md` |
+
+---
+
+## F. Brand board addendum — Aug 2026 mock → OBSIDIAN spec
+
+**Source:** Curtis brand board (`MURMUR — SOUND IN MOTION`, Aug 13 2026)  
+**Use:** North star for Weeks 2–6 refinement only — not a layout mandate.
+
+### Alignment score (honest)
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| **Product truth** | **8/10** | 8-node radial graph, performance-first knobs, "living sound" — all real engine capabilities |
+| **UI architecture fit** | **4/10** | Mock is a single-screen DAW-with-sidebar; shipped UI is PLAY/DESIGN × Basic/Advanced/Compact × tab pages |
+| **Visual language fit** | **7/10** | Dark obsidian, cyan topology glow, large rotary hero controls — matches `ObsidianPalette` roles |
+| **Scope honesty** | **5/10** | Fixed MORPH/MOVEMENT/TEXTURE/SPACE column, terrain map BG, hardware packaging — fantasy / future product |
+
+**Overall: ~65% aligned on *what MURMUR is*; ~45% aligned on *how the plugin should be laid out today*.**  
+Treat the mock as **identity + hierarchy inspiration**, not a wireframe to implement verbatim.
+
+### Steal (Weeks 2–6, refinement only)
+
+| Mock element | Plugin adoption | Week |
+|--------------|-----------------|------|
+| Radial 8-node hub as hero | Mount `AlgorithmGraphView` in PLAY Advanced + Basic topology strip + DESIGN preview (already started) | 2 |
+| Cyan mesh / ring wreath mark | Primary app mark + graph node glow; engine icons inherit monoline stroke | 1–2 ✅ |
+| Large vertical performance knobs | Scale KOINS in Basic view (amber `GlowKnob` decked style, 120px cap in `PatchFocusPanel`) | 2–3 |
+| "EIGHT VOICES. ONE LIVING SOUND." | Bar subtitle / marketing; product tagline stays **Eight engines. One voice.** | 5 |
+| Bottom waveform strip | Header scope already exists — demote in Basic, keep in Advanced | 3 |
+| Typographic sidebar labels | **Metaphor only** — section headers in DESIGN tabs, not new PLAY nav | 4 |
+| Light theme row | Defer — OBSIDIAN is one skin for Ben MVP | — |
+| Physical dial LED ring | Compact mode teleprompter: circular scope + 4 KOINS orbit; decked knob middle-ring LED dots at large size | 5 |
+
+### Reject (Backstrom / GATE 6 / "not more but cleaner")
+
+| Mock element | Why reject |
+|--------------|------------|
+| Left sidebar with 7 nav sections in PLAY | Adds a 6th navigation dimension; conflicts with Basic-default IA |
+| Fixed MORPH / MOVEMENT / TEXTURE / SPACE chrome | Violates **patch speaks first** — KOINS are `.pw8`-authored, not global labels |
+| Topographic / terrain map background | GATE 6 anti-pattern: decorative fake depth; use procedural wireframe only |
+| Green bubbles / copper spiral as UI accents | Neon soup + palette role violation (cyan = structure, violet = DESIGN only) |
+| Lavender M pillars in PLAY topology | Violet reserved for DESIGN chrome + knob orbit — graph stays cyan |
+| Search bar "Evolving Waves" as primary chrome | Preset browser overlay already exists; don't duplicate |
+| Product box + standalone hardware render | Out of plugin scope; inspiration for future Pi appliance only |
+| Full-screen graph as *only* PLAY surface | Performance is the product — KOINS must remain 80% of Basic viewport |
+
+### Rename map — mock sidebar → current architecture
+
+| Mock label | Maps to | Where in codebase |
+|------------|---------|-------------------|
+| **VOICES** | 8 operator nodes + engine types | `NodeSelectorRow`, `OperatorEditorPanel`, `AlgorithmGraphView` |
+| **CONFLUENCE** | Signal summing / output routing / layer stack | Algorithm output nodes, dual-layer mix, graph compiler order |
+| **NERVOUS SYSTEM** | Mod matrix + live routes | `ModMatrixDesignPanel`, `ModLauncherPanel`, `ModRoutingOverlay` |
+| **DRIFT** | LFOs + slow evolution + time-based mod | `FilterLfoPanel`, LFO wireframes, preset macro names (factory uses "DRIFT") |
+| **FIELD** | Filter + spatial FX (space, width, reverb) | `FilterLfoPanel`, `FxChainStrip`, `DesignFxDetailPanel` |
+| **MACROS** | Performance surface | `PatchFocusPanel` (KOINS), Macro 1–8, MW/EXP badges |
+| **HABITAT** | Patch context / browse / preset environment | `PatchBrowserBar`, `PresetBrowserOverlay`, metadata hints |
+| **INIT MURMUR** | Factory init preset | Preset load — not a permanent chrome button |
+
+**Do not rename shipped UI to these labels.** Use them in DESIGN section titles, tooltips, or Interstellar HUD copy only.
+
+### Logo / mark decision
+
+| Variant | Verdict | Role |
+|---------|---------|------|
+| **Cyan mesh wave** | ✅ **Primary** | App mark, graph identity, `kAccent` topology — honest signal-structure metaphor |
+| **Ring wreath (8 nodes)** | ✅ **Secondary** | `AlgorithmGraphView` idle state, favicon, loading splash |
+| **Lavender M pillars** | ⚠️ **DESIGN / hardware only** | DESIGN tab row accent, future physical product — not PLAY graph |
+| **Green bubbles** | ❌ Reject | Off-palette, reads biologic not algorithmic |
+| **Copper spiral galaxy** | ⚠️ **Interstellar narrative only** | Category badge / browser HUD for Interstellar bank — never structural chrome |
+
+### Hardware dial — MP11SE / future Pi appliance
+
+| Today (Ben MVP) | Mock dial relevance |
+|-----------------|---------------------|
+| MP11SE CC → Macro 1–8, MW, EXP | Dial = **one KOINS orbit**, not a second product |
+| Logic Smart Controls 8-knob template | Same 8 parameters; plugin Compact mode is the on-screen mirror |
+| Compact 320px PLAY view | Adopt dial **read**: circular scope center, 4 KOINS around it, preset mission card |
+| Future Pi headless appliance | Lavender mark + LED ring = industrial design north star — **not Week 2–6 plugin work** |
+
+### Brand → UI spec (one page)
+
+**Identity:** MURMUR = compiled 8-node algorithm you can *see* and *play*. Motion is structural (graph pulse, scope, mesh) — never wallpaper.
+
+**Hierarchy (PLAY Basic):** Preset name + hint → KOINS (amber, large) → collapsed topology strip (cyan) → MW/EXP badges. Graph expands on tap; never replaces KOINS.
+
+**Hierarchy (PLAY Advanced):** Topology strip or mini graph between node chips and context strip. Tabs OSC/FILTER/ENV/MOD/FX unchanged — icons from atlas Week 4.
+
+**Hierarchy (DESIGN):** Graph preview (cyan) + edge list split. Tab labels may use metaphor headers (Nervous System = Matrix) in small caps — not sidebar nav.
+
+**Color lock:** Cyan = topology/signal. Amber = performance/KOINS. Violet = DESIGN chrome + default knob ring. No copper/green/lavender in graph or KOINS.
+
+**Copy lock:** Product tagline = *Eight engines. One voice.* Brand board tagline = marketing overlay only. Performance knob labels come from `.pw8` uiFocus/macro names — never global MORPH/MOVEMENT/TEXTURE/SPACE.
+
+**GATE 6 compliance:** All motion from real data (graph edges, wt mesh samples, scope FFT). No terrain maps, no AI backgrounds, no decorative depth.
 
 ---
 

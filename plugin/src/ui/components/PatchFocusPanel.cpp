@@ -86,8 +86,14 @@ namespace pw8::plugin::ui
     void PatchFocusPanel::applyLayoutMode()
     {
         const int dialCap = compactLayout_ ? 56 : (basicLayout_ ? 120 : 72);
+        const auto deckedSize = compactLayout_ ? GlowKnob::DeckedKnobSize::Small
+                                               : (basicLayout_ ? GlowKnob::DeckedKnobSize::Large
+                                                               : GlowKnob::DeckedKnobSize::Medium);
         for (auto& knob : knobs_)
+        {
             knob->setMaxDialDiameter(dialCap);
+            knob->setDeckedStyle(true, deckedSize);
+        }
     }
 
     void PatchFocusPanel::refreshFromPatch()

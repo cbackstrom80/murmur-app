@@ -65,6 +65,15 @@ namespace pw8::plugin::ui
         /// Larger dial cap for BASIC performance layout (default 88 in Obsidian LAF).
         void setMaxDialDiameter(int diameter);
 
+        /// Concentric decked knob rendering (outer recess, accent rim, inner cap).
+        enum class DeckedKnobSize
+        {
+            Small,
+            Medium,
+            Large,
+        };
+        void setDeckedStyle(bool enabled, DeckedKnobSize size = DeckedKnobSize::Medium);
+
         /// Compact header layout: smaller dial, hidden value readout.
         void setHeaderCompactMode(bool compact);
 
@@ -112,6 +121,8 @@ namespace pw8::plugin::ui
         float depthDragStartX_ = 0.0f;
         int maxDialDiameter_ = 88;
         bool headerCompactMode_ = false;
+        bool deckedStyle_ = false;
+        DeckedKnobSize deckedSize_ = DeckedKnobSize::Medium;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GlowKnob)
     };

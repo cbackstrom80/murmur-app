@@ -198,7 +198,11 @@ namespace pw8::plugin::ui
                          grainDensityKnob_.get(), grainSizeKnob_.get(), grainPosJitterKnob_.get(),
                          grainPitchJitterKnob_.get(), wtBendKnob_.get(), wtAsymmetryKnob_.get(), wtSyncAmountKnob_.get(),
                          wtFormantKnob_.get()})
+        {
             panel_.addAndMakeVisible(*k);
+            if (k != nullptr)
+                k->setDeckedStyle(true, GlowKnob::DeckedKnobSize::Medium);
+        }
         wireModTargets();
     }
 

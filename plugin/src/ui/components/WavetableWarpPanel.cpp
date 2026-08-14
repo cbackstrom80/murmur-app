@@ -69,7 +69,11 @@ namespace pw8::plugin::ui
 
         for (auto* k : {wavetablePosKnob_.get(), wtBendKnob_.get(), wtAsymmetryKnob_.get(), wtSyncRatioKnob_.get(),
                         wtSyncAmountKnob_.get(), wtFormantKnob_.get()})
+        {
             addAndMakeVisible(*k);
+            if (k != nullptr)
+                k->setDeckedStyle(true, GlowKnob::DeckedKnobSize::Medium);
+        }
 
         wireModTargets();
     }
