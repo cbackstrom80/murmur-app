@@ -646,15 +646,16 @@
     "polyphony": 24,
     "masterGain": 1.0,
     "a4Hz": 440.0,
-    "macroDissemination": true
+    "macroDissemination": true,
+    "disseminationDepth": 0.28
   },
   "locks": {},
   "macros": [
     {
       "id": "m1",
       "name": "BLOOM",
-      "description": "Opens filter and wavetable motion.",
-      "value": 0.0
+      "description": "Per-note spread on filter + WT. Set BLOOM, hold a chord, then re-sweep — held notes stay frozen.",
+      "value": 0.55
     },
     {
       "id": "m2",

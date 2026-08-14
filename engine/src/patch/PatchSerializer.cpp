@@ -783,7 +783,8 @@ namespace pw8::patch
                                        {"masterGain", patch.voiceSettings.masterGain},
                                        {"a4Hz", patch.voiceSettings.a4Hz},
                                        {"portamentoSeconds", patch.voiceSettings.portamentoSeconds},
-                                       {"macroDissemination", patch.voiceSettings.macroDissemination}};
+                                       {"macroDissemination", patch.voiceSettings.macroDissemination},
+                                       {"disseminationDepth", patch.voiceSettings.disseminationDepth}};
 
             j["locks"] = json{
                 {"lockSources", patch.locks.lockSources},       {"lockAlgorithm", patch.locks.lockAlgorithm},
@@ -979,6 +980,8 @@ namespace pw8::patch
                 p.voiceSettings.a4Hz = clampNum(vs.value("a4Hz", 440.0f), 220.0f, 880.0f);
                 p.voiceSettings.portamentoSeconds = clampNum(vs.value("portamentoSeconds", 0.0f), 0.0f, 10.0f);
                 p.voiceSettings.macroDissemination = vs.value("macroDissemination", false);
+                p.voiceSettings.disseminationDepth =
+                    clampNum(vs.value("disseminationDepth", 0.22f), 0.0f, 1.0f);
             }
 
             if (root.contains("locks"))

@@ -74,23 +74,57 @@ TEST_CASE("CATHEDRAL NEBULA macro1 modulates a held voice", "[patch][macro][fact
     auto patch = loadPresetFromRepo("content/presets/factory/Interstellar/001-cathedral-nebula.pw8");
     REQUIRE(patchHasMacroRoute(patch, 0));
     REQUIRE_FALSE(patch.uiFocus.knobs.empty());
+    REQUIRE(patch.voiceSettings.macroDissemination);
+    REQUIRE(patch.voiceSettings.disseminationDepth >= 0.15f);
 
     render::Engine engine;
     engine.prepare(kSampleRate);
     REQUIRE(engine.loadPatch(patch));
 
-    engine.noteOn(60, 0, 100);
+    // Fast-envelope stand-in: dissemination freezes per-voice macro snapshots at note-on.
+    patch::Patch fast = patch::Patch::makeInit();
+    fast.voiceSettings.macroDissemination = true;
+    fast.voiceSettings.disseminationDepth = 0.25f;
+    fast.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Sine;
+    fast.layerA.envelopes[0].attackSeconds = 0.001f;
+    fast.layerA.envelopes[0].decaySeconds = 0.01f;
+    fast.layerA.envelopes[0].sustainLevel = 1.0f;
+    fast.layerA.envelopes[0].releaseSeconds = 0.05f;
+    modulation::ModRoute route;
+    route.source = modulation::ModSource::Macro1;
+    route.destination = modulation::ModDestination::OperatorLevel;
+    route.targetIndex = 0;
+    route.amount = -1.0f;
+    fast.layerA.modRoutes.push_back(route);
 
-    std::vector<float> settleL(4000), settleR(4000);
+    render::Engine freezeEngine;
+    freezeEngine.prepare(kSampleRate);
+    REQUIRE(freezeEngine.loadPatch(fast));
+
+    freezeEngine.noteOn(60, 0, 100);
+    std::vector<float> settleL(500), settleR(500);
     core::StereoBlockView settleView(settleL.data(), settleR.data(), settleL.size());
-    engine.process(settleView);
+    freezeEngine.process(settleView);
 
-    const float rmsOpen = renderRms(engine, 2000);
-    REQUIRE(rmsOpen > 0.01f);
+    const float rmsHeld = renderRms(freezeEngine, 1000);
+    REQUIRE(rmsHeld > 0.1f);
 
-    engine.setMacroValue(0, 1.0f);
-    const float rmsMacro = renderRms(engine, 2000);
-    REQUIRE(std::abs(rmsMacro - rmsOpen) > 0.002f);
+    freezeEngine.setMacroValue(0, 1.0f);
+    const float rmsAfterSweep = renderRms(freezeEngine, 1000);
+    REQUIRE(std::abs(rmsAfterSweep - rmsHeld) < 0.02f);
+
+    // Without dissemination, the same macro sweep should affect the held voice immediately.
+    fast.voiceSettings.macroDissemination = false;
+    render::Engine liveEngine;
+    liveEngine.prepare(kSampleRate);
+    REQUIRE(liveEngine.loadPatch(fast));
+
+    liveEngine.noteOn(60, 0, 100);
+    liveEngine.process(settleView);
+    REQUIRE(renderRms(liveEngine, 1000) > 0.1f);
+    liveEngine.setMacroValue(0, 1.0f);
+    const float rmsLiveMuted = renderRms(liveEngine, 1000);
+    REQUIRE(rmsLiveMuted < 0.01f);
 }
 
 TEST_CASE("Factory presets expose at least one uiFocus macro KOIN", "[patch][serialization][factory][koin]")

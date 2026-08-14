@@ -49,6 +49,7 @@ TEST_CASE("macroDissemination freezes held-voice macro values", "[engine][macro]
 {
     patch::Patch p = patch::Patch::makeInit();
     p.voiceSettings.macroDissemination = true;
+    p.voiceSettings.disseminationDepth = 0.25f;
     p.voiceSettings.polyphony = 4;
     p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Sine;
     p.layerA.envelopes[0].attackSeconds = 0.001f;
@@ -93,13 +94,14 @@ TEST_CASE("macroDissemination freezes held-voice macro values", "[engine][macro]
     engine.process(settle2View);
 
     const float rmsNewNote = renderRms(engine, 1000);
-    REQUIRE(rmsNewNote < 0.02f);
+    REQUIRE(rmsNewNote < rmsBefore * 0.35f);
 }
 
 TEST_CASE("macroDissemination gives different macro samples per voice", "[engine][macro][dissemination]")
 {
     patch::Patch p = patch::Patch::makeInit();
     p.voiceSettings.macroDissemination = true;
+    p.voiceSettings.disseminationDepth = 0.25f;
     p.voiceSettings.polyphony = 8;
     p.macros[0].value = 0.5f;
     p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Sine;
@@ -132,4 +134,56 @@ TEST_CASE("macroDissemination gives different macro samples per voice", "[engine
     engine.setMacroValue(0, 0.0f);
     const float rmsFrozen = renderRms(engine, 2000);
     REQUIRE(std::abs(rmsFrozen - rmsChord) < 0.02f);
+}
+
+TEST_CASE("disseminationDepth gives different timbre per retriggered note", "[engine][macro][dissemination]")
+{
+    patch::Patch p = patch::Patch::makeInit();
+    p.voiceSettings.macroDissemination = true;
+    p.voiceSettings.disseminationDepth = 0.25f;
+    p.macros[0].value = 0.5f;
+    p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Sine;
+    p.layerA.envelopes[0].attackSeconds = 0.001f;
+    p.layerA.envelopes[0].decaySeconds = 0.01f;
+    p.layerA.envelopes[0].sustainLevel = 1.0f;
+    p.layerA.envelopes[0].releaseSeconds = 0.05f;
+
+    modulation::ModRoute route;
+    route.source = modulation::ModSource::Macro1;
+    route.destination = modulation::ModDestination::OperatorLevel;
+    route.targetIndex = 0;
+    route.amount = -1.0f;
+    p.layerA.modRoutes.push_back(route);
+
+    render::Engine engine;
+    engine.prepare(kSampleRate);
+    REQUIRE(engine.loadPatch(p));
+
+    const auto measureNote = [&](int note) {
+        engine.noteOn(note, 0, 100);
+        std::vector<float> settleL(500), settleR(500);
+        core::StereoBlockView settleView(settleL.data(), settleR.data(), settleL.size());
+        engine.process(settleView);
+        const float rms = renderRms(engine, 1000);
+        engine.noteOff(note, 0, 0);
+        std::vector<float> releaseL(4000), releaseR(4000);
+        core::StereoBlockView releaseView(releaseL.data(), releaseR.data(), releaseL.size());
+        engine.process(releaseView);
+        return rms;
+    };
+
+    const float rmsFirst = measureNote(60);
+    const float rmsSecond = measureNote(60);
+    REQUIRE(rmsFirst > 0.05f);
+    REQUIRE(rmsSecond > 0.05f);
+    REQUIRE(std::abs(rmsFirst - rmsSecond) > 0.025f);
+
+    p.voiceSettings.macroDissemination = false;
+    render::Engine uniformEngine;
+    uniformEngine.prepare(kSampleRate);
+    REQUIRE(uniformEngine.loadPatch(p));
+
+    const float uniformFirst = measureNote(60);
+    const float uniformSecond = measureNote(60);
+    REQUIRE(std::abs(uniformFirst - uniformSecond) < 0.03f);
 }

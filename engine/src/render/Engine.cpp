@@ -42,7 +42,7 @@ namespace pw8::render
                 return;
             }
 
-            constexpr float kFeaturedSpread = 0.06f; ///< ±6% per-voice variation on Macro1–3
+            const float spread = dsp::clamp(patch.voiceSettings.disseminationDepth, 0.0f, 1.0f);
             const auto rngSeed =
                 dsp::DeterministicRng::deriveSeed(voiceSeed, noteGenerationId, patch.seed ^ 0xD155E111u);
             dsp::DeterministicRng rng(rngSeed);
@@ -50,9 +50,9 @@ namespace pw8::render
             for (std::size_t i = 0; i < voice.macroValues.size(); ++i)
             {
                 const float base = patch.macros[i].value;
-                if (i < 3)
+                if (i < 3 && spread > 0.0f)
                 {
-                    const float offset = (rng.nextFloat() * 2.0f - 1.0f) * kFeaturedSpread;
+                    const float offset = (rng.nextFloat() * 2.0f - 1.0f) * spread;
                     voice.macroValues[i] = dsp::clamp(base + offset, 0.0f, 1.0f);
                 }
                 else
