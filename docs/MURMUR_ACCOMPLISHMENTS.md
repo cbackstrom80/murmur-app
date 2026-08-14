@@ -1,4 +1,4 @@
-# MURMUR Accomplishments — v1.0.9 → v1.1.2
+# MURMUR Accomplishments — v1.0.9 → v1.1.4
 
 Concise timeline of what shipped on branch `cursor/favorites-unison-stack-daw`. PLAY-only UI (Basic / Compact / Advanced) remains the performance surface; DESIGN mode holds graph/matrix/wavetable editing.
 
@@ -78,3 +78,13 @@ Concise timeline of what shipped on branch `cursor/favorites-unison-stack-daw`. 
 - Per-voice / per-operator Quasar (discrete mono → binaural) — see FX deep-pass plan
 - Meta-mod executor (macro → route depth)
 - Dual-filter parallel routing, full PoliMATHS spread channel weights
+
+### v1.1.3 — Knob ring visual hierarchy
+
+- **Thicker value / mod route / live-mod ghost** — [`docs/KNOB_RING_SEMANTICS.md`](KNOB_RING_SEMANTICS.md)
+- **BASIC PLAY ring legend** — value vs mod route vs live mod dot
+
+### v1.1.4 — Sidechain Vocoder FX + iPad research
+
+- **8-band sidechain vocoder** — `EffectType::Vocoder` (12); AU sidechain as modulator ([`docs/VOCODER_SIDECHAIN_PLAN.md`](VOCODER_SIDECHAIN_PLAN.md))
+- **iPad port research** — [`docs/IPAD_PORT_RESEARCH.md`](IPAD_PORT_RESEARCH.md)
