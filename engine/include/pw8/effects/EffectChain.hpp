@@ -72,6 +72,11 @@ namespace pw8::effects
                 case EffectType::Eq: eq_.processStereo(inL, inR, p, outL, outR); return;
                 case EffectType::Compressor: compressor_.processStereo(inL, inR, p, outL, outR); return;
                 case EffectType::Limiter: limiter_.processStereo(inL, inR, p, outL, outR); return;
+                case EffectType::BinauralSpace:
+                    // Phase 2 stub: passthrough until BinauralSpaceProcessor ships.
+                    outL = inL;
+                    outR = inR;
+                    return;
             }
             outL = inL;
             outR = inR;

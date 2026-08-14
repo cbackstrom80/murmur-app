@@ -3,6 +3,7 @@
 #include <array>
 
 #include "pw8/core/Types.hpp"
+#include "pw8/effects/EffectTypes.hpp"
 #include "pw8/modulation/ModMatrixTypes.hpp"
 
 // Mod matrix execution (docs/MODULATION.md). Runs once per voice per sample inside
@@ -28,6 +29,14 @@
 //                       route, targeting `targetIndex` (0..7). Wavetable only.
 //   OperatorWavetableSyncAmount -- additive offset to wt sync blend (0..1), per
 //                       route, targeting `targetIndex` (0..7). Wavetable only.
+//
+// Master-bus destinations (Global/Layer scope; targetIndex = master FX slot 0..3):
+//   MasterFxMix / MasterReverbMix -- additive mix offset, clamped 0..1 at apply time.
+//   MasterReverbSize -- additive offset to reverbSizeParam.
+//   MasterReverbDecay -- additive seconds offset to reverbDecaySeconds.
+//   MasterReverbPreDelay -- additive ms offset to reverbPreDelayMs.
+//   MasterReverbDiffusion / MasterReverbModDepth -- additive 0..1 offsets.
+//   MasterGain -- additive offset to voiceSettings.masterGain multiplier at sum stage.
 //
 // Scope: see ModScope's doc comment in ModMatrixTypes.hpp for the full rationale.
 // In short -- LFO sources read a shared, layer-wide tick when scope is Layer or
@@ -67,6 +76,17 @@ namespace pw8::modulation
         float panOffset = 0.0f;
 
         ModOutputs() noexcept { operatorLevelMultiplier.fill(1.0f); }
+    };
+
+    struct MasterModOutputs
+    {
+        std::array<float, effects::kNumMasterSlots> mixOffset{};
+        std::array<float, effects::kNumMasterSlots> reverbSizeOffset{};
+        std::array<float, effects::kNumMasterSlots> reverbDecayOffset{};
+        std::array<float, effects::kNumMasterSlots> reverbPreDelayOffset{};
+        std::array<float, effects::kNumMasterSlots> reverbDiffusionOffset{};
+        std::array<float, effects::kNumMasterSlots> reverbModDepthOffset{};
+        float masterGainOffset = 0.0f;
     };
 
     class ModMatrixExecutor
@@ -212,7 +232,86 @@ namespace pw8::modulation
                         out.operatorWavetableSyncAmountOffset[idx] += sourceValue * route.amount;
                         break;
                     }
+                    case ModDestination::MasterFxMix:
+                    case ModDestination::MasterReverbMix:
+                    case ModDestination::MasterReverbSize:
+                    case ModDestination::MasterReverbDecay:
+                    case ModDestination::MasterReverbPreDelay:
+                    case ModDestination::MasterReverbDiffusion:
+                    case ModDestination::MasterReverbModDepth:
+                    case ModDestination::MasterGain:
+                        break; // Master-bus destinations: handled by applyMasterBus() in Engine.
                     case ModDestination::None:
+                        break;
+                }
+            }
+            return out;
+        }
+
+        template <typename RouteContainer>
+        [[nodiscard]] static bool hasActiveMasterBusRoutes(const RouteContainer& routes) noexcept
+        {
+            for (const auto& route : routes)
+            {
+                if (!route.isActive() || route.scope == ModScope::Voice)
+                    continue;
+                switch (route.destination)
+                {
+                    case ModDestination::MasterFxMix:
+                    case ModDestination::MasterReverbMix:
+                    case ModDestination::MasterReverbSize:
+                    case ModDestination::MasterReverbDecay:
+                    case ModDestination::MasterReverbPreDelay:
+                    case ModDestination::MasterReverbDiffusion:
+                    case ModDestination::MasterReverbModDepth:
+                    case ModDestination::MasterGain:
+                        return true;
+                    default:
+                        break;
+                }
+            }
+            return false;
+        }
+
+        template <typename RouteContainer>
+        [[nodiscard]] static MasterModOutputs applyMasterBus(const RouteContainer& routes,
+                                                             const ModSourceValues& sources) noexcept
+        {
+            MasterModOutputs out;
+            for (const auto& route : routes)
+            {
+                if (!route.isActive() || route.scope == ModScope::Voice)
+                    continue;
+
+                const std::uint8_t slot =
+                    route.targetIndex < effects::kNumMasterSlots ? route.targetIndex : std::uint8_t{0};
+                const float sourceValue = resolveSource(route.source, route.scope, sources);
+
+                switch (route.destination)
+                {
+                    case ModDestination::MasterFxMix:
+                    case ModDestination::MasterReverbMix:
+                        out.mixOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::MasterReverbSize:
+                        out.reverbSizeOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::MasterReverbDecay:
+                        out.reverbDecayOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::MasterReverbPreDelay:
+                        out.reverbPreDelayOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::MasterReverbDiffusion:
+                        out.reverbDiffusionOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::MasterReverbModDepth:
+                        out.reverbModDepthOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::MasterGain:
+                        out.masterGainOffset += sourceValue * route.amount;
+                        break;
+                    default:
                         break;
                 }
             }

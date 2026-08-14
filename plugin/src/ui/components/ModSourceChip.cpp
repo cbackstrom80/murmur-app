@@ -92,6 +92,22 @@ namespace pw8::plugin::ui
                 return "OP " + juce::String(static_cast<int>(targetIndex)) + " WT FORMANT";
             case ModDestination::OperatorWavetableSyncAmount:
                 return "OP " + juce::String(static_cast<int>(targetIndex)) + " WT SYNC AMT";
+            case ModDestination::MasterFxMix:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " MIX";
+            case ModDestination::MasterReverbMix:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " REV MIX";
+            case ModDestination::MasterReverbSize:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " REV SIZE";
+            case ModDestination::MasterReverbDecay:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " REV DECAY";
+            case ModDestination::MasterReverbPreDelay:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " REV PRE";
+            case ModDestination::MasterReverbDiffusion:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " REV DIFF";
+            case ModDestination::MasterReverbModDepth:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " REV MOD";
+            case ModDestination::MasterGain:
+                return "MASTER GAIN";
         }
         return "-";
     }

@@ -115,6 +115,14 @@ namespace pw8::plugin::ui
             case modulation::ModDestination::OperatorWavetableFormant: return 0.35f;
             case modulation::ModDestination::OperatorWavetableSyncAmount: return 0.35f;
             case modulation::ModDestination::Pan: return 0.4f;
+            case modulation::ModDestination::MasterFxMix:
+            case modulation::ModDestination::MasterReverbMix: return 0.35f;
+            case modulation::ModDestination::MasterReverbSize: return 0.5f;
+            case modulation::ModDestination::MasterReverbDecay: return 1.5f;
+            case modulation::ModDestination::MasterReverbPreDelay: return 15.0f;
+            case modulation::ModDestination::MasterReverbDiffusion: return 0.25f;
+            case modulation::ModDestination::MasterReverbModDepth: return 0.2f;
+            case modulation::ModDestination::MasterGain: return 0.25f;
             default: return 0.0f;
         }
     }
@@ -157,6 +165,27 @@ namespace pw8::plugin::ui
                                            "Op " + juce::String(static_cast<int>(targetIndex)) + " WT Sync Amt"};
             case modulation::ModDestination::Pan:
                 return ModDestinationParam{juce::String(kLayerPanId), "Layer Pan"};
+            case modulation::ModDestination::MasterFxMix:
+            case modulation::ModDestination::MasterReverbMix:
+                return ModDestinationParam{masterFxParamId(targetIndex, "Mix"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Mix"};
+            case modulation::ModDestination::MasterReverbSize:
+                return ModDestinationParam{masterFxParamId(targetIndex, "ReverbSize"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Rev Size"};
+            case modulation::ModDestination::MasterReverbDecay:
+                return ModDestinationParam{masterFxParamId(targetIndex, "ReverbDecaySeconds"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Rev Decay"};
+            case modulation::ModDestination::MasterReverbPreDelay:
+                return ModDestinationParam{masterFxParamId(targetIndex, "ReverbPreDelayMs"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Rev Pre"};
+            case modulation::ModDestination::MasterReverbDiffusion:
+                return ModDestinationParam{masterFxParamId(targetIndex, "ReverbDiffusion"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Rev Diff"};
+            case modulation::ModDestination::MasterReverbModDepth:
+                return ModDestinationParam{masterFxParamId(targetIndex, "ReverbModDepth"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Rev Mod"};
+            case modulation::ModDestination::MasterGain:
+                return ModDestinationParam{juce::String(kMasterGainId), "Master Gain"};
             case modulation::ModDestination::None:
                 break;
         }

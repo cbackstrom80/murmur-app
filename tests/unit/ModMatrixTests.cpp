@@ -224,3 +224,31 @@ TEST_CASE("ModMatrixExecutor resolves macro sources by index", "[modulation]")
     const auto out = ModMatrixExecutor::apply(routes, sources);
     REQUIRE(out.panOffset == Catch::Approx(0.75f));
 }
+
+TEST_CASE("ModMatrixExecutor applyMasterBus routes Macro2 to master reverb at Global scope", "[modulation]")
+{
+    pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;
+    routes.push_back(ModRoute{ModSource::Macro2, ModDestination::MasterReverbMix, 2, 0.35f, ModScope::Global});
+    routes.push_back(ModRoute{ModSource::Macro2, ModDestination::MasterReverbSize, 2, 0.5f, ModScope::Global});
+    routes.push_back(ModRoute{ModSource::Macro1, ModDestination::FilterCutoff, 0, 12.0f, ModScope::Voice});
+
+    ModSourceValues sources;
+    sources.macros[1] = 1.0f;
+
+    const auto out = ModMatrixExecutor::applyMasterBus(routes, sources);
+    REQUIRE(out.mixOffset[2] == Catch::Approx(0.35f));
+    REQUIRE(out.reverbSizeOffset[2] == Catch::Approx(0.5f));
+    REQUIRE(out.mixOffset[0] == 0.0f);
+}
+
+TEST_CASE("ModMatrixExecutor applyMasterBus ignores Voice-scoped master routes", "[modulation]")
+{
+    pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;
+    routes.push_back(ModRoute{ModSource::Macro2, ModDestination::MasterReverbMix, 2, 0.35f, ModScope::Voice});
+
+    ModSourceValues sources;
+    sources.macros[1] = 1.0f;
+
+    const auto out = ModMatrixExecutor::applyMasterBus(routes, sources);
+    REQUIRE(out.mixOffset[2] == 0.0f);
+}

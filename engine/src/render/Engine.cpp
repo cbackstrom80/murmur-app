@@ -94,6 +94,42 @@ namespace pw8::render
             detuneCentsOut = norm * uni.detuneCents * uni.spread;
             panOut = norm * uni.spread;
         }
+
+        modulation::ModSourceValues buildMasterBusModSources(const patch::Patch& patch,
+                                                             const std::array<float, core::kNumLfosPerLayer>& layerLfoValues,
+                                                             float modWheel, float expression) noexcept
+        {
+            modulation::ModSourceValues sources;
+            sources.layerLfos = layerLfoValues;
+            sources.modWheel = modWheel;
+            sources.expression = expression;
+            for (std::size_t i = 0; i < sources.macros.size() && i < patch.macros.size(); ++i)
+                sources.macros[i] = patch.macros[i].value;
+            return sources;
+        }
+
+        void applyMasterModToEffects(std::array<effects::EffectSlotParams, effects::kNumMasterSlots>& slots,
+                                     const modulation::MasterModOutputs& mod) noexcept
+        {
+            for (std::size_t i = 0; i < slots.size(); ++i)
+            {
+                auto& e = slots[i];
+                e.mix = dsp::clamp(e.mix + mod.mixOffset[i], 0.0f, 1.0f);
+                if (e.type != effects::EffectType::Reverb)
+                    continue;
+                e.reverbSizeParam = dsp::clamp(e.reverbSizeParam + mod.reverbSizeOffset[i], 0.2f, 3.0f);
+                e.reverbDecaySeconds = dsp::clamp(e.reverbDecaySeconds + mod.reverbDecayOffset[i], 0.05f, 20.0f);
+                e.reverbPreDelayMs = dsp::clamp(e.reverbPreDelayMs + mod.reverbPreDelayOffset[i], 0.0f, 200.0f);
+                e.reverbDiffusion = dsp::clamp(e.reverbDiffusion + mod.reverbDiffusionOffset[i], 0.0f, 1.0f);
+                e.reverbModDepth = dsp::clamp(e.reverbModDepth + mod.reverbModDepthOffset[i], 0.0f, 1.0f);
+            }
+        }
+
+        float masterGainMultiplier(float baseGain, float gainOffset) noexcept
+        {
+            const float base = baseGain > 0.0f ? baseGain : 1.0f;
+            return dsp::clamp(base + gainOffset, 0.0f, 4.0f) / base;
+        }
     } // namespace
 
     void Engine::prepare(double sampleRate) noexcept
@@ -872,6 +908,27 @@ namespace pw8::render
             const std::size_t subBlockEnd =
                 std::min(subBlockStart + kVoiceSumSubBlockSize, numFrames);
 
+            const bool masterBusModActive =
+                modulation::ModMatrixExecutor::hasActiveMasterBusRoutes(patch_.layerA.modRoutes);
+            std::array<effects::EffectSlotParams, effects::kNumMasterSlots> moddedMasterEffects =
+                patch_.masterEffects;
+            float masterGainMul = 1.0f;
+
+            if (masterBusModActive)
+            {
+                std::array<float, core::kNumLfosPerLayer> masterModLfoValues{};
+                for (std::size_t i = 0; i < core::kNumLfosPerLayer; ++i)
+                    masterModLfoValues[i] = layerLfosA_[i].renderSample(patch_.layerA.lfos[i], bpm_);
+
+                const auto modSources =
+                    buildMasterBusModSources(patch_, masterModLfoValues, channelModWheel_[0],
+                                             channelExpression_[0]);
+                const auto masterMod =
+                    modulation::ModMatrixExecutor::applyMasterBus(patch_.layerA.modRoutes, modSources);
+                applyMasterModToEffects(moddedMasterEffects, masterMod);
+                masterGainMul = masterGainMultiplier(patch_.voiceSettings.masterGain, masterMod.masterGainOffset);
+            }
+
             for (std::size_t s = subBlockStart; s < subBlockEnd; ++s)
             {
                 while (nextMidiIndex < blockMidiCount && blockMidi[nextMidiIndex].sampleOffset == s)
@@ -947,7 +1004,14 @@ namespace pw8::render
                     kahanAdd(sumR, kahanR, sumBR);
                 }
 
-                masterChain_.process(patch_.masterEffects, sumL, sumR);
+                if (masterBusModActive)
+                {
+                    sumL *= masterGainMul;
+                    sumR *= masterGainMul;
+                    masterChain_.process(moddedMasterEffects, sumL, sumR);
+                }
+                else
+                    masterChain_.process(patch_.masterEffects, sumL, sumR);
 
                 left[s] = sumL;
                 right[s] = sumR;

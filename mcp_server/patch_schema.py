@@ -132,11 +132,19 @@ MOD_SOURCE_NAMES = {v: k for k, v in MOD_SOURCE_IDS.items()}
 
 MOD_DEST_IDS: dict[str, int] = {
     "none": 0, "filter_cutoff": 1, "filter_resonance": 2,
-    "operator_level": 3, "pan": 4, "operator_wavetable_position": 5,
+    "operator_filter_cutoff": 3, "operator_filter_resonance": 4,
+    "operator_level": 5, "pan": 6,
+    "operator_wavetable_position": 7, "operator_wavetable_bend": 8,
+    "operator_wavetable_asymmetry": 9, "operator_wavetable_sync_ratio": 10,
+    "operator_wavetable_formant": 11, "operator_wavetable_sync_amount": 12,
+    "master_fx_mix": 13, "master_reverb_mix": 14, "master_reverb_size": 15,
+    "master_reverb_decay": 16, "master_reverb_pre_delay": 17,
+    "master_reverb_diffusion": 18, "master_reverb_mod_depth": 19,
+    "master_gain": 20,
 }
 MOD_DEST_NAMES = {v: k for k, v in MOD_DEST_IDS.items()}
-# Destinations that require targetIndex (an operator index, 0-7).
-MOD_DEST_NEEDS_TARGET = {3, 5}
+# Destinations that require targetIndex (operator index 0-7, or master slot 0-3).
+MOD_DEST_NEEDS_TARGET = {3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}
 
 MOD_SCOPE_IDS = {"voice": 0, "layer": 1, "global": 2}
 MOD_SCOPE_NAMES = {v: k for k, v in MOD_SCOPE_IDS.items()}
@@ -146,7 +154,7 @@ MOD_SCOPE_NAMES = {v: k for k, v in MOD_SCOPE_IDS.items()}
 EFFECT_TYPE_IDS: dict[str, int] = {
     "bypass": 0, "saturation": 1, "chorus": 2, "tape_delay": 3, "node_delay": 4,
     "freq_shift_echo": 5, "fractal_echo": 6, "reverb": 7, "eq": 8,
-    "compressor": 9, "limiter": 10,
+    "compressor": 9, "limiter": 10, "binaural_space": 11,
 }
 EFFECT_TYPE_NAMES = {v: k for k, v in EFFECT_TYPE_IDS.items()}
 

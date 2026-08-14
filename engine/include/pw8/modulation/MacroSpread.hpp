@@ -32,6 +32,14 @@ namespace pw8::modulation
             case ModDestination::OperatorWavetableSyncRatio: return "Sync";
             case ModDestination::OperatorWavetableFormant: return "Formant";
             case ModDestination::OperatorWavetableSyncAmount: return "Sync Amt";
+            case ModDestination::MasterFxMix: return "MFX Mix";
+            case ModDestination::MasterReverbMix: return "Rev Mix";
+            case ModDestination::MasterReverbSize: return "Rev Size";
+            case ModDestination::MasterReverbDecay: return "Rev Decay";
+            case ModDestination::MasterReverbPreDelay: return "Rev Pre";
+            case ModDestination::MasterReverbDiffusion: return "Rev Diff";
+            case ModDestination::MasterReverbModDepth: return "Rev Mod";
+            case ModDestination::MasterGain: return "Master";
             case ModDestination::None: break;
         }
         return "-";

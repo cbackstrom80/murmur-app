@@ -106,7 +106,7 @@ namespace pw8::plugin
     // Matches effects::EffectSlotParams's scalar fields (excludes `nodes[]` and
     // FractalEcho's `fractalSeedA/B` -- see PluginState.h for why).
     const std::array<ParamFieldSpec, kNumEffectSlotFields> kEffectSlotFieldSpecs = {{
-        {"Type",               "Type",                 0.0f,     10.0f,    0.0f,   true},
+        {"Type",               "Type",                 0.0f,     11.0f,    0.0f,   true},
         {"Mix",                "Mix",                  0.0f,     1.0f,     1.0f,   false},
         {"SaturationDrive",    "Saturation Drive",      0.0f,     48.0f,    6.0f,   false},
         {"ChorusRate",         "Chorus Rate",           0.01f,    10.0f,    0.5f,   false},

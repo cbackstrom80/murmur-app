@@ -57,6 +57,9 @@ namespace pw8::plugin::ui
         static constexpr FxTypePlaySpec kLimiter{
             "LIMITER", "LIM",
             {{{"LimiterCeilingDb", "Ceil"}, {"LimiterLookaheadMs", "Look"}, {"LimiterReleaseMs", "Rel"}, {nullptr, nullptr}}}};
+        static constexpr FxTypePlaySpec kBinauralSpace{
+            "QUASAR", "QSR",
+            {{{nullptr, "Distance"}, {nullptr, "Angle"}, {nullptr, "Room"}, {nullptr, "Delay"}}}};
 
         switch (typeOrdinal)
         {
@@ -70,6 +73,7 @@ namespace pw8::plugin::ui
             case 8: return kEq;
             case 9: return kCompressor;
             case 10: return kLimiter;
+            case 11: return kBinauralSpace;
             default: return kBypass;
         }
     }
@@ -86,6 +90,7 @@ namespace pw8::plugin::ui
         if (label == "EQ") return 8;
         if (label == "COMP") return 9;
         if (label == "LIMIT") return 10;
+        if (label == "QUASAR" || label == "QSR") return 11;
         return 0;
     }
 
@@ -103,6 +108,7 @@ namespace pw8::plugin::ui
             case 8: return "EQ";
             case 9: return "COMP";
             case 10: return "LIMIT";
+            case 11: return "QUASAR";
             default: return "OFF";
         }
     }

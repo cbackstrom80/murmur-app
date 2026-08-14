@@ -44,6 +44,15 @@ namespace pw8::modulation
         OperatorWavetableSyncRatio,  ///< requires `targetIndex`; additive offset, 1..16 result.
         OperatorWavetableFormant,    ///< requires `targetIndex`; additive offset, -1..1 result.
         OperatorWavetableSyncAmount, ///< requires `targetIndex`; additive offset, 0..1 result.
+        /// Master-bus destinations (Global scope; `targetIndex` = master FX slot 0..3).
+        MasterFxMix,            ///< slot `mix` for any effect type.
+        MasterReverbMix,        ///< reverb slot `mix` (meaningful when type=Reverb).
+        MasterReverbSize,       ///< `reverbSizeParam`.
+        MasterReverbDecay,      ///< `reverbDecaySeconds`.
+        MasterReverbPreDelay,   ///< `reverbPreDelayMs`.
+        MasterReverbDiffusion,  ///< `reverbDiffusion`.
+        MasterReverbModDepth,   ///< `reverbModDepth`.
+        MasterGain,             ///< `voiceSettings.masterGain` multiplier offset (no targetIndex).
     };
 
     /// VOICE-scoped routes read a per-voice, independently-phased source (each
