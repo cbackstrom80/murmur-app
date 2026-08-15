@@ -111,7 +111,7 @@ Links: `pw8::core`, JUCE (`juce_audio_utils`, `juce_dsp`). Branding icon reused 
 |-------|---------|
 | Configure + build | `cmake --preset quasar-release && cmake --build --preset quasar-release` |
 | AU install + auval | `scripts/install_quasar_au_local.sh` |
-| auval subtype | `auval -v aumf Qsar Murr` |
+| auval subtype | `auval -v aufx Qsar Murr` |
 
 ---
 

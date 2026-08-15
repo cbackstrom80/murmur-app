@@ -69,12 +69,14 @@ Concise timeline of what shipped on branch `cursor/favorites-unison-stack-daw`. 
 - **8-band sidechain vocoder** — `EffectType::Vocoder` (12); AU sidechain as modulator ([`docs/VOCODER_SIDECHAIN_PLAN.md`](VOCODER_SIDECHAIN_PLAN.md))
 - **iPad port research** — [`docs/IPAD_PORT_RESEARCH.md`](IPAD_PORT_RESEARCH.md)
 
-### v1.1.5 (in progress) — QUASAR standalone extraction
+### v1.2.0 — QUASAR standalone extraction (MURMUR)
+
+**Release:** [`docs/RELEASE_1.2.0.md`](RELEASE_1.2.0.md) · **QUASAR:** [`docs/RELEASE_QUASAR_1.0.0.md`](RELEASE_QUASAR_1.0.0.md)
 
 - **Standalone QUASAR plugin** — `pw8_quasar_plugin`, bundle `com.patchwork.quasar`, VST3 + AU + Standalone ([`docs/QUASAR_STANDALONE_PLUGIN.md`](QUASAR_STANDALONE_PLUGIN.md))
 - **MURMUR cleanup** — removed `BinauralSpace` master slot, GLOBAL QUASAR tab, Quasar APVTS, Quasar mod destinations
 - **Spatial bank migration** — companion `.quasar` presets in `content/presets/quasar/interstellar/`; M3 Reverb fallback; `"spatial": "use-quasar-plugin"`
-- **Build** — `cmake --preset quasar-release`; `scripts/install_quasar_au_local.sh`
+- **Build** — `cmake --preset quasar-release`; `scripts/install_quasar_au_local.sh`; `scripts/build_release_quasar_pkg.sh`
 
 ---
 

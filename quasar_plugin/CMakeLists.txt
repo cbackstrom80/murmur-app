@@ -24,6 +24,7 @@ juce_add_plugin(pw8_quasar_plugin
     PRODUCT_NAME "QUASAR"
     COMPANY_NAME "Murmur"
     BUNDLE_ID "com.patchwork.quasar"
+    VERSION 1.0.0
     PLUGIN_MANUFACTURER_CODE Murr
     PLUGIN_CODE Qsar
     ICON_BIG ../plugin/resources/branding/murmur_mark_512.png

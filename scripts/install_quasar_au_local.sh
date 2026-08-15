@@ -44,7 +44,7 @@ killall -9 AudioComponentRegistrar 2>/dev/null || true
 
 echo "==> Wait for registrar rescan (up to 15s)"
 for _ in $(seq 1 15); do
-  if auval -v aumf Qsar Murr >/dev/null 2>&1; then
+  if auval -v aufx Qsar Murr >/dev/null 2>&1; then
     echo "    AU registered."
     break
   fi
@@ -52,7 +52,7 @@ for _ in $(seq 1 15); do
 done
 
 echo "==> auval"
-if auval -v aumf Qsar Murr; then
+if auval -v aufx Qsar Murr; then
   echo "PASS: QUASAR AU installed and validated."
 else
   echo "WARN: auval failed — quit Logic, run this script again, or rescan in Plug-in Manager." >&2
