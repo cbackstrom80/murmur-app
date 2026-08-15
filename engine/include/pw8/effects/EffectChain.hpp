@@ -84,6 +84,11 @@ namespace pw8::effects
             outR = inR;
         }
 
+        [[nodiscard]] float getCompressorGainReductionDb() const noexcept
+        {
+            return compressor_.getGainReductionDb();
+        }
+
     private:
         SaturationProcessor saturation_{};
         ChorusProcessor chorus_{};
@@ -127,6 +132,11 @@ namespace pw8::effects
                 l = outL;
                 r = outR;
             }
+        }
+
+        [[nodiscard]] float getCompressorGainReductionDb(std::size_t slot) const noexcept
+        {
+            return slot < NumSlots ? slots_[slot].getCompressorGainReductionDb() : 0.0f;
         }
 
     private:

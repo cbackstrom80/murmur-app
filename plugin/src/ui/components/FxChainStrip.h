@@ -49,15 +49,21 @@ namespace pw8::plugin::ui
         [[nodiscard]] const SlotUi& selectedSlot() const;
         void refreshSelectorStates();
         void refreshTransformerUi();
+        void refreshCompressorUi();
         void refreshDelaySyncUi();
         void syncTypeRowFromParams();
         void syncTransformerRowsFromParams();
+        void syncCompressorRowsFromParams();
         void syncDelaySyncRowsFromParams();
         void setTransformerCore(int coreOrdinal);
         void setTransformerBrand(int brandOrdinal);
+        void setCompCharacter(int characterOrdinal);
+        void setCompAutoMakeup(bool enabled);
+        void updateGainReductionLabel();
         void setDelaySyncEnabled(bool enabled);
         void setDelaySyncDivision(int divisionIndex);
         [[nodiscard]] bool showsMasterCompressorControls() const;
+        [[nodiscard]] bool showsCompressorControls() const;
         [[nodiscard]] bool showsDelaySyncControls() const;
         [[nodiscard]] bool canSwapSelectedSlot(int direction) const;
         void updateFlowPrefixes();
@@ -84,6 +90,10 @@ namespace pw8::plugin::ui
         std::unique_ptr<MetadataFacetRow> transCoreRow_;
         std::unique_ptr<MetadataFacetRow> transBrandRow_;
         std::unique_ptr<GlowKnob> transAmountKnob_;
+
+        std::unique_ptr<MetadataFacetRow> compCharacterRow_;
+        std::unique_ptr<MetadataFacetRow> compAutoMakeupRow_;
+        juce::Label grMeterLabel_;
 
         std::unique_ptr<MetadataFacetRow> delaySyncRow_;
         std::unique_ptr<MetadataFacetRow> delayDivisionRow_;

@@ -165,6 +165,8 @@ namespace pw8::plugin
         {"LimiterReleaseMs",   "Limiter Release Ms",    1.0f,     2000.0f,  60.0f,  false},
         {"TapeDelaySync",      "Tape Delay Sync",       0.0f,     1.0f,     0.0f,   true},
         {"TapeDelaySyncDivision", "Tape Delay Sync Division", 0.0f, 8.0f, 2.0f, true},
+        {"CompAutoMakeup",     "Comp Auto Makeup",      0.0f,     1.0f,     0.0f,   true},
+        {"CompCharacter",      "Comp Character",        0.0f,     2.0f,     0.0f,   true},
     }};
 
     // Matches sequencer::ArpeggiatorParams's scalar fields (excludes `steps[]`).

@@ -213,6 +213,16 @@ namespace pw8::render
             return slot < patch_.masterEffects.size() ? patch_.masterEffects[slot] : effects::EffectSlotParams{};
         }
 
+        [[nodiscard]] float getInsertCompressorGainReductionDb(std::size_t slot) const noexcept
+        {
+            return layerAInsertChain_.getCompressorGainReductionDb(slot);
+        }
+
+        [[nodiscard]] float getMasterCompressorGainReductionDb(std::size_t slot) const noexcept
+        {
+            return masterChain_.getCompressorGainReductionDb(slot);
+        }
+
         /// Only the scalar top-level fields of `params`        /// Live-update arpeggiator scalar fields only (enabled/mode/rateMode/rateHz/
         /// syncDivisionIndex/octaveRange/numSteps/latch) are applied -- `params.steps`
         /// is ignored, the currently-loaded per-step pattern is always preserved (see

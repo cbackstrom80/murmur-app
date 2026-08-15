@@ -310,6 +310,12 @@ namespace pw8::plugin
 #else
         engine->process(view, blockMidi.data(), blockMidiCount);
 #endif
+        for (std::size_t slot = 0; slot < kNumInsertFxSlots; ++slot)
+            insertCompressorGrDb_[slot].store(engine->getInsertCompressorGainReductionDb(slot),
+                                              std::memory_order_relaxed);
+        for (std::size_t slot = 0; slot < kNumMasterFxSlots; ++slot)
+            masterCompressorGrDb_[slot].store(engine->getMasterCompressorGainReductionDb(slot),
+                                              std::memory_order_relaxed);
         if (modWheelParamPointer_ != nullptr)
         {
             const float wheel = engine->getChannelModWheel(0);
@@ -541,6 +547,8 @@ namespace pw8::plugin
             p.limiterReleaseMs = loadF(ptrs[56]);
             p.tapeDelaySync = loadB(ptrs[57]);
             p.tapeDelaySyncDivisionIndex = loadI(ptrs[58]);
+            p.compAutoMakeup = loadB(ptrs[59]);
+            p.compCharacter = loadI(ptrs[60]);
             engine.setInsertEffectLive(slot, p);
         }
 
@@ -610,6 +618,8 @@ namespace pw8::plugin
             p.limiterReleaseMs = loadF(ptrs[56]);
             p.tapeDelaySync = loadB(ptrs[57]);
             p.tapeDelaySyncDivisionIndex = loadI(ptrs[58]);
+            p.compAutoMakeup = loadB(ptrs[59]);
+            p.compCharacter = loadI(ptrs[60]);
             engine.setMasterEffectLive(slot, p);
         }
 
@@ -902,6 +912,7 @@ namespace pw8::plugin
                 p.compTransformerCore,      p.compTransformerBrand, p.compTransformerAmount,
                 p.limiterCeilingDb,         p.limiterLookaheadMs, p.limiterReleaseMs,
                 static_cast<float>(p.tapeDelaySync), static_cast<float>(p.tapeDelaySyncDivisionIndex),
+                p.compAutoMakeup ? 1.0f : 0.0f, static_cast<float>(p.compCharacter),
             };
             for (std::size_t i = 0; i < kNumEffectSlotFields; ++i)
                 setParam(id + kEffectSlotFieldSpecs[i].idSuffix, values[i]);
@@ -1176,6 +1187,7 @@ namespace pw8::plugin
                 p.compTransformerCore,      p.compTransformerBrand, p.compTransformerAmount,
                 p.limiterCeilingDb,         p.limiterLookaheadMs, p.limiterReleaseMs,
                 static_cast<float>(p.tapeDelaySync), static_cast<float>(p.tapeDelaySyncDivisionIndex),
+                p.compAutoMakeup ? 1.0f : 0.0f, static_cast<float>(p.compCharacter),
             };
             for (std::size_t i = 0; i < kNumEffectSlotFields; ++i)
                 setParam(id + kEffectSlotFieldSpecs[i].idSuffix, values[i]);
@@ -1360,6 +1372,8 @@ namespace pw8::plugin
             p.limiterReleaseMs = loadF(ptrs[56]);
             p.tapeDelaySync = loadB(ptrs[57]);
             p.tapeDelaySyncDivisionIndex = loadI(ptrs[58]);
+            p.compAutoMakeup = loadB(ptrs[59]);
+            p.compCharacter = loadI(ptrs[60]);
         };
         for (std::size_t slot = 0; slot < kNumInsertFxSlots; ++slot)
             readFxSlot(insertFxParamPointers_[slot], currentPatch_.layerA.insertEffects[slot]);

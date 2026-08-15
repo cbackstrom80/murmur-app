@@ -161,6 +161,26 @@ namespace pw8::plugin::ui
         };
         panel_.addAndMakeVisible(*transBrandRow_);
 
+        compCharacterRow_ = std::make_unique<MetadataFacetRow>("CHAR");
+        compCharacterRow_->setValues(juce::StringArray{"VCA", "FET", "OPTO"});
+        compCharacterRow_->onChange = [this]() {
+            const auto& v = compCharacterRow_->getSelectedValue();
+            setCompCharacter(v == "FET" ? 1 : v == "OPTO" ? 2 : 0);
+        };
+        panel_.addAndMakeVisible(*compCharacterRow_);
+
+        compAutoMakeupRow_ = std::make_unique<MetadataFacetRow>("MAKEUP");
+        compAutoMakeupRow_->setValues(juce::StringArray{"MANUAL", "AUTO"});
+        compAutoMakeupRow_->onChange = [this]() {
+            setCompAutoMakeup(compAutoMakeupRow_->getSelectedValue() == "AUTO");
+        };
+        panel_.addAndMakeVisible(*compAutoMakeupRow_);
+
+        grMeterLabel_.setJustificationType(juce::Justification::centredLeft);
+        grMeterLabel_.setFont(fonts::value(11.0f));
+        grMeterLabel_.setColour(juce::Label::textColourId, palette::kAccent);
+        panel_.addAndMakeVisible(grMeterLabel_);
+
         delaySyncRow_ = std::make_unique<MetadataFacetRow>("SYNC");
         delaySyncRow_->setValues(juce::StringArray{"FREE", "TEMPO"});
         delaySyncRow_->onChange = [this]() {
@@ -207,7 +227,12 @@ namespace pw8::plugin::ui
 
     bool FxChainStrip::showsMasterCompressorControls() const
     {
-        return selectedSlotIndex_ >= 3 && readEffectType(apvts_, selectedSlot().paramPrefix) == 9;
+        return showsCompressorControls();
+    }
+
+    bool FxChainStrip::showsCompressorControls() const
+    {
+        return readEffectType(apvts_, selectedSlot().paramPrefix) == 9;
     }
 
     bool FxChainStrip::showsDelaySyncControls() const
@@ -275,9 +300,11 @@ namespace pw8::plugin::ui
         rebuildParamKnobs();
         wireframe_.bindToSlot(selectedSlot().paramPrefix);
         refreshSelectorStates();
+        refreshCompressorUi();
         refreshTransformerUi();
         refreshDelaySyncUi();
         syncTypeRowFromParams();
+        syncCompressorRowsFromParams();
         syncTransformerRowsFromParams();
         syncDelaySyncRowsFromParams();
         resized();
@@ -292,13 +319,16 @@ namespace pw8::plugin::ui
         if (type != 0)
             selectedSlot().lastEnabledType = type;
         refreshSelectorStates();
+        refreshCompressorUi();
         refreshTransformerUi();
         refreshDelaySyncUi();
         syncTypeRowFromParams();
+        syncCompressorRowsFromParams();
         syncTransformerRowsFromParams();
         syncDelaySyncRowsFromParams();
         swapLeft_.setEnabled(canSwapSelectedSlot(-1));
         swapRight_.setEnabled(canSwapSelectedSlot(1));
+        updateGainReductionLabel();
     }
 
     void FxChainStrip::syncTypeRowFromParams()
@@ -311,7 +341,7 @@ namespace pw8::plugin::ui
 
     void FxChainStrip::refreshTransformerUi()
     {
-        const bool show = showsMasterCompressorControls();
+        const bool show = showsCompressorControls();
         if (transCoreRow_ != nullptr)
             transCoreRow_->setVisible(show);
         if (transBrandRow_ != nullptr)
@@ -329,9 +359,52 @@ namespace pw8::plugin::ui
         }
     }
 
+    void FxChainStrip::refreshCompressorUi()
+    {
+        const bool show = showsCompressorControls();
+        if (compCharacterRow_ != nullptr)
+            compCharacterRow_->setVisible(show);
+        if (compAutoMakeupRow_ != nullptr)
+            compAutoMakeupRow_->setVisible(show);
+        grMeterLabel_.setVisible(show);
+    }
+
+    void FxChainStrip::syncCompressorRowsFromParams()
+    {
+        if (!showsCompressorControls())
+            return;
+        const auto& prefix = selectedSlot().paramPrefix;
+        const int character = readIntParam(apvts_, prefix + "CompCharacter");
+        if (compCharacterRow_ != nullptr)
+        {
+            const char* label = character == 1 ? "FET" : character == 2 ? "OPTO" : "VCA";
+            compCharacterRow_->setSelectedValue(label);
+        }
+        if (compAutoMakeupRow_ != nullptr)
+            compAutoMakeupRow_->setSelectedValue(readIntParam(apvts_, prefix + "CompAutoMakeup") != 0 ? "AUTO" : "MANUAL");
+    }
+
+    void FxChainStrip::updateGainReductionLabel()
+    {
+        if (!showsCompressorControls())
+        {
+            grMeterLabel_.setVisible(false);
+            return;
+        }
+
+        float grDb = 0.0f;
+        if (selectedSlotIndex_ >= 3)
+            grDb = processor_.getMasterCompressorGainReductionDb(selectedSlotIndex_ - 3);
+        else
+            grDb = processor_.getInsertCompressorGainReductionDb(selectedSlotIndex_);
+
+        grMeterLabel_.setVisible(true);
+        grMeterLabel_.setText("GR " + juce::String(grDb, 1) + " dB", juce::dontSendNotification);
+    }
+
     void FxChainStrip::syncTransformerRowsFromParams()
     {
-        if (!showsMasterCompressorControls())
+        if (!showsCompressorControls())
             return;
         const auto& prefix = selectedSlot().paramPrefix;
         if (transCoreRow_ != nullptr)
@@ -390,6 +463,16 @@ namespace pw8::plugin::ui
         setIntParam(apvts_, selectedSlot().paramPrefix + "CompTransformerBrand", brandOrdinal);
     }
 
+    void FxChainStrip::setCompCharacter(int characterOrdinal)
+    {
+        setIntParam(apvts_, selectedSlot().paramPrefix + "CompCharacter", characterOrdinal);
+    }
+
+    void FxChainStrip::setCompAutoMakeup(bool enabled)
+    {
+        setIntParam(apvts_, selectedSlot().paramPrefix + "CompAutoMakeup", enabled ? 1 : 0);
+    }
+
     void FxChainStrip::selectSlot(std::size_t index)
     {
         selectedSlotIndex_ = juce::jlimit<std::size_t>(0, slots_.size() - 1, index);
@@ -405,9 +488,11 @@ namespace pw8::plugin::ui
 
         rebuildParamKnobs();
         refreshSelectorStates();
+        refreshCompressorUi();
         refreshTransformerUi();
         refreshDelaySyncUi();
         syncTypeRowFromParams();
+        syncCompressorRowsFromParams();
         syncTransformerRowsFromParams();
         syncDelaySyncRowsFromParams();
 
@@ -485,7 +570,21 @@ namespace pw8::plugin::ui
         topRow.removeFromLeft(4);
         swapRight_.setBounds(topRow.removeFromLeft(64));
 
-        const bool showTrans = showsMasterCompressorControls();
+        const bool showComp = showsCompressorControls();
+        if (showComp)
+        {
+            main.removeFromTop(6);
+            if (compCharacterRow_ != nullptr)
+                compCharacterRow_->setBounds(main.removeFromTop(34));
+            main.removeFromTop(4);
+            if (compAutoMakeupRow_ != nullptr)
+                compAutoMakeupRow_->setBounds(main.removeFromTop(34));
+            main.removeFromTop(4);
+            grMeterLabel_.setBounds(main.removeFromTop(18));
+            main.removeFromTop(4);
+        }
+
+        const bool showTrans = showComp;
         if (showTrans)
         {
             main.removeFromTop(6);

@@ -53,7 +53,7 @@ namespace pw8::plugin::ui
             {{{"EqLowGainDb", "Low"}, {"EqMidGainDb", "Mid"}, {"EqHighGainDb", "High"}, {nullptr, nullptr}}}};
         static constexpr FxTypePlaySpec kCompressor{
             "COMPRESSOR", "COMP",
-            {{{"CompThresholdDb", "Thresh"}, {"CompRatio", "Ratio"}, {"CompAttackMs", "Atk"}, {"CompMakeupDb", "Makeup"}}}};
+            {{{"CompThresholdDb", "Thresh"}, {"CompRatio", "Ratio"}, {"CompAttackMs", "Atk"}, {"CompKneeDb", "Knee"}}}};
         static constexpr FxTypePlaySpec kLimiter{
             "LIMITER", "LIM",
             {{{"LimiterCeilingDb", "Ceil"}, {"LimiterLookaheadMs", "Look"}, {"LimiterReleaseMs", "Rel"}, {nullptr, nullptr}}}};

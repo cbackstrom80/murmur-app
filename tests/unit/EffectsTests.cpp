@@ -732,6 +732,57 @@ TEST_CASE("Compressor output transformer bypass matches pre-transformer path", "
     REQUIRE(rmsIron != Catch::Approx(rmsBypass).margin(0.0005f));
 }
 
+TEST_CASE("Compressor FET character applies gain reduction faster than VCA at same attack",
+          "[effects][compressor]")
+{
+    EffectSlotParams vcaParams;
+    vcaParams.type = EffectType::Compressor;
+    vcaParams.mix = 1.0f;
+    vcaParams.compThresholdDb = -12.0f;
+    vcaParams.compRatio = 4.0f;
+    vcaParams.compAttackMs = 20.0f;
+    vcaParams.compReleaseMs = 120.0f;
+    vcaParams.compKneeDb = 0.0f;
+    vcaParams.compCharacter = static_cast<int>(CompCharacter::Vca);
+
+    EffectSlotParams fetParams = vcaParams;
+    fetParams.compCharacter = static_cast<int>(CompCharacter::Fet);
+
+    CompressorProcessor vcaProc;
+    CompressorProcessor fetProc;
+    vcaProc.prepare(kSampleRate);
+    fetProc.prepare(kSampleRate);
+
+    const float rmsVca = measureToneRms(vcaProc, vcaParams, 40.0f, 1.0f, 0.2);
+    const float rmsFet = measureToneRms(fetProc, fetParams, 40.0f, 1.0f, 0.2);
+    REQUIRE(rmsFet < rmsVca);
+}
+
+TEST_CASE("Compressor auto-makeup restores perceived level on compressed tone", "[effects][compressor]")
+{
+    CompressorProcessor proc;
+    proc.prepare(kSampleRate);
+
+    EffectSlotParams manual;
+    manual.type = EffectType::Compressor;
+    manual.mix = 1.0f;
+    manual.compThresholdDb = -18.0f;
+    manual.compRatio = 4.0f;
+    manual.compAttackMs = 1.0f;
+    manual.compReleaseMs = 80.0f;
+    manual.compKneeDb = 0.0f;
+    manual.compMakeupDb = 0.0f;
+    manual.compAutoMakeup = false;
+
+    EffectSlotParams autoMakeup = manual;
+    autoMakeup.compAutoMakeup = true;
+
+    const float rmsManual = measureToneRms(proc, manual, 250.0f, 1.0f, 0.3);
+    proc.reset();
+    const float rmsAuto = measureToneRms(proc, autoMakeup, 250.0f, 1.0f, 0.3);
+    REQUIRE(rmsAuto > rmsManual);
+}
+
 TEST_CASE("Limiter never lets a sustained loud tone's output exceed its ceiling", "[effects][limiter]")
 {
     LimiterProcessor proc;

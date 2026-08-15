@@ -45,8 +45,8 @@
 
 | Item | Status |
 |------|--------|
-| Compressor VCA/FET/Opto in APVTS + PLAY UI | Engine **done**; APVTS/UI **pending** |
-| GR meter tap | **Pending** |
+| Compressor VCA/FET/Opto in APVTS + PLAY UI | **Shipped v1.2.1** |
+| GR meter tap | **Shipped v1.2.1** |
 | Reverb character bundles (Plate/Hall/Room/Spring) | **P1 — v1.3.0** |
 | Default master chain preset migration (Rev→EQ→Comp→Lim) | **Pending** |
 

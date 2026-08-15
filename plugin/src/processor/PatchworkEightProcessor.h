@@ -196,6 +196,20 @@ namespace pw8::plugin
             return sidechainLevel_.load(std::memory_order_relaxed);
         }
 
+        [[nodiscard]] float getMasterCompressorGainReductionDb(std::size_t slot) const noexcept
+        {
+            if (slot >= kNumMasterFxSlots)
+                return 0.0f;
+            return masterCompressorGrDb_[slot].load(std::memory_order_relaxed);
+        }
+
+        [[nodiscard]] float getInsertCompressorGainReductionDb(std::size_t slot) const noexcept
+        {
+            if (slot >= kNumInsertFxSlots)
+                return 0.0f;
+            return insertCompressorGrDb_[slot].load(std::memory_order_relaxed);
+        }
+
         /// Message-thread mod preview for UI ghost rings (macros, MW, LFO layer tick).
         [[nodiscard]] float getHostBpm() const noexcept;
         [[nodiscard]] modulation::ModSourceValues buildModPreviewSources(float bpm) noexcept;
@@ -306,6 +320,8 @@ namespace pw8::plugin
         ::pw8::dsp::SidechainFollower sidechainFollower_{};
         std::atomic<bool> sidechainActive_{false};
         std::atomic<float> sidechainLevel_{0.0f};
+        std::array<std::atomic<float>, kNumInsertFxSlots> insertCompressorGrDb_{};
+        std::array<std::atomic<float>, kNumMasterFxSlots> masterCompressorGrDb_{};
         std::array<lfo::Lfo, kNumLfos> modPreviewLfos_{};
 
         /// Tracks host transport so we can all-sound-off when playback stops (Logic rarely

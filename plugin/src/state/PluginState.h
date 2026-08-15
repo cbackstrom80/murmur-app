@@ -76,7 +76,7 @@ namespace pw8::plugin
     inline constexpr std::size_t kNumFilter2Fields = 5;
     inline constexpr std::size_t kNumLfoFields = 5;
     inline constexpr std::size_t kNumEnvelopeFields = 8;
-    inline constexpr std::size_t kNumEffectSlotFields = 59;
+    inline constexpr std::size_t kNumEffectSlotFields = 61;
     inline constexpr std::size_t kNumArpFields = 8;
 
     /// One automatable field's shape: a stable ID suffix, a human-readable label,
