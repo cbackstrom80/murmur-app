@@ -96,6 +96,20 @@
         "PW8_BUILD_TOOLS": "OFF",
         "PW8_BUILD_PLUGIN": "ON"
       }
+    },
+    {
+      "name": "quasar-release",
+      "displayName": "QUASAR Plugin (JUCE) -- Release",
+      "description": "Optimized arm64 VST3/AU/Standalone build for the standalone QUASAR spatial effect. See docs/QUASAR_STANDALONE_PLUGIN.md.",
+      "binaryDir": "${sourceDir}/build/quasar-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_OSX_ARCHITECTURES": "arm64",
+        "PW8_BUILD_TESTS": "OFF",
+        "PW8_BUILD_TOOLS": "OFF",
+        "PW8_BUILD_PLUGIN": "OFF",
+        "PW8_BUILD_QUASAR_PLUGIN": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -106,7 +120,8 @@
     { "name": "benchmarks", "configurePreset": "benchmarks" },
     { "name": "python", "configurePreset": "python" },
     { "name": "plugin", "configurePreset": "plugin" },
-    { "name": "plugin-release", "configurePreset": "plugin-release" }
+    { "name": "plugin-release", "configurePreset": "plugin-release" },
+    { "name": "quasar-release", "configurePreset": "quasar-release" }
   ],
   "testPresets": [
     {

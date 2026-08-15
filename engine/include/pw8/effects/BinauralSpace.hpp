@@ -5,13 +5,44 @@
 #include "pw8/dsp/Math.hpp"
 #include "pw8/dsp/TempoSync.hpp"
 #include "pw8/effects/BinauralPanner.hpp"
-#include "pw8/effects/EffectTypes.hpp"
 #include "pw8/effects/RoomEngine.hpp"
 
-// QUASAR master-bus binaural spatial mixer — Phase 2 (see docs/GLOBAL_QUASAR_FX_PLAN.md).
-// Dual QSR paths (ITD/ILD + embedded room) + CNTR dry anchor + post-sum stereo delay.
+// Standalone Quasar binaural spatial mixer (see docs/GLOBAL_QUASAR_FX_PLAN.md).
+// Not part of MURMUR's EffectType enum — consumed by the standalone Quasar plugin.
 namespace pw8::effects
 {
+    inline constexpr float kMaxQuasarDelaySeconds = 20.0f;
+
+    struct BinauralSpaceParams
+    {
+        float mix = 1.0f;
+        float qsr1Level = 0.65f;
+        float qsr2Level = 0.55f;
+        float cntrLevel = 0.85f;
+        float inputSplitHpfHz = 120.0f;
+        float cntrHpfHz = 80.0f;
+        float qsr1Height = 0.0f;
+        float qsr1AngleDeg = 30.0f;
+        float qsr1Distance = 0.35f;
+        float qsr2Height = 0.0f;
+        float qsr2AngleDeg = 330.0f;
+        float qsr2Distance = 0.4f;
+        float qsr1RoomAmount = 0.45f;
+        float qsr1RoomSize = 1.0f;
+        float qsr1RoomDamping = 0.55f;
+        float qsr2RoomAmount = 0.40f;
+        float qsr2RoomSize = 1.1f;
+        float qsr2RoomDamping = 0.50f;
+        float quasarDelayTimeMs = 450.0f;
+        float quasarDelayFeedback = 0.35f;
+        float quasarDelayVolume = 0.25f;
+        /// 0 = Headphone, 1 = Speaker, 2 = Auto (default Headphone).
+        int quasarOutputMode = 0;
+        float quasarCrossfeed = 0.0f;
+        bool quasarDelaySync = false;
+        int quasarDelaySyncDivisionIndex = static_cast<int>(dsp::kDefaultDelaySyncDivisionIndex);
+    };
+
     class BinauralSpaceProcessor
     {
     public:
@@ -52,7 +83,7 @@ namespace pw8::effects
             delayLpfR_.reset();
         }
 
-        void processStereo(float inL, float inR, const EffectSlotParams& p, float& outL, float& outR,
+        void processStereo(float inL, float inR, const BinauralSpaceParams& p, float& outL, float& outR,
                            float bpm = 120.0f) noexcept
         {
             const float mix = dsp::clamp(p.mix, 0.0f, 1.0f);

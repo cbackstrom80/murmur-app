@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
 project(patchwork_eight
-    VERSION 1.1.4
+    VERSION 1.1.5
     DESCRIPTION "Patchwork Eight -- AI-native dual-layer 8-engine algorithmic software synthesizer"
     LANGUAGES CXX C)
 # C is only needed for the optional JUCE plugin target (a handful of JUCE's
@@ -24,6 +24,7 @@ option(PW8_BUILD_TOOLS "Build developer CLI tools (render, info, graph inspector
 option(PW8_BUILD_PYTHON_BINDINGS "Build pybind11 Python bindings (requires Python dev headers)" OFF)
 option(PW8_BUILD_BENCHMARKS "Build Google Benchmark suite" OFF)
 option(PW8_BUILD_PLUGIN "Build the JUCE VST3/AU/Standalone plugin (requires JUCE)" OFF)
+option(PW8_BUILD_QUASAR_PLUGIN "Build the standalone QUASAR JUCE effect plugin (requires JUCE)" OFF)
 option(PW8_ENABLE_ASAN "Enable AddressSanitizer" OFF)
 option(PW8_ENABLE_UBSAN "Enable UndefinedBehaviorSanitizer" OFF)
 option(PW8_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
@@ -54,9 +55,14 @@ if(PW8_BUILD_PLUGIN)
     add_subdirectory(plugin)
 endif()
 
+if(PW8_BUILD_QUASAR_PLUGIN)
+    add_subdirectory(quasar_plugin)
+endif()
+
 message(STATUS "patchwork-eight configuration:")
 message(STATUS "  PW8_BUILD_TESTS            = ${PW8_BUILD_TESTS}")
 message(STATUS "  PW8_BUILD_TOOLS            = ${PW8_BUILD_TOOLS}")
 message(STATUS "  PW8_BUILD_PYTHON_BINDINGS  = ${PW8_BUILD_PYTHON_BINDINGS}")
 message(STATUS "  PW8_BUILD_BENCHMARKS       = ${PW8_BUILD_BENCHMARKS}")
 message(STATUS "  PW8_BUILD_PLUGIN           = ${PW8_BUILD_PLUGIN}")
+message(STATUS "  PW8_BUILD_QUASAR_PLUGIN    = ${PW8_BUILD_QUASAR_PLUGIN}")
