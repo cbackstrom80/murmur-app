@@ -1,13 +1,34 @@
 # Global Quasar FX — Implementation Plan
 
-**Date:** 2026-08-14  
+**Date:** 2026-08-14 (updated 2026-08-15)  
 **Branch:** `cursor/favorites-unison-stack-daw`  
-**Status:** Phase 0 (this document) — Phase 1 starter code in flight  
-**Audience:** Curtis approval gate before Phase 2 DSP investment  
+**Status:** **PIVOT — standalone QUASAR plugin** (extraction complete)  
+**Audience:** Historical MURMUR integration plan + migration notes  
 
-**Related:** [`NEUZEIT_QUASAR_RESEARCH.md`](NEUZEIT_QUASAR_RESEARCH.md), [`MORPH_KOIN_SPEC.md`](MORPH_KOIN_SPEC.md), [`HORIZON2.md`](HORIZON2.md), [`FX_BANK.md`](FX_BANK.md), [`ASM_MACRO_KOINS_RESEARCH.md`](ASM_MACRO_KOINS_RESEARCH.md)
+> **Decision (2026-08-15):** Quasar binaural spatial DSP is **no longer a MURMUR master FX slot**. It ships as the standalone **QUASAR** effect plugin (`com.patchwork.quasar`). See [`QUASAR_STANDALONE_PLUGIN.md`](QUASAR_STANDALONE_PLUGIN.md) for the current product spec, build (`cmake --preset quasar-release`), and AU sidechain routing.
+
+**Related:** [`QUASAR_STANDALONE_PLUGIN.md`](QUASAR_STANDALONE_PLUGIN.md), [`NEUZEIT_QUASAR_RESEARCH.md`](NEUZEIT_QUASAR_RESEARCH.md), [`MORPH_KOIN_SPEC.md`](MORPH_KOIN_SPEC.md), [`HORIZON2.md`](HORIZON2.md), [`FX_BANK.md`](FX_BANK.md)
 
 ---
+
+## Standalone pivot summary
+
+| Before (MURMUR v1.1.x) | After (extraction) |
+|------------------------|-------------------|
+| `EffectType::BinauralSpace` in master FX M3 | **Removed** from MURMUR; legacy type 11 → Reverb on load for Spatial bank |
+| GLOBAL → QUASAR tab in PLAY UI | **Removed**; use QUASAR plugin editor |
+| 18 Quasar mod-matrix destinations | **Removed** from MURMUR; mod in QUASAR plugin only (future) |
+| Interstellar Spatial presets with embedded Quasar slot | Companion `.quasar` in `content/presets/quasar/interstellar/` + metadata `"spatial": "use-quasar-plugin"` |
+| `BinauralSpaceProcessor` in `pw8_core` | **Retained** — linked by `pw8_quasar_plugin` |
+
+**MURMUR keeps:** Reverb (M7 FDN), Tape delay, Vocoder, KOINS, synth — **not** binaural spatial.
+
+---
+
+## Historical plan (pre-pivot)
+
+The sections below document the original **in-MURMUR** Quasar master-bus design (Phases 0–3, shipped v1.1.0–1.1.4). They remain useful for DSP architecture reference and Neuzeit research alignment.
+
 
 ## Executive summary (approval gate)
 

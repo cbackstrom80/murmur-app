@@ -8,7 +8,7 @@ Concise timeline of what shipped on branch `cursor/favorites-unison-stack-daw`. 
 |------|------:|-----|
 | **All factory presets** | **1,079** | [`docs/product/PRESETS.md`](product/PRESETS.md) |
 | Interstellar (cinematic) | 100 | [`content/presets/factory/Interstellar/README.md`](../content/presets/factory/Interstellar/README.md) |
-| Interstellar **Spatial** (Quasar pads) | 75 | [`content/presets/factory/Interstellar/Spatial/README.md`](../content/presets/factory/Interstellar/Spatial/README.md) |
+| Interstellar **Spatial** (companion QUASAR) | 75 | [`content/presets/factory/Interstellar/Spatial/README.md`](../content/presets/factory/Interstellar/Spatial/README.md) |
 | Dissemination showcase | 100 | [`content/presets/factory/Dissemination/README.md`](../content/presets/factory/Dissemination/README.md) |
 
 ---
@@ -59,26 +59,6 @@ Concise timeline of what shipped on branch `cursor/favorites-unison-stack-daw`. 
 - **Mod visual feedback MVP** — GlowKnob ghost pointer for live modulated value; macro activity rings ([`docs/MOD_VISUAL_FEEDBACK.md`](MOD_VISUAL_FEEDBACK.md))
 - **Deep-pass planning** — [`docs/FX_DEEP_PASS_PLAN.md`](FX_DEEP_PASS_PLAN.md)
 
----
-
-## Architecture anchors (for audits)
-
-| System | Location |
-|--------|----------|
-| FX chain (3 insert + 4 master) | [`engine/include/pw8/effects/EffectChain.hpp`](../engine/include/pw8/effects/EffectChain.hpp), [`docs/FX_BANK.md`](FX_BANK.md) |
-| Quasar / BinauralSpace | [`engine/include/pw8/effects/BinauralSpace.hpp`](../engine/include/pw8/effects/BinauralSpace.hpp) |
-| PLAY UI | [`docs/product/PLAY_MODE.md`](product/PLAY_MODE.md) |
-| Mod matrix | [`docs/MODULATION.md`](MODULATION.md) |
-
----
-
-## Deferred (documented, not shipped)
-
-- Full `EngineType::External` on operator 0
-- Per-voice / per-operator Quasar (discrete mono → binaural) — see FX deep-pass plan
-- Meta-mod executor (macro → route depth)
-- Dual-filter parallel routing, full PoliMATHS spread channel weights
-
 ### v1.1.3 — Knob ring visual hierarchy
 
 - **Thicker value / mod route / live-mod ghost** — [`docs/KNOB_RING_SEMANTICS.md`](KNOB_RING_SEMANTICS.md)
@@ -88,3 +68,30 @@ Concise timeline of what shipped on branch `cursor/favorites-unison-stack-daw`. 
 
 - **8-band sidechain vocoder** — `EffectType::Vocoder` (12); AU sidechain as modulator ([`docs/VOCODER_SIDECHAIN_PLAN.md`](VOCODER_SIDECHAIN_PLAN.md))
 - **iPad port research** — [`docs/IPAD_PORT_RESEARCH.md`](IPAD_PORT_RESEARCH.md)
+
+### v1.1.5 (in progress) — QUASAR standalone extraction
+
+- **Standalone QUASAR plugin** — `pw8_quasar_plugin`, bundle `com.patchwork.quasar`, VST3 + AU + Standalone ([`docs/QUASAR_STANDALONE_PLUGIN.md`](QUASAR_STANDALONE_PLUGIN.md))
+- **MURMUR cleanup** — removed `BinauralSpace` master slot, GLOBAL QUASAR tab, Quasar APVTS, Quasar mod destinations
+- **Spatial bank migration** — companion `.quasar` presets in `content/presets/quasar/interstellar/`; M3 Reverb fallback; `"spatial": "use-quasar-plugin"`
+- **Build** — `cmake --preset quasar-release`; `scripts/install_quasar_au_local.sh`
+
+---
+
+## Architecture anchors (for audits)
+
+| System | Location |
+|--------|----------|
+| FX chain (3 insert + 4 master) | [`engine/include/pw8/effects/EffectChain.hpp`](../engine/include/pw8/effects/EffectChain.hpp), [`docs/FX_BANK.md`](FX_BANK.md) |
+| Quasar DSP (standalone plugin) | [`engine/include/pw8/effects/BinauralSpace.hpp`](../engine/include/pw8/effects/BinauralSpace.hpp), [`quasar_plugin/`](../quasar_plugin/) |
+| PLAY UI | [`docs/product/PLAY_MODE.md`](product/PLAY_MODE.md) |
+| Mod matrix | [`docs/MODULATION.md`](MODULATION.md) |
+
+---
+
+## Deferred (documented, not shipped)
+
+- Full `EngineType::External` on operator 0
+- Per-voice / per-operator binaural (discrete mono → 3D) — **QUASAR plugin** AU sidechain foundation; see [`docs/QUASAR_STANDALONE_PLUGIN.md`](QUASAR_STANDALONE_PLUGIN.md)
+- Meta-mod executor (macro → route depth)
+- Dual-filter parallel routing, full PoliMATHS spread channel weights
