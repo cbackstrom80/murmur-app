@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "name": "APHELION VEIL",
+    "author": "MURMUR Sound Design",
+    "description": "Companion QUASAR preset for Interstellar Spatial MURMUR patch 049-aphelion-veil.",
+    "tags": [
+      "spatial",
+      "quasar",
+      "interstellar",
+      "companion"
+    ],
+    "murmurPreset": "Interstellar/Spatial/049-aphelion-veil.pw8"
+  },
+  "params": {
+    "mix": 0.68,
+    "qsr1Level": 0.6261301074639258,
+    "qsr2Level": 0.5221098238282779,
+    "cntrLevel": 0.8016163573892187,
+    "inputSplitHpfHz": 120.0,
+    "cntrHpfHz": 80.0,
+    "qsr1Height": 0.03,
+    "qsr1Angle": 116.68344621179074,
+    "qsr1Distance": 0.2577494089130551,
+    "qsr2Height": -0.020000000000000004,
+    "qsr2Angle": 239.80071831052524,
+    "qsr2Distance": 0.3134811372353187,
+    "qsr1RoomAmount": 0.36,
+    "qsr1RoomSize": 1.19,
+    "qsr1RoomDamping": 0.4518700200308836,
+    "qsr2RoomAmount": 0.32,
+    "qsr2RoomSize": 1.2532614584560702,
+    "qsr2RoomDamping": 0.42324778764514703,
+    "quasarDelayTimeMs": 923.7574872771867,
+    "quasarDelayFeedback": 0.4,
+    "quasarDelayVolume": 0.22,
+    "quasarOutputMode": 0,
+    "quasarCrossfeed": 0.0,
+    "quasarDelaySync": 0,
+    "quasarDelaySyncDivision": 2
+  }
+}

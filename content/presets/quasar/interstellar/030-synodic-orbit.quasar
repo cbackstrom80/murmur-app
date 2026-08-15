@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "name": "SYNODIC ORBIT",
+    "author": "MURMUR Sound Design",
+    "description": "Companion QUASAR preset for Interstellar Spatial MURMUR patch 030-synodic-orbit.",
+    "tags": [
+      "spatial",
+      "quasar",
+      "interstellar",
+      "companion"
+    ],
+    "murmurPreset": "Interstellar/Spatial/030-synodic-orbit.pw8"
+  },
+  "params": {
+    "mix": 0.7200000000000001,
+    "qsr1Level": 0.6178598402475295,
+    "qsr2Level": 0.473187294424578,
+    "cntrLevel": 0.8790604996103475,
+    "inputSplitHpfHz": 120.0,
+    "cntrHpfHz": 80.0,
+    "qsr1Height": -0.05,
+    "qsr1Angle": 44.48585046106785,
+    "qsr1Distance": 0.35211210031730794,
+    "qsr2Height": 0.05,
+    "qsr2Angle": 314.6798427685055,
+    "qsr2Distance": 0.4175421575384629,
+    "qsr1RoomAmount": 0.39999999999999997,
+    "qsr1RoomSize": 1.27,
+    "qsr1RoomDamping": 0.524975425925249,
+    "qsr2RoomAmount": 0.36,
+    "qsr2RoomSize": 1.346597883472831,
+    "qsr2RoomDamping": 0.4009615264932211,
+    "quasarDelayTimeMs": 603.1521203247437,
+    "quasarDelayFeedback": 0.44000000000000006,
+    "quasarDelayVolume": 0.18,
+    "quasarOutputMode": 0,
+    "quasarCrossfeed": 0.0,
+    "quasarDelaySync": 0,
+    "quasarDelaySyncDivision": 2
+  }
+}

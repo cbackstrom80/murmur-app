@@ -1,16 +1,23 @@
 # Interstellar Spatial Pad Bank (75 presets)
 
-Headphone-first **Quasar** (`BinauralSpace`) pads — slow-evolving binaural orbit, expressive macro KOINS,
-and macro dissemination on held chords. Master FX slot **M3** is always QUASAR.
+Headphone-first **spatial pads** — slow-evolving orbit, expressive macro KOINS, and macro dissemination on held chords.
+
+**Binaural spatial (QUASAR)** is now a **standalone plugin** — not embedded in MURMUR. Each preset includes:
+
+- `"spatial": "use-quasar-plugin"` in metadata
+- Companion file: `content/presets/quasar/interstellar/<preset-stem>.quasar`
+
+Master FX slot **M3** is **algorithmic Reverb** (M7 FDN) so MURMUR-only playback and SPACE macro KOINS still work. For full binaural spatial, insert **QUASAR** after MURMUR and load the companion preset.
 
 **Showcase references:** `Interstellar/001-cathedral-nebula`, `004-tesseract-bloom`, `092-echo-chamber`.
 
 ## Playing
 
-1. Use **headphones** — ITD/ILD spatial mix is the point.
-2. Hold C3–G4 chords (or single notes for orbital drift archetypes).
-3. Sweep **SPACE**, **BLOOM**, **DRIFT**, **ORBIT**, or **VOID** — each bundles 3–5 mod routes.
-4. Slow LFOs continuously orbit Quasar room size, distance, and delay diffusion.
+1. **MURMUR only:** Use headphones; hold C3–G4; sweep **SPACE**, **BLOOM**, **DRIFT** macros.
+2. **Full spatial:** Add **QUASAR** AU/VST3 on the master bus after MURMUR; load matching `.quasar` from `content/presets/quasar/interstellar/`.
+3. Slow LFOs still orbit reverb size/decay on M3 (MURMUR) — QUASAR plugin carries the binaural scene.
+
+See [`docs/QUASAR_STANDALONE_PLUGIN.md`](../../../docs/QUASAR_STANDALONE_PLUGIN.md).
 
 ## Archetypes
 

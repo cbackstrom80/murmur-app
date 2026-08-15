@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "name": "DESCENT VEIL",
+    "author": "MURMUR Sound Design",
+    "description": "Companion QUASAR preset for Interstellar Spatial MURMUR patch 040-descent-veil.",
+    "tags": [
+      "spatial",
+      "quasar",
+      "interstellar",
+      "companion"
+    ],
+    "murmurPreset": "Interstellar/Spatial/040-descent-veil.pw8"
+  },
+  "params": {
+    "mix": 0.8,
+    "qsr1Level": 0.6586284361237514,
+    "qsr2Level": 0.5788617270907717,
+    "cntrLevel": 0.7847523741604286,
+    "inputSplitHpfHz": 120.0,
+    "cntrHpfHz": 80.0,
+    "qsr1Height": 0.03,
+    "qsr1Angle": 57.8615205189099,
+    "qsr1Distance": 0.5074193353607368,
+    "qsr2Height": -0.020000000000000004,
+    "qsr2Angle": 296.7929794825795,
+    "qsr2Distance": 0.602565457092371,
+    "qsr1RoomAmount": 0.48,
+    "qsr1RoomSize": 1.27,
+    "qsr1RoomDamping": 0.43766346558029556,
+    "qsr2RoomAmount": 0.44,
+    "qsr2RoomSize": 1.3403591006437465,
+    "qsr2RoomDamping": 0.4500604972793819,
+    "quasarDelayTimeMs": 749.1363901245143,
+    "quasarDelayFeedback": 0.44000000000000006,
+    "quasarDelayVolume": 0.22,
+    "quasarOutputMode": 0,
+    "quasarCrossfeed": 0.0,
+    "quasarDelaySync": 0,
+    "quasarDelaySyncDivision": 2
+  }
+}

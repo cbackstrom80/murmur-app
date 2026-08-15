@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "name": "ROCHE DRIFT",
+    "author": "MURMUR Sound Design",
+    "description": "Companion QUASAR preset for Interstellar Spatial MURMUR patch 035-roche-drift.",
+    "tags": [
+      "spatial",
+      "quasar",
+      "interstellar",
+      "companion"
+    ],
+    "murmurPreset": "Interstellar/Spatial/035-roche-drift.pw8"
+  },
+  "params": {
+    "mix": 0.76,
+    "qsr1Level": 0.6902131380995242,
+    "qsr2Level": 0.5550712341081152,
+    "cntrLevel": 0.8327914655248045,
+    "inputSplitHpfHz": 120.0,
+    "cntrHpfHz": 80.0,
+    "qsr1Height": 0.11,
+    "qsr1Angle": 71.34248763116433,
+    "qsr1Distance": 0.30208904715537005,
+    "qsr2Height": -0.09000000000000001,
+    "qsr2Angle": 291.93896546854415,
+    "qsr2Distance": 0.37736440236506386,
+    "qsr1RoomAmount": 0.44,
+    "qsr1RoomSize": 1.27,
+    "qsr1RoomDamping": 0.4899883470947732,
+    "qsr2RoomAmount": 0.4,
+    "qsr2RoomSize": 1.3563323755350727,
+    "qsr2RoomDamping": 0.43333699654657926,
+    "quasarDelayTimeMs": 724.6390954112953,
+    "quasarDelayFeedback": 0.44000000000000006,
+    "quasarDelayVolume": 0.26,
+    "quasarOutputMode": 0,
+    "quasarCrossfeed": 0.0,
+    "quasarDelaySync": 0,
+    "quasarDelaySyncDivision": 2
+  }
+}

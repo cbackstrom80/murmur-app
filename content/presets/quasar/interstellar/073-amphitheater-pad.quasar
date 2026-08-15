@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "name": "AMPHITHEATER PAD",
+    "author": "MURMUR Sound Design",
+    "description": "Companion QUASAR preset for Interstellar Spatial MURMUR patch 073-amphitheater-pad.",
+    "tags": [
+      "spatial",
+      "quasar",
+      "interstellar",
+      "companion"
+    ],
+    "murmurPreset": "Interstellar/Spatial/073-amphitheater-pad.pw8"
+  },
+  "params": {
+    "mix": 0.8,
+    "qsr1Level": 0.5996018970725523,
+    "qsr2Level": 0.5773425335213156,
+    "cntrLevel": 0.816072662866224,
+    "inputSplitHpfHz": 120.0,
+    "cntrHpfHz": 80.0,
+    "qsr1Height": 0.03,
+    "qsr1Angle": 61.29149977558359,
+    "qsr1Distance": 0.4539005660024114,
+    "qsr2Height": -0.020000000000000004,
+    "qsr2Angle": 297.28088098260383,
+    "qsr2Distance": 0.5192680478351743,
+    "qsr1RoomAmount": 0.48,
+    "qsr1RoomSize": 1.27,
+    "qsr1RoomDamping": 0.4212447391965124,
+    "qsr2RoomAmount": 0.44,
+    "qsr2RoomSize": 1.3275811188643798,
+    "qsr2RoomDamping": 0.48889428774466215,
+    "quasarDelayTimeMs": 895.0,
+    "quasarDelayFeedback": 0.66,
+    "quasarDelayVolume": 0.4,
+    "quasarOutputMode": 0,
+    "quasarCrossfeed": 0.0,
+    "quasarDelaySync": 0,
+    "quasarDelaySyncDivision": 2
+  }
+}

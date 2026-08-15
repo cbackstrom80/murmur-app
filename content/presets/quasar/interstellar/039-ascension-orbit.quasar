@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "name": "ASCENSION ORBIT",
+    "author": "MURMUR Sound Design",
+    "description": "Companion QUASAR preset for Interstellar Spatial MURMUR patch 039-ascension-orbit.",
+    "tags": [
+      "spatial",
+      "quasar",
+      "interstellar",
+      "companion"
+    ],
+    "murmurPreset": "Interstellar/Spatial/039-ascension-orbit.pw8"
+  },
+  "params": {
+    "mix": 0.76,
+    "qsr1Level": 0.6049324915779886,
+    "qsr2Level": 0.5181439603015883,
+    "cntrLevel": 0.8794245101494484,
+    "inputSplitHpfHz": 120.0,
+    "cntrHpfHz": 80.0,
+    "qsr1Height": -0.05,
+    "qsr1Angle": 89.4892157213587,
+    "qsr1Distance": 0.4142745064719989,
+    "qsr2Height": 0.05,
+    "qsr2Angle": 266.5792260727952,
+    "qsr2Distance": 0.4892008986207812,
+    "qsr1RoomAmount": 0.44,
+    "qsr1RoomSize": 1.19,
+    "qsr1RoomDamping": 0.5379869123444786,
+    "qsr2RoomAmount": 0.4,
+    "qsr2RoomSize": 1.2750407442744667,
+    "qsr2RoomDamping": 0.4441891366241415,
+    "quasarDelayTimeMs": 762.3945597680737,
+    "quasarDelayFeedback": 0.4,
+    "quasarDelayVolume": 0.18,
+    "quasarOutputMode": 0,
+    "quasarCrossfeed": 0.0,
+    "quasarDelaySync": 0,
+    "quasarDelaySyncDivision": 2
+  }
+}

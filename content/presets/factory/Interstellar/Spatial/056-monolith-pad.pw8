@@ -4,7 +4,7 @@
     "id": "pw8-interstellar-spatial-056-1351167271",
     "name": "MONOLITH PAD",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar spatial pad #056 \u2014 Monolith Pad. Headphone-first Quasar binaural scene on master M3. Organ-weight mid register; VOID opens room and distance; CNTR holds the hymn body. Engines: Classic, Resonator.",
+    "description": "Interstellar spatial pad #056 \u2014 Monolith Pad. Headphone-first spatial pad \u2014 M3 is algorithmic reverb; load companion QUASAR preset `056-monolith-pad.quasar` on the master bus for binaural spatial. Organ-weight mid register; VOID opens room and distance; CNTR holds the hymn body. Engines: Classic, Resonator.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -41,7 +41,9 @@
       "headphone-first binaural wash",
       "CNTR holds bass \u2014 sweep SPACE for orbit",
       "slow LFO orbit on Quasar room/distance"
-    ]
+    ],
+    "spatial": "use-quasar-plugin",
+    "companionQuasar": "interstellar/056-monolith-pad.quasar"
   },
   "layerMode": 0,
   "layerMorph": 0.0,
@@ -801,7 +803,7 @@
     {
       "id": "m3",
       "name": "SPACE",
-      "description": "Quasar scene depth \u2014 mix, size, tail, delay.",
+      "description": "Spatial macro \u2014 pair with standalone QUASAR plugin on the master bus.",
       "value": 0.0
     },
     {
@@ -858,26 +860,13 @@
       "chorusBaseDelayMs": 14.0
     },
     {
-      "type": 11,
-      "mix": 0.8,
-      "qsr1Level": 0.5992847992850581,
-      "qsr2Level": 0.5635246105829241,
-      "cntrLevel": 0.8567091124728794,
-      "qsr1Height": -0.05,
-      "qsr1Angle": 147.53284521785574,
-      "qsr1Distance": 0.32941271205730643,
-      "qsr1RoomAmount": 0.5549999999999999,
-      "qsr1RoomSize": 1.4,
-      "qsr1RoomDamping": 0.4538696405528883,
-      "qsr2Height": 0.05,
-      "qsr2Angle": 213.77047730884024,
-      "qsr2Distance": 0.42303875743940506,
-      "qsr2RoomAmount": 0.515,
-      "qsr2RoomSize": 1.45,
-      "qsr2RoomDamping": 0.3972289104760618,
-      "quasarDelayTimeMs": 698.4986432988501,
-      "quasarDelayFeedback": 0.28,
-      "quasarDelayVolume": 0.18
+      "type": 7,
+      "mix": 0.44000000000000006,
+      "reverbSizeParam": 1.4,
+      "reverbDecaySeconds": 5.83,
+      "reverbPreDelayMs": 55.87989146390801,
+      "reverbDiffusion": 0.72,
+      "reverbModDepth": 0.18
     },
     {
       "type": 9,
@@ -918,7 +907,7 @@
   },
   "morphKoin": {
     "label": "SCENE",
-    "description": "INTIMATE in-head \u2194 VOID binaural wash \u2014 Quasar distance and room.",
+    "description": "INTIMATE in-head \u2194 VOID wash \u2014 use QUASAR plugin + morph position.",
     "defaultPosition": 0.35,
     "position": 0.35,
     "curve": "smooth",
@@ -936,15 +925,7 @@
           0,
           0,
           0
-        ],
-        "paramOverrides": {
-          "masterEffects[2].qsr1Distance": 0.1,
-          "masterEffects[2].qsr2Distance": 0.15,
-          "masterEffects[2].qsr1RoomAmount": 0.12,
-          "masterEffects[2].qsr2RoomAmount": 0.1,
-          "masterEffects[2].cntrLevel": 0.95,
-          "masterEffects[2].mix": 0.16
-        }
+        ]
       },
       {
         "name": "STAGE",
@@ -958,15 +939,7 @@
           0,
           0,
           0
-        ],
-        "paramOverrides": {
-          "masterEffects[2].qsr1Distance": 0.4,
-          "masterEffects[2].qsr2Distance": 0.45,
-          "masterEffects[2].qsr1RoomAmount": 0.35,
-          "masterEffects[2].qsr2RoomAmount": 0.32,
-          "masterEffects[2].cntrLevel": 0.75,
-          "masterEffects[2].mix": 0.56
-        }
+        ]
       },
       {
         "name": "VOID",
@@ -980,16 +953,7 @@
           0,
           0,
           0
-        ],
-        "paramOverrides": {
-          "masterEffects[2].qsr1Distance": 0.85,
-          "masterEffects[2].qsr2Distance": 0.9,
-          "masterEffects[2].qsr1RoomAmount": 0.72,
-          "masterEffects[2].qsr2RoomAmount": 0.68,
-          "masterEffects[2].cntrLevel": 0.45,
-          "masterEffects[2].quasarDelayFeedback": 0.57,
-          "masterEffects[2].mix": 0.81
-        }
+        ]
       }
     ]
   }

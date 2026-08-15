@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "name": "INTERSTELLAR BLOOM",
+    "author": "MURMUR Sound Design",
+    "description": "Companion QUASAR preset for Interstellar Spatial MURMUR patch 012-interstellar-bloom.",
+    "tags": [
+      "spatial",
+      "quasar",
+      "interstellar",
+      "companion"
+    ],
+    "murmurPreset": "Interstellar/Spatial/012-interstellar-bloom.pw8"
+  },
+  "params": {
+    "mix": 0.8,
+    "qsr1Level": 0.6320888263866015,
+    "qsr2Level": 0.5435391911245715,
+    "cntrLevel": 0.8225975386203411,
+    "inputSplitHpfHz": 120.0,
+    "cntrHpfHz": 80.0,
+    "qsr1Height": 0.11,
+    "qsr1Angle": 63.661873997823285,
+    "qsr1Distance": 0.4397980495844496,
+    "qsr2Height": -0.09000000000000001,
+    "qsr2Angle": 296.51008685853105,
+    "qsr2Distance": 0.5328213687396877,
+    "qsr1RoomAmount": 0.48,
+    "qsr1RoomSize": 1.03,
+    "qsr1RoomDamping": 0.4565739815915367,
+    "qsr2RoomAmount": 0.44,
+    "qsr2RoomSize": 1.0946062378413939,
+    "qsr2RoomDamping": 0.419394479768254,
+    "quasarDelayTimeMs": 651.5624626797564,
+    "quasarDelayFeedback": 0.32,
+    "quasarDelayVolume": 0.26,
+    "quasarOutputMode": 0,
+    "quasarCrossfeed": 0.0,
+    "quasarDelaySync": 0,
+    "quasarDelaySyncDivision": 2
+  }
+}

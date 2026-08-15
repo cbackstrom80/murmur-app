@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "name": "VOID SANCTUARY",
+    "author": "MURMUR Sound Design",
+    "description": "Companion QUASAR preset for Interstellar Spatial MURMUR patch 051-void-sanctuary.",
+    "tags": [
+      "spatial",
+      "quasar",
+      "interstellar",
+      "companion"
+    ],
+    "murmurPreset": "Interstellar/Spatial/051-void-sanctuary.pw8"
+  },
+  "params": {
+    "mix": 0.76,
+    "qsr1Level": 0.6956289718925914,
+    "qsr2Level": 0.5679774221241359,
+    "cntrLevel": 0.8670639222512819,
+    "inputSplitHpfHz": 120.0,
+    "cntrHpfHz": 80.0,
+    "qsr1Height": 0.03,
+    "qsr1Angle": 89.32013487724942,
+    "qsr1Distance": 0.38006247952788547,
+    "qsr2Height": -0.020000000000000004,
+    "qsr2Angle": 271.3837321312385,
+    "qsr2Distance": 0.4637182692597855,
+    "qsr1RoomAmount": 0.48,
+    "qsr1RoomSize": 1.25,
+    "qsr1RoomDamping": 0.504775511569368,
+    "qsr2RoomAmount": 0.44,
+    "qsr2RoomSize": 1.3,
+    "qsr2RoomDamping": 0.4637272558506441,
+    "quasarDelayTimeMs": 674.733120040188,
+    "quasarDelayFeedback": 0.28,
+    "quasarDelayVolume": 0.22,
+    "quasarOutputMode": 0,
+    "quasarCrossfeed": 0.0,
+    "quasarDelaySync": 0,
+    "quasarDelaySyncDivision": 2
+  }
+}

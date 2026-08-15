@@ -4,7 +4,7 @@
     "id": "pw8-interstellar-spatial-010-1987835013",
     "name": "EVENT HORIZON VEIL",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar spatial pad #010 \u2014 Event Horizon Veil. Headphone-first Quasar binaural scene on master M3. Hold C3\u2013G4 chords; headphones required. Sweep SPACE and DRIFT \u2014 BLOOM freezes per voice. Engines: Classic, Wavetable.",
+    "description": "Interstellar spatial pad #010 \u2014 Event Horizon Veil. Headphone-first spatial pad \u2014 M3 is algorithmic reverb; load companion QUASAR preset `010-event-horizon-veil.quasar` on the master bus for binaural spatial. Hold C3\u2013G4 chords; headphones required. Sweep SPACE and DRIFT \u2014 BLOOM freezes per voice. Engines: Classic, Wavetable.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -41,7 +41,9 @@
       "headphone-first binaural wash",
       "CNTR holds bass \u2014 sweep SPACE for orbit",
       "slow LFO orbit on Quasar room/distance"
-    ]
+    ],
+    "spatial": "use-quasar-plugin",
+    "companionQuasar": "interstellar/010-event-horizon-veil.quasar"
   },
   "layerMode": 0,
   "layerMorph": 0.0,
@@ -783,7 +785,7 @@
     {
       "id": "m4",
       "name": "SPACE",
-      "description": "Opens Quasar mix, room size, distance, and delay tail on M3.",
+      "description": "Spatial macro \u2014 pair with standalone QUASAR plugin on the master bus.",
       "value": 0.0
     },
     {
@@ -834,26 +836,13 @@
       "chorusBaseDelayMs": 14.0
     },
     {
-      "type": 11,
-      "mix": 0.7200000000000001,
-      "qsr1Level": 0.607253060278793,
-      "qsr2Level": 0.5662750440096244,
-      "cntrLevel": 0.7709290076004477,
-      "qsr1Height": -0.05,
-      "qsr1Angle": 43.16487488523941,
-      "qsr1Distance": 0.3592726451434969,
-      "qsr1RoomAmount": 0.39999999999999997,
-      "qsr1RoomSize": 1.27,
-      "qsr1RoomDamping": 0.5159177937564259,
-      "qsr2Height": 0.05,
-      "qsr2Angle": 316.8003547373407,
-      "qsr2Distance": 0.42267846878551624,
-      "qsr2RoomAmount": 0.36,
-      "qsr2RoomSize": 1.3011596907814964,
-      "qsr2RoomDamping": 0.4189210565990763,
-      "quasarDelayTimeMs": 634.0686668975061,
-      "quasarDelayFeedback": 0.44000000000000006,
-      "quasarDelayVolume": 0.18
+      "type": 7,
+      "mix": 0.3960000000000001,
+      "reverbSizeParam": 1.27,
+      "reverbDecaySeconds": 4.9,
+      "reverbPreDelayMs": 50.72549335180049,
+      "reverbDiffusion": 0.72,
+      "reverbModDepth": 0.18
     },
     {
       "type": 9,
@@ -894,7 +883,7 @@
   },
   "morphKoin": {
     "label": "SCENE",
-    "description": "INTIMATE in-head \u2194 VOID binaural wash \u2014 Quasar distance and room.",
+    "description": "INTIMATE in-head \u2194 VOID wash \u2014 use QUASAR plugin + morph position.",
     "defaultPosition": 0.35,
     "position": 0.35,
     "curve": "smooth",
@@ -912,15 +901,7 @@
           0,
           0,
           0
-        ],
-        "paramOverrides": {
-          "masterEffects[2].qsr1Distance": 0.1,
-          "masterEffects[2].qsr2Distance": 0.15,
-          "masterEffects[2].qsr1RoomAmount": 0.12,
-          "masterEffects[2].qsr2RoomAmount": 0.1,
-          "masterEffects[2].cntrLevel": 0.95,
-          "masterEffects[2].mix": 0.13
-        }
+        ]
       },
       {
         "name": "STAGE",
@@ -934,15 +915,7 @@
           0,
           0,
           0
-        ],
-        "paramOverrides": {
-          "masterEffects[2].qsr1Distance": 0.4,
-          "masterEffects[2].qsr2Distance": 0.45,
-          "masterEffects[2].qsr1RoomAmount": 0.35,
-          "masterEffects[2].qsr2RoomAmount": 0.32,
-          "masterEffects[2].cntrLevel": 0.75,
-          "masterEffects[2].mix": 0.51
-        }
+        ]
       },
       {
         "name": "VOID",
@@ -956,16 +929,7 @@
           0,
           0,
           0
-        ],
-        "paramOverrides": {
-          "masterEffects[2].qsr1Distance": 0.85,
-          "masterEffects[2].qsr2Distance": 0.9,
-          "masterEffects[2].qsr1RoomAmount": 0.72,
-          "masterEffects[2].qsr2RoomAmount": 0.68,
-          "masterEffects[2].cntrLevel": 0.45,
-          "masterEffects[2].quasarDelayFeedback": 0.49,
-          "masterEffects[2].mix": 0.73
-        }
+        ]
       }
     ]
   }

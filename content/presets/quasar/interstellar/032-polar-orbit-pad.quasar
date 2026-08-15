@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "name": "POLAR ORBIT PAD",
+    "author": "MURMUR Sound Design",
+    "description": "Companion QUASAR preset for Interstellar Spatial MURMUR patch 032-polar-orbit-pad.",
+    "tags": [
+      "spatial",
+      "quasar",
+      "interstellar",
+      "companion"
+    ],
+    "murmurPreset": "Interstellar/Spatial/032-polar-orbit-pad.pw8"
+  },
+  "params": {
+    "mix": 0.8,
+    "qsr1Level": 0.6344156335737898,
+    "qsr2Level": 0.5464120181611646,
+    "cntrLevel": 0.8663209669476466,
+    "inputSplitHpfHz": 120.0,
+    "cntrHpfHz": 80.0,
+    "qsr1Height": 0.11,
+    "qsr1Angle": 56.19840982628208,
+    "qsr1Distance": 0.46714458114591617,
+    "qsr2Height": -0.09000000000000001,
+    "qsr2Angle": 299.1049691243288,
+    "qsr2Distance": 0.5203322918626371,
+    "qsr1RoomAmount": 0.48,
+    "qsr1RoomSize": 1.03,
+    "qsr1RoomDamping": 0.4421532215078658,
+    "qsr2RoomAmount": 0.44,
+    "qsr2RoomSize": 1.110579601224624,
+    "qsr2RoomDamping": 0.48106953639477573,
+    "quasarDelayTimeMs": 674.0294426801898,
+    "quasarDelayFeedback": 0.32,
+    "quasarDelayVolume": 0.26,
+    "quasarOutputMode": 0,
+    "quasarCrossfeed": 0.0,
+    "quasarDelaySync": 0,
+    "quasarDelaySyncDivision": 2
+  }
+}

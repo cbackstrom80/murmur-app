@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "name": "GALACTIC ORBIT",
+    "author": "MURMUR Sound Design",
+    "description": "Companion QUASAR preset for Interstellar Spatial MURMUR patch 043-galactic-orbit.",
+    "tags": [
+      "spatial",
+      "quasar",
+      "interstellar",
+      "companion"
+    ],
+    "murmurPreset": "Interstellar/Spatial/043-galactic-orbit.pw8"
+  },
+  "params": {
+    "mix": 0.76,
+    "qsr1Level": 0.5767265427080983,
+    "qsr2Level": 0.593920056459971,
+    "cntrLevel": 0.8283105083498388,
+    "inputSplitHpfHz": 120.0,
+    "cntrHpfHz": 80.0,
+    "qsr1Height": 0.03,
+    "qsr1Angle": 66.89816946276218,
+    "qsr1Distance": 0.3008089228088091,
+    "qsr2Height": -0.020000000000000004,
+    "qsr2Angle": 286.05184638200217,
+    "qsr2Distance": 0.39529761909472344,
+    "qsr1RoomAmount": 0.44,
+    "qsr1RoomSize": 1.1099999999999999,
+    "qsr1RoomDamping": 0.505361301420658,
+    "qsr2RoomAmount": 0.4,
+    "qsr2RoomSize": 1.18292383474429,
+    "qsr2RoomDamping": 0.473907000568526,
+    "quasarDelayTimeMs": 777.1200313890039,
+    "quasarDelayFeedback": 0.36000000000000004,
+    "quasarDelayVolume": 0.22,
+    "quasarOutputMode": 0,
+    "quasarCrossfeed": 0.0,
+    "quasarDelaySync": 0,
+    "quasarDelaySyncDivision": 2
+  }
+}

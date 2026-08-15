@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "name": "HYMN OF VOID",
+    "author": "MURMUR Sound Design",
+    "description": "Companion QUASAR preset for Interstellar Spatial MURMUR patch 054-hymn-of-void.",
+    "tags": [
+      "spatial",
+      "quasar",
+      "interstellar",
+      "companion"
+    ],
+    "murmurPreset": "Interstellar/Spatial/054-hymn-of-void.pw8"
+  },
+  "params": {
+    "mix": 0.7200000000000001,
+    "qsr1Level": 0.6157397676086925,
+    "qsr2Level": 0.5948763363364219,
+    "cntrLevel": 0.7786256470170354,
+    "inputSplitHpfHz": 120.0,
+    "cntrHpfHz": 80.0,
+    "qsr1Height": 0.03,
+    "qsr1Angle": 35.69702728351101,
+    "qsr1Distance": 0.5098595229842827,
+    "qsr2Height": -0.020000000000000004,
+    "qsr2Angle": 325.0230308671812,
+    "qsr2Distance": 0.57206009344408,
+    "qsr1RoomAmount": 0.525,
+    "qsr1RoomSize": 1.34,
+    "qsr1RoomDamping": 0.46119746324487704,
+    "qsr2RoomAmount": 0.485,
+    "qsr2RoomSize": 1.3900000000000001,
+    "qsr2RoomDamping": 0.4388497929450349,
+    "quasarDelayTimeMs": 654.4112635600573,
+    "quasarDelayFeedback": 0.4,
+    "quasarDelayVolume": 0.22,
+    "quasarOutputMode": 0,
+    "quasarCrossfeed": 0.0,
+    "quasarDelaySync": 0,
+    "quasarDelaySyncDivision": 2
+  }
+}

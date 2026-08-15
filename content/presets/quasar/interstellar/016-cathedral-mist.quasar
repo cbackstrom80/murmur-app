@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "name": "CATHEDRAL MIST",
+    "author": "MURMUR Sound Design",
+    "description": "Companion QUASAR preset for Interstellar Spatial MURMUR patch 016-cathedral-mist.",
+    "tags": [
+      "spatial",
+      "quasar",
+      "interstellar",
+      "companion"
+    ],
+    "murmurPreset": "Interstellar/Spatial/016-cathedral-mist.pw8"
+  },
+  "params": {
+    "mix": 0.8,
+    "qsr1Level": 0.6853430947999302,
+    "qsr2Level": 0.4877867556406208,
+    "cntrLevel": 0.7757576382224621,
+    "inputSplitHpfHz": 120.0,
+    "cntrHpfHz": 80.0,
+    "qsr1Height": -0.05,
+    "qsr1Angle": 149.1775627803004,
+    "qsr1Distance": 0.3064852429582577,
+    "qsr2Height": 0.05,
+    "qsr2Angle": 209.67307231293807,
+    "qsr2Distance": 0.39075032634339224,
+    "qsr1RoomAmount": 0.48,
+    "qsr1RoomSize": 0.95,
+    "qsr1RoomDamping": 0.5366063376543853,
+    "qsr2RoomAmount": 0.44,
+    "qsr2RoomSize": 1.0109357331546003,
+    "qsr2RoomDamping": 0.4101032408271574,
+    "quasarDelayTimeMs": 750.1057500122217,
+    "quasarDelayFeedback": 0.28,
+    "quasarDelayVolume": 0.18,
+    "quasarOutputMode": 0,
+    "quasarCrossfeed": 0.0,
+    "quasarDelaySync": 0,
+    "quasarDelaySyncDivision": 2
+  }
+}

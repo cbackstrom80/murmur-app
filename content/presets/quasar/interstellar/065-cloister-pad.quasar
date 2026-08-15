@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "name": "CLOISTER PAD",
+    "author": "MURMUR Sound Design",
+    "description": "Companion QUASAR preset for Interstellar Spatial MURMUR patch 065-cloister-pad.",
+    "tags": [
+      "spatial",
+      "quasar",
+      "interstellar",
+      "companion"
+    ],
+    "murmurPreset": "Interstellar/Spatial/065-cloister-pad.pw8"
+  },
+  "params": {
+    "mix": 0.68,
+    "qsr1Level": 0.5729012282132029,
+    "qsr2Level": 0.4898177623668274,
+    "cntrLevel": 0.817560779890827,
+    "inputSplitHpfHz": 120.0,
+    "cntrHpfHz": 80.0,
+    "qsr1Height": -0.05,
+    "qsr1Angle": 31.852857229248265,
+    "qsr1Distance": 0.4081247186972616,
+    "qsr2Height": 0.05,
+    "qsr2Angle": 327.4274835545463,
+    "qsr2Distance": 0.4890511810193973,
+    "qsr1RoomAmount": 0.69,
+    "qsr1RoomSize": 1.67,
+    "qsr1RoomDamping": 0.5339327189178358,
+    "qsr2RoomAmount": 0.65,
+    "qsr2RoomSize": 1.72,
+    "qsr2RoomDamping": 0.4202310003712034,
+    "quasarDelayTimeMs": 884.5315421752783,
+    "quasarDelayFeedback": 0.44000000000000006,
+    "quasarDelayVolume": 0.18,
+    "quasarOutputMode": 0,
+    "quasarCrossfeed": 0.0,
+    "quasarDelaySync": 0,
+    "quasarDelaySyncDivision": 2
+  }
+}

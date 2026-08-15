@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "name": "AMBER NEBULA",
+    "author": "MURMUR Sound Design",
+    "description": "Companion QUASAR preset for Interstellar Spatial MURMUR patch 007-amber-nebula.",
+    "tags": [
+      "spatial",
+      "quasar",
+      "interstellar",
+      "companion"
+    ],
+    "murmurPreset": "Interstellar/Spatial/007-amber-nebula.pw8"
+  },
+  "params": {
+    "mix": 0.76,
+    "qsr1Level": 0.6687004270903028,
+    "qsr2Level": 0.5079623019944913,
+    "cntrLevel": 0.811126808814369,
+    "inputSplitHpfHz": 120.0,
+    "cntrHpfHz": 80.0,
+    "qsr1Height": -0.05,
+    "qsr1Angle": 72.13237007274422,
+    "qsr1Distance": 0.491645198589317,
+    "qsr2Height": 0.05,
+    "qsr2Angle": 291.31548198340647,
+    "qsr2Distance": 0.5833866535535114,
+    "qsr1RoomAmount": 0.44,
+    "qsr1RoomSize": 1.03,
+    "qsr1RoomDamping": 0.4944905321399311,
+    "qsr2RoomAmount": 0.4,
+    "qsr2RoomSize": 1.0617920157242449,
+    "qsr2RoomDamping": 0.4825567393590921,
+    "quasarDelayTimeMs": 511.4634158547432,
+    "quasarDelayFeedback": 0.32,
+    "quasarDelayVolume": 0.18,
+    "quasarOutputMode": 0,
+    "quasarCrossfeed": 0.0,
+    "quasarDelaySync": 0,
+    "quasarDelaySyncDivision": 2
+  }
+}

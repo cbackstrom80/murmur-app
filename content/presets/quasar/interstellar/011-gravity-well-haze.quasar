@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "name": "GRAVITY WELL HAZE",
+    "author": "MURMUR Sound Design",
+    "description": "Companion QUASAR preset for Interstellar Spatial MURMUR patch 011-gravity-well-haze.",
+    "tags": [
+      "spatial",
+      "quasar",
+      "interstellar",
+      "companion"
+    ],
+    "murmurPreset": "Interstellar/Spatial/011-gravity-well-haze.pw8"
+  },
+  "params": {
+    "mix": 0.76,
+    "qsr1Level": 0.6788410566178317,
+    "qsr2Level": 0.5162545368696693,
+    "cntrLevel": 0.8578416702201228,
+    "inputSplitHpfHz": 120.0,
+    "cntrHpfHz": 80.0,
+    "qsr1Height": 0.03,
+    "qsr1Angle": 93.91777124503581,
+    "qsr1Distance": 0.4275645378723415,
+    "qsr2Height": -0.020000000000000004,
+    "qsr2Angle": 272.7242036444655,
+    "qsr2Distance": 0.519887674254018,
+    "qsr1RoomAmount": 0.44,
+    "qsr1RoomSize": 0.95,
+    "qsr1RoomDamping": 0.5221605061432644,
+    "qsr2RoomAmount": 0.4,
+    "qsr2RoomSize": 1.0230512243419252,
+    "qsr2RoomDamping": 0.47589446166587823,
+    "quasarDelayTimeMs": 627.5443106267342,
+    "quasarDelayFeedback": 0.28,
+    "quasarDelayVolume": 0.22,
+    "quasarOutputMode": 0,
+    "quasarCrossfeed": 0.0,
+    "quasarDelaySync": 0,
+    "quasarDelaySyncDivision": 2
+  }
+}

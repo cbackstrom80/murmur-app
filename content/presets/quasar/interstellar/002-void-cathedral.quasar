@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "name": "VOID CATHEDRAL",
+    "author": "MURMUR Sound Design",
+    "description": "Companion QUASAR preset for Interstellar Spatial MURMUR patch 002-void-cathedral.",
+    "tags": [
+      "spatial",
+      "quasar",
+      "interstellar",
+      "companion"
+    ],
+    "murmurPreset": "Interstellar/Spatial/002-void-cathedral.pw8"
+  },
+  "params": {
+    "mix": 0.7200000000000001,
+    "qsr1Level": 0.6886133169757098,
+    "qsr2Level": 0.5602323269647124,
+    "cntrLevel": 0.7600536030582581,
+    "inputSplitHpfHz": 120.0,
+    "cntrHpfHz": 80.0,
+    "qsr1Height": 0.03,
+    "qsr1Angle": 46.815995251942006,
+    "qsr1Distance": 0.3184293708124262,
+    "qsr2Height": -0.020000000000000004,
+    "qsr2Angle": 314.58093884151145,
+    "qsr2Distance": 0.3794233910959551,
+    "qsr1RoomAmount": 0.39999999999999997,
+    "qsr1RoomSize": 1.03,
+    "qsr1RoomDamping": 0.4643905717941833,
+    "qsr2RoomAmount": 0.36,
+    "qsr2RoomSize": 1.0990825527960144,
+    "qsr2RoomDamping": 0.4119626393853258,
+    "quasarDelayTimeMs": 440.21033072936876,
+    "quasarDelayFeedback": 0.32,
+    "quasarDelayVolume": 0.22,
+    "quasarOutputMode": 0,
+    "quasarCrossfeed": 0.0,
+    "quasarDelaySync": 0,
+    "quasarDelaySyncDivision": 2
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "name": "OORT DRIFT",
+    "author": "MURMUR Sound Design",
+    "description": "Companion QUASAR preset for Interstellar Spatial MURMUR patch 022-oort-drift.",
+    "tags": [
+      "spatial",
+      "quasar",
+      "interstellar",
+      "companion"
+    ],
+    "murmurPreset": "Interstellar/Spatial/022-oort-drift.pw8"
+  },
+  "params": {
+    "mix": 0.7200000000000001,
+    "qsr1Level": 0.6361590755819777,
+    "qsr2Level": 0.5907294474278828,
+    "cntrLevel": 0.7795096787482192,
+    "inputSplitHpfHz": 120.0,
+    "cntrHpfHz": 80.0,
+    "qsr1Height": -0.05,
+    "qsr1Angle": 34.74318788450997,
+    "qsr1Distance": 0.2695807496181003,
+    "qsr2Height": 0.05,
+    "qsr2Angle": 324.58857400910676,
+    "qsr2Distance": 0.3601345795602972,
+    "qsr1RoomAmount": 0.39999999999999997,
+    "qsr1RoomSize": 1.03,
+    "qsr1RoomDamping": 0.44406814150823565,
+    "qsr2RoomAmount": 0.36,
+    "qsr2RoomSize": 1.06147379397564,
+    "qsr2RoomDamping": 0.4635530879999633,
+    "quasarDelayTimeMs": 847.2984121288342,
+    "quasarDelayFeedback": 0.32,
+    "quasarDelayVolume": 0.18,
+    "quasarOutputMode": 0,
+    "quasarCrossfeed": 0.0,
+    "quasarDelaySync": 0,
+    "quasarDelaySyncDivision": 2
+  }
+}

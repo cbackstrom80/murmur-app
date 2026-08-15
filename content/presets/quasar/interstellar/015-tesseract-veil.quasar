@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "name": "TESSERACT VEIL",
+    "author": "MURMUR Sound Design",
+    "description": "Companion QUASAR preset for Interstellar Spatial MURMUR patch 015-tesseract-veil.",
+    "tags": [
+      "spatial",
+      "quasar",
+      "interstellar",
+      "companion"
+    ],
+    "murmurPreset": "Interstellar/Spatial/015-tesseract-veil.pw8"
+  },
+  "params": {
+    "mix": 0.76,
+    "qsr1Level": 0.6138805600494577,
+    "qsr2Level": 0.5913552313176024,
+    "cntrLevel": 0.8033846718671974,
+    "inputSplitHpfHz": 120.0,
+    "cntrHpfHz": 80.0,
+    "qsr1Height": 0.11,
+    "qsr1Angle": 72.31912930133791,
+    "qsr1Distance": 0.28812585279662667,
+    "qsr2Height": -0.09000000000000001,
+    "qsr2Angle": 289.84415271796564,
+    "qsr2Distance": 0.38076509877724996,
+    "qsr1RoomAmount": 0.44,
+    "qsr1RoomSize": 1.27,
+    "qsr1RoomDamping": 0.47859806675331384,
+    "qsr2RoomAmount": 0.4,
+    "qsr2RoomSize": 1.3114413021548201,
+    "qsr2RoomDamping": 0.43183235171624185,
+    "quasarDelayTimeMs": 639.646304186548,
+    "quasarDelayFeedback": 0.44000000000000006,
+    "quasarDelayVolume": 0.26,
+    "quasarOutputMode": 0,
+    "quasarCrossfeed": 0.0,
+    "quasarDelaySync": 0,
+    "quasarDelaySyncDivision": 2
+  }
+}
