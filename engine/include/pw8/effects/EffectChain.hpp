@@ -2,7 +2,6 @@
 
 #include <array>
 
-#include "pw8/effects/BinauralSpace.hpp"
 #include "pw8/effects/Chorus.hpp"
 #include "pw8/effects/Compressor.hpp"
 #include "pw8/effects/EffectTypes.hpp"
@@ -43,7 +42,6 @@ namespace pw8::effects
             eq_.prepare(sampleRate);
             compressor_.prepare(sampleRate);
             limiter_.prepare(sampleRate);
-            binauralSpace_.prepare(sampleRate);
             vocoder_.prepare(sampleRate);
         }
 
@@ -59,7 +57,6 @@ namespace pw8::effects
             eq_.reset();
             compressor_.reset();
             limiter_.reset();
-            binauralSpace_.reset();
             vocoder_.reset();
         }
 
@@ -79,9 +76,6 @@ namespace pw8::effects
                 case EffectType::Eq: eq_.processStereo(inL, inR, p, outL, outR); return;
                 case EffectType::Compressor: compressor_.processStereo(inL, inR, p, outL, outR); return;
                 case EffectType::Limiter: limiter_.processStereo(inL, inR, p, outL, outR); return;
-                case EffectType::BinauralSpace:
-                    binauralSpace_.processStereo(inL, inR, p, outL, outR, bpm);
-                    return;
                 case EffectType::Vocoder:
                     vocoder_.processStereo(inL, inR, sidechainL, sidechainR, p, outL, outR);
                     return;
@@ -101,7 +95,6 @@ namespace pw8::effects
         EqProcessor eq_{};
         CompressorProcessor compressor_{};
         LimiterProcessor limiter_{};
-        BinauralSpaceProcessor binauralSpace_{};
         VocoderProcessor vocoder_{};
     };
 

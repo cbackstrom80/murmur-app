@@ -108,7 +108,7 @@ namespace pw8::plugin::ui
 
         typeRow_ = std::make_unique<MetadataFacetRow>("TYPE");
         typeRow_->setValues(
-            juce::StringArray{"SATUR", "CHORUS", "TAPE", "NODE", "FSHF", "FRACT", "REVERB", "EQ", "COMP", "LIMIT", "QUASAR", "VOCODER"});
+            juce::StringArray{"SATUR", "CHORUS", "TAPE", "NODE", "FSHF", "FRACT", "REVERB", "EQ", "COMP", "LIMIT", "VOCODER"});
         typeRow_->onChange = [this]() {
             const auto chip = typeRow_->getSelectedValue();
             if (chip.isEmpty())
@@ -213,7 +213,7 @@ namespace pw8::plugin::ui
     bool FxChainStrip::showsDelaySyncControls() const
     {
         const int type = readEffectType(apvts_, selectedSlot().paramPrefix);
-        return type == 3 || type == 11;
+        return type == 3;
     }
 
     bool FxChainStrip::canSwapSelectedSlot(int direction) const
@@ -355,12 +355,9 @@ namespace pw8::plugin::ui
     {
         if (!showsDelaySyncControls())
             return;
-        const int type = readEffectType(apvts_, selectedSlot().paramPrefix);
         const auto& prefix = selectedSlot().paramPrefix;
-        const bool syncOn = type == 3 ? readIntParam(apvts_, prefix + "TapeDelaySync") != 0
-                                      : readIntParam(apvts_, prefix + "QuasarDelaySync") != 0;
-        const int div = type == 3 ? readIntParam(apvts_, prefix + "TapeDelaySyncDivision")
-                                  : readIntParam(apvts_, prefix + "QuasarDelaySyncDivision");
+        const bool syncOn = readIntParam(apvts_, prefix + "TapeDelaySync") != 0;
+        const int div = readIntParam(apvts_, prefix + "TapeDelaySyncDivision");
         if (delaySyncRow_ != nullptr)
             delaySyncRow_->setSelectedValue(syncOn ? "TEMPO" : "FREE");
         if (delayDivisionRow_ != nullptr)
@@ -374,18 +371,13 @@ namespace pw8::plugin::ui
 
     void FxChainStrip::setDelaySyncEnabled(bool enabled)
     {
-        const int type = readEffectType(apvts_, selectedSlot().paramPrefix);
-        const auto suffix = type == 3 ? juce::String("TapeDelaySync") : juce::String("QuasarDelaySync");
-        setIntParam(apvts_, selectedSlot().paramPrefix + suffix, enabled ? 1 : 0);
+        setIntParam(apvts_, selectedSlot().paramPrefix + "TapeDelaySync", enabled ? 1 : 0);
         refreshDelaySyncUi();
     }
 
     void FxChainStrip::setDelaySyncDivision(int divisionIndex)
     {
-        const int type = readEffectType(apvts_, selectedSlot().paramPrefix);
-        const auto suffix =
-            type == 3 ? juce::String("TapeDelaySyncDivision") : juce::String("QuasarDelaySyncDivision");
-        setIntParam(apvts_, selectedSlot().paramPrefix + suffix, divisionIndex);
+        setIntParam(apvts_, selectedSlot().paramPrefix + "TapeDelaySyncDivision", divisionIndex);
     }
 
     void FxChainStrip::setTransformerCore(int coreOrdinal)

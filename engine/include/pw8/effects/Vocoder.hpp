@@ -44,11 +44,16 @@ namespace pw8::effects
         void processStereo(float inL, float inR, float sidechainL, float sidechainR, const EffectSlotParams& p,
                            float& outL, float& outR) noexcept
         {
-            const int bandCount =
-                dsp::clamp(static_cast<int>(p.freqShiftLowCutHz + 0.5f), 8, kMaxBands);
-            const float formantMul = std::pow(2.0f, (dsp::clamp(p.fractalMorph, 0.0f, 1.0f) - 0.5f) * 2.0f);
-            const float sibilance = dsp::clamp(p.freqShiftHz / 2000.0f, 0.0f, 1.0f);
-            const float scGain = dsp::clamp(p.saturationDriveDb / 24.0f, 0.0f, 2.0f);
+            const int bandCount = p.vocoderBandCount >= 8
+                                      ? dsp::clamp(p.vocoderBandCount, 8, kMaxBands)
+                                      : dsp::clamp(static_cast<int>(p.freqShiftLowCutHz + 0.5f), 8, kMaxBands);
+            const float formantNorm = p.vocoderBandCount >= 8 ? p.vocoderFormant : p.fractalMorph;
+            const float formantMul = std::pow(2.0f, (dsp::clamp(formantNorm, 0.0f, 1.0f) - 0.5f) * 2.0f);
+            const float sibilance = p.vocoderBandCount >= 8
+                                        ? dsp::clamp(p.vocoderSibilance, 0.0f, 1.0f)
+                                        : dsp::clamp(p.freqShiftHz / 2000.0f, 0.0f, 1.0f);
+            const float scGainDb = p.vocoderBandCount >= 8 ? p.vocoderScGainDb : p.saturationDriveDb;
+            const float scGain = dsp::dbToGain(dsp::clamp(scGainDb, 0.0f, 48.0f));
             const float mix = dsp::clamp(p.mix, 0.0f, 1.0f);
 
             if (bandCount != cachedBandCount_ || std::abs(formantMul - cachedFormant_) > 1.0e-4f)

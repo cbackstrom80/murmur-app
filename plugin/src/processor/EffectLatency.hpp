@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cmath>
 
-#include "pw8/effects/BinauralSpace.hpp"
 #include "pw8/effects/EffectTypes.hpp"
 #include "pw8/patch/Patch.hpp"
 #include "pw8/render/RenderTypes.hpp"
@@ -35,8 +34,6 @@ namespace pw8::plugin
                 return static_cast<int>(std::ceil(p.reverbPreDelayMs * 0.001f * sr));
             case effects::EffectType::Limiter:
                 return static_cast<int>(std::ceil(p.limiterLookaheadMs * 0.001f * sr));
-            case effects::EffectType::BinauralSpace:
-                return effects::BinauralSpaceProcessor::latencySamples(sampleRate, p.quasarDelayTimeMs);
             default:
                 return 0;
         }

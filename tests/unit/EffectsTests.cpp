@@ -1115,8 +1115,7 @@ TEST_CASE("BinauralSpace widens mono input on headphones vs passthrough", "[effe
 {
     BinauralSpaceProcessor proc;
     proc.prepare(kSampleRate);
-    EffectSlotParams p;
-    p.type = EffectType::BinauralSpace;
+    BinauralSpaceParams p;
     p.mix = 1.0f;
     p.qsr1AngleDeg = 70.0f;
     p.qsr2AngleDeg = 250.0f;
@@ -1160,8 +1159,7 @@ TEST_CASE("BinauralSpace bypass mix=0 passes input unchanged", "[effects][quasar
 {
     BinauralSpaceProcessor proc;
     proc.prepare(kSampleRate);
-    EffectSlotParams p;
-    p.type = EffectType::BinauralSpace;
+    BinauralSpaceParams p;
     p.mix = 0.0f;
 
     float outL = 0.0f, outR = 0.0f;
@@ -1174,8 +1172,7 @@ TEST_CASE("BinauralSpace delay freeze holds tail at feedback 1.0", "[effects][qu
 {
     BinauralSpaceProcessor proc;
     proc.prepare(kSampleRate);
-    EffectSlotParams p;
-    p.type = EffectType::BinauralSpace;
+    BinauralSpaceParams p;
     p.mix = 1.0f;
     p.quasarDelayVolume = 1.0f;
     p.quasarDelayTimeMs = 30.0f;
@@ -1222,8 +1219,7 @@ TEST_CASE("BinauralSpace quasar delay tempo sync doubles when BPM halves", "[eff
 {
     BinauralSpaceProcessor proc;
     proc.prepare(kSampleRate);
-    EffectSlotParams p;
-    p.type = EffectType::BinauralSpace;
+    BinauralSpaceParams p;
     p.mix = 1.0f;
     p.quasarDelaySync = true;
     p.quasarDelaySyncDivisionIndex = 2;

@@ -213,7 +213,7 @@ namespace pw8::render
             return slot < patch_.masterEffects.size() ? patch_.masterEffects[slot] : effects::EffectSlotParams{};
         }
 
-        /// Only the scalar top-level fields of `params` (enabled/mode/rateMode/rateHz/
+        /// Only the scalar top-level fields of `params`        /// Live-update arpeggiator scalar fields only (enabled/mode/rateMode/rateHz/
         /// syncDivisionIndex/octaveRange/numSteps/latch) are applied -- `params.steps`
         /// is ignored, the currently-loaded per-step pattern is always preserved (see
         /// getArpeggiatorParams() if you need to read it back first). Uses

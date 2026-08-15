@@ -7,17 +7,8 @@
 #include "pw8/effects/EffectTypes.hpp"
 #include "pw8/effects/OutputTransformerStage.hpp"
 
-// A feedforward peak compressor with a soft knee -- the master spec's "first
-// effect set" basic compressor (docs/ROADMAP.md "GATE 10"). Standard, openly
-// documented topology: peak detector (stereo-linked -- a single shared envelope
-// driven by max(|L|,|R|), so a loud transient in either channel ducks both
-// equally rather than shifting the stereo image) -> a quadratic soft-knee gain
-// computer (the standard formula: within +-knee/2 of the threshold, the gain
-// reduction curve is a parabola blending smoothly from "no reduction" to "full
-// ratio," rather than snapping at the threshold) -> asymmetric attack/release
-// smoothing of the gain-reduction envelope itself (in dB, not linear, so the
-// perceived speed is consistent across levels) -> optional post-GR output
-// transformer colour -> makeup gain.
+// Feedforward peak compressor with soft knee, optional auto-makeup, and VCA/FET/Opto
+// character curves (FX deep pass — docs/FX_DEEP_PASS_PLAN.md §B).
 namespace pw8::effects
 {
     class CompressorProcessor
@@ -36,6 +27,8 @@ namespace pw8::effects
             transformer_.reset();
         }
 
+        [[nodiscard]] float getGainReductionDb() const noexcept { return gainReductionDb_; }
+
         void processStereo(float inL, float inR, const EffectSlotParams& p, float& outL, float& outR) noexcept
         {
             const float sr = static_cast<float>(sampleRate_);
@@ -50,8 +43,6 @@ namespace pw8::effects
             float targetReductionDb;
             if (knee > 0.0f && std::abs(overshoot) < knee / 2.0f)
             {
-                // Quadratic soft knee: blends smoothly across the knee width rather
-                // than a hard corner at the threshold.
                 const float x = overshoot + knee / 2.0f;
                 targetReductionDb = (1.0f / ratio - 1.0f) * (x * x) / (2.0f * knee);
             }
@@ -64,9 +55,12 @@ namespace pw8::effects
                 targetReductionDb = 0.0f;
             }
 
-            // Attack when reduction needs to deepen (more negative), release when it recovers.
+            float attackMs = std::max(p.compAttackMs, 0.01f);
+            float releaseMs = std::max(p.compReleaseMs, 0.01f);
+            applyCharacterTiming(p.compCharacter, attackMs, releaseMs);
+
             const bool attacking = targetReductionDb < gainReductionDb_;
-            const float timeMs = std::max(attacking ? p.compAttackMs : p.compReleaseMs, 0.01f);
+            const float timeMs = attacking ? attackMs : releaseMs;
             const float coeff = 1.0f - std::exp(-1.0f / (0.001f * timeMs * sr));
             gainReductionDb_ += (targetReductionDb - gainReductionDb_) * coeff;
 
@@ -76,7 +70,14 @@ namespace pw8::effects
 
             transformer_.processStereo(wetL, wetR, p, gainReductionDb_);
 
-            const float makeupGain = dsp::dbToGain(p.compMakeupDb);
+            float makeupDb = p.compMakeupDb;
+            if (p.compAutoMakeup && gainReductionDb_ < -0.01f)
+            {
+                const float estimated = -gainReductionDb_ * (1.0f - 1.0f / ratio) * 0.55f;
+                makeupDb += estimated;
+            }
+
+            const float makeupGain = dsp::dbToGain(makeupDb);
             wetL *= makeupGain;
             wetR *= makeupGain;
 
@@ -86,8 +87,26 @@ namespace pw8::effects
         }
 
     private:
+        static void applyCharacterTiming(int character, float& attackMs, float& releaseMs) noexcept
+        {
+            switch (static_cast<CompCharacter>(dsp::clamp(character, 0, 2)))
+            {
+                case CompCharacter::Fet:
+                    attackMs = std::max(attackMs * 0.35f, 0.05f);
+                    releaseMs = std::max(releaseMs * 0.55f, 5.0f);
+                    break;
+                case CompCharacter::Opto:
+                    attackMs = std::max(attackMs * 2.2f, 1.0f);
+                    releaseMs = std::max(releaseMs * 2.5f, 80.0f);
+                    break;
+                case CompCharacter::Vca:
+                default:
+                    break;
+            }
+        }
+
         double sampleRate_ = 48000.0;
-        float gainReductionDb_ = 0.0f; // always <= 0 -- a running dB offset, smoothed toward the target each sample.
+        float gainReductionDb_ = 0.0f;
         OutputTransformerStage transformer_{};
     };
 

@@ -88,16 +88,11 @@ namespace pw8::modulation
         std::array<float, effects::kNumMasterSlots> reverbDiffusionOffset{};
         std::array<float, effects::kNumMasterSlots> reverbModDepthOffset{};
         float masterGainOffset = 0.0f;
-        std::array<float, effects::kNumMasterSlots> quasarQsr1DistanceOffset{};
-        std::array<float, effects::kNumMasterSlots> quasarQsr2DistanceOffset{};
-        std::array<float, effects::kNumMasterSlots> quasarQsr1AngleOffset{};
-        std::array<float, effects::kNumMasterSlots> quasarQsr2AngleOffset{};
-        std::array<float, effects::kNumMasterSlots> quasarQsr1HeightOffset{};
-        std::array<float, effects::kNumMasterSlots> quasarQsr2HeightOffset{};
-        std::array<float, effects::kNumMasterSlots> quasarRoomAmountOffset{};
-        std::array<float, effects::kNumMasterSlots> quasarDelayFeedbackOffset{};
-        std::array<float, effects::kNumMasterSlots> quasarDelayTimeOffset{};
-        std::array<float, effects::kNumMasterSlots> quasarCntrLevelOffset{};
+        std::array<float, effects::kNumLayerInsertSlots> vocoderMixOffset{};
+        std::array<float, effects::kNumLayerInsertSlots> vocoderFormantOffset{};
+        std::array<float, effects::kNumMasterSlots> masterVocoderMixOffset{};
+        std::array<float, effects::kNumMasterSlots> masterVocoderFormantOffset{};
+        std::array<float, effects::kNumMasterSlots> compThresholdOffset{};
     };
 
     class ModMatrixExecutor
@@ -144,6 +139,51 @@ namespace pw8::modulation
             return false;
         }
 
+        template <typename RouteContainer, typename MetaRouteContainer>
+        [[nodiscard]] static ModOutputs apply(const RouteContainer& routes, const ModSourceValues& sources,
+                                              const MetaRouteContainer& metaRoutes) noexcept
+        {
+            ModOutputs out;
+            std::size_t routeIndex = 0;
+            for (const auto& route : routes)
+            {
+                if (!route.isActive())
+                {
+                    ++routeIndex;
+                    continue;
+                }
+
+                float amount = route.amount;
+                for (const auto& meta : metaRoutes)
+                {
+                    if (!meta.isActive() || meta.targetRouteIndex != routeIndex)
+                        continue;
+                    if (meta.source == route.source)
+                        continue;
+                    amount += resolveSource(meta.source, meta.scope, sources) * meta.amount;
+                }
+
+                const float sourceValue = resolveSource(route.source, route.scope, sources);
+                applyRouteContribution(out, route.destination, route.targetIndex, sourceValue, amount);
+                ++routeIndex;
+            }
+            return out;
+        }
+
+        template <typename RouteContainer>
+        [[nodiscard]] static ModOutputs apply(const RouteContainer& routes, const ModSourceValues& sources) noexcept
+        {
+            ModOutputs out;
+            for (const auto& route : routes)
+            {
+                if (!route.isActive())
+                    continue;
+                const float sourceValue = resolveSource(route.source, route.scope, sources);
+                applyRouteContribution(out, route.destination, route.targetIndex, sourceValue, route.amount);
+            }
+            return out;
+        }
+
         template <typename RouteContainer>
         [[nodiscard]] static ModOutputs applyControlRateOnly(const RouteContainer& routes,
                                                               const ModSourceValues& sources) noexcept
@@ -159,116 +199,109 @@ namespace pw8::modulation
             return apply(routes, controlRateSources);
         }
 
-        template <typename RouteContainer>
-        [[nodiscard]] static ModOutputs apply(const RouteContainer& routes, const ModSourceValues& sources) noexcept
+        template <typename RouteContainer, typename MetaRouteContainer>
+        [[nodiscard]] static ModOutputs applyControlRateOnly(const RouteContainer& routes,
+                                                              const ModSourceValues& sources,
+                                                              const MetaRouteContainer& metaRoutes) noexcept
         {
-            ModOutputs out;
-            for (const auto& route : routes)
-            {
-                if (!route.isActive())
-                    continue;
-
-                const float sourceValue = resolveSource(route.source, route.scope, sources);
-                switch (route.destination)
-                {
-                    case ModDestination::FilterCutoff:
-                        out.filterCutoffSemitones += sourceValue * route.amount;
-                        break;
-                    case ModDestination::FilterResonance:
-                        out.filterResonanceOffset += sourceValue * route.amount;
-                        break;
-                    case ModDestination::OperatorFilterCutoff:
-                    {
-                        const std::uint8_t idx =
-                            route.targetIndex < core::kNodesPerLayer ? route.targetIndex : std::uint8_t{0};
-                        out.operatorFilterCutoffSemitones[idx] += sourceValue * route.amount;
-                        break;
-                    }
-                    case ModDestination::OperatorFilterResonance:
-                    {
-                        const std::uint8_t idx =
-                            route.targetIndex < core::kNodesPerLayer ? route.targetIndex : std::uint8_t{0};
-                        out.operatorFilterResonanceOffset[idx] += sourceValue * route.amount;
-                        break;
-                    }
-                    case ModDestination::OperatorLevel:
-                    {
-                        const std::uint8_t idx =
-                            route.targetIndex < core::kNodesPerLayer ? route.targetIndex : std::uint8_t{0};
-                        out.operatorLevelMultiplier[idx] *= (1.0f + sourceValue * route.amount);
-                        break;
-                    }
-                    case ModDestination::Pan:
-                        out.panOffset += sourceValue * route.amount;
-                        break;
-                    case ModDestination::OperatorWavetablePosition:
-                    {
-                        const std::uint8_t idx =
-                            route.targetIndex < core::kNodesPerLayer ? route.targetIndex : std::uint8_t{0};
-                        out.operatorWavetablePositionOffset[idx] += sourceValue * route.amount;
-                        break;
-                    }
-                    case ModDestination::OperatorWavetableBend:
-                    {
-                        const std::uint8_t idx =
-                            route.targetIndex < core::kNodesPerLayer ? route.targetIndex : std::uint8_t{0};
-                        out.operatorWavetableBendOffset[idx] += sourceValue * route.amount;
-                        break;
-                    }
-                    case ModDestination::OperatorWavetableAsymmetry:
-                    {
-                        const std::uint8_t idx =
-                            route.targetIndex < core::kNodesPerLayer ? route.targetIndex : std::uint8_t{0};
-                        out.operatorWavetableAsymmetryOffset[idx] += sourceValue * route.amount;
-                        break;
-                    }
-                    case ModDestination::OperatorWavetableSyncRatio:
-                    {
-                        const std::uint8_t idx =
-                            route.targetIndex < core::kNodesPerLayer ? route.targetIndex : std::uint8_t{0};
-                        out.operatorWavetableSyncRatioOffset[idx] += sourceValue * route.amount;
-                        break;
-                    }
-                    case ModDestination::OperatorWavetableFormant:
-                    {
-                        const std::uint8_t idx =
-                            route.targetIndex < core::kNodesPerLayer ? route.targetIndex : std::uint8_t{0};
-                        out.operatorWavetableFormantOffset[idx] += sourceValue * route.amount;
-                        break;
-                    }
-                    case ModDestination::OperatorWavetableSyncAmount:
-                    {
-                        const std::uint8_t idx =
-                            route.targetIndex < core::kNodesPerLayer ? route.targetIndex : std::uint8_t{0};
-                        out.operatorWavetableSyncAmountOffset[idx] += sourceValue * route.amount;
-                        break;
-                    }
-                    case ModDestination::MasterFxMix:
-                    case ModDestination::MasterReverbMix:
-                    case ModDestination::MasterReverbSize:
-                    case ModDestination::MasterReverbDecay:
-                    case ModDestination::MasterReverbPreDelay:
-                    case ModDestination::MasterReverbDiffusion:
-                    case ModDestination::MasterReverbModDepth:
-                    case ModDestination::MasterGain:
-                    case ModDestination::QuasarQsr1Distance:
-                    case ModDestination::QuasarQsr2Distance:
-                    case ModDestination::QuasarQsr1Angle:
-                    case ModDestination::QuasarQsr2Angle:
-                    case ModDestination::QuasarQsr1Height:
-                    case ModDestination::QuasarQsr2Height:
-                    case ModDestination::QuasarRoomAmount:
-                    case ModDestination::QuasarDelayFeedback:
-                    case ModDestination::QuasarDelayTime:
-                    case ModDestination::QuasarCntrLevel:
-                        break; // Master-bus destinations: handled by applyMasterBus() in Engine.
-                    case ModDestination::None:
-                        break;
-                }
-            }
-            return out;
+            ModSourceValues controlRateSources;
+            controlRateSources.velocity = sources.velocity;
+            controlRateSources.channelPressure = sources.channelPressure;
+            controlRateSources.polyAftertouch = sources.polyAftertouch;
+            controlRateSources.mpeSlide = sources.mpeSlide;
+            controlRateSources.modWheel = sources.modWheel;
+            controlRateSources.expression = sources.expression;
+            controlRateSources.macros = sources.macros;
+            return apply(routes, controlRateSources, metaRoutes);
         }
 
+    private:
+        static void applyRouteContribution(ModOutputs& out, ModDestination destination, std::uint8_t targetIndex,
+                                           float sourceValue, float amount) noexcept
+        {
+            switch (destination)
+            {
+                case ModDestination::FilterCutoff:
+                    out.filterCutoffSemitones += sourceValue * amount;
+                    break;
+                case ModDestination::FilterResonance:
+                    out.filterResonanceOffset += sourceValue * amount;
+                    break;
+                case ModDestination::OperatorFilterCutoff:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorFilterCutoffSemitones[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorFilterResonance:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorFilterResonanceOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorLevel:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorLevelMultiplier[idx] *= (1.0f + sourceValue * amount);
+                    break;
+                }
+                case ModDestination::Pan:
+                    out.panOffset += sourceValue * amount;
+                    break;
+                case ModDestination::OperatorWavetablePosition:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorWavetablePositionOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorWavetableBend:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorWavetableBendOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorWavetableAsymmetry:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorWavetableAsymmetryOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorWavetableSyncRatio:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorWavetableSyncRatioOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorWavetableFormant:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorWavetableFormantOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorWavetableSyncAmount:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorWavetableSyncAmountOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::MasterFxMix:
+                case ModDestination::MasterReverbMix:
+                case ModDestination::MasterReverbSize:
+                case ModDestination::MasterReverbDecay:
+                case ModDestination::MasterReverbPreDelay:
+                case ModDestination::MasterReverbDiffusion:
+                case ModDestination::MasterReverbModDepth:
+                case ModDestination::MasterGain:
+                case ModDestination::VocoderMix:
+                case ModDestination::VocoderFormant:
+                case ModDestination::ModRouteDepth:
+                    break;
+                case ModDestination::None:
+                    break;
+            }
+        }
+
+    public:
         template <typename RouteContainer>
         [[nodiscard]] static bool hasActiveMasterBusRoutes(const RouteContainer& routes) noexcept
         {
@@ -286,16 +319,9 @@ namespace pw8::modulation
                     case ModDestination::MasterReverbDiffusion:
                     case ModDestination::MasterReverbModDepth:
                     case ModDestination::MasterGain:
-                    case ModDestination::QuasarQsr1Distance:
-                    case ModDestination::QuasarQsr2Distance:
-                    case ModDestination::QuasarQsr1Angle:
-                    case ModDestination::QuasarQsr2Angle:
-                    case ModDestination::QuasarQsr1Height:
-                    case ModDestination::QuasarQsr2Height:
-                    case ModDestination::QuasarRoomAmount:
-                    case ModDestination::QuasarDelayFeedback:
-                    case ModDestination::QuasarDelayTime:
-                    case ModDestination::QuasarCntrLevel:
+                        return true;
+                    case ModDestination::VocoderMix:
+                    case ModDestination::VocoderFormant:
                         return true;
                     default:
                         break;
@@ -342,35 +368,15 @@ namespace pw8::modulation
                     case ModDestination::MasterGain:
                         out.masterGainOffset += sourceValue * route.amount;
                         break;
-                    case ModDestination::QuasarQsr1Distance:
-                        out.quasarQsr1DistanceOffset[slot] += sourceValue * route.amount;
+                    case ModDestination::VocoderMix:
+                        out.masterVocoderMixOffset[slot] += sourceValue * route.amount;
+                        if (slot < effects::kNumLayerInsertSlots)
+                            out.vocoderMixOffset[slot] += sourceValue * route.amount;
                         break;
-                    case ModDestination::QuasarQsr2Distance:
-                        out.quasarQsr2DistanceOffset[slot] += sourceValue * route.amount;
-                        break;
-                    case ModDestination::QuasarQsr1Angle:
-                        out.quasarQsr1AngleOffset[slot] += sourceValue * route.amount;
-                        break;
-                    case ModDestination::QuasarQsr2Angle:
-                        out.quasarQsr2AngleOffset[slot] += sourceValue * route.amount;
-                        break;
-                    case ModDestination::QuasarQsr1Height:
-                        out.quasarQsr1HeightOffset[slot] += sourceValue * route.amount;
-                        break;
-                    case ModDestination::QuasarQsr2Height:
-                        out.quasarQsr2HeightOffset[slot] += sourceValue * route.amount;
-                        break;
-                    case ModDestination::QuasarRoomAmount:
-                        out.quasarRoomAmountOffset[slot] += sourceValue * route.amount;
-                        break;
-                    case ModDestination::QuasarDelayFeedback:
-                        out.quasarDelayFeedbackOffset[slot] += sourceValue * route.amount;
-                        break;
-                    case ModDestination::QuasarDelayTime:
-                        out.quasarDelayTimeOffset[slot] += sourceValue * route.amount;
-                        break;
-                    case ModDestination::QuasarCntrLevel:
-                        out.quasarCntrLevelOffset[slot] += sourceValue * route.amount;
+                    case ModDestination::VocoderFormant:
+                        out.masterVocoderFormantOffset[slot] += sourceValue * route.amount;
+                        if (slot < effects::kNumLayerInsertSlots)
+                            out.vocoderFormantOffset[slot] += sourceValue * route.amount;
                         break;
                     default:
                         break;

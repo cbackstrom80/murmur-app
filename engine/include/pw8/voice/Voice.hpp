@@ -15,6 +15,7 @@
 #include "pw8/lfo/Lfo.hpp"
 #include "pw8/modulation/ModMatrixExecutor.hpp"
 #include "pw8/operator/OperatorNode.hpp"
+#include "pw8/patch/Patch.hpp"
 #include "pw8/render/RenderTypes.hpp"
 
 // A single polyphonic voice: 8 operator nodes routed through a (shared, precompiled)
@@ -151,6 +152,7 @@ namespace pw8::voice
                            const std::array<const oscillator::WavetableTable*, core::kNodesPerLayer>& wavetableTables,
                            float bpm, const std::array<float, core::kNumLfosPerLayer>& layerLfoValues,
                            const core::FixedVector<modulation::ModRoute, core::kMaxModRoutes>& liveModRoutes,
+                           const core::FixedVector<patch::MetaModRoute, 8>& liveMetaRoutes,
                            render::QualityMode qualityMode,
                            float& outLeft, float& outRight) noexcept
         {
@@ -188,8 +190,9 @@ namespace pw8::voice
             sourceValues.macros = macroValues;
 
             const auto modOut = modulation::ModMatrixExecutor::hasAudioRateModRoutes(liveModRoutes)
-                                    ? modulation::ModMatrixExecutor::apply(liveModRoutes, sourceValues)
-                                    : modulation::ModMatrixExecutor::applyControlRateOnly(liveModRoutes, sourceValues);
+                                    ? modulation::ModMatrixExecutor::apply(liveModRoutes, sourceValues, liveMetaRoutes)
+                                    : modulation::ModMatrixExecutor::applyControlRateOnly(liveModRoutes, sourceValues,
+                                                                                          liveMetaRoutes);
 
             const int nonlinearOsFactor = render::nonlinearOversamplingFactor(qualityMode);
 
@@ -423,6 +426,7 @@ namespace pw8::voice
         std::array<lfo::Lfo, core::kNumLfosPerLayer> lfos{};
 
         std::array<float, 8> macroValues{};
+        float morphPosition = 0.0f; ///< frozen at note-on when dissemination enabled
 
     private:
         double sampleRate_ = 48000.0;

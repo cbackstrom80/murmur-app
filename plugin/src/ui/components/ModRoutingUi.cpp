@@ -123,16 +123,6 @@ namespace pw8::plugin::ui
             case modulation::ModDestination::MasterReverbDiffusion: return 0.25f;
             case modulation::ModDestination::MasterReverbModDepth: return 0.2f;
             case modulation::ModDestination::MasterGain: return 0.25f;
-            case modulation::ModDestination::QuasarQsr1Distance:
-            case modulation::ModDestination::QuasarQsr2Distance: return 0.4f;
-            case modulation::ModDestination::QuasarQsr1Angle:
-            case modulation::ModDestination::QuasarQsr2Angle: return 90.0f;
-            case modulation::ModDestination::QuasarQsr1Height:
-            case modulation::ModDestination::QuasarQsr2Height: return 0.3f;
-            case modulation::ModDestination::QuasarRoomAmount: return 0.35f;
-            case modulation::ModDestination::QuasarDelayFeedback: return 0.3f;
-            case modulation::ModDestination::QuasarDelayTime: return 200.0f;
-            case modulation::ModDestination::QuasarCntrLevel: return 0.2f;
             default: return 0.0f;
         }
     }
@@ -196,36 +186,6 @@ namespace pw8::plugin::ui
                                            "Master " + juce::String(static_cast<int>(targetIndex)) + " Rev Mod"};
             case modulation::ModDestination::MasterGain:
                 return ModDestinationParam{juce::String(kMasterGainId), "Master Gain"};
-            case modulation::ModDestination::QuasarQsr1Distance:
-                return ModDestinationParam{masterFxParamId(targetIndex, "Qsr1Distance"),
-                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Q1 Dist"};
-            case modulation::ModDestination::QuasarQsr2Distance:
-                return ModDestinationParam{masterFxParamId(targetIndex, "Qsr2Distance"),
-                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Q2 Dist"};
-            case modulation::ModDestination::QuasarQsr1Angle:
-                return ModDestinationParam{masterFxParamId(targetIndex, "Qsr1Angle"),
-                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Q1 Ang"};
-            case modulation::ModDestination::QuasarQsr2Angle:
-                return ModDestinationParam{masterFxParamId(targetIndex, "Qsr2Angle"),
-                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Q2 Ang"};
-            case modulation::ModDestination::QuasarQsr1Height:
-                return ModDestinationParam{masterFxParamId(targetIndex, "Qsr1Height"),
-                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Q1 Hgt"};
-            case modulation::ModDestination::QuasarQsr2Height:
-                return ModDestinationParam{masterFxParamId(targetIndex, "Qsr2Height"),
-                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Q2 Hgt"};
-            case modulation::ModDestination::QuasarRoomAmount:
-                return ModDestinationParam{masterFxParamId(targetIndex, "Qsr1RoomAmount"),
-                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Q Room"};
-            case modulation::ModDestination::QuasarDelayFeedback:
-                return ModDestinationParam{masterFxParamId(targetIndex, "QuasarDelayFeedback"),
-                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Q Dly Fb"};
-            case modulation::ModDestination::QuasarDelayTime:
-                return ModDestinationParam{masterFxParamId(targetIndex, "QuasarDelayTimeMs"),
-                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " Q Dly T"};
-            case modulation::ModDestination::QuasarCntrLevel:
-                return ModDestinationParam{masterFxParamId(targetIndex, "CntrLevel"),
-                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " CNTR"};
             case modulation::ModDestination::None:
                 break;
         }
@@ -593,12 +553,7 @@ namespace pw8::plugin::ui
                  {modulation::ModDestination::MasterFxMix, modulation::ModDestination::MasterReverbMix,
                   modulation::ModDestination::MasterReverbSize, modulation::ModDestination::MasterReverbDecay,
                   modulation::ModDestination::MasterReverbPreDelay, modulation::ModDestination::MasterReverbDiffusion,
-                  modulation::ModDestination::MasterReverbModDepth, modulation::ModDestination::QuasarQsr1Distance,
-                  modulation::ModDestination::QuasarQsr2Distance, modulation::ModDestination::QuasarQsr1Angle,
-                  modulation::ModDestination::QuasarQsr2Angle, modulation::ModDestination::QuasarQsr1Height,
-                  modulation::ModDestination::QuasarQsr2Height, modulation::ModDestination::QuasarRoomAmount,
-                  modulation::ModDestination::QuasarDelayFeedback, modulation::ModDestination::QuasarDelayTime,
-                  modulation::ModDestination::QuasarCntrLevel})
+                  modulation::ModDestination::MasterReverbModDepth})
             {
                 const auto mapped = modDestinationParam(dest, slot);
                 if (mapped.has_value() && mapped->paramId == paramId)

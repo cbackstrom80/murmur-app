@@ -40,16 +40,9 @@ namespace pw8::modulation
             case ModDestination::MasterReverbDiffusion: return "Rev Diff";
             case ModDestination::MasterReverbModDepth: return "Rev Mod";
             case ModDestination::MasterGain: return "Master";
-            case ModDestination::QuasarQsr1Distance: return "Q1 Dist";
-            case ModDestination::QuasarQsr2Distance: return "Q2 Dist";
-            case ModDestination::QuasarQsr1Angle: return "Q1 Ang";
-            case ModDestination::QuasarQsr2Angle: return "Q2 Ang";
-            case ModDestination::QuasarQsr1Height: return "Q1 Hgt";
-            case ModDestination::QuasarQsr2Height: return "Q2 Hgt";
-            case ModDestination::QuasarRoomAmount: return "Q Room";
-            case ModDestination::QuasarDelayFeedback: return "Q Dly Fb";
-            case ModDestination::QuasarDelayTime: return "Q Dly T";
-            case ModDestination::QuasarCntrLevel: return "CNTR";
+            case ModDestination::VocoderMix: return "Vox Mix";
+            case ModDestination::VocoderFormant: return "Vox Form";
+            case ModDestination::ModRouteDepth: return "Route Depth";
             case ModDestination::None: break;
         }
         return "-";

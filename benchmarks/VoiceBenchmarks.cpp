@@ -32,12 +32,13 @@ namespace
 
         std::array<float, core::kNumLfosPerLayer> layerLfoValues{};
         core::FixedVector<modulation::ModRoute, core::kMaxModRoutes> modRoutes{};
+        core::FixedVector<patch::MetaModRoute, 8> metaRoutes{};
         for (auto _ : state)
         {
             float l = 0.0f, r = 0.0f, sumL = 0.0f, sumR = 0.0f;
             for (int i = 0; i < kBlockSize; ++i)
             {
-                v.renderSample(compiled, tables, 120.0f, layerLfoValues, modRoutes,
+                v.renderSample(compiled, tables, 120.0f, layerLfoValues, modRoutes, metaRoutes,
                                render::QualityMode::Normal, l, r);
                 sumL += l;
                 sumR += r;

@@ -57,10 +57,6 @@ namespace pw8::plugin::ui
         static constexpr FxTypePlaySpec kLimiter{
             "LIMITER", "LIM",
             {{{"LimiterCeilingDb", "Ceil"}, {"LimiterLookaheadMs", "Look"}, {"LimiterReleaseMs", "Rel"}, {nullptr, nullptr}}}};
-        static constexpr FxTypePlaySpec kBinauralSpace{
-            "QUASAR", "QSR",
-            {{{"Qsr1Distance", "Distance"}, {"Qsr1Angle", "Angle"}, {"Qsr1RoomAmount", "Room"},
-              {"QuasarDelayTimeMs", "Delay"}}}};
         static constexpr FxTypePlaySpec kVocoder{
             "VOCODER", "VOC",
             {{{"FreqShiftLowCutHz", "Bands"}, {"FractalMorph", "Formant"}, {"FreqShiftHz", "Sibilance"},
@@ -78,8 +74,7 @@ namespace pw8::plugin::ui
             case 8: return kEq;
             case 9: return kCompressor;
             case 10: return kLimiter;
-            case 11: return kBinauralSpace;
-            case 12: return kVocoder;
+            case 11: return kVocoder;
             default: return kBypass;
         }
     }
@@ -96,8 +91,7 @@ namespace pw8::plugin::ui
         if (label == "EQ") return 8;
         if (label == "COMP") return 9;
         if (label == "LIMIT") return 10;
-        if (label == "QUASAR" || label == "QSR") return 11;
-        if (label == "VOCODER" || label == "VOC") return 12;
+        if (label == "VOCODER" || label == "VOC") return 11;
         return 0;
     }
 
@@ -115,8 +109,7 @@ namespace pw8::plugin::ui
             case 8: return "EQ";
             case 9: return "COMP";
             case 10: return "LIMIT";
-            case 11: return "QUASAR";
-            case 12: return "VOCODER";
+            case 11: return "VOCODER";
             default: return "OFF";
         }
     }

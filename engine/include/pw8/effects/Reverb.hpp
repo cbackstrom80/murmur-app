@@ -7,6 +7,7 @@
 #include "pw8/dsp/DelayLine.hpp"
 #include "pw8/dsp/Math.hpp"
 #include "pw8/effects/EffectTypes.hpp"
+#include "pw8/effects/ReverbCharacter.hpp"
 
 // A "nuanced and massive" algorithmic reverb (GATE 11, docs/ROADMAP.md), redesigned
 // from GATE 10's simpler 4-line FDN. Informed by (not ported from) a family of
@@ -88,16 +89,17 @@ namespace pw8::effects
 
         void processStereo(float inL, float inR, const EffectSlotParams& p, float& outL, float& outR) noexcept
         {
+            const EffectSlotParams params = applyReverbCharacter(p);
             const float sr = static_cast<float>(sampleRate_);
             const float mono = (inL + inR) * 0.5f;
-            const float sizeScale = dsp::clamp(p.reverbSizeParam, 0.2f, 3.0f);
+            const float sizeScale = dsp::clamp(params.reverbSizeParam, 0.2f, 3.0f);
 
             // Pre-delay, floored at 1 sample not 0: `dsp::DelayLine` reads before
             // writing, so an exactly-0-sample delay reads stale (near-silent)
             // buffer content instead of "undelayed" -- the real bug this project
             // caught and fixed in GATE 10 (docs/FX_BANK.md).
             const float preDelaySamples =
-                dsp::clamp(p.reverbPreDelayMs * 0.001f * sr, 1.0f, sr * kMaxReverbPreDelaySeconds - 4.0f);
+                dsp::clamp(params.reverbPreDelayMs * 0.001f * sr, 1.0f, sr * kMaxReverbPreDelaySeconds - 4.0f);
             const float predelayed = preDelay_.readInterpolated(preDelaySamples);
             preDelay_.write(mono);
 
@@ -126,9 +128,9 @@ namespace pw8::effects
             // much it's blended into the output, so turning a stage on/off via live
             // automation crossfades smoothly instead of popping in with stale
             // buffer content.
-            const float diffusionCoeff = dsp::clamp(p.reverbDiffusion, 0.0f, 1.0f) * kMaxDiffuserCoeff;
+            const float diffusionCoeff = dsp::clamp(params.reverbDiffusion, 0.0f, 1.0f) * kMaxDiffuserCoeff;
             const float densityStages =
-                dsp::clamp(p.reverbDensity, 0.0f, 1.0f) * static_cast<float>(kNumReverbDiffuserStages);
+                dsp::clamp(params.reverbDensity, 0.0f, 1.0f) * static_cast<float>(kNumReverbDiffuserStages);
             float diffused = predelayed;
             for (std::size_t i = 0; i < kNumReverbDiffuserStages; ++i)
             {
@@ -148,8 +150,8 @@ namespace pw8::effects
             // ringing at fixed frequencies. --
             std::array<float, kNumReverbLines> lineOut{};
             std::array<float, kNumReverbLines> delaySamples{};
-            const float modRateHz = dsp::clamp(p.reverbModRateHz, 0.05f, 2.0f);
-            const float modDepthMs = dsp::clamp(p.reverbModDepth, 0.0f, 1.0f) * kMaxReverbModDepthMs;
+            const float modRateHz = dsp::clamp(params.reverbModRateHz, 0.05f, 2.0f);
+            const float modDepthMs = dsp::clamp(params.reverbModDepth, 0.0f, 1.0f) * kMaxReverbModDepthMs;
             for (std::size_t i = 0; i < kNumReverbLines; ++i)
             {
                 modPhase_[i] += dsp::kTwoPi * modRateHz * kModRateRatio[i] / sr;
@@ -173,11 +175,11 @@ namespace pw8::effects
             // realized as a low-shelf + high-shelf biquad pair around the flat
             // mid-band per-pass gain -- Jot's published "absorptive filter"
             // technique for FDN reverbs.
-            const float rtMid = std::max(p.reverbDecaySeconds, 0.05f);
-            const float rtLow = std::max(rtMid * dsp::clamp(p.reverbLowRatio, 0.2f, 4.0f), 0.05f);
-            const float rtHigh = std::max(rtMid * dsp::clamp(p.reverbHighRatio, 0.2f, 1.0f), 0.05f);
-            const float lowXover = dsp::clamp(p.reverbLowCrossoverHz, 40.0f, sr * 0.45f);
-            const float highXover = dsp::clamp(p.reverbHighCrossoverHz, 200.0f, sr * 0.45f);
+            const float rtMid = std::max(params.reverbDecaySeconds, 0.05f);
+            const float rtLow = std::max(rtMid * dsp::clamp(params.reverbLowRatio, 0.2f, 4.0f), 0.05f);
+            const float rtHigh = std::max(rtMid * dsp::clamp(params.reverbHighRatio, 0.2f, 1.0f), 0.05f);
+            const float lowXover = dsp::clamp(params.reverbLowCrossoverHz, 40.0f, sr * 0.45f);
+            const float highXover = dsp::clamp(params.reverbHighCrossoverHz, 200.0f, sr * 0.45f);
 
             float wetLateL = 0.0f;
             float wetLateR = 0.0f;
@@ -208,24 +210,24 @@ namespace pw8::effects
             // -- Combine early + late at their independent levels, then apply
             // output-stage tone shaping (VLF Cut, Roll Off) to the combined wet
             // signal. --
-            const float earlyLevel = dsp::clamp(p.reverbEarlyLevel, 0.0f, 1.0f);
-            const float lateLevel = dsp::clamp(p.reverbLateLevel, 0.0f, 1.0f);
+            const float earlyLevel = dsp::clamp(params.reverbEarlyLevel, 0.0f, 1.0f);
+            const float lateLevel = dsp::clamp(params.reverbLateLevel, 0.0f, 1.0f);
             float wetL = earlyL * earlyLevel + wetLateL * lateLevel;
             float wetR = earlyR * earlyLevel + wetLateR * lateLevel;
 
-            const float vlfCutDb = dsp::clamp(p.reverbVlfCutDb, -18.0f, 0.0f);
+            const float vlfCutDb = dsp::clamp(params.reverbVlfCutDb, -18.0f, 0.0f);
             vlfShelfL_.setLowShelf(kVlfCornerHz, vlfCutDb, sampleRate_);
             vlfShelfR_.setLowShelf(kVlfCornerHz, vlfCutDb, sampleRate_);
             wetL = vlfShelfL_.renderSample(wetL);
             wetR = vlfShelfR_.renderSample(wetR);
 
-            const float rollOffHz = dsp::clamp(p.reverbRollOffHz, 80.0f, sr * 0.49f);
+            const float rollOffHz = dsp::clamp(params.reverbRollOffHz, 80.0f, sr * 0.49f);
             rollOffL_.setLowpass(rollOffHz, sampleRate_);
             rollOffR_.setLowpass(rollOffHz, sampleRate_);
             wetL = rollOffL_.renderSample(wetL);
             wetR = rollOffR_.renderSample(wetR);
 
-            const float mix = dsp::clamp(p.mix, 0.0f, 1.0f);
+            const float mix = dsp::clamp(params.mix, 0.0f, 1.0f);
             outL = inL + wetL * mix;
             outR = inR + wetR * mix;
         }

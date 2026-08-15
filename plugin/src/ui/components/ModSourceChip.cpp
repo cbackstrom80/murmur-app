@@ -109,26 +109,6 @@ namespace pw8::plugin::ui
                 return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " REV MOD";
             case ModDestination::MasterGain:
                 return "MASTER GAIN";
-            case ModDestination::QuasarQsr1Distance:
-                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " Q1 DIST";
-            case ModDestination::QuasarQsr2Distance:
-                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " Q2 DIST";
-            case ModDestination::QuasarQsr1Angle:
-                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " Q1 ANG";
-            case ModDestination::QuasarQsr2Angle:
-                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " Q2 ANG";
-            case ModDestination::QuasarQsr1Height:
-                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " Q1 HGT";
-            case ModDestination::QuasarQsr2Height:
-                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " Q2 HGT";
-            case ModDestination::QuasarRoomAmount:
-                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " Q ROOM";
-            case ModDestination::QuasarDelayFeedback:
-                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " Q DLY FB";
-            case ModDestination::QuasarDelayTime:
-                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " Q DLY T";
-            case ModDestination::QuasarCntrLevel:
-                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " CNTR";
         }
         return "-";
     }

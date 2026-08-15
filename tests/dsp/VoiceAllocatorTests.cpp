@@ -71,11 +71,12 @@ TEST_CASE("VoiceAllocator steals a released voice over an actively-gated one", "
     std::array<const pw8::oscillator::WavetableTable*, pw8::core::kNodesPerLayer> tables{};
     std::array<float, pw8::core::kNumLfosPerLayer> layerLfoValues{};
     pw8::core::FixedVector<pw8::modulation::ModRoute, pw8::core::kMaxModRoutes> modRoutes{};
+    pw8::core::FixedVector<pw8::patch::MetaModRoute, 8> metaRoutes{};
     // A few samples keeps alloc0 in release (gate off, amp envelope still dying) without going fully idle.
     for (int i = 0; i < 10; ++i)
     {
         float l = 0.0f, r = 0.0f;
-        pool[alloc0.index].renderSample(compiled, tables, 120.0f, layerLfoValues, modRoutes,
+        pool[alloc0.index].renderSample(compiled, tables, 120.0f, layerLfoValues, modRoutes, metaRoutes,
                                          render::QualityMode::Normal, l, r);
     }
 

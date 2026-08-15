@@ -1,5 +1,7 @@
 #include "pw8/patch/PatchSerializer.hpp"
 
+#include "pw8/patch/PatchModDefaults.hpp"
+
 #include <algorithm>
 
 #include <nlohmann/json.hpp>
@@ -334,6 +336,7 @@ namespace pw8::patch
                 {"reverbModDepth", e.reverbModDepth},               {"reverbModRateHz", e.reverbModRateHz},
                 {"reverbEarlyLevel", e.reverbEarlyLevel},           {"reverbLateLevel", e.reverbLateLevel},
                 {"reverbRollOffHz", e.reverbRollOffHz},             {"reverbVlfCutDb", e.reverbVlfCutDb},
+                {"reverbCharacter", e.reverbCharacter},
                 {"eqLowFreqHz", e.eqLowFreqHz},                     {"eqLowGainDb", e.eqLowGainDb},
                 {"eqMidFreqHz", e.eqMidFreqHz},                     {"eqMidGainDb", e.eqMidGainDb},
                 {"eqMidQ", e.eqMidQ},
@@ -343,33 +346,27 @@ namespace pw8::patch
                 {"compKneeDb", e.compKneeDb},                       {"compMakeupDb", e.compMakeupDb},
                 {"compTransformerCore", e.compTransformerCore},   {"compTransformerBrand", e.compTransformerBrand},
                 {"compTransformerAmount", e.compTransformerAmount},
+                {"compAutoMakeup", e.compAutoMakeup},
+                {"compCharacter", e.compCharacter},
+                {"vocoderBandCount", e.vocoderBandCount},
+                {"vocoderFormant", e.vocoderFormant},
+                {"vocoderSibilance", e.vocoderSibilance},
+                {"vocoderScGainDb", e.vocoderScGainDb},
                 {"limiterCeilingDb", e.limiterCeilingDb},           {"limiterLookaheadMs", e.limiterLookaheadMs},
                 {"limiterReleaseMs", e.limiterReleaseMs},
-                {"qsr1Level", e.qsr1Level},                         {"qsr2Level", e.qsr2Level},
-                {"cntrLevel", e.cntrLevel},                         {"inputSplitHpfHz", e.inputSplitHpfHz},
-                {"cntrHpfHz", e.cntrHpfHz},
-                {"qsr1Height", e.qsr1Height},                       {"qsr1Angle", e.qsr1AngleDeg},
-                {"qsr1Distance", e.qsr1Distance},
-                {"qsr2Height", e.qsr2Height},                       {"qsr2Angle", e.qsr2AngleDeg},
-                {"qsr2Distance", e.qsr2Distance},
-                {"qsr1RoomAmount", e.qsr1RoomAmount},               {"qsr1RoomSize", e.qsr1RoomSize},
-                {"qsr1RoomDamping", e.qsr1RoomDamping},
-                {"qsr2RoomAmount", e.qsr2RoomAmount},               {"qsr2RoomSize", e.qsr2RoomSize},
-                {"qsr2RoomDamping", e.qsr2RoomDamping},
-                {"quasarDelayTimeMs", e.quasarDelayTimeMs},         {"quasarDelayFeedback", e.quasarDelayFeedback},
-                {"quasarDelayVolume", e.quasarDelayVolume},
-                {"quasarOutputMode", e.quasarOutputMode},
-                {"quasarCrossfeed", e.quasarCrossfeed},
                 {"tapeDelaySync", e.tapeDelaySync},
                 {"tapeDelaySyncDivisionIndex", e.tapeDelaySyncDivisionIndex},
-                {"quasarDelaySync", e.quasarDelaySync},
-                {"quasarDelaySyncDivisionIndex", e.quasarDelaySyncDivisionIndex},
             };
         }
 
         void fromJson(const json& j, effects::EffectSlotParams& e)
         {
-            e.type = static_cast<effects::EffectType>(clampNum(j.value("type", 0), 0, 12));
+            int typeOrdinal = static_cast<int>(clampNum(j.value("type", 0), 0, 12));
+            if (typeOrdinal == 11)
+                typeOrdinal = 0; // legacy BinauralSpace → Bypass
+            else if (typeOrdinal == 12)
+                typeOrdinal = 11; // legacy Vocoder ordinal
+            e.type = static_cast<effects::EffectType>(typeOrdinal);
             e.mix = clampNum(j.value("mix", 1.0f), 0.0f, 1.0f);
 
             e.saturationDriveDb = clampNum(j.value("saturationDriveDb", 6.0f), 0.0f, 48.0f);
@@ -444,6 +441,7 @@ namespace pw8::patch
             e.reverbLateLevel = clampNum(j.value("reverbLateLevel", 1.0f), 0.0f, 1.0f);
             e.reverbRollOffHz = clampNum(j.value("reverbRollOffHz", 12000.0f), 80.0f, 20000.0f);
             e.reverbVlfCutDb = clampNum(j.value("reverbVlfCutDb", 0.0f), -18.0f, 0.0f);
+            e.reverbCharacter = static_cast<int>(clampNum(j.value("reverbCharacter", 0), 0, 4));
 
             e.eqLowFreqHz = clampNum(j.value("eqLowFreqHz", 200.0f), 20.0f, 20000.0f);
             e.eqLowGainDb = clampNum(j.value("eqLowGainDb", 0.0f), -24.0f, 24.0f);
@@ -462,40 +460,21 @@ namespace pw8::patch
             e.compTransformerCore = clampNum(j.value("compTransformerCore", 0.0f), 0.0f, 3.0f);
             e.compTransformerBrand = clampNum(j.value("compTransformerBrand", 0.0f), 0.0f, 3.0f);
             e.compTransformerAmount = clampNum(j.value("compTransformerAmount", 1.0f), 0.0f, 1.0f);
+            e.compAutoMakeup = j.value("compAutoMakeup", false);
+            e.compCharacter = static_cast<int>(clampNum(j.value("compCharacter", 0), 0, 2));
+            e.vocoderBandCount = static_cast<int>(clampNum(j.value("vocoderBandCount", 8), 8, 16));
+            e.vocoderFormant = clampNum(j.value("vocoderFormant", 0.5f), 0.0f, 1.0f);
+            e.vocoderSibilance = clampNum(j.value("vocoderSibilance", 0.0f), 0.0f, 1.0f);
+            e.vocoderScGainDb = clampNum(j.value("vocoderScGainDb", 0.0f), 0.0f, 48.0f);
 
             e.limiterCeilingDb = clampNum(j.value("limiterCeilingDb", -0.3f), -12.0f, 0.0f);
             e.limiterLookaheadMs = clampNum(j.value("limiterLookaheadMs", 5.0f),
                                              0.5f, effects::kMaxLimiterLookaheadSeconds * 1000.0f);
             e.limiterReleaseMs = clampNum(j.value("limiterReleaseMs", 60.0f), 1.0f, 2000.0f);
 
-            e.qsr1Level = clampNum(j.value("qsr1Level", 0.65f), 0.0f, 1.0f);
-            e.qsr2Level = clampNum(j.value("qsr2Level", 0.55f), 0.0f, 1.0f);
-            e.cntrLevel = clampNum(j.value("cntrLevel", 0.85f), 0.0f, 1.0f);
-            e.inputSplitHpfHz = clampNum(j.value("inputSplitHpfHz", 120.0f), 20.0f, 500.0f);
-            e.cntrHpfHz = clampNum(j.value("cntrHpfHz", 80.0f), 20.0f, 300.0f);
-            e.qsr1Height = clampNum(j.value("qsr1Height", 0.0f), -1.0f, 1.0f);
-            e.qsr1AngleDeg = clampNum(j.value("qsr1Angle", j.value("qsr1AngleDeg", 30.0f)), 0.0f, 360.0f);
-            e.qsr1Distance = clampNum(j.value("qsr1Distance", 0.35f), 0.0f, 1.0f);
-            e.qsr2Height = clampNum(j.value("qsr2Height", 0.0f), -1.0f, 1.0f);
-            e.qsr2AngleDeg = clampNum(j.value("qsr2Angle", j.value("qsr2AngleDeg", 330.0f)), 0.0f, 360.0f);
-            e.qsr2Distance = clampNum(j.value("qsr2Distance", 0.4f), 0.0f, 1.0f);
-            e.qsr1RoomAmount = clampNum(j.value("qsr1RoomAmount", 0.45f), 0.0f, 1.0f);
-            e.qsr1RoomSize = clampNum(j.value("qsr1RoomSize", 1.0f), 0.2f, 3.0f);
-            e.qsr1RoomDamping = clampNum(j.value("qsr1RoomDamping", 0.55f), 0.0f, 1.0f);
-            e.qsr2RoomAmount = clampNum(j.value("qsr2RoomAmount", 0.40f), 0.0f, 1.0f);
-            e.qsr2RoomSize = clampNum(j.value("qsr2RoomSize", 1.1f), 0.2f, 3.0f);
-            e.qsr2RoomDamping = clampNum(j.value("qsr2RoomDamping", 0.50f), 0.0f, 1.0f);
-            e.quasarDelayTimeMs = clampNum(j.value("quasarDelayTimeMs", 450.0f), 3.0f, 20000.0f);
-            e.quasarDelayFeedback = clampNum(j.value("quasarDelayFeedback", 0.35f), 0.0f, 1.0f);
-            e.quasarDelayVolume = clampNum(j.value("quasarDelayVolume", 0.25f), 0.0f, 1.0f);
-            e.quasarOutputMode = static_cast<int>(clampNum(j.value("quasarOutputMode", 0.0f), 0.0f, 2.0f));
-            e.quasarCrossfeed = clampNum(j.value("quasarCrossfeed", 0.0f), 0.0f, 1.0f);
             e.tapeDelaySync = j.value("tapeDelaySync", false);
             e.tapeDelaySyncDivisionIndex =
                 static_cast<int>(clampNum(j.value("tapeDelaySyncDivisionIndex", 2.0f), 0.0f, 8.0f));
-            e.quasarDelaySync = j.value("quasarDelaySync", false);
-            e.quasarDelaySyncDivisionIndex =
-                static_cast<int>(clampNum(j.value("quasarDelaySyncDivisionIndex", 2.0f), 0.0f, 8.0f));
         }
 
         void toJson(json& j, const LayerPatch& l)
@@ -537,6 +516,17 @@ namespace pw8::patch
                 routes.push_back(jr);
             }
 
+            json metaRoutes = json::array();
+            for (const auto& mr : l.metaRoutes)
+            {
+                json jmr;
+                jmr["source"] = static_cast<int>(mr.source);
+                jmr["targetRouteIndex"] = mr.targetRouteIndex;
+                jmr["amount"] = mr.amount;
+                jmr["scope"] = static_cast<int>(mr.scope);
+                metaRoutes.push_back(jmr);
+            }
+
             json inserts = json::array();
             for (const auto& fx : l.insertEffects)
             {
@@ -547,7 +537,8 @@ namespace pw8::patch
 
             j = json{{"operators", ops},       {"algorithm", algo},           {"envelopes", envelopes},
                      {"unison", uni},           {"filter1", filt},             {"filter2", filt2},
-                     {"lfos", lfos},            {"modRoutes", routes},         {"gain", l.gain},
+                     {"lfos", lfos},            {"modRoutes", routes},         {"metaRoutes", metaRoutes},
+                     {"gain", l.gain},
                      {"pan", l.pan},            {"width", l.width},            {"centerGravity", l.centerGravity},
                      {"insertEffects", inserts}};
         }
@@ -614,6 +605,23 @@ namespace pw8::patch
                     modulation::ModRoute r;
                     fromJson(jr, r);
                     l.modRoutes.push_back(r);
+                }
+            }
+
+            l.metaRoutes.clear();
+            if (j.contains("metaRoutes") && j.at("metaRoutes").is_array())
+            {
+                for (const auto& jmr : j.at("metaRoutes"))
+                {
+                    if (l.metaRoutes.size() >= 8)
+                        break;
+                    patch::MetaModRoute mr{};
+                    mr.source = static_cast<modulation::ModSource>(clampNum(jmr.value("source", 0), 0, 31));
+                    mr.targetRouteIndex =
+                        static_cast<std::uint8_t>(clampNum(jmr.value("targetRouteIndex", 0), 0, 255));
+                    mr.amount = clampNum(jmr.value("amount", 0.0f), -64.0f, 64.0f);
+                    mr.scope = static_cast<modulation::ModScope>(clampNum(jmr.value("scope", 0), 0, 2));
+                    l.metaRoutes.push_back(mr);
                 }
             }
 

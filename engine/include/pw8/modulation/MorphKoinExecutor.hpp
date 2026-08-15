@@ -97,67 +97,7 @@ namespace pw8::modulation
 
                 if (field == "mix")
                     e.mix = value;
-                else if (field == "qsr1Distance")
-                    e.qsr1Distance = value;
-                else if (field == "qsr2Distance")
-                    e.qsr2Distance = value;
-                else if (field == "qsr1Angle" || field == "qsr1AngleDeg")
-                    e.qsr1AngleDeg = value;
-                else if (field == "qsr2Angle" || field == "qsr2AngleDeg")
-                    e.qsr2AngleDeg = value;
-                else if (field == "qsr1Height")
-                    e.qsr1Height = value;
-                else if (field == "qsr2Height")
-                    e.qsr2Height = value;
-                else if (field == "qsr1RoomAmount")
-                    e.qsr1RoomAmount = value;
-                else if (field == "qsr2RoomAmount")
-                    e.qsr2RoomAmount = value;
-                else if (field == "cntrLevel")
-                    e.cntrLevel = value;
-                else if (field == "quasarDelayFeedback")
-                    e.quasarDelayFeedback = value;
-                else if (field == "quasarDelayTimeMs")
-                    e.quasarDelayTimeMs = value;
-                else if (field == "quasarDelayVolume")
-                    e.quasarDelayVolume = value;
-                else if (field == "qsr1RoomSize")
-                    e.qsr1RoomSize = value;
-                else if (field == "qsr2RoomSize")
-                    e.qsr2RoomSize = value;
-                else if (field == "qsr1RoomDamping")
-                    e.qsr1RoomDamping = value;
-                else if (field == "qsr2RoomDamping")
-                    e.qsr2RoomDamping = value;
-                else if (field == "qsr1Level")
-                    e.qsr1Level = value;
-                else if (field == "qsr2Level")
-                    e.qsr2Level = value;
                 return;
-            }
-
-            // Bare quasar param names — apply to first BinauralSpace master slot.
-            for (auto& e : patch.masterEffects)
-            {
-                if (e.type != effects::EffectType::BinauralSpace)
-                    continue;
-                if (path == "qsr1Distance")
-                    e.qsr1Distance = value;
-                else if (path == "qsr2Distance")
-                    e.qsr2Distance = value;
-                else if (path == "qsr1RoomAmount")
-                    e.qsr1RoomAmount = value;
-                else if (path == "qsr2RoomAmount")
-                    e.qsr2RoomAmount = value;
-                else if (path == "cntrLevel")
-                    e.cntrLevel = value;
-                else if (path == "quasarDelayFeedback")
-                    e.quasarDelayFeedback = value;
-                else if (path == "quasarDelayTimeMs")
-                    e.quasarDelayTimeMs = value;
-                else if (path == "mix")
-                    e.mix = value;
-                break;
             }
         }
     } // namespace detail

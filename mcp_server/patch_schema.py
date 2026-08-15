@@ -144,16 +144,14 @@ MOD_DEST_IDS: dict[str, int] = {
     "master_reverb_decay": 16, "master_reverb_pre_delay": 17,
     "master_reverb_diffusion": 18, "master_reverb_mod_depth": 19,
     "master_gain": 20,
-    "quasar_qsr1_distance": 21, "quasar_qsr2_distance": 22,
-    "quasar_qsr1_angle": 23, "quasar_qsr2_angle": 24,
-    "quasar_qsr1_height": 25, "quasar_qsr2_height": 26,
-    "quasar_room_amount": 27, "quasar_delay_feedback": 28,
-    "quasar_delay_time": 29, "quasar_cntr_level": 30,
+    "vocoder_mix": 21,
+    "vocoder_formant": 22,
+    "mod_route_depth": 23,
 }
 MOD_DEST_NAMES = {v: k for k, v in MOD_DEST_IDS.items()}
 # Destinations that require targetIndex (operator index 0-7, or master slot 0-3).
 MOD_DEST_NEEDS_TARGET = {3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-                         21, 22, 23, 24, 25, 26, 27, 28, 29, 30}
+                         21, 22}
 
 MOD_SCOPE_IDS = {"voice": 0, "layer": 1, "global": 2}
 MOD_SCOPE_NAMES = {v: k for k, v in MOD_SCOPE_IDS.items()}
@@ -163,7 +161,7 @@ MOD_SCOPE_NAMES = {v: k for k, v in MOD_SCOPE_IDS.items()}
 EFFECT_TYPE_IDS: dict[str, int] = {
     "bypass": 0, "saturation": 1, "chorus": 2, "tape_delay": 3, "node_delay": 4,
     "freq_shift_echo": 5, "fractal_echo": 6, "reverb": 7, "eq": 8,
-    "compressor": 9, "limiter": 10, "binaural_space": 11,
+    "compressor": 9, "limiter": 10, "vocoder": 11,
 }
 EFFECT_TYPE_NAMES = {v: k for k, v in EFFECT_TYPE_IDS.items()}
 

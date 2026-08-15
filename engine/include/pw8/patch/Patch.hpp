@@ -138,6 +138,20 @@ namespace pw8::patch
         filter::FilterParams filter1{};
     };
 
+    /// Macro → mod-route depth (Hydrasynth-style meta-mod). See docs/META_MOD_PLAN.md.
+    struct MetaModRoute
+    {
+        modulation::ModSource source = modulation::ModSource::None;
+        std::uint8_t targetRouteIndex = 0;
+        float amount = 0.0f;
+        modulation::ModScope scope = modulation::ModScope::Voice;
+
+        [[nodiscard]] bool isActive() const noexcept
+        {
+            return source != modulation::ModSource::None;
+        }
+    };
+
     struct LayerPatch
     {
         std::array<OperatorPatch, core::kNodesPerLayer> operators{};
@@ -170,6 +184,8 @@ namespace pw8::patch
 
         /// Fixed-capacity mod matrix routes (VOICE scope executed in this pass).
         core::FixedVector<modulation::ModRoute, core::kMaxModRoutes> modRoutes;
+        /// Optional meta-mod routes: modulate another route's depth (docs/META_MOD_PLAN.md).
+        core::FixedVector<MetaModRoute, 8> metaRoutes;
 
         float gain = 1.0f;
         float pan = 0.0f;

@@ -6,7 +6,7 @@
 // audible effect on Layer A (the only voiced layer, Phase 8) or is genuinely a
 // live performance control (macros, arpeggiator's scalar fields, effect slot
 // scalar fields), and (b) is POD -- safe to read/write from the audio thread with
-// zero allocation risk. That's 842 parameters: 8 macros, Global Filter (5), 8 engine
+// zero allocation risk. That's 674 parameters: 8 macros, Global Filter (5), 8 engine
 // filters x 5 fields (40), 8 LFOs x 5 fields (40), 8 operators x 37 fields (296),
 // 8 envelopes x 8 fields (64), layer
 // gain/pan + master gain (3), 3 insert + 4 master FX slots x 54 scalar fields
@@ -14,7 +14,7 @@
 // fields in GATE 11's multiband redesign), and the arpeggiator's 8 top-level
 // scalar fields -- see docs/PLUGIN_ARCHITECTURE.md "Automation" for the exact
 // count and running total across passes (8 -> 270 -> 361 -> 501 -> 578 -> 610
-// -> 626 -> 658 -> 690 -> 730 -> 762 -> 802 -> 842,
+// -> 626 -> 658 -> 690 -> 730 -> 762 -> 802 -> 842 -> 674,
 // docs/ROADMAP.md).
 //
 // Deliberately NOT exposed as flat automation (see render::Engine's "Live
@@ -76,7 +76,7 @@ namespace pw8::plugin
     inline constexpr std::size_t kNumFilter2Fields = 5;
     inline constexpr std::size_t kNumLfoFields = 5;
     inline constexpr std::size_t kNumEnvelopeFields = 8;
-    inline constexpr std::size_t kNumEffectSlotFields = 83;
+    inline constexpr std::size_t kNumEffectSlotFields = 59;
     inline constexpr std::size_t kNumArpFields = 8;
 
     /// One automatable field's shape: a stable ID suffix, a human-readable label,
@@ -131,7 +131,7 @@ namespace pw8::plugin
     inline constexpr const char* kMasterGainId = "masterGain";
 
     /// Builds the plugin's full `AudioProcessorValueTreeState` parameter layout --
-    /// all 842 parameters described above, generated from the field-spec tables
+    /// all 674 parameters described above, generated from the field-spec tables
     /// rather than hand-written one at a time.
     [[nodiscard]] juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 

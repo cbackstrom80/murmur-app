@@ -45,8 +45,7 @@ namespace pw8::effects
         Eq,
         Compressor,
         Limiter,
-        BinauralSpace, ///< Quasar-inspired global binaural spatial mixer (see docs/GLOBAL_QUASAR_FX_PLAN.md).
-        Vocoder,       ///< Sidechain-driven band vocoder (DEEP CYCLE — see docs/VOCODER_SIDECHAIN_PLAN.md).
+        Vocoder, ///< Sidechain-driven band vocoder (DEEP CYCLE — see docs/VOCODER_SIDECHAIN_PLAN.md).
     };
 
     enum class DelayPanMode : std::uint8_t
@@ -74,7 +73,24 @@ namespace pw8::effects
 
     inline constexpr std::size_t kNumRoomEngineLines = 8;
     inline constexpr float kMaxRoomLineSeconds = 0.12f;
-    inline constexpr float kMaxQuasarDelaySeconds = 20.0f;
+
+    /// Standalone Reverb slot character presets (FX deep pass).
+    enum class ReverbCharacter : std::uint8_t
+    {
+        Default = 0,
+        Plate,
+        Hall,
+        Room,
+        Spring,
+    };
+
+    /// Compressor topology character (FX deep pass).
+    enum class CompCharacter : std::uint8_t
+    {
+        Vca = 0,
+        Fet,
+        Opto,
+    };
 
     /// One node in a NodeDelay tree. `parentIndex < static_cast<int>(ownIndex)` is
     /// required (validated/clamped at load, same "always route from a lower index"
@@ -165,6 +181,7 @@ namespace pw8::effects
         float reverbLateLevel = 1.0f;      ///< 0..1, late-tank level (M7 "Early/Reverb Mix", reverb half).
         float reverbRollOffHz = 12000.0f;  ///< 80..20000, final output lowpass (M7 "Roll Off").
         float reverbVlfCutDb = 0.0f;       ///< -18..0 dB, low-shelf cut of very-low-frequency wet content (M7 "VLF Cut").
+        int reverbCharacter = 0;           ///< ReverbCharacter — Plate/Hall/Room/Spring preset bundles on FDN.
 
         // -- Eq (3-band: low shelf, mid peak, high shelf; RBJ Audio EQ Cookbook biquads) --
         float eqLowFreqHz = 200.0f;
@@ -186,38 +203,19 @@ namespace pw8::effects
         float compTransformerCore = 0.0f;   // 0 off, 1 nickel, 2 iron, 3 steel
         float compTransformerBrand = 0.0f;  // 0 neutral, 1 jensen, 2 cinemag, 3 sowter
         float compTransformerAmount = 1.0f; // 0..1 blend of transformer colour
+        bool compAutoMakeup = false;        ///< estimate makeup from threshold/ratio when true
+        int compCharacter = 0;              ///< CompCharacter — VCA/FET/Opto attack/release curves
+
+        // -- Vocoder (Phase 2 dedicated fields; legacy scalar aliases still read as fallback) --
+        int vocoderBandCount = 8;     ///< 8..16 bands
+        float vocoderFormant = 0.5f;  ///< 0..1 → formant multiplier
+        float vocoderSibilance = 0.0f; ///< 0..1 high-band envelope boost
+        float vocoderScGainDb = 0.0f;  ///< sidechain modulator gain in dB
 
         // -- Limiter (lookahead, sliding-window-minimum gain -- true no-overshoot) --
         float limiterCeilingDb = -0.3f;
         float limiterLookaheadMs = 5.0f;
         float limiterReleaseMs = 60.0f;
-
-        // -- BinauralSpace / QUASAR (docs/GLOBAL_QUASAR_FX_PLAN.md) --
-        float qsr1Level = 0.65f;
-        float qsr2Level = 0.55f;
-        float cntrLevel = 0.85f;
-        float inputSplitHpfHz = 120.0f;
-        float cntrHpfHz = 80.0f;
-        float qsr1Height = 0.0f;
-        float qsr1AngleDeg = 30.0f;
-        float qsr1Distance = 0.35f;
-        float qsr2Height = 0.0f;
-        float qsr2AngleDeg = 330.0f;
-        float qsr2Distance = 0.4f;
-        float qsr1RoomAmount = 0.45f;
-        float qsr1RoomSize = 1.0f;
-        float qsr1RoomDamping = 0.55f;
-        float qsr2RoomAmount = 0.40f;
-        float qsr2RoomSize = 1.1f;
-        float qsr2RoomDamping = 0.50f;
-        float quasarDelayTimeMs = 450.0f;
-        float quasarDelayFeedback = 0.35f;
-        float quasarDelayVolume = 0.25f;
-        /// 0 = Headphone, 1 = Speaker, 2 = Auto (default Headphone).
-        int quasarOutputMode = 0;
-        float quasarCrossfeed = 0.0f; ///< 0..1 contralateral mix (Speaker mode).
-        bool quasarDelaySync = false;
-        int quasarDelaySyncDivisionIndex = static_cast<int>(dsp::kDefaultDelaySyncDivisionIndex);
     };
 
 } // namespace pw8::effects

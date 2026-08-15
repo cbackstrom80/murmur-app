@@ -32,13 +32,15 @@ namespace pw8::render
         }
 
         /// PoliMATHS Modulation Dissemination (MVP): sample featured macro values at note-on.
-        void assignVoiceMacroValues(voice::Voice& voice, const patch::Patch& patch, std::uint64_t voiceSeed,
-                                    std::uint64_t noteGenerationId) noexcept
+        void assignVoicePerformanceSnapshot(voice::Voice& voice, const patch::Patch& patch, std::uint64_t voiceSeed,
+                                            std::uint64_t noteGenerationId) noexcept
         {
             if (!patch.voiceSettings.macroDissemination)
             {
                 for (std::size_t i = 0; i < voice.macroValues.size(); ++i)
                     voice.macroValues[i] = patch.macros[i].value;
+                voice.morphPosition = patch.morphKoin.keyframes.size() >= 2 ? patch.morphKoin.position
+                                                                            : patch.morphKoin.defaultPosition;
                 return;
             }
 
@@ -58,6 +60,15 @@ namespace pw8::render
                 else
                     voice.macroValues[i] = base;
             }
+
+            if (patch.morphKoin.keyframes.size() >= 2)
+            {
+                const float baseMorph = patch.morphKoin.position;
+                const float morphOffset = spread > 0.0f ? (rng.nextFloat() * 2.0f - 1.0f) * spread * 0.35f : 0.0f;
+                voice.morphPosition = dsp::clamp(baseMorph + morphOffset, 0.0f, 1.0f);
+            }
+            else
+                voice.morphPosition = patch.morphKoin.defaultPosition;
         }
 
         float layerOutputGain(const patch::LayerPatch& layer, float masterGain) noexcept
@@ -125,36 +136,29 @@ namespace pw8::render
                     e.reverbDiffusion = dsp::clamp(e.reverbDiffusion + mod.reverbDiffusionOffset[i], 0.0f, 1.0f);
                     e.reverbModDepth = dsp::clamp(e.reverbModDepth + mod.reverbModDepthOffset[i], 0.0f, 1.0f);
                 }
-                else if (e.type == effects::EffectType::BinauralSpace)
+                else if (e.type == effects::EffectType::Vocoder)
                 {
-                    e.qsr1RoomSize = dsp::clamp(e.qsr1RoomSize + mod.reverbSizeOffset[i], 0.2f, 3.0f);
-                    e.qsr2RoomSize = dsp::clamp(e.qsr2RoomSize + mod.reverbSizeOffset[i] * 0.85f, 0.2f, 3.0f);
-                    e.qsr1RoomAmount = dsp::clamp(e.qsr1RoomAmount + mod.reverbDecayOffset[i] * 0.08f, 0.0f, 1.0f);
-                    e.qsr2RoomAmount = dsp::clamp(e.qsr2RoomAmount + mod.reverbDecayOffset[i] * 0.08f, 0.0f, 1.0f);
-                    e.qsr1Distance = dsp::clamp(e.qsr1Distance + mod.reverbPreDelayOffset[i] * 0.002f, 0.0f, 1.0f);
-                    e.qsr2Distance = dsp::clamp(e.qsr2Distance + mod.reverbPreDelayOffset[i] * 0.002f, 0.0f, 1.0f);
-                    e.quasarDelayFeedback =
-                        dsp::clamp(e.quasarDelayFeedback + mod.reverbDiffusionOffset[i] * 0.15f, 0.0f, 1.0f);
-
-                    e.qsr1Distance =
-                        dsp::clamp(e.qsr1Distance + mod.quasarQsr1DistanceOffset[i], 0.0f, 1.0f);
-                    e.qsr2Distance =
-                        dsp::clamp(e.qsr2Distance + mod.quasarQsr2DistanceOffset[i], 0.0f, 1.0f);
-                    e.qsr1AngleDeg =
-                        std::fmod(e.qsr1AngleDeg + mod.quasarQsr1AngleOffset[i] + 360.0f, 360.0f);
-                    e.qsr2AngleDeg =
-                        std::fmod(e.qsr2AngleDeg + mod.quasarQsr2AngleOffset[i] + 360.0f, 360.0f);
-                    e.qsr1Height = dsp::clamp(e.qsr1Height + mod.quasarQsr1HeightOffset[i], -1.0f, 1.0f);
-                    e.qsr2Height = dsp::clamp(e.qsr2Height + mod.quasarQsr2HeightOffset[i], -1.0f, 1.0f);
-                    const float roomAmt = mod.quasarRoomAmountOffset[i];
-                    e.qsr1RoomAmount = dsp::clamp(e.qsr1RoomAmount + roomAmt, 0.0f, 1.0f);
-                    e.qsr2RoomAmount = dsp::clamp(e.qsr2RoomAmount + roomAmt, 0.0f, 1.0f);
-                    e.quasarDelayFeedback =
-                        dsp::clamp(e.quasarDelayFeedback + mod.quasarDelayFeedbackOffset[i], 0.0f, 1.0f);
-                    e.quasarDelayTimeMs =
-                        dsp::clamp(e.quasarDelayTimeMs + mod.quasarDelayTimeOffset[i], 3.0f, 20000.0f);
-                    e.cntrLevel = dsp::clamp(e.cntrLevel + mod.quasarCntrLevelOffset[i], 0.0f, 1.0f);
+                    e.mix = dsp::clamp(e.mix + mod.masterVocoderMixOffset[i], 0.0f, 1.0f);
+                    e.vocoderFormant =
+                        dsp::clamp(e.vocoderFormant + mod.masterVocoderFormantOffset[i], 0.0f, 1.0f);
                 }
+                else if (e.type == effects::EffectType::Compressor)
+                {
+                    e.compThresholdDb = dsp::clamp(e.compThresholdDb + mod.compThresholdOffset[i], -60.0f, 0.0f);
+                }
+            }
+        }
+
+        void applyInsertModToEffects(std::array<effects::EffectSlotParams, effects::kNumLayerInsertSlots>& slots,
+                                     const modulation::MasterModOutputs& mod) noexcept
+        {
+            for (std::size_t i = 0; i < slots.size(); ++i)
+            {
+                auto& e = slots[i];
+                if (e.type != effects::EffectType::Vocoder)
+                    continue;
+                e.mix = dsp::clamp(e.mix + mod.vocoderMixOffset[i], 0.0f, 1.0f);
+                e.vocoderFormant = dsp::clamp(e.vocoderFormant + mod.vocoderFormantOffset[i], 0.0f, 1.0f);
             }
         }
 
@@ -374,7 +378,7 @@ namespace pw8::render
             const auto age = allocator.nextAge();
             const auto noteGen = ++noteGenerationCounter_;
             const auto voiceSeed = patch_.seed ^ static_cast<std::uint64_t>(u + 1);
-            assignVoiceMacroValues(v, patch_, voiceSeed, noteGen);
+            assignVoicePerformanceSnapshot(v, patch_, voiceSeed, noteGen);
 
             float detuneCents = 0.0f;
             float unisonPan = 0.0f;
@@ -1006,7 +1010,7 @@ namespace pw8::render
                 {
                     float vl = 0.0f, vr = 0.0f;
                     voices_[i].renderSample(compiledLayerA_, wavetableTablesA_, bpm_, layerLfoValues,
-                                             patch_.layerA.modRoutes, qualityMode_, vl, vr);
+                                             patch_.layerA.modRoutes, patch_.layerA.metaRoutes, qualityMode_, vl, vr);
                     kahanAdd(sumL, kahanL, vl);
                     kahanAdd(sumR, kahanR, vr);
                 }
@@ -1033,7 +1037,7 @@ namespace pw8::render
                     {
                         float vl = 0.0f, vr = 0.0f;
                         voicesB_[i].renderSample(compiledLayerB_, wavetableTablesB_, bpm_, layerLfoValuesB,
-                                                  patch_.layerB.modRoutes, qualityMode_, vl, vr);
+                                                  patch_.layerB.modRoutes, patch_.layerB.metaRoutes, qualityMode_, vl, vr);
                         kahanAdd(sumBL, kahanBL, vl);
                         kahanAdd(sumBR, kahanBR, vr);
                     }
