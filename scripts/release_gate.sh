@@ -102,6 +102,13 @@ if [[ "$INTERSTELLAR_COUNT" -lt 100 ]]; then
     echo "       Run: python3 scripts/generate_interstellar_presets.py" >&2
     exit 1
 fi
+HOOVER_COUNT=$(rg -l '"hoover-bass"' "$PRESETS_SRC/Basses" --glob '*.pw8' 2>/dev/null | wc -l | tr -d ' ')
+echo "    Hoover bass:     ${HOOVER_COUNT}"
+if [[ "$HOOVER_COUNT" -lt 28 ]]; then
+    echo "ERROR: Hoover bass bank incomplete (need ≥28, have ${HOOVER_COUNT})" >&2
+    echo "       Run: python3 scripts/generate_genre_expansion_presets.py" >&2
+    exit 1
+fi
 if [[ "$PRESET_COUNT" -lt 1000 ]]; then
     echo "ERROR: Factory preset count too low (need ≥1000, have ${PRESET_COUNT})" >&2
     exit 1

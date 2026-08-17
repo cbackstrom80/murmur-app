@@ -41,6 +41,7 @@ namespace pw8::plugin::ui
             Community
         };
 
+        static constexpr const char* kAllCategoryKey = "__all__";
         static constexpr const char* kFavoritesCategoryKey = "__favorites__";
 
         void textEditorTextChanged(juce::TextEditor&) override;

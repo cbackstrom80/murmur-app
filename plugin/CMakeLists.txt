@@ -60,6 +60,14 @@ juce_add_plugin(pw8_plugin
     AU_MAIN_TYPE "kAudioUnitType_MusicDevice"
 )
 
+# Standalone must use a distinct bundle ID — otherwise macOS pkg install relocates the AU
+# into MURMUR.app and Logic never sees MURMUR.component (PackageKit collision).
+if(TARGET pw8_plugin_Standalone)
+    set_target_properties(pw8_plugin_Standalone PROPERTIES
+        JUCE_BUNDLE_ID "com.patchwork.murmur.standalone"
+        XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.patchwork.murmur.standalone")
+endif()
+
 target_sources(pw8_plugin PRIVATE
     src/processor/PatchworkEightProcessor.cpp
     src/state/PluginState.cpp

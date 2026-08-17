@@ -29,6 +29,19 @@ MURMUR **1.4.3** is ready. This is the full Cadillac build — plug-in, all fact
 
 That opens the Preset Explorer (search, categories, mood/genre filters).
 
+## Presets to show off
+
+**Interstellar (175)** — filter category **INTERSTELLAR** or search `cinematic`:
+- **CATHEDRAL NEBULA** — hold C3–C5, sweep mod wheel
+- **CORNFIELD CHASE** — lead lines, great with scope view
+- **VOID CATHEDRAL** (`Interstellar/Spatial/`) — headphones spatial pad
+
+**Hoover Bass (28)** — filter category **BASS**, genre **hoover-bass**, or search `hoover`:
+- **CLUB HOOVER** — the classic rave hoover (Basses/087)
+- **RAVE DRIVE**, **ACID SURGE** — more aggressive hoover variants
+
+Full demo list: `~/Library/Application Support/MURMUR/Docs/BEN_DEMO_PRESETS.md`
+
 ## What's new
 
 - iPad-style PLAY screen (scope + master volume deck + 6 macros)

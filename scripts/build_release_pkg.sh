@@ -220,6 +220,10 @@ sign_bundle() {
 }
 
 echo "==> Code-signing bundles (${SIGN_IDENTITY:-ad-hoc})..."
+if [[ "$SYSTEM_ONLY" -eq 0 && -f "${APP_SRC}/Contents/Info.plist" ]]; then
+    # Distinct standalone ID prevents PackageKit from relocating the AU into MURMUR.app.
+    plutil -replace CFBundleIdentifier -string "com.patchwork.murmur.standalone" "${APP_SRC}/Contents/Info.plist"
+fi
 sign_bundle "$AU_SRC"
 if [[ "$SYSTEM_ONLY" -eq 0 ]]; then
     sign_bundle "$VST3_SRC"
@@ -277,7 +281,7 @@ fi
 # Logic / Ben MVP docs shipped beside presets.
 DOCS_DIR="$PAYLOAD/Library/Application Support/MURMUR/Docs"
 mkdir -p "$DOCS_DIR"
-for doc in BEN_MVP.md DESIGN_AND_WARPS_PLAN.md INSTALL.md KAWAI_MP11SE.md LOGIC_SMART_CONTROLS.md MIDI_CONTROLLERS.md PRODUCT_GAP_PLAN.md; do
+for doc in BEN_DEMO_PRESETS.md BEN_MVP.md DESIGN_AND_WARPS_PLAN.md INSTALL.md KAWAI_MP11SE.md LOGIC_SMART_CONTROLS.md MIDI_CONTROLLERS.md PRODUCT_GAP_PLAN.md; do
     if [[ -f "$REPO_ROOT/docs/$doc" ]]; then
         cp "$REPO_ROOT/docs/$doc" "$DOCS_DIR/"
     fi
@@ -542,8 +546,8 @@ fi
 CHECKSUM_FILE="$DIST_DIR/SHA256SUMS.txt"
 {
     echo "# MURMUR ${VERSION} — $(date -u +%Y-%m-%dT%H:%MZ)"
-    shasum -a 256 "$PKG_PATH"
-    [[ -f "${DMG_PATH:-}" ]] && shasum -a 256 "$DMG_PATH"
+    (cd "$DIST_DIR" && shasum -a 256 "$(basename "$PKG_PATH")")
+    [[ -f "${DMG_PATH:-}" ]] && (cd "$DIST_DIR" && shasum -a 256 "$(basename "$DMG_PATH")")
 } > "$CHECKSUM_FILE"
 echo "==> Checksums: $CHECKSUM_FILE"
 

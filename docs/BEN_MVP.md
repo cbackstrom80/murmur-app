@@ -1,4 +1,4 @@
-# Ben MVP — MURMUR 1.4.3
+# Ben MVP — MURMUR 1.4.4
 
 First installable release for **Ben** on **Apple Silicon Mac + Logic Pro + Kawai MP11SE**.
 
@@ -15,14 +15,24 @@ First installable release for **Ben** on **Apple Silicon Mac + Logic Pro + Kawai
 
 ## Install
 
-1. Download `MURMUR-1.4.3-macOS-arm64-full.dmg` from [GitHub Releases](https://github.com/cbackstrom80/patchwork-eight/releases).
+1. Download `MURMUR-1.4.4-macOS-arm64-full.dmg` from [GitHub Releases](https://github.com/cbackstrom80/patchwork-eight/releases).
 2. Open the DMG → double-click **`Install MURMUR.pkg`** (no admin password).
 3. **Quit Logic** completely, reopen.
 4. **Logic → Settings → Plug-in Manager → Reset & Rescan Selection**.
 5. New **Software Instrument** track → **AU Instruments → Murmur → MURMUR**.
 6. Open presets: **BROWSE**, click preset name, or **⌘B**.
 
-Copy-paste email for Ben: [`BEN_EMAIL_1.4.3.md`](BEN_EMAIL_1.4.3.md)
+## Demo presets for Ben
+
+| Bank | Count | How to find | Start with |
+|------|-------|-------------|------------|
+| **Interstellar** | 175 | Category **INTERSTELLAR** | CATHEDRAL NEBULA, CORNFIELD CHASE |
+| **Interstellar Spatial** | 75 | `Interstellar/Spatial/` subfolder | VOID CATHEDRAL |
+| **Hoover Bass** | 28 | Category **BASS**, genre **hoover-bass** | CLUB HOOVER, RAVE DRIVE |
+
+Full walkthrough: [`BEN_DEMO_PRESETS.md`](BEN_DEMO_PRESETS.md)
+
+Copy-paste email for Ben: [`BEN_EMAIL_1.4.4.md`](BEN_EMAIL_1.4.4.md)
 
 ## Logic + MP11SE quick start
 
@@ -66,7 +76,7 @@ Re-run the latest `.dmg` or `.pkg` from Releases — it overwrites the AU and re
 ## Maintainer build
 
 ```bash
-scripts/release_gate.sh 1.4.3
+scripts/release_gate.sh 1.4.4
 ```
 
-Verify: [`RELEASE_1.4.3_VERIFY.md`](RELEASE_1.4.3_VERIFY.md)
+Verify: [`RELEASE_1.4.4_VERIFY.md`](RELEASE_1.4.4_VERIFY.md)

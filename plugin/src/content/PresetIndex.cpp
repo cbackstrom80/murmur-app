@@ -180,11 +180,13 @@ namespace pw8::plugin::content
 
         const auto genre = filter.genre.trim().toLowerCase();
         if (genre.isNotEmpty() && !arrayContainsIgnoreCase(entry.genres, genre)
-            && !arrayContainsIgnoreCase(entry.moods, genre))
+            && !arrayContainsIgnoreCase(entry.moods, genre)
+            && !arrayContainsIgnoreCase(entry.tags, genre))
             return false;
 
         const auto tag = filter.tag.trim().toLowerCase();
-        if (tag.isNotEmpty() && !arrayContainsIgnoreCase(entry.tags, tag))
+        if (tag.isNotEmpty() && !arrayContainsIgnoreCase(entry.tags, tag)
+            && !arrayContainsIgnoreCase(entry.genres, tag))
             return false;
 
         const auto q = filter.query.trim().toLowerCase();
@@ -237,6 +239,12 @@ namespace pw8::plugin::content
                 {
                     if (isContextCrossoverMood(mood))
                         addUnique(mood);
+                }
+                for (const auto& tag : entry.tags)
+                {
+                    const auto lower = tag.trim().toLowerCase();
+                    if (lower.containsChar('-') || lower == "interstellar" || lower.contains("hoover"))
+                        addUnique(tag);
                 }
                 break;
             case PresetFacet::Tag:

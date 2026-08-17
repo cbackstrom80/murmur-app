@@ -82,6 +82,13 @@ namespace pw8::plugin::ui
                         if (isContextCrossoverMood(mood))
                             addUnique(mood);
                     }
+                    // Tags like interstellar / hoover-bass often carry the demo vocabulary.
+                    for (const auto& tag : entry.tags)
+                    {
+                        const auto lower = tag.trim().toLowerCase();
+                        if (lower.containsChar('-') || lower == "interstellar" || lower.contains("hoover"))
+                            addUnique(tag);
+                    }
                     break;
                 case content::PresetFacet::Tag:
                     for (const auto& tag : entry.tags)
@@ -146,11 +153,12 @@ namespace pw8::plugin::ui
 
     juce::StringArray PresetBrowserOverlay::uniqueFacetValuesForBank(content::PresetFacet facet) const
     {
-        const auto filter = browseFilterWithoutFacet(facet);
-        const juce::StringArray* fav = filter.favoritesOnly ? &favoritesStore_.paths() : nullptr;
+        // Facet chips show vocabulary for the whole factory bank — not only favorites.
+        auto filter = browseFilterWithoutFacet(facet);
+        filter.favoritesOnly = false;
 
         juce::StringArray values;
-        for (const auto& entry : presetIndex_.filtered(filter, fav))
+        for (const auto& entry : presetIndex_.filtered(filter, nullptr))
         {
             if (!entryMatchesBank(entry))
                 continue;
@@ -166,7 +174,7 @@ namespace pw8::plugin::ui
         filter.query = searchField_.getText();
         if (selectedCategoryKey_ == kFavoritesCategoryKey)
             filter.favoritesOnly = true;
-        else if (selectedCategoryKey_.isNotEmpty())
+        else if (selectedCategoryKey_.isNotEmpty() && selectedCategoryKey_ != kAllCategoryKey)
             filter.category = selectedCategoryKey_;
         if (moodFacetRow_ != nullptr)
             filter.mood = moodFacetRow_->getSelectedValue();
@@ -182,7 +190,7 @@ namespace pw8::plugin::ui
         presetIndex_.rescan();
         searchField_.setText({}, juce::dontSendNotification);
         selectedBank_ = PresetBank::Factory;
-        selectedCategoryKey_.clear();
+        selectedCategoryKey_ = kAllCategoryKey;
         selectedRow_ = -1;
         presetListScrollY_ = 0;
         if (moodFacetRow_ != nullptr)
@@ -294,42 +302,44 @@ namespace pw8::plugin::ui
                 ++favoritesCount;
         }
 
+        categoryKeys_.add(kAllCategoryKey);
+        categoryLabels_.add("◆ ALL PRESETS");
+        categoryCounts_.add(bankEntries.size());
+
         categoryKeys_.add(kFavoritesCategoryKey);
         categoryLabels_.add("★ FAVORITES");
         categoryCounts_.add(favoritesCount);
 
         juce::StringArray seenCategories;
+        juce::StringArray sortedCategories;
         for (const auto& entry : bankEntries)
         {
             const auto cat = entry.category.trim();
             if (cat.isEmpty())
                 continue;
-
-            int idx = -1;
-            for (int i = 0; i < seenCategories.size(); ++i)
-            {
-                if (seenCategories[i].equalsIgnoreCase(cat))
-                {
-                    idx = i;
-                    break;
-                }
-            }
-
-            if (idx < 0)
+            if (!seenCategories.contains(cat, true))
             {
                 seenCategories.add(cat);
-                categoryKeys_.add(cat);
-                categoryLabels_.add("◆ " + cat.toUpperCase());
-                categoryCounts_.add(1);
-            }
-            else
-            {
-                categoryCounts_.set(idx + 1, categoryCounts_[idx + 1] + 1);
+                sortedCategories.add(cat);
             }
         }
+        sortedCategories.sort(true);
 
-        if (selectedCategoryKey_.isEmpty() && !categoryKeys_.isEmpty())
-            selectedCategoryKey_ = categoryKeys_[0];
+        for (const auto& cat : sortedCategories)
+        {
+            int count = 0;
+            for (const auto& entry : bankEntries)
+            {
+                if (entry.category.trim().equalsIgnoreCase(cat))
+                    ++count;
+            }
+            categoryKeys_.add(cat);
+            categoryLabels_.add("◆ " + cat.toUpperCase());
+            categoryCounts_.add(count);
+        }
+
+        if (selectedCategoryKey_.isEmpty())
+            selectedCategoryKey_ = kAllCategoryKey;
 
         const auto filter = browseFilter();
         const juce::StringArray* fav = filter.favoritesOnly ? &favoritesStore_.paths() : nullptr;
@@ -373,7 +383,7 @@ namespace pw8::plugin::ui
         if (selectedBank_ == bank)
             return;
         selectedBank_ = bank;
-        selectedCategoryKey_.clear();
+        selectedCategoryKey_ = kAllCategoryKey;
         selectedRow_ = -1;
         rebuildLists();
     }
