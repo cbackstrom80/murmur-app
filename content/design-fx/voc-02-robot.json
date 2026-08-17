@@ -1,0 +1,11 @@
+{
+  "chip": 11,
+  "name": "ROBOT VOICES",
+  "pw8Ref": "content/presets/factory/Sidechain/02-imogen-hide-seek-vocoder.pw8",
+  "pw8Slot": 0,
+  "params": {
+    "VocoderBandCount": 12,
+    "VocoderFormant": 0.35,
+    "Mix": 0.9
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "chip": 7,
+  "name": "LARGE CONCERT HALL",
+  "modePill": "HALL",
+  "params": {
+    "ReverbCharacter": 2,
+    "ReverbDecaySeconds": 3.5,
+    "ReverbSize": 1.4,
+    "Mix": 0.45
+  }
+}

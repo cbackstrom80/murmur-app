@@ -153,8 +153,9 @@ namespace pw8::voice
                            float bpm, const std::array<float, core::kNumLfosPerLayer>& layerLfoValues,
                            const core::FixedVector<modulation::ModRoute, core::kMaxModRoutes>& liveModRoutes,
                            const core::FixedVector<patch::MetaModRoute, 8>& liveMetaRoutes,
-                           render::QualityMode qualityMode,
-                           float& outLeft, float& outRight) noexcept
+                           render::QualityMode qualityMode, float externalSampleL, float externalSampleR,
+                           float& outLeft, float& outRight,
+                           std::array<float, core::kNodesPerLayer>* operatorPeakScratch = nullptr) noexcept
         {
             if (noteNumber < 0 && !envelopes[0].isActive())
             {
@@ -221,12 +222,20 @@ namespace pw8::voice
             const float raw = executor.processSample(compiled, modulatedParams, operatorStates, wavetableTables,
                                                       effectiveFreq, operatorFilterParams_, operatorFilters_,
                                                       modOut.operatorFilterCutoffSemitones,
-                                                      modOut.operatorFilterResonanceOffset, nonlinearOsFactor);
+                                                      modOut.operatorFilterResonanceOffset, externalSampleL,
+                                                      externalSampleR, nonlinearOsFactor, operatorPeakScratch);
+
+            const float voiceGain = std::abs(env * velocity * outputGain * stealOutputGain_);
+            if (operatorPeakScratch != nullptr && voiceGain > 0.0f)
+            {
+                for (std::size_t i = 0; i < core::kNodesPerLayer; ++i)
+                    (*operatorPeakScratch)[i] *= voiceGain;
+            }
 
             float filtered = raw;
             if (filterParams.enabled)
             {
-                const float keyTrackFactor = std::pow(effectiveFreq / 261.6256f, filterParams.keyTrack);
+                const float keyTrackFactor = dsp::filterKeyTrackFactor(effectiveFreq, filterParams.keyTrack);
                 const float cutoffHz = filterParams.cutoffHz * keyTrackFactor *
                                         std::pow(2.0f, modOut.filterCutoffSemitones / 12.0f);
                 const float resonance = dsp::clamp(filterParams.resonance + modOut.filterResonanceOffset, 0.0f, 1.0f);
@@ -235,7 +244,7 @@ namespace pw8::voice
 
             if (filter2Params.enabled)
             {
-                const float keyTrackFactor = std::pow(effectiveFreq / 261.6256f, filter2Params.keyTrack);
+                const float keyTrackFactor = dsp::filterKeyTrackFactor(effectiveFreq, filter2Params.keyTrack);
                 const float cutoffHz = filter2Params.cutoffHz * keyTrackFactor;
                 filtered = filter2.renderSample(filtered, cutoffHz, filter2Params.resonance, filter2Params.drive);
             }

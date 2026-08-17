@@ -13,6 +13,8 @@ namespace pw8::plugin::ui::wireframe
         explicit LfoWireframeView(juce::AudioProcessorValueTreeState& apvts, std::size_t lfoIndex = 0);
         ~LfoWireframeView() override;
 
+        void setLfoIndex(std::size_t lfoIndex);
+
         void paint(juce::Graphics& g) override;
 
     private:

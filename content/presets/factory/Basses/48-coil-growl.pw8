@@ -7,15 +7,21 @@
     "description": "Factory Basse patch #48. Engines: Classic, FM/PM. Procedurally generated (seed 3234808607) as part of the 250-patch factory content bank. Archetype: mono growl bass.",
     "category": "bass",
     "moods": [
-      "basses"
+      "dark",
+      "gritty",
+      "punchy"
     ],
     "genres": [
+      "electronic",
+      "sound-design",
       "factory"
     ],
     "tags": [
       "factory",
       "bass",
-      "mono-growl"
+      "mono-growl",
+      "dark",
+      "gritty"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

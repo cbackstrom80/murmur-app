@@ -7,16 +7,26 @@
     "description": "Factory Pad patch #30. Engines: Classic, Wavetable, FM/PM, PhaseShape. Procedurally generated (seed 2582544871) as part of the 250-patch factory content bank. Archetype: dual-layer swell pad with brass-pad hybrid character.",
     "category": "pad",
     "moods": [
-      "pads"
+      "lush",
+      "evolving",
+      "warm",
+      "cinematic",
+      "dreamy"
     ],
     "genres": [
+      "ambient-bed",
+      "cinematic",
+      "score",
+      "electronic",
       "factory"
     ],
     "tags": [
       "factory",
       "pad",
       "dual-layer",
-      "brass-pad"
+      "brass-pad",
+      "lush",
+      "evolving"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

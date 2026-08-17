@@ -7,15 +7,25 @@
     "description": "Factory Ambient patch #06. Engines: Classic, PhaseShape, Granular, NoiseChaos, Resonator. Procedurally generated (seed 674960398) as part of the 250-patch factory content bank. Archetype: noise riser FX.",
     "category": "ambient",
     "moods": [
-      "ambient"
+      "evolving",
+      "massive",
+      "airy",
+      "warm",
+      "lush"
     ],
     "genres": [
+      "cinematic",
+      "trailer",
+      "ambient-bed",
+      "meditation",
       "factory"
     ],
     "tags": [
       "factory",
       "ambient",
-      "fx-riser"
+      "fx-riser",
+      "evolving",
+      "massive"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

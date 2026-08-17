@@ -2,6 +2,7 @@
 
 #include "QuasarEditor.h"
 #include "QuasarPreset.h"
+#include "pw8/effects/QuasarSpatialMacros.hpp"
 
 namespace pw8::quasar
 {
@@ -27,7 +28,7 @@ namespace pw8::quasar
 #if JucePlugin_Build_AU
         : juce::AudioProcessor(BusesProperties()
                                    .withInput("Input", juce::AudioChannelSet::stereo(), true)
-                                   .withInput("Sidechain", juce::AudioChannelSet::stereo(), true)
+                                   .withInput("Sidechain", juce::AudioChannelSet::stereo(), false)
                                    .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
 #else
         : juce::AudioProcessor(BusesProperties()
@@ -103,6 +104,18 @@ namespace pw8::quasar
         p.quasarCrossfeed = loadF(paramPtrs_[22]);
         p.quasarDelaySync = loadB(paramPtrs_[23]);
         p.quasarDelaySyncDivisionIndex = loadI(paramPtrs_[24]);
+        p.qsrStereoSplit = true;
+
+        effects::QuasarSpatialTargets spatial{
+            p.qsr1AngleDeg, p.qsr2AngleDeg, p.qsr1Distance, p.qsr2Distance, p.qsr1Height, p.qsr2Height};
+        const effects::QuasarMacroKoinValues macros{loadF(paramPtrs_[25]), loadF(paramPtrs_[26])};
+        const auto macroApplied = effects::applyQuasarMacroKoins(spatial, macros);
+        p.qsr1AngleDeg = macroApplied.qsr1AngleDeg;
+        p.qsr2AngleDeg = macroApplied.qsr2AngleDeg;
+        p.qsr1Distance = macroApplied.qsr1Distance;
+        p.qsr2Distance = macroApplied.qsr2Distance;
+        p.qsr1Height = macroApplied.qsr1Height;
+        p.qsr2Height = macroApplied.qsr2Height;
         return p;
     }
 
@@ -139,9 +152,16 @@ namespace pw8::quasar
 
 #if JucePlugin_Build_AU
         const auto sidechainBlock = getBusBuffer(buffer, true, 1);
-        const float* scL = sidechainBlock.getNumChannels() > 0 ? sidechainBlock.getReadPointer(0) : nullptr;
-        const float* scR = sidechainBlock.getNumChannels() > 1 ? sidechainBlock.getReadPointer(1) : scL;
-        const bool hasSidechain = scL != nullptr && sidechainBlock.getNumSamples() == numSamples;
+        const bool sidechainBusEnabled =
+            getBusCount(true) > 1 && !getChannelLayoutOfBus(true, 1).isDisabled();
+        const float* scL = sidechainBusEnabled && sidechainBlock.getNumChannels() > 0
+                               ? sidechainBlock.getReadPointer(0)
+                               : nullptr;
+        const float* scR = sidechainBusEnabled && sidechainBlock.getNumChannels() > 1
+                               ? sidechainBlock.getReadPointer(1)
+                               : scL;
+        const bool hasSidechain =
+            sidechainBusEnabled && scL != nullptr && sidechainBlock.getNumSamples() >= numSamples;
 #else
         const float* scL = nullptr;
         const float* scR = nullptr;
@@ -150,27 +170,36 @@ namespace pw8::quasar
 
         const auto params = readEffectParams();
         const float bpm = readHostBpm();
+        const bool sidechainToQsr2 = loadB(paramPtrs_[27]);
 
         for (int i = 0; i < numSamples; ++i)
         {
             const float mainLeft = inL != nullptr ? inL[i] : 0.0f;
             const float mainRight = inR != nullptr ? inR[i] : mainLeft;
 
-            // MVP sidechain: optional blend of main + sidechain into QSR mono path foundation.
-            // Future: dedicated QSR2 aux routing from sidechain only.
             float procL = mainLeft;
             float procR = mainRight;
+            float qsr2AuxIn = mainRight;
+            bool useQsr2Aux = false;
             if (hasSidechain)
             {
                 const float scLeft = scL[i];
                 const float scRight = scR != nullptr ? scR[i] : scLeft;
-                procL = mainLeft + scLeft;
-                procR = mainRight + scRight;
+                if (sidechainToQsr2)
+                {
+                    qsr2AuxIn = (scLeft + scRight) * 0.5f;
+                    useQsr2Aux = true;
+                }
+                else
+                {
+                    procL = mainLeft + scLeft;
+                    procR = mainRight + scRight;
+                }
             }
 
             float wetL = 0.0f;
             float wetR = 0.0f;
-            processor_.processStereo(procL, procR, params, wetL, wetR, bpm);
+            processor_.processStereo(procL, procR, params, wetL, wetR, bpm, qsr2AuxIn, useQsr2Aux);
             outL[i] = wetL;
             outR[i] = wetR;
         }

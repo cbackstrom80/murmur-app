@@ -7,9 +7,17 @@
     "description": "Factory Pad patch #05. Engines: Classic, Additive, NoiseChaos. Procedurally generated (seed 206197628) as part of the 250-patch factory content bank. Archetype: dual-layer swell pad with formant choir pad character.",
     "category": "pad",
     "moods": [
-      "pads"
+      "lush",
+      "evolving",
+      "dreamy",
+      "warm",
+      "organic"
     ],
     "genres": [
+      "ambient-bed",
+      "cinematic",
+      "score",
+      "electronic",
       "factory"
     ],
     "tags": [
@@ -17,7 +25,9 @@
       "pad",
       "dual-layer",
       "formant-choir",
-      "dissemination"
+      "dissemination",
+      "lush",
+      "evolving"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

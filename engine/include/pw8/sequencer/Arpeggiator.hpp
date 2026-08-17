@@ -153,8 +153,10 @@ namespace pw8::sequencer
 
             if (stepSampleCounter_ <= 0)
             {
+                const auto numSteps = dsp::clamp<std::size_t>(params_.numSteps, 1, kMaxArpSteps);
+                const auto stepIdx = currentStepIndex_ % numSteps;
                 fireStep(outEvents);
-                stepSampleCounter_ = stepLengthSamples(sampleRate_, bpm);
+                stepSampleCounter_ = stepLengthSamplesForStep(stepIdx, sampleRate_, bpm);
             }
             else
             {
@@ -301,6 +303,18 @@ namespace pw8::sequencer
             return samples > 1 ? samples : 1;
         }
 
+        [[nodiscard]] int stepLengthSamplesForStep(std::size_t stepIndex, double sampleRate, float bpm) const noexcept
+        {
+            const int base = stepLengthSamples(sampleRate, bpm);
+            const float swing = dsp::clamp(params_.swing, 0.0f, 1.0f);
+            if (swing <= 0.0001f)
+                return base;
+
+            const float skew = swing * 0.5f;
+            const float scale = (stepIndex % 2 == 0) ? (1.0f + skew) : (1.0f - skew);
+            return std::max(1, static_cast<int>(static_cast<float>(base) * scale));
+        }
+
         void scheduleNoteOff(int note, int channel, int samplesFromNow) noexcept
         {
             for (auto& slot : pendingNoteOffs_)
@@ -345,7 +359,7 @@ namespace pw8::sequencer
             int extra = 0;
             for (std::size_t guard = 0; guard < numSteps && params_.steps[idx].tie; ++guard)
             {
-                extra += stepLengthSamples(sampleRate_, lastBpm_);
+                extra += stepLengthSamplesForStep(idx, sampleRate_, lastBpm_);
                 idx = (idx + 1) % numSteps;
             }
             return extra;

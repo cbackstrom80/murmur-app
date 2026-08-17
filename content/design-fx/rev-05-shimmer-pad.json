@@ -1,0 +1,11 @@
+{
+  "chip": 7,
+  "name": "SHIMMER PAD",
+  "modePill": "SHIMMER",
+  "params": {
+    "ReverbCharacter": 0,
+    "ReverbModDepth": 0.85,
+    "ReverbHighRatio": 0.95,
+    "Mix": 0.5
+  }
+}

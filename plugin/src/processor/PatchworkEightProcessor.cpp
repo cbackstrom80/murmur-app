@@ -6,6 +6,7 @@
 
 #include "processor/PatchworkEightProcessor.h"
 #include "processor/PerformanceMidiMap.hpp"
+#include "content/WavetableIndex.h"
 
 #include "pw8/content/ContentPaths.hpp"
 #include "pw8/content/WavetableCache.hpp"
@@ -32,6 +33,15 @@ namespace pw8::plugin
         [[nodiscard]] int loadI(std::atomic<float>* p) noexcept { return static_cast<int>(loadF(p)); }
         [[nodiscard]] bool loadB(std::atomic<float>* p) noexcept { return loadF(p) >= 0.5f; }
 
+        [[nodiscard]] float computeMixGain(bool enabled, bool mute, bool solo, bool anySolo) noexcept
+        {
+            if (!enabled || mute)
+                return 0.0f;
+            if (anySolo)
+                return solo ? 1.0f : 0.0f;
+            return 1.0f;
+        }
+
         template <typename Array>
         void cacheGroup(juce::AudioProcessorValueTreeState& apvts, Array& pointers, const juce::String& prefix,
                          const auto& fieldSpecs)
@@ -39,10 +49,58 @@ namespace pw8::plugin
             for (std::size_t i = 0; i < fieldSpecs.size(); ++i)
                 pointers[i] = apvts.getRawParameterValue(prefix + fieldSpecs[i].idSuffix);
         }
+
+        struct SidechainInputView
+        {
+            const float* left = nullptr;
+            const float* right = nullptr;
+            bool valid = false;
+        };
+
+        /// Logic / JUCE convention: optional main input bus 0, sidechain audio on bus 1.
+        /// Legacy MURMUR builds exposed a single "Sidechain" bus at index 0 — keep that fallback.
+        [[nodiscard]] SidechainInputView resolveSidechainInput(juce::AudioProcessor& proc,
+                                                                juce::AudioBuffer<float>& buffer,
+                                                                int numSamples) noexcept
+        {
+            SidechainInputView out;
+            const int busCount = proc.getBusCount(true);
+            if (busCount <= 0 || numSamples <= 0)
+                return out;
+
+            const auto tryBus = [&](int busIndex) -> bool {
+                if (busIndex < 0 || busIndex >= busCount)
+                    return false;
+                if (proc.getChannelLayoutOfBus(true, busIndex).isDisabled())
+                    return false;
+
+                const auto block = proc.getBusBuffer(buffer, true, busIndex);
+                if (block.getNumChannels() <= 0 || block.getNumSamples() < numSamples)
+                    return false;
+
+                out.left = block.getReadPointer(0);
+                out.right = block.getNumChannels() > 1 ? block.getReadPointer(1) : out.left;
+                out.valid = true;
+                return true;
+            };
+
+            for (int i = busCount - 1; i >= 0; --i)
+            {
+                if (const auto* bus = proc.getBus(true, i);
+                    bus != nullptr && bus->getName().containsIgnoreCase("sidechain") && tryBus(i))
+                    return out;
+            }
+
+            if (tryBus(1))
+                return out;
+            if (tryBus(0))
+                return out;
+            return out;
+        }
     } // namespace
 
     PatchworkEightProcessor::PatchworkEightProcessor()
-#if JucePlugin_Build_AU
+#if JucePlugin_Build_AU || JucePlugin_Build_VST3
         : juce::AudioProcessor(BusesProperties()
                                    .withInput("Sidechain", juce::AudioChannelSet::stereo(), true)
                                    .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
@@ -78,6 +136,9 @@ namespace pw8::plugin
         // binary to find the dev repo's content/wavetables/ tree.
         const auto exeFile = juce::File::getSpecialLocation(juce::File::currentExecutableFile);
         pw8::content::addSearchRootsFromAncestorWalk(exeFile.getFullPathName().toStdString());
+#ifdef PW8_DEV_CONTENT_ROOT
+        pw8::content::addSearchRoot(PW8_DEV_CONTENT_ROOT);
+#endif
     }
 
     PatchworkEightProcessor::~PatchworkEightProcessor() = default;
@@ -109,6 +170,11 @@ namespace pw8::plugin
                 operatorFilterParamPointers_[op][i] =
                     apvts.getRawParameterValue(operatorFilterParamId(op, kOperatorFilterFieldSpecs[i].idSuffix));
 
+        for (std::size_t op = 0; op < kNumOperators; ++op)
+            for (std::size_t i = 0; i < kNumOperatorMixFields; ++i)
+                operatorMixParamPointers_[op][i] =
+                    apvts.getRawParameterValue(operatorMixParamId(op, kOperatorMixFieldSpecs[i].idSuffix));
+
         for (std::size_t slot = 0; slot < kNumInsertFxSlots; ++slot)
             for (std::size_t i = 0; i < kNumEffectSlotFields; ++i)
                 insertFxParamPointers_[slot][i] =
@@ -125,13 +191,22 @@ namespace pw8::plugin
         modWheelParamPointer_ = apvts.getRawParameterValue(kModWheelId);
         expressionParamPointer_ = apvts.getRawParameterValue(kExpressionId);
         morphPositionPointer_ = apvts.getRawParameterValue(kMorphPositionId);
+        unisonVoicesPointer_ = apvts.getRawParameterValue(kUnisonVoicesId);
+        unisonDetunePointer_ = apvts.getRawParameterValue(kUnisonDetuneId);
+        unisonSpreadPointer_ = apvts.getRawParameterValue(kUnisonSpreadId);
+        unisonPhaseRandomPointer_ = apvts.getRawParameterValue(kUnisonPhaseRandomId);
+        fxRoutingPrePostPointer_ = apvts.getRawParameterValue(kFxRoutingPrePostId);
+        fxGlobalBypassPointer_ = apvts.getRawParameterValue(kFxGlobalBypassId);
+        fxGlobalWetMixPointer_ = apvts.getRawParameterValue(kFxGlobalWetMixId);
+        fxSendAPointer_ = apvts.getRawParameterValue(kFxSendAId);
+        fxSendBPointer_ = apvts.getRawParameterValue(kFxSendBId);
     }
 
     bool PatchworkEightProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
     {
         if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
             return false;
-#if JucePlugin_Build_AU
+#if JucePlugin_Build_AU || JucePlugin_Build_VST3
         if (layouts.inputBuses.size() > 0)
         {
             const auto sidechain = layouts.getChannelSet(true, 0);
@@ -148,6 +223,7 @@ namespace pw8::plugin
         currentSampleRate_ = sampleRate;
         scopeAudioTap_.reset();
         sidechainFollower_.prepare(sampleRate);
+        sidechainScratch_.setSize(2, std::max(1, getBlockSize()), false, false, true);
         for (auto& lfo : modPreviewLfos_)
             lfo.prepare(sampleRate);
         // Rebuild both storage slots at the new sample rate and republish -- this always
@@ -166,10 +242,14 @@ namespace pw8::plugin
 
     void PatchworkEightProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
     {
+        const double blockStartMs = juce::Time::getMillisecondCounterHiRes();
+
         auto* engine = activeEngine_.load(std::memory_order_acquire);
         if (engine == nullptr)
         {
             buffer.clear();
+            cpuLoadPercent_.store(0.0f, std::memory_order_relaxed);
+            activeVoiceCount_.store(0, std::memory_order_relaxed);
             return;
         }
 
@@ -188,6 +268,26 @@ namespace pw8::plugin
         }
         engine->setTempo(bpm);
 
+        const int numSamples = buffer.getNumSamples();
+        const float* engineSidechainL = nullptr;
+        const float* engineSidechainR = nullptr;
+
+#if JucePlugin_Build_AU || JucePlugin_Build_VST3
+        const SidechainInputView sidechainInput = resolveSidechainInput(*this, buffer, numSamples);
+        if (sidechainInput.valid && numSamples > 0)
+        {
+            if (sidechainScratch_.getNumSamples() < numSamples)
+                sidechainScratch_.setSize(2, numSamples, false, false, true);
+            sidechainScratch_.copyFrom(0, 0, sidechainInput.left, numSamples);
+            if (sidechainInput.right != nullptr && sidechainInput.right != sidechainInput.left)
+                sidechainScratch_.copyFrom(1, 0, sidechainInput.right, numSamples);
+            else
+                sidechainScratch_.copyFrom(1, 0, sidechainInput.left, numSamples);
+            engineSidechainL = sidechainScratch_.getReadPointer(0);
+            engineSidechainR = sidechainScratch_.getReadPointer(1);
+        }
+#endif
+
         // Logic and many hosts do not send note-offs when transport stops — silence voices
         // and reset the arpeggiator so notes do not hang indefinitely.
         if (hostWasPlaying_ && !hostIsPlaying)
@@ -203,24 +303,20 @@ namespace pw8::plugin
                                           masterGainPointer_);
         }
 
-#if JucePlugin_Build_AU
-        if (getBusCount(true) > 0)
+#if JucePlugin_Build_AU || JucePlugin_Build_VST3
+        if (engineSidechainL != nullptr)
         {
-            const auto sidechainBlock = getBusBuffer(buffer, true, 0);
-            const float* scL = sidechainBlock.getNumChannels() > 0 ? sidechainBlock.getReadPointer(0) : nullptr;
-            const float* scR = sidechainBlock.getNumChannels() > 1 ? sidechainBlock.getReadPointer(1) : scL;
-            sidechainFollower_.processBlock(scL, scR, static_cast<std::size_t>(sidechainBlock.getNumSamples()));
-            const float scLevel = sidechainFollower_.envelope();
-            sidechainLevel_.store(scLevel, std::memory_order_relaxed);
-            sidechainActive_.store(sidechainFollower_.isActive(), std::memory_order_relaxed);
-            engine->setSidechainLevel(scLevel);
+            sidechainFollower_.processBlock(engineSidechainL, engineSidechainR,
+                                            static_cast<std::size_t>(numSamples));
         }
         else
         {
-            sidechainLevel_.store(0.0f, std::memory_order_relaxed);
-            sidechainActive_.store(false, std::memory_order_relaxed);
-            engine->setSidechainLevel(0.0f);
+            sidechainFollower_.processBlock(nullptr, nullptr, static_cast<std::size_t>(numSamples));
         }
+        const float scLevel = sidechainFollower_.envelope();
+        sidechainLevel_.store(scLevel, std::memory_order_relaxed);
+        sidechainActive_.store(sidechainFollower_.isActive(), std::memory_order_relaxed);
+        engine->setSidechainLevel(scLevel);
 #else
         sidechainActive_.store(false, std::memory_order_relaxed);
         engine->setSidechainLevel(0.0f);
@@ -293,20 +389,8 @@ namespace pw8::plugin
 
         core::StereoBlockView view(buffer.getWritePointer(0), buffer.getWritePointer(1),
                                     static_cast<std::size_t>(buffer.getNumSamples()));
-#if JucePlugin_Build_AU
-        const float* scL = nullptr;
-        const float* scR = nullptr;
-        if (getBusCount(true) > 0)
-        {
-            const auto sidechainBlock = getBusBuffer(buffer, true, 0);
-            if (sidechainBlock.getNumChannels() > 0)
-                scL = sidechainBlock.getReadPointer(0);
-            if (sidechainBlock.getNumChannels() > 1)
-                scR = sidechainBlock.getReadPointer(1);
-            else
-                scR = scL;
-        }
-        engine->process(view, blockMidi.data(), blockMidiCount, scL, scR);
+#if JucePlugin_Build_AU || JucePlugin_Build_VST3
+        engine->process(view, blockMidi.data(), blockMidiCount, engineSidechainL, engineSidechainR);
 #else
         engine->process(view, blockMidi.data(), blockMidiCount);
 #endif
@@ -329,6 +413,19 @@ namespace pw8::plugin
             mirroredExpression_.store(expr, std::memory_order_relaxed);
         }
         scopeAudioTap_.pushStereoBlock(buffer.getReadPointer(0), buffer.getReadPointer(1), buffer.getNumSamples());
+
+        activeVoiceCount_.store(static_cast<int>(engine->countActiveVoices()), std::memory_order_relaxed);
+
+        const double blockEndMs = juce::Time::getMillisecondCounterHiRes();
+        const double blockDurationMs =
+            static_cast<double>(numSamples) / (currentSampleRate_ > 0.0 ? currentSampleRate_ : 48000.0) * 1000.0;
+        if (blockDurationMs > 0.0)
+        {
+            const float instantLoad =
+                static_cast<float>((blockEndMs - blockStartMs) / blockDurationMs * 100.0);
+            cpuLoadSmootherState_ = cpuLoadSmootherState_ * 0.9f + instantLoad * 0.1f;
+            cpuLoadPercent_.store(juce::jlimit(0.0f, 100.0f, cpuLoadSmootherState_), std::memory_order_relaxed);
+        }
     }
 
     void PatchworkEightProcessor::pushLiveParametersToEngine(render::Engine& engine) noexcept
@@ -393,6 +490,20 @@ namespace pw8::plugin
         }
 
         // 8 operators -- field order matches kOperatorFieldSpecs / op::OperatorParams.
+        std::array<bool, kNumOperators> mixEnabled{};
+        std::array<bool, kNumOperators> mixMute{};
+        std::array<bool, kNumOperators> mixSolo{};
+        bool anyMixSolo = false;
+        for (std::size_t op = 0; op < kNumOperators; ++op)
+        {
+            const auto& mixPtrs = operatorMixParamPointers_[op];
+            mixEnabled[op] = loadB(mixPtrs[0]);
+            mixMute[op] = loadB(mixPtrs[1]);
+            mixSolo[op] = loadB(mixPtrs[2]);
+            if (mixSolo[op])
+                anyMixSolo = true;
+        }
+
         for (std::size_t op = 0; op < kNumOperators; ++op)
         {
             const auto group = static_cast<ParamGroup>(static_cast<std::uint16_t>(ParamGroup::Op0) + op);
@@ -400,7 +511,8 @@ namespace pw8::plugin
                 continue;
             const auto& ptrs = operatorParamPointers_[op];
             op::OperatorParams params;
-            params.engine = static_cast<algorithm::EngineType>(loadI(ptrs[0]));
+            params.engine = algorithm::sanitizeEngineForNode(
+                core::NodeId(static_cast<std::uint8_t>(op)), static_cast<algorithm::EngineType>(loadI(ptrs[0])));
             params.classic.waveform = static_cast<oscillator::ClassicWaveform>(loadI(ptrs[1]));
             params.classic.morph = loadF(ptrs[2]);
             params.classic.pulseWidth = loadF(ptrs[3]);
@@ -409,6 +521,10 @@ namespace pw8::plugin
             params.fixedFrequencyHz = loadF(ptrs[6]);
             params.keyTrack = loadB(ptrs[7]);
             params.level = loadF(ptrs[8]);
+            params.mixEnabled = mixEnabled[op];
+            params.mixMute = mixMute[op];
+            params.mixSolo = mixSolo[op];
+            params.mixGain = computeMixGain(mixEnabled[op], mixMute[op], mixSolo[op], anyMixSolo);
             params.fmModulatorRatio = loadF(ptrs[9]);
             params.fmModulatorIndex = loadF(ptrs[10]);
             params.fmModulatorFeedback = loadF(ptrs[11]);
@@ -437,6 +553,8 @@ namespace pw8::plugin
             params.wtSyncRatio = loadF(ptrs[34]);
             params.wtSyncAmount = loadF(ptrs[35]);
             params.wtFormantShift = loadF(ptrs[36]);
+            params.wtMorphMode = loadF(ptrs[37]);
+            params.externalInputSource = loadF(ptrs[38]);
             engine.setOperatorLive(op, params);
 
             const auto& fptrs = operatorFilterParamPointers_[op];
@@ -473,8 +591,34 @@ namespace pw8::plugin
             engine.setLayerGainLive(loadF(layerGainPointer_));
             engine.setLayerPanLive(loadF(layerPanPointer_));
         }
+        if (needs(ParamGroup::Unison))
+        {
+            patch::UnisonSettings uni;
+            uni.mode = patch::UnisonMode::Full;
+            uni.voices = juce::jlimit(1, static_cast<int>(core::kMaxUnisonVoices),
+                                      loadI(unisonVoicesPointer_));
+            uni.detuneCents = loadF(unisonDetunePointer_);
+            uni.spread = loadF(unisonSpreadPointer_);
+            uni.phaseRandom = loadF(unisonPhaseRandomPointer_);
+            uni.blend = 1.0f;
+            engine.setUnisonLive(uni);
+        }
         if (needs(ParamGroup::MasterGain))
             engine.setMasterGainLive(loadF(masterGainPointer_));
+
+        if (needs(ParamGroup::FxRouting))
+        {
+            engine.setFxSendLevels(loadF(fxSendAPointer_), loadF(fxSendBPointer_),
+                                   loadB(fxRoutingPrePostPointer_));
+        }
+
+        const float fxGlobalWet = loadF(fxGlobalWetMixPointer_);
+        const bool fxGlobalBypass = loadB(fxGlobalBypassPointer_);
+        const auto effectiveFxMix = [&](float slotMix) {
+            if (fxGlobalBypass)
+                return 0.0f;
+            return juce::jlimit(0.0f, 1.0f, slotMix * fxGlobalWet);
+        };
 
         // Insert/master FX slots -- field order matches kEffectSlotFieldSpecs /
         // effects::EffectSlotParams's scalar fields. Read-modify-write against the
@@ -489,7 +633,7 @@ namespace pw8::plugin
             const auto& ptrs = insertFxParamPointers_[slot];
             effects::EffectSlotParams p = engine.getInsertEffectParams(slot);
             p.type = static_cast<effects::EffectType>(loadI(ptrs[0]));
-            p.mix = loadF(ptrs[1]);
+            p.mix = effectiveFxMix(loadF(ptrs[1]));
             p.saturationDriveDb = loadF(ptrs[2]);
             p.chorusRateHz = loadF(ptrs[3]);
             p.chorusDepthMs = loadF(ptrs[4]);
@@ -549,6 +693,14 @@ namespace pw8::plugin
             p.tapeDelaySyncDivisionIndex = loadI(ptrs[58]);
             p.compAutoMakeup = loadB(ptrs[59]);
             p.compCharacter = loadI(ptrs[60]);
+            p.vocoderBandCount = static_cast<int>(loadF(ptrs[61]));
+            p.vocoderFormant = loadF(ptrs[62]);
+            p.vocoderSibilance = loadF(ptrs[63]);
+            p.vocoderScGainDb = loadF(ptrs[64]);
+            p.vocoderReleaseMs = loadF(ptrs[65]);
+            p.reverbCharacter = loadI(ptrs[66]);
+            p.saturationCharacter = loadI(ptrs[67]);
+            p.eqOutGainDb = loadF(ptrs[68]);
             engine.setInsertEffectLive(slot, p);
         }
 
@@ -560,7 +712,7 @@ namespace pw8::plugin
             const auto& ptrs = masterFxParamPointers_[slot];
             effects::EffectSlotParams p = engine.getMasterEffectParams(slot);
             p.type = static_cast<effects::EffectType>(loadI(ptrs[0]));
-            p.mix = loadF(ptrs[1]);
+            p.mix = effectiveFxMix(loadF(ptrs[1]));
             p.saturationDriveDb = loadF(ptrs[2]);
             p.chorusRateHz = loadF(ptrs[3]);
             p.chorusDepthMs = loadF(ptrs[4]);
@@ -620,6 +772,14 @@ namespace pw8::plugin
             p.tapeDelaySyncDivisionIndex = loadI(ptrs[58]);
             p.compAutoMakeup = loadB(ptrs[59]);
             p.compCharacter = loadI(ptrs[60]);
+            p.vocoderBandCount = static_cast<int>(loadF(ptrs[61]));
+            p.vocoderFormant = loadF(ptrs[62]);
+            p.vocoderSibilance = loadF(ptrs[63]);
+            p.vocoderScGainDb = loadF(ptrs[64]);
+            p.vocoderReleaseMs = loadF(ptrs[65]);
+            p.reverbCharacter = loadI(ptrs[66]);
+            p.saturationCharacter = loadI(ptrs[67]);
+            p.eqOutGainDb = loadF(ptrs[68]);
             engine.setMasterEffectLive(slot, p);
         }
 
@@ -637,7 +797,8 @@ namespace pw8::plugin
             ap.syncDivisionIndex = loadI(arpParamPointers_[4]);
             ap.octaveRange = loadI(arpParamPointers_[5]);
             ap.numSteps = static_cast<std::size_t>(loadI(arpParamPointers_[6]));
-            ap.latch = loadB(arpParamPointers_[7]);
+            ap.swing = loadF(arpParamPointers_[7]);
+            ap.latch = loadB(arpParamPointers_[8]);
             engine.setArpeggiatorScalarLive(ap);
         }
     }
@@ -679,6 +840,7 @@ namespace pw8::plugin
             modulation::applyMorphKoin(currentPatch_, pos);
         }
         syncAllParametersFromPatch();
+        ensureDefaultWavetablesForPatch();
         auto fresh = std::make_unique<render::Engine>();
         fresh->prepare(getSampleRate() > 0.0 ? getSampleRate() : 48000.0);
         const bool ok = fresh->loadPatch(currentPatch_);
@@ -837,6 +999,12 @@ namespace pw8::plugin
             onPatchMetadataChanged();
     }
 
+    void PatchworkEightProcessor::panicAllNotes() noexcept
+    {
+        if (auto* engine = activeEngine_.load(std::memory_order_acquire))
+            engine->allSoundOff();
+    }
+
     bool PatchworkEightProcessor::swapEffectSlots(bool masterChain, std::size_t indexA, std::size_t indexB)
     {
         syncCurrentPatchFromApvts();
@@ -852,6 +1020,61 @@ namespace pw8::plugin
                 return false;
             std::swap(currentPatch_.layerA.insertEffects[indexA], currentPatch_.layerA.insertEffects[indexB]);
         }
+        return loadPatch(currentPatch_);
+    }
+
+    bool PatchworkEightProcessor::applyFxProcessOrderFromChipDisplay(
+        const std::array<std::size_t, 12>& chipDisplayOrder)
+    {
+        static constexpr int kEngineSlotByChip[] = {0, 0, 1, 2, 2, 3, 4, 2, 5, 6, 6, 2};
+
+        patch::FxProcessOrder order{};
+        std::array<bool, effects::kNumLayerInsertSlots> insertSeen{};
+        std::size_t insertCount = 0;
+        std::array<bool, effects::kNumMasterSlots> masterSeen{};
+        std::size_t masterCount = 0;
+
+        for (const std::size_t chip : chipDisplayOrder)
+        {
+            if (chip >= 12 || chip == 0)
+                continue;
+            const int engineSlot = kEngineSlotByChip[chip];
+            if (engineSlot < 0)
+                continue;
+            if (engineSlot < static_cast<int>(effects::kNumLayerInsertSlots))
+            {
+                const std::size_t insertIndex = static_cast<std::size_t>(engineSlot);
+                if (!insertSeen[insertIndex])
+                {
+                    insertSeen[insertIndex] = true;
+                    order.insert[insertCount++] = static_cast<std::uint8_t>(insertIndex);
+                }
+            }
+            else
+            {
+                const std::size_t masterIndex =
+                    static_cast<std::size_t>(engineSlot - static_cast<int>(effects::kNumLayerInsertSlots));
+                if (masterIndex < effects::kNumMasterSlots && !masterSeen[masterIndex])
+                {
+                    masterSeen[masterIndex] = true;
+                    order.master[masterCount++] = static_cast<std::uint8_t>(masterIndex);
+                }
+            }
+        }
+
+        for (std::uint8_t slot = 0; slot < effects::kNumLayerInsertSlots; ++slot)
+        {
+            if (!insertSeen[slot])
+                order.insert[insertCount++] = slot;
+        }
+        for (std::uint8_t slot = 0; slot < effects::kNumMasterSlots; ++slot)
+        {
+            if (!masterSeen[slot])
+                order.master[masterCount++] = slot;
+        }
+
+        syncCurrentPatchFromApvts();
+        currentPatch_.fxProcessOrder = order;
         return loadPatch(currentPatch_);
     }
 
@@ -873,6 +1096,38 @@ namespace pw8::plugin
             engine->setOperatorWavetableLive(opIndex, std::move(table));
 
         return table != nullptr;
+    }
+
+    bool PatchworkEightProcessor::ensureOperatorWavetableLoaded(std::size_t opIndex)
+    {
+        if (opIndex >= currentPatch_.layerA.operators.size())
+            return false;
+
+        syncCurrentPatchFromApvts();
+
+        const auto engineParamId = operatorParamId(opIndex, "Engine");
+        int engineOrdinal = 0;
+        if (auto* raw = apvts.getRawParameterValue(engineParamId))
+            engineOrdinal = static_cast<int>(raw->load() + 0.5f);
+
+        const bool needsTable = engineOrdinal == static_cast<int>(algorithm::EngineType::Wavetable)
+                                || engineOrdinal == static_cast<int>(algorithm::EngineType::Granular);
+        const auto& op = currentPatch_.layerA.operators[opIndex];
+        if (!needsTable || !op.wavetableId.empty())
+            return !op.wavetableId.empty();
+
+        content::WavetableIndex index;
+        index.rescan();
+        if (index.allEntries().isEmpty())
+            return false;
+
+        return setOperatorWavetableFile(opIndex, index.allEntries().getFirst().absolutePath);
+    }
+
+    void PatchworkEightProcessor::ensureDefaultWavetablesForPatch()
+    {
+        for (std::size_t i = 0; i < currentPatch_.layerA.operators.size(); ++i)
+            ensureOperatorWavetableLoaded(i);
     }
 
     void PatchworkEightProcessor::applyMorphFromPosition(float position) noexcept
@@ -913,6 +1168,11 @@ namespace pw8::plugin
                 p.limiterCeilingDb,         p.limiterLookaheadMs, p.limiterReleaseMs,
                 static_cast<float>(p.tapeDelaySync), static_cast<float>(p.tapeDelaySyncDivisionIndex),
                 p.compAutoMakeup ? 1.0f : 0.0f, static_cast<float>(p.compCharacter),
+                static_cast<float>(p.vocoderBandCount), p.vocoderFormant, p.vocoderSibilance, p.vocoderScGainDb,
+                p.vocoderReleaseMs,
+                static_cast<float>(p.reverbCharacter),
+                static_cast<float>(p.saturationCharacter),
+                p.eqOutGainDb,
             };
             for (std::size_t i = 0; i < kNumEffectSlotFields; ++i)
                 setParam(id + kEffectSlotFieldSpecs[i].idSuffix, values[i]);
@@ -932,6 +1192,13 @@ namespace pw8::plugin
             return ParamGroup::LayerGainPan;
         if (parameterID.startsWith(kMasterGainId))
             return ParamGroup::MasterGain;
+        if (parameterID.startsWith(kUnisonVoicesId) || parameterID.startsWith(kUnisonDetuneId) ||
+            parameterID.startsWith(kUnisonSpreadId) || parameterID.startsWith(kUnisonPhaseRandomId))
+            return ParamGroup::Unison;
+        if (parameterID.startsWith(kFxRoutingPrePostId) || parameterID.startsWith(kFxGlobalBypassId) ||
+            parameterID.startsWith(kFxGlobalWetMixId) || parameterID.startsWith(kFxSendAId) ||
+            parameterID.startsWith(kFxSendBId))
+            return ParamGroup::FxRouting;
         if (parameterID.startsWith(kArpIdPrefix))
             return ParamGroup::Arp;
 
@@ -984,6 +1251,22 @@ namespace pw8::plugin
         }
 
         paramChangeQueue_.push(paramGroupForId(parameterID));
+
+        if (parameterID.startsWith(kFxRoutingPrePostId) || parameterID.startsWith(kFxGlobalBypassId) ||
+            parameterID.startsWith(kFxGlobalWetMixId))
+        {
+            for (std::size_t slot = 0; slot < kNumInsertFxSlots; ++slot)
+                paramChangeQueue_.push(static_cast<ParamGroup>(static_cast<std::uint16_t>(ParamGroup::InsertFx0) + slot));
+            for (std::size_t slot = 0; slot < kNumMasterFxSlots; ++slot)
+                paramChangeQueue_.push(static_cast<ParamGroup>(static_cast<std::uint16_t>(ParamGroup::MasterFx0) + slot));
+        }
+
+        if (parameterID.contains("MixEnabled") || parameterID.contains("MixMute") ||
+            parameterID.contains("MixSolo"))
+        {
+            for (std::size_t op = 0; op < kNumOperators; ++op)
+                paramChangeQueue_.push(static_cast<ParamGroup>(static_cast<std::uint16_t>(ParamGroup::Op0) + op));
+        }
 
         if (parameterID.contains("tapeDelayMs") || parameterID.contains("DelayMs") ||
             parameterID.contains("limiterLookaheadMs") || parameterID.contains("reverbPreDelayMs") ||
@@ -1079,6 +1362,45 @@ namespace pw8::plugin
             engine->setArpStepLive(stepIndex, step);
     }
 
+    void PatchworkEightProcessor::toggleArpStepAccent(std::size_t stepIndex) noexcept
+    {
+        if (stepIndex >= sequencer::kMaxArpSteps)
+            return;
+        auto& step = currentPatch_.arpeggiator.steps[stepIndex];
+        step.accent = !step.accent;
+        if (auto* engine = activeEngine_.load(std::memory_order_acquire))
+            engine->setArpStepLive(stepIndex, step);
+    }
+
+    void PatchworkEightProcessor::cycleArpStepRatchet(std::size_t stepIndex) noexcept
+    {
+        if (stepIndex >= sequencer::kMaxArpSteps)
+            return;
+        auto& step = currentPatch_.arpeggiator.steps[stepIndex];
+        step.ratchetCount = step.ratchetCount >= sequencer::kMaxRatchet ? 1 : step.ratchetCount + 1;
+        if (auto* engine = activeEngine_.load(std::memory_order_acquire))
+            engine->setArpStepLive(stepIndex, step);
+    }
+
+    void PatchworkEightProcessor::setAllArpStepsGate(float gate01) noexcept
+    {
+        const float gate = juce::jlimit(0.05f, 1.0f, gate01);
+        const auto numSteps = currentPatch_.arpeggiator.numSteps;
+        if (auto* engine = activeEngine_.load(std::memory_order_acquire))
+        {
+            for (std::size_t i = 0; i < numSteps && i < sequencer::kMaxArpSteps; ++i)
+            {
+                currentPatch_.arpeggiator.steps[i].gate = gate;
+                engine->setArpStepLive(i, currentPatch_.arpeggiator.steps[i]);
+            }
+        }
+        else
+        {
+            for (std::size_t i = 0; i < numSteps && i < sequencer::kMaxArpSteps; ++i)
+                currentPatch_.arpeggiator.steps[i].gate = gate;
+        }
+    }
+
     void PatchworkEightProcessor::syncAllParametersFromPatch()
     {
         auto setParam = [this](const juce::String& id, float value) {
@@ -1141,7 +1463,8 @@ namespace pw8::plugin
                 o.grainPositionJitter,                o.grainPitchJitter,
                 o.wtBend,                             o.wtAsymmetry,
                 o.wtSyncRatio,                        o.wtSyncAmount,
-                o.wtFormantShift,
+                o.wtFormantShift,                     o.wtMorphMode,
+                o.externalInputSource,
             };
             for (std::size_t i = 0; i < kNumOperatorFields; ++i)
                 setParam(operatorParamId(op, kOperatorFieldSpecs[i].idSuffix), opValues[i]);
@@ -1152,6 +1475,15 @@ namespace pw8::plugin
             };
             for (std::size_t i = 0; i < kNumOperatorFilterFields; ++i)
                 setParam(operatorFilterParamId(op, kOperatorFilterFieldSpecs[i].idSuffix), engineFilterValues[i]);
+
+            const auto& oMix = o;
+            const std::array<float, kNumOperatorMixFields> mixValues = {
+                oMix.mixEnabled ? 1.0f : 0.0f,
+                oMix.mixMute ? 1.0f : 0.0f,
+                oMix.mixSolo ? 1.0f : 0.0f,
+            };
+            for (std::size_t i = 0; i < kNumOperatorMixFields; ++i)
+                setParam(operatorMixParamId(op, kOperatorMixFieldSpecs[i].idSuffix), mixValues[i]);
         }
 
         for (std::size_t envIdx = 0; envIdx < kNumEnvelopes; ++envIdx)
@@ -1168,6 +1500,12 @@ namespace pw8::plugin
         setParam(kLayerGainId, currentPatch_.layerA.gain);
         setParam(kLayerPanId, currentPatch_.layerA.pan);
         setParam(kMasterGainId, currentPatch_.voiceSettings.masterGain);
+
+        const auto& uni = currentPatch_.layerA.unison;
+        setParam(kUnisonVoicesId, static_cast<float>(juce::jmax(1, uni.voices)));
+        setParam(kUnisonDetuneId, uni.detuneCents);
+        setParam(kUnisonSpreadId, uni.spread);
+        setParam(kUnisonPhaseRandomId, uni.phaseRandom);
 
         auto syncFxSlot = [&](const effects::EffectSlotParams& p, const juce::String& id) {
             const std::array<float, kNumEffectSlotFields> values = {
@@ -1188,6 +1526,11 @@ namespace pw8::plugin
                 p.limiterCeilingDb,         p.limiterLookaheadMs, p.limiterReleaseMs,
                 static_cast<float>(p.tapeDelaySync), static_cast<float>(p.tapeDelaySyncDivisionIndex),
                 p.compAutoMakeup ? 1.0f : 0.0f, static_cast<float>(p.compCharacter),
+                static_cast<float>(p.vocoderBandCount), p.vocoderFormant, p.vocoderSibilance, p.vocoderScGainDb,
+                p.vocoderReleaseMs,
+                static_cast<float>(p.reverbCharacter),
+                static_cast<float>(p.saturationCharacter),
+                p.eqOutGainDb,
             };
             for (std::size_t i = 0; i < kNumEffectSlotFields; ++i)
                 setParam(id + kEffectSlotFieldSpecs[i].idSuffix, values[i]);
@@ -1206,6 +1549,7 @@ namespace pw8::plugin
             static_cast<float>(arp.syncDivisionIndex),
             static_cast<float>(arp.octaveRange),
             static_cast<float>(arp.numSteps),
+            arp.swing,
             arp.latch ? 1.0f : 0.0f,
         };
         for (std::size_t i = 0; i < kNumArpFields; ++i)
@@ -1246,7 +1590,8 @@ namespace pw8::plugin
         {
             const auto& ptrs = operatorParamPointers_[op];
             auto& o = currentPatch_.layerA.operators[op];
-            o.engine = static_cast<algorithm::EngineType>(loadI(ptrs[0]));
+            o.engine = algorithm::sanitizeEngineForNode(
+                core::NodeId(static_cast<std::uint8_t>(op)), static_cast<algorithm::EngineType>(loadI(ptrs[0])));
             o.classicWaveform = static_cast<oscillator::ClassicWaveform>(loadI(ptrs[1]));
             o.classicMorph = loadF(ptrs[2]);
             o.pulseWidth = loadF(ptrs[3]);
@@ -1283,6 +1628,13 @@ namespace pw8::plugin
             o.wtSyncRatio = loadF(ptrs[34]);
             o.wtSyncAmount = loadF(ptrs[35]);
             o.wtFormantShift = loadF(ptrs[36]);
+            o.wtMorphMode = loadF(ptrs[37]);
+            o.externalInputSource = loadF(ptrs[38]);
+
+            const auto& mixPtrs = operatorMixParamPointers_[op];
+            o.mixEnabled = loadB(mixPtrs[0]);
+            o.mixMute = loadB(mixPtrs[1]);
+            o.mixSolo = loadB(mixPtrs[2]);
 
             const auto& fptrs = operatorFilterParamPointers_[op];
             auto& ef = o.filter1;
@@ -1310,6 +1662,14 @@ namespace pw8::plugin
         currentPatch_.layerA.gain = loadF(layerGainPointer_);
         currentPatch_.layerA.pan = loadF(layerPanPointer_);
         currentPatch_.voiceSettings.masterGain = loadF(masterGainPointer_);
+
+        auto& uni = currentPatch_.layerA.unison;
+        uni.voices = juce::jlimit(1, static_cast<int>(core::kMaxUnisonVoices), loadI(unisonVoicesPointer_));
+        uni.detuneCents = loadF(unisonDetunePointer_);
+        uni.spread = loadF(unisonSpreadPointer_);
+        uni.phaseRandom = loadF(unisonPhaseRandomPointer_);
+        if (uni.voices > 1 && uni.mode == patch::UnisonMode::Off)
+            uni.mode = patch::UnisonMode::Full;
 
         auto readFxSlot = [](const std::array<std::atomic<float>*, kNumEffectSlotFields>& ptrs,
                               effects::EffectSlotParams& p) {
@@ -1374,6 +1734,14 @@ namespace pw8::plugin
             p.tapeDelaySyncDivisionIndex = loadI(ptrs[58]);
             p.compAutoMakeup = loadB(ptrs[59]);
             p.compCharacter = loadI(ptrs[60]);
+            p.vocoderBandCount = static_cast<int>(loadF(ptrs[61]));
+            p.vocoderFormant = loadF(ptrs[62]);
+            p.vocoderSibilance = loadF(ptrs[63]);
+            p.vocoderScGainDb = loadF(ptrs[64]);
+            p.vocoderReleaseMs = loadF(ptrs[65]);
+            p.reverbCharacter = loadI(ptrs[66]);
+            p.saturationCharacter = loadI(ptrs[67]);
+            p.eqOutGainDb = loadF(ptrs[68]);
         };
         for (std::size_t slot = 0; slot < kNumInsertFxSlots; ++slot)
             readFxSlot(insertFxParamPointers_[slot], currentPatch_.layerA.insertEffects[slot]);
@@ -1388,7 +1756,8 @@ namespace pw8::plugin
         arp.syncDivisionIndex = loadI(arpParamPointers_[4]);
         arp.octaveRange = loadI(arpParamPointers_[5]);
         arp.numSteps = static_cast<std::size_t>(std::max(1, loadI(arpParamPointers_[6])));
-        arp.latch = loadB(arpParamPointers_[7]);
+        arp.swing = loadF(arpParamPointers_[7]);
+        arp.latch = loadB(arpParamPointers_[8]);
 
         // Keep algorithm graph node engines aligned with operator engine pills.
         if (currentPatch_.layerA.algorithm.nodes.size() == kNumOperators)

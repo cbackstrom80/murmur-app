@@ -7,16 +7,23 @@
     "description": "Factory Lead patch #14. Engines: Classic. Procedurally generated (seed 156279352) as part of the 250-patch factory content bank. Archetype: hard sync lead with detuned fifth stack lead character.",
     "category": "lead",
     "moods": [
-      "leads"
+      "bright",
+      "aggressive",
+      "lush",
+      "digital"
     ],
     "genres": [
+      "electronic",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "lead",
       "sync-lead",
-      "fifth-lead"
+      "fifth-lead",
+      "bright",
+      "aggressive"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

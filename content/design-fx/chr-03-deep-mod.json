@@ -1,0 +1,9 @@
+{
+  "chip": 2,
+  "name": "DEEP MOD CHORUS",
+  "params": {
+    "ChorusRate": 0.8,
+    "ChorusDepth": 12.0,
+    "Mix": 0.65
+  }
+}

@@ -7,16 +7,25 @@
     "description": "Factory Ambient patch #23. Engines: Classic, Wavetable, Granular, NoiseChaos, Resonator. Procedurally generated (seed 4246693702) as part of the 250-patch factory content bank. Archetype: granular cloud ambient with noise riser FX character.",
     "category": "ambient",
     "moods": [
-      "ambient"
+      "dreamy",
+      "airy",
+      "evolving",
+      "massive"
     ],
     "genres": [
-      "factory"
+      "ambient-bed",
+      "sound-design",
+      "cinematic",
+      "trailer",
+      "meditation"
     ],
     "tags": [
       "factory",
       "ambient",
       "gran-cloud",
-      "fx-riser"
+      "fx-riser",
+      "dreamy",
+      "airy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

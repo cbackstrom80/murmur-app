@@ -1,0 +1,9 @@
+{
+  "chip": 4,
+  "name": "ACID RESONANCE",
+  "modePill": "ACID",
+  "params": {
+    "Mix": 0.72
+  },
+  "uiKnobs": [0.78, 0.52, 0.5, 0.88, 0.55, 0.5]
+}

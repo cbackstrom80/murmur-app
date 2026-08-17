@@ -7,16 +7,25 @@
     "description": "Factory Basse patch #05. Engines: Classic. Procedurally generated (seed 2061640874) as part of the 250-patch factory content bank. Archetype: resonant acid sequence bass with sync oscillator low lead-bass character.",
     "category": "bass",
     "moods": [
-      "basses"
+      "aggressive",
+      "bright",
+      "punchy",
+      "dark",
+      "massive"
     ],
     "genres": [
+      "electronic",
+      "techno",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "bass",
       "acid-line",
-      "sync-low"
+      "sync-low",
+      "aggressive",
+      "bright"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

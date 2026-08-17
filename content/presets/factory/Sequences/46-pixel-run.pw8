@@ -7,15 +7,24 @@
     "description": "Factory Sequence patch #46. Engines: Classic, Resonator. Procedurally generated (seed 841623415) as part of the 250-patch factory content bank. Archetype: arp bell pluck sequence.",
     "category": "seq",
     "moods": [
-      "sequences"
+      "bright",
+      "glassy",
+      "punchy",
+      "evolving",
+      "digital"
     ],
     "genres": [
+      "electronic",
+      "pop",
+      "techno",
       "factory"
     ],
     "tags": [
       "factory",
       "seq",
-      "arp-bell"
+      "arp-bell",
+      "bright",
+      "glassy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

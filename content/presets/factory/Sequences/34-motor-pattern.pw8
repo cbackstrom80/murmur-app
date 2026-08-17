@@ -7,16 +7,23 @@
     "description": "Factory Sequence patch #34. Engines: Classic, Wavetable. Procedurally generated (seed 1610630126) as part of the 250-patch factory content bank. Archetype: FM pluck sequence with sync oscillator sequence character.",
     "category": "seq",
     "moods": [
-      "sequences"
+      "bright",
+      "punchy",
+      "evolving"
     ],
     "genres": [
+      "electronic",
+      "pop",
+      "techno",
       "factory"
     ],
     "tags": [
       "factory",
       "seq",
       "fm-pluck",
-      "sync-seq"
+      "sync-seq",
+      "bright",
+      "punchy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

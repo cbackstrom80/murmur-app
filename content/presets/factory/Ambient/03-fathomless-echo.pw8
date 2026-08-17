@@ -7,16 +7,26 @@
     "description": "Factory Ambient patch #03. Engines: Classic, Granular, Resonator. Procedurally generated (seed 1916119178) as part of the 250-patch factory content bank. Archetype: noise riser FX with noise texture drone character.",
     "category": "ambient",
     "moods": [
-      "ambient"
+      "evolving",
+      "massive",
+      "dark",
+      "desolate",
+      "airy"
     ],
     "genres": [
-      "factory"
+      "cinematic",
+      "trailer",
+      "ambient-bed",
+      "sound-design",
+      "meditation"
     ],
     "tags": [
       "factory",
       "ambient",
       "fx-riser",
-      "noise-drone"
+      "noise-drone",
+      "evolving",
+      "massive"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

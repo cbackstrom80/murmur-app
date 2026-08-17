@@ -7,16 +7,25 @@
     "description": "Factory Sequence patch #11. Engines: Classic, FM/PM. Procedurally generated (seed 2668698030) as part of the 250-patch factory content bank. Archetype: acid squelch sequence with FM pluck sequence character.",
     "category": "seq",
     "moods": [
-      "sequences"
+      "aggressive",
+      "bright",
+      "punchy",
+      "evolving",
+      "gritty"
     ],
     "genres": [
+      "electronic",
+      "techno",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "seq",
       "acid-seq",
-      "fm-pluck"
+      "fm-pluck",
+      "aggressive",
+      "bright"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

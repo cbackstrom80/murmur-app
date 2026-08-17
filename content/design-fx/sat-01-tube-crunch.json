@@ -1,0 +1,10 @@
+{
+  "chip": 1,
+  "name": "CLASS A TUBE CRUNCH",
+  "modePill": "TUBE",
+  "params": {
+    "SaturationCharacter": 0,
+    "SaturationDrive": 18.0,
+    "Mix": 0.85
+  }
+}

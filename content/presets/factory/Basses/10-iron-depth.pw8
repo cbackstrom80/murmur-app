@@ -7,16 +7,24 @@
     "description": "Factory Basse patch #10. Engines: Classic, Wavetable. Procedurally generated (seed 2107413593) as part of the 250-patch factory content bank. Archetype: rubber funk bass with portamento with sync oscillator low lead-bass character.",
     "category": "bass",
     "moods": [
-      "basses"
+      "warm",
+      "punchy",
+      "bright",
+      "aggressive",
+      "dark"
     ],
     "genres": [
+      "electronic",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "bass",
       "rubber-funk",
-      "sync-low"
+      "sync-low",
+      "warm",
+      "punchy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

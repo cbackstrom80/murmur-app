@@ -14,7 +14,7 @@ namespace pw8::plugin
     // grainSizeMs, grainPositionJitter, grainPitchJitter, wtBend, wtAsymmetry,
     // wtSyncRatio, wtSyncAmount, wtFormantShift.
     const std::array<ParamFieldSpec, kNumOperatorFields> kOperatorFieldSpecs = {{
-        {"Engine",             "Engine",             0.0f,   7.0f, 0.0f,   true},
+        {"Engine",             "Engine",             0.0f,   8.0f, 0.0f,   true},
         {"Waveform",           "Waveform",           0.0f,   3.0f, 2.0f,   true},
         {"Morph",               "Morph",             -1.0f,   1.0f, -1.0f,  false},
         {"PulseWidth",         "Pulse Width",         0.01f,  0.99f, 0.5f,  false},
@@ -54,6 +54,8 @@ namespace pw8::plugin
         {"WtSyncRatio",          "WT Sync Ratio", 1.0f, 16.0f, 1.0f, false},
         {"WtSyncAmount",         "WT Sync Amt",   0.0f,  1.0f, 0.0f, false},
         {"WtFormantShift",       "WT Formant",   -1.0f,  1.0f, 0.0f, false},
+        {"WtMorphMode",          "WT Morph Mode", 0.0f,  2.0f, 0.0f, true},
+        {"ExternalInputSource",  "External Input", 0.0f,  3.0f, 0.0f, true},
     }};
 
     // Matches filter::FilterParams: enabled, mode, cutoffHz, resonance, keyTrack.
@@ -167,6 +169,14 @@ namespace pw8::plugin
         {"TapeDelaySyncDivision", "Tape Delay Sync Division", 0.0f, 8.0f, 2.0f, true},
         {"CompAutoMakeup",     "Comp Auto Makeup",      0.0f,     1.0f,     0.0f,   true},
         {"CompCharacter",      "Comp Character",        0.0f,     2.0f,     0.0f,   true},
+        {"VocoderBandCount",   "Vocoder Bands",         8.0f,     16.0f,    8.0f,   true},
+        {"VocoderFormant",     "Vocoder Formant",       0.0f,     1.0f,     0.5f,   false},
+        {"VocoderSibilance",   "Vocoder Sibilance",     0.0f,     1.0f,     0.0f,   false},
+        {"VocoderScGainDb",    "Vocoder SC Gain Db",    0.0f,     48.0f,    0.0f,   false},
+        {"VocoderReleaseMs",   "Vocoder Release Ms",    5.0f,     250.0f,   40.0f,  false},
+        {"ReverbCharacter",    "Reverb Character",      0.0f,     4.0f,     0.0f,   true},
+        {"SaturationCharacter", "Saturation Character",   0.0f,     4.0f,     0.0f,   true},
+        {"EqOutGainDb",        "Eq Out Gain Db",       -12.0f,    12.0f,    0.0f,   false},
     }};
 
     // Matches sequencer::ArpeggiatorParams's scalar fields (excludes `steps[]`).
@@ -178,7 +188,14 @@ namespace pw8::plugin
         {"SyncDivisionIndex", "Sync Division",     0.0f, 9.0f,  6.0f, true},
         {"OctaveRange",       "Octave Range",      1.0f, 4.0f,  1.0f, true},
         {"NumSteps",          "Num Steps",         1.0f, 64.0f, 8.0f, true},
+        {"Swing",             "Swing",             0.0f, 1.0f,  0.0f, false},
         {"Latch",             "Latch",             0.0f, 1.0f,  0.0f, true},
+    }};
+
+    const std::array<ParamFieldSpec, kNumOperatorMixFields> kOperatorMixFieldSpecs = {{
+        {"MixEnabled", "Mix Enabled", 0.0f, 1.0f, 1.0f, true},
+        {"MixMute",    "Mix Mute",    0.0f, 1.0f, 0.0f, true},
+        {"MixSolo",    "Mix Solo",    0.0f, 1.0f, 0.0f, true},
     }};
 
     // clang-format on
@@ -186,6 +203,11 @@ namespace pw8::plugin
     juce::String operatorParamId(std::size_t opIndex, const char* fieldSuffix)
     {
         return "op" + juce::String(static_cast<int>(opIndex)) + fieldSuffix;
+    }
+
+    juce::String operatorMixParamId(std::size_t opIndex, const char* fieldSuffix)
+    {
+        return operatorParamId(opIndex, fieldSuffix);
     }
 
     juce::String operatorFilterParamId(std::size_t opIndex, const char* fieldSuffix)
@@ -231,7 +253,8 @@ namespace pw8::plugin
     {
         std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
         params.reserve(8 + kNumFilterFields + kNumFilter2Fields + kNumOperators * kNumOperatorFilterFields +
-                       kNumLfos * kNumLfoFields + kNumOperators * kNumOperatorFields + kNumEnvelopes * kNumEnvelopeFields +
+                       kNumOperators * kNumOperatorMixFields + kNumLfos * kNumLfoFields +
+                       kNumOperators * kNumOperatorFields + kNumEnvelopes * kNumEnvelopeFields +
                        3 + (kNumInsertFxSlots + kNumMasterFxSlots) * kNumEffectSlotFields + kNumArpFields);
 
         for (std::size_t i = 0; i < kMacroParameterIds.size(); ++i)
@@ -267,6 +290,10 @@ namespace pw8::plugin
             for (const auto& spec : kOperatorFilterFieldSpecs)
                 addParam(params, operatorFilterParamId(op, spec.idSuffix), spec);
 
+        for (std::size_t op = 0; op < kNumOperators; ++op)
+            for (const auto& spec : kOperatorMixFieldSpecs)
+                addParam(params, operatorMixParamId(op, spec.idSuffix), spec);
+
         for (std::size_t env = 0; env < kNumEnvelopes; ++env)
             for (const auto& spec : kEnvelopeFieldSpecs)
                 addParam(params, envelopeParamId(env, spec.idSuffix), spec);
@@ -285,6 +312,17 @@ namespace pw8::plugin
 
         for (const auto& spec : kArpFieldSpecs)
             addParam(params, juce::String(kArpIdPrefix) + spec.idSuffix, spec);
+
+        addParam(params, kUnisonVoicesId, ParamFieldSpec{"", kUnisonVoicesName, 1.0f, 16.0f, 1.0f, true});
+        addParam(params, kUnisonDetuneId, ParamFieldSpec{"", kUnisonDetuneName, 0.0f, 100.0f, 0.0f, false});
+        addParam(params, kUnisonSpreadId, ParamFieldSpec{"", kUnisonSpreadName, 0.0f, 1.0f, 0.0f, false});
+        addParam(params, kUnisonPhaseRandomId, ParamFieldSpec{"", kUnisonPhaseRandomName, 0.0f, 1.0f, 0.0f, false});
+
+        addParam(params, kFxRoutingPrePostId, ParamFieldSpec{"", kFxRoutingPrePostName, 0.0f, 1.0f, 0.0f, true});
+        addParam(params, kFxGlobalBypassId, ParamFieldSpec{"", kFxGlobalBypassName, 0.0f, 1.0f, 0.0f, true});
+        addParam(params, kFxGlobalWetMixId, ParamFieldSpec{"", kFxGlobalWetMixName, 0.0f, 1.0f, 0.8f, false});
+        addParam(params, kFxSendAId, ParamFieldSpec{"", kFxSendAName, 0.0f, 1.0f, 0.0f, false});
+        addParam(params, kFxSendBId, ParamFieldSpec{"", kFxSendBName, 0.0f, 1.0f, 0.0f, false});
 
         return {params.begin(), params.end()};
     }

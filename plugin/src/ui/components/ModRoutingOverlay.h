@@ -21,6 +21,8 @@ namespace pw8::plugin::ui
         void showOverlay();
         void dismiss();
 
+        void setEmbeddedInDesignMode(bool embedded);
+
         void setRoutingContext(FilterPanelScope scope, int engineIndex);
 
         /// Repaint mod source chips after armed-source changes.
@@ -33,10 +35,12 @@ namespace pw8::plugin::ui
 
     private:
         juce::Component panel_;
+        juce::Label badgeLabel_;
         juce::Label titleLabel_;
         juce::Label subtitleLabel_;
-        juce::TextButton closeButton_{"CLOSE"};
+        juce::TextButton closeButton_{"← PLAY BOARD"};
         ModSourceStrip modSourceStrip_;
+        bool embeddedInDesignMode_ = false;
     };
 
 } // namespace pw8::plugin::ui

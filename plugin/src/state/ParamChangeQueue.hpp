@@ -48,6 +48,8 @@ namespace pw8::plugin
         MasterFx2,
         MasterFx3,
         Arp,
+        Unison,
+        FxRouting,
         Count
     };
 

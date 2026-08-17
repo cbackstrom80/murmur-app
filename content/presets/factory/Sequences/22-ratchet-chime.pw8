@@ -7,16 +7,25 @@
     "description": "Factory Sequence patch #22. Engines: Classic, FM/PM. Procedurally generated (seed 2379636837) as part of the 250-patch factory content bank. Archetype: FM pluck sequence with arp bell pluck sequence character.",
     "category": "seq",
     "moods": [
-      "sequences"
+      "bright",
+      "punchy",
+      "glassy",
+      "evolving",
+      "metallic"
     ],
     "genres": [
+      "electronic",
+      "pop",
+      "techno",
       "factory"
     ],
     "tags": [
       "factory",
       "seq",
       "fm-pluck",
-      "arp-bell"
+      "arp-bell",
+      "bright",
+      "punchy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

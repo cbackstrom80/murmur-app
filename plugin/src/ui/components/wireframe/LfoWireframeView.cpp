@@ -50,6 +50,12 @@ namespace pw8::plugin::ui::wireframe
 
     LfoWireframeView::~LfoWireframeView() { stopTimer(); }
 
+    void LfoWireframeView::setLfoIndex(std::size_t lfoIndex)
+    {
+        lfoIndex_ = lfoIndex;
+        repaint();
+    }
+
     void LfoWireframeView::timerCallback()
     {
         const auto prefix = lfoParamId(lfoIndex_, "");

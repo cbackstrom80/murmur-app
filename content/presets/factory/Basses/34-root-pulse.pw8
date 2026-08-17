@@ -7,16 +7,24 @@
     "description": "Factory Basse patch #34. Engines: Classic, FM/PM, NoiseChaos. Procedurally generated (seed 569400171) as part of the 250-patch factory content bank. Archetype: mono growl bass with ladder-filter mono bass character.",
     "category": "bass",
     "moods": [
-      "basses"
+      "dark",
+      "gritty",
+      "punchy",
+      "evolving"
     ],
     "genres": [
+      "electronic",
+      "sound-design",
+      "techno",
       "factory"
     ],
     "tags": [
       "factory",
       "bass",
       "mono-growl",
-      "ladder-bass"
+      "ladder-bass",
+      "dark",
+      "gritty"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

@@ -35,6 +35,7 @@ namespace pw8::plugin::ui::wireframe
         std::array<juce::String, 7> prefixes_{};
         std::array<int, 7> effectTypes_{};
         std::array<float, 7> mixValues_{};
+        bool insertsPostFader_ = true;
         std::size_t selectedSlot_ = 0;
     };
 

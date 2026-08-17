@@ -41,6 +41,9 @@ namespace pw8::effects
         float quasarCrossfeed = 0.0f;
         bool quasarDelaySync = false;
         int quasarDelaySyncDivisionIndex = static_cast<int>(dsp::kDefaultDelaySyncDivisionIndex);
+        /// When true, left input → QSR1 path, right input → QSR2 path (Quasar PLAY default).
+        /// When false, summed mono feeds both QSR paths (legacy MURMUR master FX behavior).
+        bool qsrStereoSplit = true;
     };
 
     class BinauralSpaceProcessor
@@ -84,7 +87,7 @@ namespace pw8::effects
         }
 
         void processStereo(float inL, float inR, const BinauralSpaceParams& p, float& outL, float& outR,
-                           float bpm = 120.0f) noexcept
+                           float bpm = 120.0f, float qsr2AuxIn = 0.0f, bool useQsr2Aux = false) noexcept
         {
             const float mix = dsp::clamp(p.mix, 0.0f, 1.0f);
             if (mix <= 1.0e-6f)
@@ -111,27 +114,32 @@ namespace pw8::effects
             cntrHpfL_.setHighpass(cntrHpfHz, sampleRate_);
             cntrHpfR_.setHighpass(cntrHpfHz, sampleRate_);
 
-            const float qsrMono = (qsrHpfL_.renderSample(inL) + qsrHpfR_.renderSample(inR)) * 0.5f;
+            const float qsrLeftMono = qsrHpfL_.renderSample(inL);
+            const float qsr2Source = useQsr2Aux ? qsr2AuxIn : inR;
+            const float qsrRightMono = qsrHpfR_.renderSample(qsr2Source);
+            const float qsrMonoSum = (qsrLeftMono + qsrRightMono) * 0.5f;
+            const float qsr1Mono = p.qsrStereoSplit ? qsrLeftMono : qsrMonoSum;
+            const float qsr2Mono = p.qsrStereoSplit ? qsrRightMono : qsrMonoSum;
             const float cntrL = cntrHpfL_.renderSample(inL);
             const float cntrR = cntrHpfR_.renderSample(inR);
 
             // QSR1 path.
             SpatialParams sp1{p.qsr1AngleDeg, p.qsr1Height, p.qsr1Distance};
             float q1L = 0.0f, q1R = 0.0f;
-            pannerQsr1_.processMono(qsrMono, sp1, q1L, q1R, itdScale);
+            pannerQsr1_.processMono(qsr1Mono, sp1, q1L, q1R, itdScale);
             RoomParams rp1{p.qsr1RoomSize, p.qsr1RoomDamping, p.qsr1RoomAmount};
             float r1L = 0.0f, r1R = 0.0f;
-            roomQsr1_.processMono(qsrMono, rp1, r1L, r1R);
+            roomQsr1_.processMono(qsr1Mono, rp1, r1L, r1R);
             q1L += r1L;
             q1R += r1R;
 
             // QSR2 path.
             SpatialParams sp2{p.qsr2AngleDeg, p.qsr2Height, p.qsr2Distance};
             float q2L = 0.0f, q2R = 0.0f;
-            pannerQsr2_.processMono(qsrMono, sp2, q2L, q2R, itdScale);
+            pannerQsr2_.processMono(qsr2Mono, sp2, q2L, q2R, itdScale);
             RoomParams rp2{p.qsr2RoomSize, p.qsr2RoomDamping, p.qsr2RoomAmount};
             float r2L = 0.0f, r2R = 0.0f;
-            roomQsr2_.processMono(qsrMono, rp2, r2L, r2R);
+            roomQsr2_.processMono(qsr2Mono, rp2, r2L, r2R);
             q2L += r2L;
             q2R += r2R;
 

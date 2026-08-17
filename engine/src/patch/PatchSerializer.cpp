@@ -78,7 +78,8 @@ namespace pw8::patch
                         break;
                     algorithm::AlgorithmNode n;
                     n.id = core::NodeId(static_cast<std::uint8_t>(clampNum(jn.value("id", 0), 0, 255)));
-                    n.engine = static_cast<algorithm::EngineType>(clampNum(jn.value("engine", 0), 0, 7));
+                    n.engine = algorithm::sanitizeEngineForNode(
+                        n.id, static_cast<algorithm::EngineType>(clampNum(jn.value("engine", 0), 0, 8)));
                     n.isOutput = jn.value("isOutput", false);
                     g.nodes.push_back(n);
                 }
@@ -112,6 +113,9 @@ namespace pw8::patch
                 {"fixedFrequencyHz", o.fixedFrequencyHz},
                 {"keyTrack", o.keyTrack},
                 {"level", o.level},
+                {"mixEnabled", o.mixEnabled},
+                {"mixMute", o.mixMute},
+                {"mixSolo", o.mixSolo},
                 {"pan", o.pan},
                 {"fmModulatorRatio", o.fmModulatorRatio},
                 {"fmModulatorIndex", o.fmModulatorIndex},
@@ -141,6 +145,8 @@ namespace pw8::patch
                 {"wtSyncRatio", o.wtSyncRatio},
                 {"wtSyncAmount", o.wtSyncAmount},
                 {"wtFormantShift", o.wtFormantShift},
+                {"wtMorphMode", o.wtMorphMode},
+                {"externalInputSource", o.externalInputSource},
                 {"filter1", json{{"enabled", o.filter1.enabled},
                                  {"mode", static_cast<int>(o.filter1.mode)},
                                  {"cutoffHz", o.filter1.cutoffHz},
@@ -151,7 +157,7 @@ namespace pw8::patch
 
         void fromJson(const json& j, OperatorPatch& o)
         {
-            o.engine = static_cast<algorithm::EngineType>(clampNum(j.value("engine", 0), 0, 7));
+            o.engine = static_cast<algorithm::EngineType>(clampNum(j.value("engine", 0), 0, 8));
             o.classicWaveform = static_cast<oscillator::ClassicWaveform>(clampNum(j.value("classicWaveform", 2), 0, 3));
             o.classicMorph = clampNum(j.value("classicMorph", -1.0f), -1.0f, 1.0f);
             o.pulseWidth = clampNum(j.value("pulseWidth", 0.5f), 0.01f, 0.99f);
@@ -161,6 +167,9 @@ namespace pw8::patch
             o.fixedFrequencyHz = clampNum(j.value("fixedFrequencyHz", 440.0f), 0.01f, 24000.0f);
             o.keyTrack = j.value("keyTrack", true);
             o.level = clampNum(j.value("level", 1.0f), 0.0f, 4.0f);
+            o.mixEnabled = j.value("mixEnabled", true);
+            o.mixMute = j.value("mixMute", false);
+            o.mixSolo = j.value("mixSolo", false);
             o.pan = clampNum(j.value("pan", 0.0f), -1.0f, 1.0f);
             o.fmModulatorRatio = clampNum(j.value("fmModulatorRatio", 1.0f), 0.001f, 32.0f);
             o.fmModulatorIndex = clampNum(j.value("fmModulatorIndex", 0.5f), 0.0f, 2.0f);
@@ -191,6 +200,8 @@ namespace pw8::patch
             o.wtSyncRatio = clampNum(j.value("wtSyncRatio", 1.0f), 1.0f, 16.0f);
             o.wtSyncAmount = clampNum(j.value("wtSyncAmount", 0.0f), 0.0f, 1.0f);
             o.wtFormantShift = clampNum(j.value("wtFormantShift", 0.0f), -1.0f, 1.0f);
+            o.wtMorphMode = clampNum(j.value("wtMorphMode", 0.0f), 0.0f, 2.0f);
+            o.externalInputSource = clampNum(j.value("externalInputSource", 0.0f), 0.0f, 3.0f);
             if (j.contains("filter1"))
             {
                 const auto& jf = j.at("filter1");
@@ -276,8 +287,9 @@ namespace pw8::patch
         void fromJson(const json& j, modulation::ModRoute& r)
         {
             r.source = static_cast<modulation::ModSource>(
-                clampNum(j.value("source", 0), 0, static_cast<int>(modulation::ModSource::Expression)));
-            r.destination = static_cast<modulation::ModDestination>(clampNum(j.value("destination", 0), 0, 20));
+                clampNum(j.value("source", 0), 0, static_cast<int>(modulation::ModSource::Sidechain)));
+            r.destination = static_cast<modulation::ModDestination>(
+                clampNum(j.value("destination", 0), 0, static_cast<int>(modulation::ModDestination::ModRouteDepth)));
             r.targetIndex = static_cast<std::uint8_t>(clampNum(j.value("targetIndex", 0), 0, 255));
             r.amount = clampNum(j.value("amount", 0.0f), -1000.0f, 1000.0f);
             r.scope = static_cast<modulation::ModScope>(clampNum(j.value("scope", 0), 0, 2));
@@ -315,6 +327,7 @@ namespace pw8::patch
             j = json{
                 {"type", static_cast<int>(e.type)},                 {"mix", e.mix},
                 {"saturationDriveDb", e.saturationDriveDb},
+                {"saturationCharacter", e.saturationCharacter},
                 {"chorusRateHz", e.chorusRateHz},                   {"chorusDepthMs", e.chorusDepthMs},
                 {"chorusBaseDelayMs", e.chorusBaseDelayMs},
                 {"tapeDelayMs", e.tapeDelayMs},                     {"tapeFeedback", e.tapeFeedback},
@@ -341,6 +354,7 @@ namespace pw8::patch
                 {"eqMidFreqHz", e.eqMidFreqHz},                     {"eqMidGainDb", e.eqMidGainDb},
                 {"eqMidQ", e.eqMidQ},
                 {"eqHighFreqHz", e.eqHighFreqHz},                   {"eqHighGainDb", e.eqHighGainDb},
+                {"eqOutGainDb", e.eqOutGainDb},
                 {"compThresholdDb", e.compThresholdDb},             {"compRatio", e.compRatio},
                 {"compAttackMs", e.compAttackMs},                   {"compReleaseMs", e.compReleaseMs},
                 {"compKneeDb", e.compKneeDb},                       {"compMakeupDb", e.compMakeupDb},
@@ -352,6 +366,7 @@ namespace pw8::patch
                 {"vocoderFormant", e.vocoderFormant},
                 {"vocoderSibilance", e.vocoderSibilance},
                 {"vocoderScGainDb", e.vocoderScGainDb},
+                {"vocoderReleaseMs", e.vocoderReleaseMs},
                 {"limiterCeilingDb", e.limiterCeilingDb},           {"limiterLookaheadMs", e.limiterLookaheadMs},
                 {"limiterReleaseMs", e.limiterReleaseMs},
                 {"tapeDelaySync", e.tapeDelaySync},
@@ -362,14 +377,17 @@ namespace pw8::patch
         void fromJson(const json& j, effects::EffectSlotParams& e)
         {
             int typeOrdinal = static_cast<int>(clampNum(j.value("type", 0), 0, 12));
-            if (typeOrdinal == 11)
-                typeOrdinal = 0; // legacy BinauralSpace → Bypass
-            else if (typeOrdinal == 12)
-                typeOrdinal = 11; // legacy Vocoder ordinal
+            if (typeOrdinal == 12)
+                typeOrdinal = 11; // legacy Vocoder ordinal (pre–EffectType consolidation)
+            // Interstellar master slots used ordinal 11 for legacy Quasar/Binaural before Vocoder.
+            if (typeOrdinal == 11 && !j.contains("vocoderBandCount")
+                && (j.contains("qsr1Level") || j.contains("qsr1Angle") || j.contains("quasarDelayTimeMs")))
+                typeOrdinal = 0;
             e.type = static_cast<effects::EffectType>(typeOrdinal);
             e.mix = clampNum(j.value("mix", 1.0f), 0.0f, 1.0f);
 
             e.saturationDriveDb = clampNum(j.value("saturationDriveDb", 6.0f), 0.0f, 48.0f);
+            e.saturationCharacter = static_cast<int>(clampNum(j.value("saturationCharacter", 0), 0, 4));
 
             e.chorusRateHz = clampNum(j.value("chorusRateHz", 0.5f), 0.01f, 10.0f);
             e.chorusDepthMs = clampNum(j.value("chorusDepthMs", 4.0f), 0.0f, 20.0f);
@@ -450,6 +468,7 @@ namespace pw8::patch
             e.eqMidQ = clampNum(j.value("eqMidQ", 0.8f), 0.1f, 10.0f);
             e.eqHighFreqHz = clampNum(j.value("eqHighFreqHz", 6000.0f), 20.0f, 20000.0f);
             e.eqHighGainDb = clampNum(j.value("eqHighGainDb", 0.0f), -24.0f, 24.0f);
+            e.eqOutGainDb = clampNum(j.value("eqOutGainDb", 0.0f), -12.0f, 12.0f);
 
             e.compThresholdDb = clampNum(j.value("compThresholdDb", -18.0f), -60.0f, 0.0f);
             e.compRatio = clampNum(j.value("compRatio", 3.0f), 1.0f, 20.0f);
@@ -466,6 +485,7 @@ namespace pw8::patch
             e.vocoderFormant = clampNum(j.value("vocoderFormant", 0.5f), 0.0f, 1.0f);
             e.vocoderSibilance = clampNum(j.value("vocoderSibilance", 0.0f), 0.0f, 1.0f);
             e.vocoderScGainDb = clampNum(j.value("vocoderScGainDb", 0.0f), 0.0f, 48.0f);
+            e.vocoderReleaseMs = clampNum(j.value("vocoderReleaseMs", 40.0f), 5.0f, 250.0f);
 
             e.limiterCeilingDb = clampNum(j.value("limiterCeilingDb", -0.3f), -12.0f, 0.0f);
             e.limiterLookaheadMs = clampNum(j.value("limiterLookaheadMs", 5.0f),
@@ -553,6 +573,8 @@ namespace pw8::patch
                     if (i >= core::kNodesPerLayer)
                         break;
                     fromJson(jo, l.operators[i]);
+                    l.operators[i].engine =
+                        algorithm::sanitizeEngineForNode(core::NodeId(static_cast<std::uint8_t>(i)), l.operators[i].engine);
                     ++i;
                 }
             }
@@ -721,6 +743,12 @@ namespace pw8::patch
             {
                 knob.kind = UiFocusKnobKind::Morph;
             }
+            else if (kindStr == "insertFx")
+            {
+                knob.kind = UiFocusKnobKind::Param;
+                const auto slot = static_cast<int>(clampNum(j.value("index", 0), 0, 2));
+                knob.paramId = "insertFx" + std::to_string(slot) + "Mix";
+            }
             else
             {
                 knob.kind = UiFocusKnobKind::Macro;
@@ -878,7 +906,8 @@ namespace pw8::patch
             j = json{{"enabled", a.enabled},                 {"mode", static_cast<int>(a.mode)},
                      {"rateMode", static_cast<int>(a.rateMode)}, {"rateHz", a.rateHz},
                      {"syncDivisionIndex", a.syncDivisionIndex}, {"octaveRange", a.octaveRange},
-                     {"numSteps", a.numSteps},                 {"latch", a.latch},
+                     {"numSteps", a.numSteps},                 {"swing", a.swing},
+                     {"latch", a.latch},
                      {"steps", steps}};
         }
 
@@ -890,6 +919,7 @@ namespace pw8::patch
             a.rateHz = clampNum(j.value("rateHz", 8.0f), 0.1f, 100.0f);
             a.syncDivisionIndex = clampNum(j.value("syncDivisionIndex", 6), 0, 9);
             a.octaveRange = clampNum(j.value("octaveRange", 1), 1, 4);
+            a.swing = clampNum(j.value("swing", 0.0f), 0.0f, 1.0f);
             a.latch = j.value("latch", false);
 
             a.steps = std::array<sequencer::ArpStep, sequencer::kMaxArpSteps>{};
@@ -980,6 +1010,11 @@ namespace pw8::patch
                 masterFx.push_back(jfx);
             }
             j["masterEffects"] = masterFx;
+
+            const patch::FxProcessOrder defaultOrder{};
+            if (patch.fxProcessOrder.insert != defaultOrder.insert || patch.fxProcessOrder.master != defaultOrder.master)
+                j["fxProcessOrder"] = json{{"insert", patch.fxProcessOrder.insert},
+                                           {"master", patch.fxProcessOrder.master}};
 
             j["seed"] = patch.seed;
 
@@ -1186,6 +1221,33 @@ namespace pw8::patch
                         break;
                     fromJson(jfx, p.masterEffects[i]);
                     ++i;
+                }
+            }
+
+            if (root.contains("fxProcessOrder") && root.at("fxProcessOrder").is_object())
+            {
+                const auto& order = root.at("fxProcessOrder");
+                if (order.contains("insert") && order.at("insert").is_array())
+                {
+                    std::size_t i = 0;
+                    for (const auto& slot : order.at("insert"))
+                    {
+                        if (i >= effects::kNumLayerInsertSlots)
+                            break;
+                        p.fxProcessOrder.insert[i] = static_cast<std::uint8_t>(slot.get<std::uint64_t>());
+                        ++i;
+                    }
+                }
+                if (order.contains("master") && order.at("master").is_array())
+                {
+                    std::size_t i = 0;
+                    for (const auto& slot : order.at("master"))
+                    {
+                        if (i >= effects::kNumMasterSlots)
+                            break;
+                        p.fxProcessOrder.master[i] = static_cast<std::uint8_t>(slot.get<std::uint64_t>());
+                        ++i;
+                    }
                 }
             }
 

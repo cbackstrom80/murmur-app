@@ -10,9 +10,22 @@ namespace pw8::plugin::ui
 {
     namespace
     {
-        constexpr int kNumEngines = 8;
+        constexpr int kNumBuiltinEngines = 8;
+        constexpr int kNumEnginesWithExt = 9;
         constexpr int kPillRowHeight = 30;
         constexpr int kNoteHeight = 16;
+
+        int numEnginePillsForNode(int nodeIndex) noexcept
+        {
+            return nodeIndex == 0 ? kNumEnginesWithExt : kNumBuiltinEngines;
+        }
+
+        algorithm::EngineType engineForPillIndex(int nodeIndex, int pillIndex) noexcept
+        {
+            const int maxOrdinal = nodeIndex == 0 ? static_cast<int>(algorithm::EngineType::External)
+                                                : static_cast<int>(algorithm::EngineType::Resonator);
+            return static_cast<algorithm::EngineType>(juce::jlimit(0, maxOrdinal, pillIndex));
+        }
 
         juce::String waveformToText(float v)
         {
@@ -43,7 +56,7 @@ namespace pw8::plugin::ui
 
         algorithm::EngineType engineForIndex(int index) noexcept
         {
-            return static_cast<algorithm::EngineType>(juce::jlimit(0, kNumEngines - 1, index));
+            return engineForPillIndex(0, index);
         }
     } // namespace
 
@@ -73,7 +86,7 @@ namespace pw8::plugin::ui
     juce::Rectangle<int> OperatorEditorPanel::pillBounds(int engineIndex) const
     {
         auto row = pillRowBounds();
-        const int pillWidth = row.getWidth() / kNumEngines;
+        const int pillWidth = row.getWidth() / numEnginePillsForNode(selectedNode_);
         return row.withX(row.getX() + pillWidth * engineIndex).withWidth(pillWidth).reduced(2, 3);
     }
 
@@ -259,6 +272,7 @@ namespace pw8::plugin::ui
         const bool isAdditive = engine == static_cast<int>(algorithm::EngineType::Additive);
         const bool isResonator = engine == static_cast<int>(algorithm::EngineType::Resonator);
         const bool isGranular = engine == static_cast<int>(algorithm::EngineType::Granular);
+        const bool isExternal = engine == static_cast<int>(algorithm::EngineType::External);
         // Granular grains read the same wavetableId-loaded data the Wavetable
         // engine uses (see op::OperatorPatch's Granular fields doc comment), so
         // it shares the stack preview + WT Pos (reused as grain base position)
@@ -288,11 +302,12 @@ namespace pw8::plugin::ui
         // selectedNode_), so an engine-only change never needs to reconstruct
         // them -- doing so used to silently abort any in-progress mouse drag on
         // a knob the instant a host automated the Engine parameter mid-gesture.
-        waveformKnob_->setVisible(!showsWavetableStack && !isNoiseChaos && !isPhaseShape && !isAdditive && !isResonator);
-        ratioKnob_->setVisible(true);
+        waveformKnob_->setVisible(!showsWavetableStack && !isNoiseChaos && !isPhaseShape && !isAdditive && !isResonator
+                                  && !isExternal);
+        ratioKnob_->setVisible(!isExternal);
         wavetablePosKnob_->setVisible(showsWavetableStack);
         oscWireframeHost_.setVisible(true);
-        oscWireframeHost_.setEngine(engineForIndex(engine));
+        oscWireframeHost_.setEngine(engineForPillIndex(selectedNode_, engine));
         if (showsWavetableStack)
             oscWireframeHost_.ensureDefaultWavetableLoaded();
         noiseVariantKnob_->setVisible(isNoiseChaos);
@@ -339,7 +354,7 @@ namespace pw8::plugin::ui
 
     int OperatorEditorPanel::pillIndexAt(juce::Point<int> pos) const
     {
-        for (int i = 0; i < kNumEngines; ++i)
+        for (int i = 0; i < numEnginePillsForNode(selectedNode_); ++i)
             if (pillBounds(i).contains(pos))
                 return i;
         return -1;
@@ -350,7 +365,7 @@ namespace pw8::plugin::ui
         const int i = pillIndexAt(getMouseXYRelative());
         if (i < 0)
             return {};
-        const auto engine = engineForIndex(i);
+        const auto engine = engineForPillIndex(selectedNode_, i);
         if (algorithm::isEngineImplemented(engine))
             return {}; // No tooltip needed over an already-usable pill.
         return juce::String(engineShortName(engine)) + " renders silence today -- not yet implemented.";
@@ -362,7 +377,7 @@ namespace pw8::plugin::ui
         if (i < 0)
             return;
 
-        const auto engine = engineForIndex(i);
+        const auto engine = engineForPillIndex(selectedNode_, i);
         if (!algorithm::isEngineImplemented(engine))
             return; // Honest no-op -- see the header doc comment on why this stays disabled, not hidden.
 
@@ -535,10 +550,10 @@ namespace pw8::plugin::ui
     {
         const int currentEngine = currentEngineOrdinal();
 
-        for (int i = 0; i < kNumEngines; ++i)
+        for (int i = 0; i < numEnginePillsForNode(selectedNode_); ++i)
         {
             const auto bounds = pillBounds(i).toFloat();
-            const auto engine = engineForIndex(i);
+            const auto engine = engineForPillIndex(selectedNode_, i);
             const bool implemented = algorithm::isEngineImplemented(engine);
             const bool isCurrent = i == currentEngine;
 
@@ -556,7 +571,17 @@ namespace pw8::plugin::ui
         // currently-selected operator is running an unimplemented engine, so a
         // player who picks (or inherits, from a hand-authored .pw8) one of those 6
         // engines is told plainly why it's silent rather than left to guess.
-        if (!algorithm::isEngineImplemented(engineForIndex(currentEngine)))
+        const auto activeEngine = engineForPillIndex(selectedNode_, currentEngine);
+        if (activeEngine == algorithm::EngineType::External)
+        {
+            auto content = panel_.getContentBounds();
+            auto noteRow = content.removeFromBottom(kNoteHeight).toFloat();
+            g.setColour(palette::kMurmurViolet.withAlpha(0.85f));
+            g.setFont(fonts::value(9.5f));
+            g.drawText("EXT reads the AU Sidechain bus — pick a bus in Logic's Side Chain menu.", noteRow,
+                       juce::Justification::centredLeft);
+        }
+        else if (!algorithm::isEngineImplemented(activeEngine))
         {
             auto content = panel_.getContentBounds();
             auto noteRow = content.removeFromBottom(kNoteHeight).toFloat();

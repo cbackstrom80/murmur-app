@@ -1,0 +1,11 @@
+{
+  "chip": 7,
+  "name": "SMALL ROOM",
+  "modePill": "ROOM",
+  "params": {
+    "ReverbCharacter": 3,
+    "ReverbDecaySeconds": 1.1,
+    "ReverbPreDelayMs": 8.0,
+    "Mix": 0.35
+  }
+}

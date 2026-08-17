@@ -7,15 +7,21 @@
     "description": "Factory Lead patch #23. Engines: Classic. Procedurally generated (seed 628431421) as part of the 250-patch factory content bank. Archetype: hard sync lead.",
     "category": "lead",
     "moods": [
-      "leads"
+      "bright",
+      "aggressive",
+      "gritty"
     ],
     "genres": [
+      "electronic",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "lead",
-      "sync-lead"
+      "sync-lead",
+      "bright",
+      "aggressive"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

@@ -7,16 +7,25 @@
     "description": "Factory Lead patch #44. Engines: Classic, PhaseShape. Procedurally generated (seed 331576779) as part of the 250-patch factory content bank. Archetype: 8-bit square lead with portamento solo line character.",
     "category": "lead",
     "moods": [
-      "leads"
+      "digital",
+      "bright",
+      "warm",
+      "expressive",
+      "aggressive"
     ],
     "genres": [
+      "electronic",
+      "game",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "lead",
       "chip-lead",
-      "portamento"
+      "portamento",
+      "digital",
+      "bright"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

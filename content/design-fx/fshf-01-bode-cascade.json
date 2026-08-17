@@ -1,0 +1,9 @@
+{
+  "chip": 5,
+  "name": "BODE CASCADE",
+  "params": {
+    "FreqShiftHz": 7.0,
+    "FreqShiftFeedback": 0.55,
+    "Mix": 0.5
+  }
+}

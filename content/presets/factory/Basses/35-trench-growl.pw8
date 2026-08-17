@@ -7,15 +7,22 @@
     "description": "Factory Basse patch #35. Engines: Classic. Procedurally generated (seed 188793540) as part of the 250-patch factory content bank. Archetype: rubber funk bass with portamento.",
     "category": "bass",
     "moods": [
-      "basses"
+      "warm",
+      "punchy",
+      "dark",
+      "massive"
     ],
     "genres": [
+      "electronic",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "bass",
-      "rubber-funk"
+      "rubber-funk",
+      "warm",
+      "punchy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

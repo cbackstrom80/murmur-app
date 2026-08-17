@@ -7,15 +7,22 @@
     "description": "Factory Lead patch #42. Engines: Additive. Procedurally generated (seed 3339612576) as part of the 250-patch factory content bank. Archetype: formant vocal lead.",
     "category": "lead",
     "moods": [
-      "leads"
+      "organic",
+      "digital",
+      "bright",
+      "aggressive"
     ],
     "genres": [
+      "electronic",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "lead",
-      "formant-vox"
+      "formant-vox",
+      "organic",
+      "digital"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

@@ -7,16 +7,26 @@
     "description": "Factory Ambient patch #45. Engines: Classic, Wavetable, PhaseShape, Granular, NoiseChaos, Resonator. Procedurally generated (seed 1322409894) as part of the 250-patch factory content bank. Archetype: noise riser FX with slow hymn swell ambient character.",
     "category": "ambient",
     "moods": [
-      "ambient"
+      "evolving",
+      "massive",
+      "warm",
+      "restful",
+      "airy"
     ],
     "genres": [
+      "cinematic",
+      "trailer",
+      "ambient-bed",
+      "meditation",
       "factory"
     ],
     "tags": [
       "factory",
       "ambient",
       "fx-riser",
-      "hymn-swell"
+      "hymn-swell",
+      "evolving",
+      "massive"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

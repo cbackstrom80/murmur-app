@@ -24,13 +24,27 @@ namespace pw8::algorithm
         Granular = 5,
         NoiseChaos = 6,
         Resonator = 7,
+        External = 8, ///< AU sidechain audio as op 0 source only (see docs/EXT_OSCILLATOR_AU_THEORY.md).
     };
 
     [[nodiscard]] constexpr bool isEngineImplemented(EngineType type) noexcept
     {
         return type == EngineType::Classic || type == EngineType::Wavetable || type == EngineType::FmPm ||
                type == EngineType::NoiseChaos || type == EngineType::PhaseShape || type == EngineType::Additive ||
-               type == EngineType::Resonator || type == EngineType::Granular;
+               type == EngineType::Resonator || type == EngineType::Granular || type == EngineType::External;
+    }
+
+    /// EXT replaces op 0's oscillator with host sidechain samples; invalid on ops 1..7.
+    [[nodiscard]] constexpr bool isExternalEngineAllowed(core::NodeId nodeId, EngineType type) noexcept
+    {
+        return type != EngineType::External || nodeId.get() == 0;
+    }
+
+    [[nodiscard]] inline EngineType sanitizeEngineForNode(core::NodeId nodeId, EngineType type) noexcept
+    {
+        if (type == EngineType::External && nodeId.get() != 0)
+            return EngineType::Classic;
+        return isEngineImplemented(type) ? type : EngineType::Classic;
     }
 
     enum class EdgeType : std::uint8_t

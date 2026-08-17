@@ -1,0 +1,10 @@
+{
+  "chip": 1,
+  "name": "DIODE CRUNCH",
+  "modePill": "DIODE",
+  "params": {
+    "SaturationCharacter": 2,
+    "SaturationDrive": 24.0,
+    "Mix": 0.9
+  }
+}

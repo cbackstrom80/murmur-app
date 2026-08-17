@@ -71,6 +71,10 @@ namespace pw8::render
         double releaseTailSeconds = 2.0;
         QualityMode quality = QualityMode::Offline;
         std::uint64_t seed = 0;
+        /// Offline render helper: synthesize a sidechain modulator for vocoder tests.
+        bool simulateSidechain = false;
+        float sidechainModulatorHz = 440.0f;
+        float sidechainModulatorAmp = 0.75f;
     };
 
     struct RenderMetrics

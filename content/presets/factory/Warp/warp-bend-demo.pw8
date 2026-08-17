@@ -12,6 +12,8 @@
       "bright"
     ],
     "genres": [
+      "demo",
+      "sound-design",
       "factory"
     ],
     "tags": [
@@ -19,7 +21,9 @@
       "warp",
       "bend",
       "wavetable",
-      "demo"
+      "demo",
+      "digital",
+      "evolving"
     ],
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",

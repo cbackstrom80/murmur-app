@@ -6,10 +6,10 @@
 // audible effect on Layer A (the only voiced layer, Phase 8) or is genuinely a
 // live performance control (macros, arpeggiator's scalar fields, effect slot
 // scalar fields), and (b) is POD -- safe to read/write from the audio thread with
-// zero allocation risk. That's 674 parameters: 8 macros, Global Filter (5), 8 engine
-// filters x 5 fields (40), 8 LFOs x 5 fields (40), 8 operators x 37 fields (296),
+// zero allocation risk. That's 691 parameters: 8 macros, Global Filter (5), 8 engine
+// filters x 5 fields (40), 8 LFOs x 5 fields (40), 8 operators x 38 fields (304),
 // 8 envelopes x 8 fields (64), layer
-// gain/pan + master gain (3), 3 insert + 4 master FX slots x 54 scalar fields
+// gain/pan + master gain (3), layer unison (4), FX routing bar (5), 3 insert + 4 master FX slots x 54 scalar fields
 // each (378, covering all 10 effect algorithms -- Reverb grew from 4 to 15
 // fields in GATE 11's multiband redesign), and the arpeggiator's 8 top-level
 // scalar fields -- see docs/PLUGIN_ARCHITECTURE.md "Automation" for the exact
@@ -70,14 +70,15 @@ namespace pw8::plugin
     inline constexpr std::size_t kNumEnvelopes = 8;
     inline constexpr std::size_t kNumInsertFxSlots = 3;
     inline constexpr std::size_t kNumMasterFxSlots = 4;
-    inline constexpr std::size_t kNumOperatorFields = 37;
+    inline constexpr std::size_t kNumOperatorFields = 39;
+    inline constexpr std::size_t kNumOperatorMixFields = 3;
     inline constexpr std::size_t kNumOperatorFilterFields = 5;
     inline constexpr std::size_t kNumFilterFields = 5;
     inline constexpr std::size_t kNumFilter2Fields = 5;
     inline constexpr std::size_t kNumLfoFields = 5;
     inline constexpr std::size_t kNumEnvelopeFields = 8;
-    inline constexpr std::size_t kNumEffectSlotFields = 61;
-    inline constexpr std::size_t kNumArpFields = 8;
+    inline constexpr std::size_t kNumEffectSlotFields = 69;
+    inline constexpr std::size_t kNumArpFields = 9;
 
     /// One automatable field's shape: a stable ID suffix, a human-readable label,
     /// its range, and its reset default. `discrete` means integer-stepped (bools,
@@ -95,6 +96,8 @@ namespace pw8::plugin
 
     // Field order matches op::OperatorParams's own field order (see Engine::setOperatorLive).
     extern const std::array<ParamFieldSpec, kNumOperatorFields> kOperatorFieldSpecs;
+    /// Per-operator mixer: ON (enabled), M (mute), S (solo) — alt UI engine grid.
+    extern const std::array<ParamFieldSpec, kNumOperatorMixFields> kOperatorMixFieldSpecs;
     // Field order matches filter::FilterParams (global layer filter).
     extern const std::array<ParamFieldSpec, kNumFilterFields> kFilterFieldSpecs;
     extern const std::array<ParamFieldSpec, kNumFilter2Fields> kFilter2FieldSpecs;
@@ -111,6 +114,7 @@ namespace pw8::plugin
     extern const std::array<ParamFieldSpec, kNumArpFields> kArpFieldSpecs;
 
     [[nodiscard]] juce::String operatorParamId(std::size_t opIndex, const char* fieldSuffix);
+    [[nodiscard]] juce::String operatorMixParamId(std::size_t opIndex, const char* fieldSuffix);
     [[nodiscard]] juce::String operatorFilterParamId(std::size_t opIndex, const char* fieldSuffix);
     [[nodiscard]] juce::String lfoParamId(std::size_t lfoIndex, const char* fieldSuffix);
     [[nodiscard]] juce::String envelopeParamId(std::size_t envIndex, const char* fieldSuffix);
@@ -130,8 +134,32 @@ namespace pw8::plugin
     inline constexpr const char* kLayerPanId = "layerPan";
     inline constexpr const char* kMasterGainId = "masterGain";
 
+    inline constexpr const char* kUnisonVoicesId = "unisonVoices";
+    inline constexpr const char* kUnisonVoicesName = "Unison Voices";
+    inline constexpr const char* kUnisonDetuneId = "unisonDetune";
+    inline constexpr const char* kUnisonDetuneName = "Unison Detune Cents";
+    inline constexpr const char* kUnisonSpreadId = "unisonSpread";
+    inline constexpr const char* kUnisonSpreadName = "Unison Spread";
+    inline constexpr const char* kUnisonPhaseRandomId = "unisonPhaseRandom";
+    inline constexpr const char* kUnisonPhaseRandomName = "Unison Phase Random";
+
+    /// Design FX routing bar — `fxGlobalBypass` scales all slot wet mixes to zero at
+    /// push time; `fxGlobalWetMix` scales slot wet mixes. `fxRoutingPrePost` selects
+    /// insert-chain pre/post master-gain order and send A/B tap point; `fxSendA` /
+    /// `fxSendB` drive parallel master-bus returns.
+    inline constexpr const char* kFxRoutingPrePostId = "fxRoutingPrePost";
+    inline constexpr const char* kFxRoutingPrePostName = "FX Pre/Post Fader";
+    inline constexpr const char* kFxGlobalBypassId = "fxGlobalBypass";
+    inline constexpr const char* kFxGlobalBypassName = "FX Global Bypass";
+    inline constexpr const char* kFxGlobalWetMixId = "fxGlobalWetMix";
+    inline constexpr const char* kFxGlobalWetMixName = "FX Global Wet Mix";
+    inline constexpr const char* kFxSendAId = "fxSendA";
+    inline constexpr const char* kFxSendAName = "FX Send A";
+    inline constexpr const char* kFxSendBId = "fxSendB";
+    inline constexpr const char* kFxSendBName = "FX Send B";
+
     /// Builds the plugin's full `AudioProcessorValueTreeState` parameter layout --
-    /// all 674 parameters described above, generated from the field-spec tables
+    /// all 691 parameters described above, generated from the field-spec tables
     /// rather than hand-written one at a time.
     [[nodiscard]] juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 

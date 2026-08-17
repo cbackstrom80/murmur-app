@@ -137,7 +137,28 @@ namespace pw8::render
             }
 
             core::StereoBlockView view(blockL.data(), blockR.data(), framesThisBlock);
-            engine.process(view, blockEvents.empty() ? nullptr : blockEvents.data(), blockEvents.size());
+            const float* sidechainLeft = nullptr;
+            const float* sidechainRight = nullptr;
+            std::vector<float> sidechainBlockL;
+            std::vector<float> sidechainBlockR;
+            if (options.simulateSidechain && framesThisBlock > 0)
+            {
+                sidechainBlockL.resize(framesThisBlock);
+                sidechainBlockR.resize(framesThisBlock);
+                for (std::size_t i = 0; i < framesThisBlock; ++i)
+                {
+                    const double t =
+                        static_cast<double>(framesRendered + i) / options.sampleRate;
+                    const float mod = options.sidechainModulatorAmp *
+                                      std::sin(2.0 * M_PI * static_cast<double>(options.sidechainModulatorHz) * t);
+                    sidechainBlockL[i] = mod;
+                    sidechainBlockR[i] = mod;
+                }
+                sidechainLeft = sidechainBlockL.data();
+                sidechainRight = sidechainBlockR.data();
+            }
+            engine.process(view, blockEvents.empty() ? nullptr : blockEvents.data(), blockEvents.size(),
+                           sidechainLeft, sidechainRight);
 
             for (std::size_t i = 0; i < framesThisBlock; ++i)
             {

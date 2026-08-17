@@ -7,9 +7,17 @@
     "description": "Factory Pad patch #02. Engines: Classic, Additive. Procedurally generated (seed 3594840056) as part of the 250-patch factory content bank. Archetype: brass-pad hybrid with detuned string ensemble character.",
     "category": "pad",
     "moods": [
-      "pads"
+      "warm",
+      "cinematic",
+      "lush",
+      "dreamy",
+      "soft"
     ],
     "genres": [
+      "cinematic",
+      "score",
+      "ambient-bed",
+      "electronic",
       "factory"
     ],
     "tags": [
@@ -17,7 +25,9 @@
       "pad",
       "brass-pad",
       "string-ensemble",
-      "dissemination"
+      "dissemination",
+      "warm",
+      "cinematic"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

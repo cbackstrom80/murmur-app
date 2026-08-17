@@ -1,0 +1,9 @@
+{
+  "chip": 11,
+  "name": "TALKBOX CLASSIC",
+  "pw8Ref": "content/presets/factory/Sidechain/01-vocal-ext-vocoder.pw8",
+  "pw8Slot": 0,
+  "params": {
+    "Mix": 0.85
+  }
+}

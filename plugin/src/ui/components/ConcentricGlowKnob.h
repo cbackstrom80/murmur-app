@@ -83,7 +83,10 @@ namespace pw8::plugin::ui
         void paintModRing(juce::Graphics& g, const ModRingState& state, float orbitRadius, bool outerOrbit) const;
         void handleModMouseDown(const juce::MouseEvent& event, ModRingState& state);
         void handleModMouseDrag(const juce::MouseEvent& event, ModRingState& state);
+        void syncFocusProperties();
+        void setFocusedChannel(int channel);
 
+        int focusedChannel_ = 0;
         DualKnobLookAndFeel outerLookAndFeel_{DualKnobLookAndFeel::KnobType::Outer};
         DualKnobLookAndFeel innerLookAndFeel_{DualKnobLookAndFeel::KnobType::Inner};
         FormattedSlider outerSlider_;

@@ -7,15 +7,21 @@
     "description": "Factory Sequence patch #08. Engines: Classic. Procedurally generated (seed 1861712049) as part of the 250-patch factory content bank. Archetype: sync oscillator sequence.",
     "category": "seq",
     "moods": [
-      "sequences"
+      "bright",
+      "punchy",
+      "evolving"
     ],
     "genres": [
+      "electronic",
+      "techno",
       "factory"
     ],
     "tags": [
       "factory",
       "seq",
-      "sync-seq"
+      "sync-seq",
+      "bright",
+      "punchy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

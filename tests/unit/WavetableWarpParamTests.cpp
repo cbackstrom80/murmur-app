@@ -18,6 +18,7 @@ TEST_CASE("Patch roundtrip preserves all wavetable warp scalars per operator", "
         op.wtSyncRatio = 1.0f + static_cast<float>(i);
         op.wtSyncAmount = static_cast<float>(i) * 0.08f;
         op.wtFormantShift = static_cast<float>(i) * 0.07f - 0.2f;
+        op.wtMorphMode = static_cast<float>(i % 3);
     }
 
     const auto json = savePatchToJson(patch);
@@ -33,6 +34,7 @@ TEST_CASE("Patch roundtrip preserves all wavetable warp scalars per operator", "
         REQUIRE(op.wtSyncRatio == Catch::Approx(orig.wtSyncRatio));
         REQUIRE(op.wtSyncAmount == Catch::Approx(orig.wtSyncAmount));
         REQUIRE(op.wtFormantShift == Catch::Approx(orig.wtFormantShift));
+        REQUIRE(op.wtMorphMode == Catch::Approx(orig.wtMorphMode));
     }
 }
 
@@ -47,4 +49,5 @@ TEST_CASE("Patch JSON includes wavetable warp keys for DESIGN panel round-trip",
     REQUIRE(json.find("\"wtBend\"") != std::string::npos);
     REQUIRE(json.find("\"wtSyncRatio\"") != std::string::npos);
     REQUIRE(json.find("\"wtFormantShift\"") != std::string::npos);
+    REQUIRE(json.find("\"wtMorphMode\"") != std::string::npos);
 }

@@ -21,7 +21,7 @@ namespace pw8::plugin::ui
         if (!description.startsWith(kDragDescriptionPrefix))
             return std::nullopt;
         const int ordinal = description.substring(static_cast<int>(std::char_traits<char>::length(kDragDescriptionPrefix))).getIntValue();
-        if (ordinal < 0 || ordinal > 30)
+        if (ordinal < 0 || ordinal > static_cast<int>(modulation::ModSource::Sidechain))
             return std::nullopt;
         return static_cast<modulation::ModSource>(ordinal);
     }
@@ -109,6 +109,12 @@ namespace pw8::plugin::ui
                 return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " REV MOD";
             case ModDestination::MasterGain:
                 return "MASTER GAIN";
+            case ModDestination::VocoderMix:
+                return "FX " + juce::String(static_cast<int>(targetIndex)) + " VOC MIX";
+            case ModDestination::VocoderFormant:
+                return "FX " + juce::String(static_cast<int>(targetIndex)) + " VOC FORM";
+            case ModDestination::ModRouteDepth:
+                return "ROUTE " + juce::String(static_cast<int>(targetIndex)) + " DEPTH";
         }
         return "-";
     }

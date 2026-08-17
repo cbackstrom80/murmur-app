@@ -7,16 +7,26 @@
     "description": "Factory Lead patch #07. Engines: Classic, PhaseShape. Procedurally generated (seed 971058782) as part of the 250-patch factory content bank. Archetype: portamento solo line with dual-saw brass stab character.",
     "category": "lead",
     "moods": [
-      "leads"
+      "warm",
+      "expressive",
+      "punchy",
+      "bright",
+      "aggressive"
     ],
     "genres": [
+      "electronic",
+      "pop",
+      "cinematic",
+      "score",
       "factory"
     ],
     "tags": [
       "factory",
       "lead",
       "portamento",
-      "brass-stab"
+      "brass-stab",
+      "warm",
+      "expressive"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

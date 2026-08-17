@@ -56,6 +56,7 @@ namespace pw8::sequencer
         int syncDivisionIndex = 6;   ///< used when rateMode == TempoSync; see lfo::kSyncDivisionQuarterNotes.
         int octaveRange = 1;         ///< 1..4, how many octaves the held chord repeats across.
         std::size_t numSteps = 8;    ///< 1..kMaxArpSteps -- length of the step-pattern cycle.
+        float swing = 0.0f;          ///< 0..1 -- delays odd steps / shortens even steps (0 = straight).
         std::array<ArpStep, kMaxArpSteps> steps{};
         bool latch = false;          ///< true: keep cycling the last chord after all keys release.
     };

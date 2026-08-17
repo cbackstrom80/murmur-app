@@ -7,16 +7,26 @@
     "description": "Factory Pad patch #42. Engines: Classic, Wavetable, FM/PM, PhaseShape. Procedurally generated (seed 1813538160) as part of the 250-patch factory content bank. Archetype: formant choir pad with dual-layer swell pad character.",
     "category": "pad",
     "moods": [
-      "pads"
+      "dreamy",
+      "lush",
+      "evolving",
+      "warm",
+      "airy"
     ],
     "genres": [
+      "cinematic",
+      "score",
+      "ambient-bed",
+      "electronic",
       "factory"
     ],
     "tags": [
       "factory",
       "pad",
       "formant-choir",
-      "dual-layer"
+      "dual-layer",
+      "dreamy",
+      "lush"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

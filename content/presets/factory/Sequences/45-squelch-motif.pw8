@@ -7,15 +7,24 @@
     "description": "Factory Sequence patch #45. Engines: Classic, Resonator. Procedurally generated (seed 1222230046) as part of the 250-patch factory content bank. Archetype: FM pluck sequence.",
     "category": "seq",
     "moods": [
-      "sequences"
+      "bright",
+      "punchy",
+      "evolving",
+      "aggressive",
+      "gritty"
     ],
     "genres": [
+      "electronic",
+      "pop",
+      "techno",
       "factory"
     ],
     "tags": [
       "factory",
       "seq",
-      "fm-pluck"
+      "fm-pluck",
+      "bright",
+      "punchy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

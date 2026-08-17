@@ -70,12 +70,14 @@ with a thin indicator + glow arc, not skeuomorphic chrome).
   prev/next/save browsing needs a preset-scanning system that doesn't exist
   yet (`content/presets/*.pw8` has no runtime index) -- honestly scoped to
   "shows what's loaded," not a fake browser. PLANNED.
-- `PlayModeEditor.{h,cpp}` -- the real `juce::AudioProcessorEditor`,
-  `PatchworkEightProcessor::createEditor()`'s return value, replacing
-  `juce::GenericAudioProcessorEditor`. Fixed-size, single screen: patch name
-  strip -> algorithm graph (gets whatever vertical space is left after the
-  three fixed-height utility strips below it are satisfied) -> Filter 1 + LFO
-  1 -> the 8 macros -> the FX chain strip.
+- `PlayModeEditor.{h,cpp}` -- PLAY mode shell: **Basic** (patch focus + macros),
+  **Advanced** (8-engine grid + FX rack dashboard + labs), **Compact** (320px HUD).
+  Advanced default: `EngineGridPanel` (4×2 cards with per-engine OSC strip,
+  Filter 1, ADSR, level/mix) over `DashboardStrip` (7-slot master FX chain +
+  global filter only — LFO 1·2 and vocoder moved to dedicated labs) and
+  `VstBottomBar` (VOCODER / LFO 1·2 / MOD launchers). Full-screen overlays:
+  `VocoderLabPanel`, `DualLfoLabPanel`, `ModRoutingOverlay`, `EngineDetailOverlay`.
+  Keyboard: `V` vocoder lab, `L` dual-LFO lab, `M` mod matrix, `Esc` dismiss.
 
 ## The algorithm graph view
 

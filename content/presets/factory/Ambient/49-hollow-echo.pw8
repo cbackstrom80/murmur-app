@@ -7,15 +7,23 @@
     "description": "Factory Ambient patch #49. Engines: Classic, PhaseShape, Granular, NoiseChaos, Resonator. Procedurally generated (seed 3995611779) as part of the 250-patch factory content bank. Archetype: slow hymn swell ambient.",
     "category": "ambient",
     "moods": [
-      "ambient"
+      "warm",
+      "restful",
+      "airy",
+      "evolving",
+      "lush"
     ],
     "genres": [
+      "ambient-bed",
+      "meditation",
       "factory"
     ],
     "tags": [
       "factory",
       "ambient",
-      "hymn-swell"
+      "hymn-swell",
+      "warm",
+      "restful"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

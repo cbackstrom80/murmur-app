@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "name": "ORBIT READY",
+    "author": "MURMUR Sound Design",
+    "description": "Orbit macro pre-biased \u2014 sweep ORBIT knob for continuous head-spin motion.",
+    "tags": [
+      "play",
+      "orbit",
+      "macro",
+      "motion"
+    ]
+  },
+  "params": {
+    "mix": 0.78,
+    "qsr1Level": 0.68,
+    "qsr2Level": 0.58,
+    "cntrLevel": 0.82,
+    "inputSplitHpfHz": 120.0,
+    "cntrHpfHz": 80.0,
+    "qsr1Height": 0.0,
+    "qsr1Angle": 120.0,
+    "qsr1Distance": 0.38,
+    "qsr2Height": 0.0,
+    "qsr2Angle": 240.0,
+    "qsr2Distance": 0.42,
+    "qsr1RoomAmount": 0.38,
+    "qsr1RoomSize": 1.05,
+    "qsr1RoomDamping": 0.52,
+    "qsr2RoomAmount": 0.34,
+    "qsr2RoomSize": 1.12,
+    "qsr2RoomDamping": 0.48,
+    "quasarDelayTimeMs": 420.0,
+    "quasarDelayFeedback": 0.34,
+    "quasarDelayVolume": 0.2,
+    "quasarOutputMode": 0,
+    "quasarCrossfeed": 0.0,
+    "quasarDelaySync": 0,
+    "quasarDelaySyncDivision": 2,
+    "orbitMacro": 0.72,
+    "spreadMacro": 0.55,
+    "sidechainToQsr2": 1
+  }
+}

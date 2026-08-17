@@ -7,16 +7,24 @@
     "description": "Factory Ambient patch #14. Engines: Classic, Wavetable, PhaseShape, Granular, NoiseChaos, Resonator. Procedurally generated (seed 3774541633) as part of the 250-patch factory content bank. Archetype: slow hymn swell ambient with wavetable wash drone character.",
     "category": "ambient",
     "moods": [
-      "ambient"
+      "warm",
+      "restful",
+      "airy",
+      "evolving",
+      "lush"
     ],
     "genres": [
+      "ambient-bed",
+      "meditation",
       "factory"
     ],
     "tags": [
       "factory",
       "ambient",
       "hymn-swell",
-      "wt-wash"
+      "wt-wash",
+      "warm",
+      "restful"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

@@ -7,15 +7,23 @@
     "description": "Factory Basse patch #12. Engines: Classic, Wavetable, NoiseChaos. Procedurally generated (seed 1246861444) as part of the 250-patch factory content bank. Archetype: FM sub bass pulse.",
     "category": "bass",
     "moods": [
-      "basses"
+      "dark",
+      "massive",
+      "punchy",
+      "evolving",
+      "metallic"
     ],
     "genres": [
+      "electronic",
+      "sound-design",
       "factory"
     ],
     "tags": [
       "factory",
       "bass",
-      "fm-sub"
+      "fm-sub",
+      "dark",
+      "massive"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

@@ -7,15 +7,23 @@
     "description": "Factory Lead patch #50. Engines: Classic. Procedurally generated (seed 2144226515) as part of the 250-patch factory content bank. Archetype: dual-saw brass stab.",
     "category": "lead",
     "moods": [
-      "leads"
+      "punchy",
+      "bright",
+      "aggressive"
     ],
     "genres": [
+      "cinematic",
+      "score",
+      "electronic",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "lead",
-      "brass-stab"
+      "brass-stab",
+      "punchy",
+      "bright"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

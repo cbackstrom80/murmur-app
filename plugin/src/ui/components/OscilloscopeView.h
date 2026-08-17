@@ -17,11 +17,42 @@ namespace pw8::plugin::ui
         ~OscilloscopeView() override;
 
         void paint(juce::Graphics& g) override;
+        void mouseDown(const juce::MouseEvent& event) override;
+
+        /// Figma `murmur-desktop-play-mode` oscilloscope (36:35).
+        void setDesktopPlayModeLayout(bool desktopPlayMode);
+
+        /// Figma `ipad-play-view` scope card (4:2472) — mode pills + side-by-side upper deck.
+        void setIpadPlayLayout(bool ipadPlayLayout);
+
+        /// Figma `murmur-play-compact` scope-panel oscilloscope (4:1152).
+        void setCompactLayout(bool compactLayout);
+
+        [[nodiscard]] float getLastPeakLinear() const noexcept { return lastPeakLinear_; }
 
     private:
         void timerCallback() override;
+        void paintDesktopPlayMode(juce::Graphics& g, juce::Rectangle<float> bounds);
+        void paintIpadPlayMode(juce::Graphics& g, juce::Rectangle<float> bounds);
+        void paintCompactMode(juce::Graphics& g, juce::Rectangle<float> bounds);
+        void paintWaveform(juce::Graphics& g, juce::Rectangle<float> plot) const;
+        void paintScopeModePills(juce::Graphics& g, juce::Rectangle<float> bounds) const;
+        [[nodiscard]] int scopeModePillAt(juce::Point<int> pos) const;
+
+        enum class ScopeDisplayMode
+        {
+            Live = 0,
+            Spectrum,
+            Vector,
+        };
 
         PatchworkEightProcessor& processor_;
+        bool desktopPlayMode_ = false;
+        bool ipadPlayLayout_ = false;
+        bool compactLayout_ = false;
+        ScopeDisplayMode scopeDisplayMode_ = ScopeDisplayMode::Live;
+        std::array<juce::Rectangle<int>, 3> scopeModePillBounds_{};
+        float lastPeakLinear_ = 0.0f;
         static constexpr int kCaptureSize = 512;
         std::array<float, static_cast<std::size_t>(kCaptureSize)> capture_{};
         int captureCount_ = 0;

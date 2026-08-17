@@ -9,6 +9,14 @@
 
 namespace pw8::oscillator
 {
+    /// Frame-to-frame interpolation style when `framePosition01` sits between table frames.
+    enum class WtMorphMode : int
+    {
+        Spectral = 0,  ///< Nearest-frame (no crossfade) — preserves per-frame spectral identity
+        Formant = 1,   ///< Equal-power crossfade — smoother envelope than linear blend
+        Crossfade = 2, ///< Linear frame interpolation (legacy default)
+    };
+
     struct WtWarpParams
     {
         float bend = 0.0f;      ///< -1..1 phase curvature before table read
@@ -16,6 +24,7 @@ namespace pw8::oscillator
         float syncRatio = 1.0f;  ///< 1..16 internal sync cycles per carrier cycle
         float syncAmount = 0.0f; ///< 0..1 soft/hard sync blend
         float formantShift = 0.0f; ///< -1..1 post-read formant emphasis
+        WtMorphMode morphMode = WtMorphMode::Crossfade;
     };
 
     /// Post-read two-peaking emphasis bank — shifts spectral envelope without rebaking mips.

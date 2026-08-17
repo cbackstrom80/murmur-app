@@ -1,0 +1,10 @@
+{
+  "chip": 9,
+  "name": "FET SQUEEZE",
+  "modePill": "FET",
+  "params": {
+    "CompThresholdDb": -22.0,
+    "CompRatio": 6.0,
+    "CompCharacter": 1
+  }
+}

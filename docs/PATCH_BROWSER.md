@@ -2,7 +2,8 @@
 
 **PARTIAL** — Phases 1–3 shipped; **Phase 4a + 4c shipped** (multi-facet
 `PresetMetadataFilter`, facet chip rows in overlay, prev/next wired). **Phase 4b**
-(factory metadata retag) still TODO — see below.
+(factory metadata retag via `scripts/retag_factory_presets.py`) **shipped** for the
+original 250-patch bank + warp/template demos.
 
 Originally moved up from `docs/NEXT_STEPS.md` P2 to P1 (UA's plugin browser
 named as the concrete UX reference). This doc is the plan of record for browsing.

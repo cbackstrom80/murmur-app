@@ -7,15 +7,23 @@
     "description": "Factory Pad patch #21. Engines: Classic, Additive. Procedurally generated (seed 4158537563) as part of the 250-patch factory content bank. Archetype: detuned string ensemble.",
     "category": "pad",
     "moods": [
-      "pads"
+      "warm",
+      "lush",
+      "dreamy"
     ],
     "genres": [
+      "cinematic",
+      "score",
+      "ambient-bed",
+      "electronic",
       "factory"
     ],
     "tags": [
       "factory",
       "pad",
-      "string-ensemble"
+      "string-ensemble",
+      "warm",
+      "lush"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

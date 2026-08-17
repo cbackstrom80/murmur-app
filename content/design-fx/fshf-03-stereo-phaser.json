@@ -1,0 +1,9 @@
+{
+  "chip": 5,
+  "name": "STEREO PHASER SHIFT",
+  "params": {
+    "FreqShiftHz": 14.0,
+    "FreqShiftFeedback": 0.65,
+    "Mix": 0.48
+  }
+}

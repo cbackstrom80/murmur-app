@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <memory>
 
 #include <juce_audio_processors/juce_audio_processors.h>
@@ -8,6 +9,7 @@
 #include "ConcentricGlowKnob.h"
 #include "GlowKnob.h"
 #include "GlowRingButton.h"
+#include "LabLauncherChip.h"
 #include "ModAssignmentController.h"
 #include "ModSourcePalette.h"
 #include "FilterPanelScopeView.h"
@@ -37,6 +39,10 @@ namespace pw8::plugin::ui
 
         void setScope(FilterPanelScope scope, int engineIndex = 0);
 
+        /// PLAY dashboard: filter-only strip with launcher to Dual LFO Lab (no inline LFO).
+        void setDashboardMode(bool dashboardMode);
+        std::function<void()> onLfoLabRequested;
+
         /// Repaint mod source chips after armed-source changes (from PlayModeEditor).
         void repaintModAssignmentState();
 
@@ -47,6 +53,13 @@ namespace pw8::plugin::ui
         ModAssignmentController& assignmentController_;
         FilterPanelScope scope_ = FilterPanelScope::Global;
         int engineIndex_ = 0;
+        bool dashboardMode_ = false;
+
+        std::unique_ptr<LabLauncherChip> lfoLabChip_;
+        juce::Label filterModeChipLabel_;
+        juce::Label filterSlopeChipLabel_;
+        juce::Rectangle<int> modeChipBounds_;
+        juce::Rectangle<int> slopeChipBounds_;
 
         SectionPanel filterPanel_{"Global Filter"};
         SectionPanel lfoPanel_{"LFO 1"};

@@ -1,0 +1,10 @@
+{
+  "chip": 8,
+  "name": "MID SCOOP",
+  "params": {
+    "EqMidGainDb": -4.0,
+    "EqLowGainDb": 1.5,
+    "EqMidFreqHz": 750.0,
+    "EqMidQ": 1.4
+  }
+}

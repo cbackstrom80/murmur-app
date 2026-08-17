@@ -17,7 +17,7 @@ namespace pw8::quasar
         bool discrete = false;
     };
 
-    inline constexpr std::size_t kNumQuasarParams = 25;
+    inline constexpr std::size_t kNumQuasarParams = 28;
 
     extern const std::array<ParamFieldSpec, kNumQuasarParams> kQuasarParamSpecs;
 

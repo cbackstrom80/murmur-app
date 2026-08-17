@@ -1,0 +1,10 @@
+{
+  "chip": 3,
+  "name": "VINTAGE REEL",
+  "params": {
+    "TapeDriftRate": 0.25,
+    "TapeDriftDepth": 2.0,
+    "TapeDrive": 4.0,
+    "Mix": 0.5
+  }
+}

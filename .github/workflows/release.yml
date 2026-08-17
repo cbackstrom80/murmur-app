@@ -7,16 +7,16 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Release version (e.g. 1.0.0)"
+        description: "Release version (e.g. 1.4.3)"
         required: true
-        default: "1.0.0"
+        default: "1.4.3"
 
 permissions:
   contents: write
 
 jobs:
   macos-arm64-pkg:
-    name: Build MURMUR macOS arm64 .pkg (Ben MVP)
+    name: Build MURMUR Cadillac release (Ben)
     runs-on: macos-latest
 
     steps:
@@ -31,26 +31,34 @@ jobs:
             echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Configure plugin (Release, arm64)
-        run: cmake --preset plugin-release -DCMAKE_OSX_ARCHITECTURES=arm64
-
-      - name: Build AU
-        run: cmake --build --preset plugin-release -j --target pw8_plugin_AU
-
-      - name: Package Ben MVP installer (AU + presets + Logic docs, user Library)
+      - name: Resolve release notes path
+        id: notes
         run: |
-          chmod +x scripts/build_release_pkg.sh
-          scripts/build_release_pkg.sh --dmg --system-only "${{ steps.ver.outputs.version }}"
+          VER="${{ steps.ver.outputs.version }}"
+          BASE="${VER%%-*}"
+          for f in "docs/RELEASE_${VER}.md" "docs/RELEASE_${BASE}.md"; do
+            if [[ -f "$f" ]]; then
+              echo "path=$f" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+          echo "path=docs/RELEASE_1.4.3.md" >> "$GITHUB_OUTPUT"
+
+      - name: Cadillac release gate (build + auval + package)
+        run: |
+          chmod +x scripts/release_gate.sh scripts/build_release_pkg.sh scripts/install_au_local.sh
+          scripts/release_gate.sh --skip-tests --skip-pluginval "${{ steps.ver.outputs.version }}"
 
       - name: Publish GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/MURMUR-*-macOS-arm64.pkg
-            dist/MURMUR-*-macOS-arm64.dmg
+            dist/MURMUR-*-macOS-arm64*.pkg
+            dist/MURMUR-*-macOS-arm64*.dmg
             dist/version.json
-          body_path: docs/BEN_MVP.md
+            dist/SHA256SUMS.txt
+          body_path: ${{ steps.notes.outputs.path }}
           generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -61,6 +69,7 @@ jobs:
         with:
           name: MURMUR-macos-arm64-${{ steps.ver.outputs.version }}
           path: |
-            dist/MURMUR-*-macOS-arm64.pkg
-            dist/MURMUR-*-macOS-arm64.dmg
+            dist/MURMUR-*-macOS-arm64*.pkg
+            dist/MURMUR-*-macOS-arm64*.dmg
             dist/version.json
+            dist/SHA256SUMS.txt

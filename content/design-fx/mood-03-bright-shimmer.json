@@ -1,0 +1,9 @@
+{
+  "chip": 4,
+  "name": "BRIGHT SHIMMER",
+  "modePill": "BRIGHT",
+  "params": {
+    "Mix": 0.45
+  },
+  "uiKnobs": [0.48, 0.68, 0.58, 0.42, 0.22, 0.5]
+}

@@ -7,16 +7,26 @@
     "description": "Factory Pad patch #19. Engines: Classic, Wavetable, PhaseShape, NoiseChaos. Procedurally generated (seed 2871606064) as part of the 250-patch factory content bank. Archetype: brass-pad hybrid with evolving wavetable pad character.",
     "category": "pad",
     "moods": [
-      "pads"
+      "warm",
+      "cinematic",
+      "evolving",
+      "airy",
+      "dreamy"
     ],
     "genres": [
-      "factory"
+      "cinematic",
+      "score",
+      "ambient-bed",
+      "electronic",
+      "meditation"
     ],
     "tags": [
       "factory",
       "pad",
       "brass-pad",
-      "wt-evolve"
+      "wt-evolve",
+      "warm",
+      "cinematic"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

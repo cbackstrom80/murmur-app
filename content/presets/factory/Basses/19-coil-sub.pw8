@@ -7,15 +7,20 @@
     "description": "Factory Basse patch #19. Engines: Classic, Resonator. Procedurally generated (seed 432082014) as part of the 250-patch factory content bank. Archetype: ladder-filter mono bass.",
     "category": "bass",
     "moods": [
-      "basses"
+      "dark",
+      "punchy"
     ],
     "genres": [
+      "electronic",
+      "techno",
       "factory"
     ],
     "tags": [
       "factory",
       "bass",
-      "ladder-bass"
+      "ladder-bass",
+      "dark",
+      "punchy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

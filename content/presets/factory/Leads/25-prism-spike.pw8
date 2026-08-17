@@ -7,16 +7,24 @@
     "description": "Factory Lead patch #25. Engines: Classic. Procedurally generated (seed 4062846568) as part of the 250-patch factory content bank. Archetype: formant vocal lead with detuned fifth stack lead character.",
     "category": "lead",
     "moods": [
-      "leads"
+      "organic",
+      "digital",
+      "bright",
+      "lush",
+      "aggressive"
     ],
     "genres": [
+      "electronic",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "lead",
       "formant-vox",
-      "fifth-lead"
+      "fifth-lead",
+      "organic",
+      "digital"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

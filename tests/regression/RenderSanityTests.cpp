@@ -2,9 +2,13 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <cmath>
+#include <filesystem>
+#include <fstream>
+#include <sstream>
 #include <vector>
 
 #include "pw8/patch/Patch.hpp"
+#include "pw8/patch/PatchSerializer.hpp"
 #include "pw8/render/Renderer.hpp"
 
 using namespace pw8;
@@ -404,6 +408,87 @@ TEST_CASE("Renderer: a layer insert Saturation slot audibly compresses a loud si
     // not a difference in voice rendering).
     REQUIRE(withFx.metrics.peak < withoutFx.metrics.peak);
     REQUIRE(withFx.metrics.peak <= 1.05f);
+}
+
+TEST_CASE("Renderer: a layer insert Vocoder slot changes the rendered waveform vs Bypass",
+          "[render][regression][effects][vocoder]")
+{
+    patch::Patch p = patch::Patch::makeInit();
+    p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Saw;
+    p.layerA.operators[0].level = 0.85f;
+    p.layerA.envelopes[0].attackSeconds = 0.005f;
+    p.layerA.envelopes[0].decaySeconds = 0.05f;
+    p.layerA.envelopes[0].sustainLevel = 0.9f;
+    p.layerA.envelopes[0].releaseSeconds = 0.05f;
+
+    auto midiSeq = singleNoteSequence(0.0, 0.6, 60, 127);
+
+    render::RenderOptions options;
+    options.sampleRate = 48000.0;
+    options.durationSecondsOverride = 0.8;
+    options.simulateSidechain = true;
+    options.sidechainModulatorHz = 880.0f;
+    options.sidechainModulatorAmp = 0.85f;
+
+    const auto dry = render::render(p, midiSeq, options);
+    REQUIRE(dry.ok);
+
+    p.layerA.insertEffects[0].type = effects::EffectType::Vocoder;
+    p.layerA.insertEffects[0].mix = 1.0f;
+    p.layerA.insertEffects[0].vocoderBandCount = 8;
+    p.layerA.insertEffects[0].vocoderFormant = 0.5f;
+
+    const auto wet = render::render(p, midiSeq, options);
+    REQUIRE(wet.ok);
+    REQUIRE_FALSE(wet.metrics.containsNaNOrInf);
+
+    REQUIRE(wet.interleavedStereo.size() == dry.interleavedStereo.size());
+    double meanAbsDiff = 0.0;
+    const auto numFrames = dry.interleavedStereo.size() / 2;
+    const auto startFrame = numFrames / 3;
+    const auto endFrame = (numFrames * 2) / 3;
+    std::size_t counted = 0;
+    for (std::size_t i = startFrame; i < endFrame; ++i)
+    {
+        const float dl = dry.interleavedStereo[i * 2];
+        const float wl = wet.interleavedStereo[i * 2];
+        meanAbsDiff += static_cast<double>(std::abs(wl - dl));
+        ++counted;
+    }
+    meanAbsDiff /= static_cast<double>(counted);
+    REQUIRE(meanAbsDiff > 0.01);
+}
+
+TEST_CASE("Renderer: factory Love Bites vocoder preset renders finite audio", "[render][regression][effects][vocoder][factory]")
+{
+    namespace fs = std::filesystem;
+#ifdef PW8_REPO_ROOT
+    const fs::path presetPath =
+        fs::path(PW8_REPO_ROOT) / "content/presets/factory/Sidechain/05-def-leppard-love-bites-vocoder.pw8";
+#else
+    const fs::path presetPath = fs::current_path() / "content/presets/factory/Sidechain/05-def-leppard-love-bites-vocoder.pw8";
+#endif
+    if (!fs::is_regular_file(presetPath))
+        SKIP("Missing Sidechain/05-def-leppard-love-bites-vocoder.pw8");
+
+    std::ifstream in(presetPath);
+    std::ostringstream json;
+    json << in.rdbuf();
+    const auto loaded = patch::loadPatchFromJson(json.str());
+    REQUIRE(loaded.ok);
+
+    auto midiSeq = heldChordSequence(0.0, 1.2, {60, 64, 67});
+    render::RenderOptions options;
+    options.sampleRate = 48000.0;
+    options.durationSecondsOverride = 1.5;
+    options.simulateSidechain = true;
+    options.sidechainModulatorHz = 220.0f;
+    options.sidechainModulatorAmp = 0.9f;
+
+    const auto result = render::render(loaded.patch, midiSeq, options);
+    REQUIRE(result.ok);
+    REQUIRE_FALSE(result.metrics.containsNaNOrInf);
+    REQUIRE(result.metrics.peak > 0.01f);
 }
 
 TEST_CASE("Renderer: a LAYER-scoped LFO route is one continuously-running shared clock, not reset per note-on",

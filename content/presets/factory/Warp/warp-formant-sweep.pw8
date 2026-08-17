@@ -9,9 +9,13 @@
     "moods": [
       "vocal",
       "evolving",
-      "bright"
+      "bright",
+      "digital",
+      "organic"
     ],
     "genres": [
+      "demo",
+      "sound-design",
       "factory"
     ],
     "tags": [
@@ -19,7 +23,8 @@
       "warp",
       "formant",
       "vocal",
-      "demo"
+      "demo",
+      "evolving"
     ],
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",

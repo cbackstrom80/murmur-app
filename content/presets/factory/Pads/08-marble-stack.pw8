@@ -7,15 +7,24 @@
     "description": "Factory Pad patch #08. Engines: Classic, FM/PM, Additive, NoiseChaos. Procedurally generated (seed 3260006144) as part of the 250-patch factory content bank. Archetype: formant choir pad.",
     "category": "pad",
     "moods": [
-      "pads"
+      "dreamy",
+      "lush",
+      "organic",
+      "digital"
     ],
     "genres": [
+      "cinematic",
+      "score",
+      "ambient-bed",
+      "electronic",
       "factory"
     ],
     "tags": [
       "factory",
       "pad",
-      "formant-choir"
+      "formant-choir",
+      "dreamy",
+      "lush"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

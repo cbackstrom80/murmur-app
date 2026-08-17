@@ -1,0 +1,12 @@
+{
+  "codeConnect": {
+    "include": ["plugin/src/ui/figma-connect/**/*.figma.ts"],
+    "parser": "custom",
+    "paths": {
+      "@pw8/ui/*": ["plugin/src/ui/*"]
+    },
+    "importPaths": {
+      "plugin/src/ui/**/*.figma.ts": "@pw8/ui"
+    }
+  }
+}

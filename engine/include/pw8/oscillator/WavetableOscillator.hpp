@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <cstddef>
 
 #include "pw8/dsp/Math.hpp"
@@ -69,7 +70,8 @@ namespace pw8::oscillator
 
             const float modulatedPhase = dsp::wrapPhase(phase_ + externalPhaseModulation);
             const float readPhase = warpReadPhase(modulatedPhase, warp);
-            const float raw = readTable(table, dsp::clamp(framePosition01, 0.0f, 1.0f), readPhase);
+            const float raw =
+                readTable(table, dsp::clamp(framePosition01, 0.0f, 1.0f), readPhase, warp.morphMode);
             const float out = formantBank_.process(raw, warp.formantShift);
 
             const float dt = static_cast<float>(frequencyHz_ / sampleRate_);
@@ -82,20 +84,39 @@ namespace pw8::oscillator
         [[nodiscard]] bool didWrapThisSample() const noexcept { return didWrapThisSample_; }
 
     private:
-        [[nodiscard]] static float readTable(const WavetableView& table, float framePosition01, float phase) noexcept
+        [[nodiscard]] static float readFrameSample(const WavetableView& table, int frame, float phase) noexcept
+        {
+            const float sampleF = phase * static_cast<float>(table.samplesPerFrame);
+            const int idx0 = static_cast<int>(sampleF) % table.samplesPerFrame;
+            const int idx1 = (idx0 + 1) % table.samplesPerFrame;
+            const float sampleFrac = sampleF - std::floor(sampleF);
+            return dsp::lerp(table.sampleAt(frame, idx0), table.sampleAt(frame, idx1), sampleFrac);
+        }
+
+        [[nodiscard]] static float readTable(const WavetableView& table, float framePosition01, float phase,
+                                             WtMorphMode morphMode = WtMorphMode::Crossfade) noexcept
         {
             const float frameF = framePosition01 * static_cast<float>(table.numFrames - 1);
             const int frame0 = static_cast<int>(frameF);
             const int frame1 = dsp::clamp(frame0 + 1, 0, table.numFrames - 1);
             const float frameFrac = frameF - static_cast<float>(frame0);
 
-            const float sampleF = phase * static_cast<float>(table.samplesPerFrame);
-            const int idx0 = static_cast<int>(sampleF) % table.samplesPerFrame;
-            const int idx1 = (idx0 + 1) % table.samplesPerFrame;
-            const float sampleFrac = sampleF - std::floor(sampleF);
+            if (morphMode == WtMorphMode::Spectral || frame0 == frame1)
+            {
+                const int nearest = dsp::clamp(static_cast<int>(std::round(frameF)), 0, table.numFrames - 1);
+                return readFrameSample(table, nearest, phase);
+            }
 
-            const float s0 = dsp::lerp(table.sampleAt(frame0, idx0), table.sampleAt(frame0, idx1), sampleFrac);
-            const float s1 = dsp::lerp(table.sampleAt(frame1, idx0), table.sampleAt(frame1, idx1), sampleFrac);
+            const float s0 = readFrameSample(table, frame0, phase);
+            const float s1 = readFrameSample(table, frame1, phase);
+
+            if (morphMode == WtMorphMode::Formant)
+            {
+                const float w1 = std::sin(frameFrac * static_cast<float>(M_PI * 0.5));
+                const float w0 = std::cos(frameFrac * static_cast<float>(M_PI * 0.5));
+                return s0 * w0 + s1 * w1;
+            }
+
             return dsp::lerp(s0, s1, frameFrac);
         }
 

@@ -7,16 +7,26 @@
     "description": "Factory Pad patch #49. Engines: Classic, Wavetable, FM/PM. Procedurally generated (seed 998758730) as part of the 250-patch factory content bank. Archetype: evolving wavetable pad with dual-layer swell pad character.",
     "category": "pad",
     "moods": [
-      "pads"
+      "evolving",
+      "airy",
+      "lush",
+      "dreamy",
+      "warm"
     ],
     "genres": [
+      "ambient-bed",
+      "electronic",
+      "cinematic",
+      "score",
       "factory"
     ],
     "tags": [
       "factory",
       "pad",
       "wt-evolve",
-      "dual-layer"
+      "dual-layer",
+      "evolving",
+      "airy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

@@ -1,0 +1,11 @@
+{
+  "chip": 7,
+  "name": "PLATE VOCAL",
+  "modePill": "PLATE",
+  "params": {
+    "ReverbCharacter": 1,
+    "ReverbDecaySeconds": 2.2,
+    "ReverbDiffusion": 0.85,
+    "Mix": 0.4
+  }
+}

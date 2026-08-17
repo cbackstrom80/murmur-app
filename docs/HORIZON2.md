@@ -37,6 +37,7 @@
 
 | Item | Notes |
 |------|-------|
+| **0-Coast CLS mod** | West Coast overtone/multiply/balance + cycling slope on Classic engine — see [`COAST_CLS_MOD.md`](COAST_CLS_MOD.md). **Aspirational; deferred.** |
 | **EngineType::External (op 0)** | Sidechain follower ships; full EXT oscillator deferred — see `EXT_OSCILLATOR_AU_THEORY.md`. |
 | **GLOBAL tab QUASAR sub-panel** | Shipped v1.1.1 — `GlobalPanel` |
 | **Dissemination for Macro4–8** | MVP samples featured macros (0–2) only; CC-mapped macros stay live. |

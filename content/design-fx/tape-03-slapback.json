@@ -1,0 +1,9 @@
+{
+  "chip": 3,
+  "name": "STUDIO SLAPBACK",
+  "params": {
+    "TapeDelayMs": 280.0,
+    "TapeFeedback": 0.35,
+    "Mix": 0.45
+  }
+}

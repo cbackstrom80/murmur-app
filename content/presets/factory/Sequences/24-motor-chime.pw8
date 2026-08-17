@@ -7,15 +7,23 @@
     "description": "Factory Sequence patch #24. Engines: Classic, Wavetable. Procedurally generated (seed 1519084688) as part of the 250-patch factory content bank. Archetype: chord stab sequence.",
     "category": "seq",
     "moods": [
-      "sequences"
+      "punchy",
+      "aggressive",
+      "evolving",
+      "glassy",
+      "bright"
     ],
     "genres": [
+      "electronic",
+      "techno",
       "factory"
     ],
     "tags": [
       "factory",
       "seq",
-      "stab-seq"
+      "stab-seq",
+      "punchy",
+      "aggressive"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

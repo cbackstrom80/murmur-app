@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <cstdint>
 #include <memory>
 #include <optional>
@@ -191,6 +192,9 @@ namespace pw8::render
         void setLayerPanLive(float pan) noexcept;
         [[nodiscard]] float getLayerPan() const noexcept { return patch_.layerA.pan; }
 
+        void setUnisonLive(const patch::UnisonSettings& unison) noexcept;
+        [[nodiscard]] const patch::UnisonSettings& getUnisonSettings() const noexcept { return patch_.layerA.unison; }
+
         void setMasterGainLive(float masterGain) noexcept;
         [[nodiscard]] float getMasterGainValue() const noexcept { return patch_.voiceSettings.masterGain; }
 
@@ -211,6 +215,16 @@ namespace pw8::render
         [[nodiscard]] effects::EffectSlotParams getMasterEffectParams(std::size_t slot) const noexcept
         {
             return slot < patch_.masterEffects.size() ? patch_.masterEffects[slot] : effects::EffectSlotParams{};
+        }
+
+        /// Live FX routing: `insertsPostFader` selects insert chain vs master-gain order (POST:
+        /// gain then inserts on combined layer bus; PRE: inserts then gain). Send A/B tap
+        /// pre/post insert chain accordingly (see fxRoutingPrePost APVTS).
+        void setFxSendLevels(float sendA, float sendB, bool insertsPostFader) noexcept
+        {
+            fxSendA_ = dsp::clamp(sendA, 0.0f, 1.0f);
+            fxSendB_ = dsp::clamp(sendB, 0.0f, 1.0f);
+            fxInsertsPostFader_ = insertsPostFader;
         }
 
         [[nodiscard]] float getInsertCompressorGainReductionDb(std::size_t slot) const noexcept
@@ -260,7 +274,28 @@ namespace pw8::render
         [[nodiscard]] const algorithm::CompiledAlgorithm& getCompiledAlgorithm() const noexcept { return compiledLayerA_; }
         [[nodiscard]] algorithm::CompileStatus getLastCompileStatus() const noexcept { return lastCompileStatus_; }
 
+        /// Voices with gate held or still in their amp release tail (audio-thread safe).
+        [[nodiscard]] std::size_t countActiveVoices() const noexcept;
+
+        /// UI bus meters (audio-thread writes, message-thread reads). Linear 0..1 peak hold.
+        [[nodiscard]] float getSynthBusPeakLinear() const noexcept
+        {
+            return synthBusPeak_.load(std::memory_order_relaxed);
+        }
+
+        [[nodiscard]] float getMasterOutPeakLinear() const noexcept
+        {
+            return masterOutPeak_.load(std::memory_order_relaxed);
+        }
+
+        /// Per-operator peak (post-voice-gain), linear 0..~4. `opIndex` in [0, kNodesPerLayer).
+        [[nodiscard]] float getOperatorPeakLinear(std::size_t opIndex) const noexcept
+        {
+            return opIndex < core::kNodesPerLayer ? operatorPeaks_[opIndex].load(std::memory_order_relaxed) : 0.0f;
+        }
+
     private:
+        static void updatePeakHold(std::atomic<float>& hold, float blockPeak) noexcept;
         [[nodiscard]] static op::OperatorParams toOperatorParams(const patch::OperatorPatch& p) noexcept;
 
         /// Shared by the public noteOn/noteOff and the arpeggiator's internally
@@ -328,6 +363,11 @@ namespace pw8::render
         effects::LayerInsertChain layerAInsertChain_{};
         effects::LayerInsertChain layerBInsertChain_{};
         effects::MasterChain masterChain_{};
+        effects::EffectSlotProcessor sendReturnA_{};
+        effects::EffectSlotProcessor sendReturnB_{};
+        float fxSendA_ = 0.0f;
+        float fxSendB_ = 0.0f;
+        bool fxInsertsPostFader_ = true;
 
         static constexpr float kPitchBendRangeSemitones = 2.0f;
 
@@ -339,6 +379,10 @@ namespace pw8::render
         std::array<float, 16> channelModWheel_{};
         std::array<float, 16> channelExpression_{};
         float sidechainLevel_ = 0.0f;
+
+        std::atomic<float> synthBusPeak_{0.0f};
+        std::atomic<float> masterOutPeak_{0.0f};
+        std::array<std::atomic<float>, core::kNodesPerLayer> operatorPeaks_{};
     };
 
 } // namespace pw8::render

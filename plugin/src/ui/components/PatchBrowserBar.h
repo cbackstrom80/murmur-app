@@ -22,6 +22,7 @@ namespace pw8::plugin::ui
 
         void paint(juce::Graphics& g) override;
         void resized() override;
+        void mouseDown(const juce::MouseEvent& event) override;
 
         void refreshPresetIndex();
 
@@ -34,12 +35,21 @@ namespace pw8::plugin::ui
 
         [[nodiscard]] const content::PresetMetadataFilter& browseFilter() const { return browseFilter_; }
 
+        /// Figma obsidian-play-board unified 54px chrome (22:3).
+        void setObsidianChromeMode(bool obsidianChrome);
+
+        /// Figma murmur-desktop-play-mode top-bar (36:5) — 72px performance chrome.
+        void setDesktopPlayModeChrome(bool desktopChrome);
+
         std::function<void()> onBrowseClicked;
+        /// Double-click brand in desktop chrome — escape hatch when VstTopBar is hidden.
+        std::function<void()> onExitDesktopChromeRequested;
 
     private:
         void timerCallback() override;
         void loadPatchFromFile();
         void stepPreset(int direction);
+        void paintDesktopPlayModeChrome(juce::Graphics& g, juce::Rectangle<float> bounds);
 
         PatchworkEightProcessor& processor_;
         content::PresetIndex presetIndex_;
@@ -56,6 +66,11 @@ namespace pw8::plugin::ui
         content::FavoritesStore* favoritesStore_ = nullptr;
         std::unique_ptr<juce::FileChooser> fileChooser_;
         juce::String lastPresetCategory_;
+        juce::String desktopPresetBankText_;
+        float desktopHostBpm_ = 120.0f;
+        float desktopMasterGain_ = 1.0f;
+        bool obsidianChromeMode_ = false;
+        bool desktopPlayModeChrome_ = false;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PatchBrowserBar)
     };

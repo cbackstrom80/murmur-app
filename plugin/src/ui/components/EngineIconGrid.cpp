@@ -119,6 +119,19 @@ namespace pw8::plugin::ui::engineicons
             }
             return p;
         }
+        juce::Path externalPath(juce::Rectangle<float> b)
+        {
+            juce::Path p;
+            const float inset = b.getWidth() * 0.12f;
+            const float midY = b.getCentreY();
+            p.startNewSubPath(b.getX() + inset, midY);
+            p.lineTo(b.getCentreX(), midY);
+            p.startNewSubPath(b.getCentreX(), midY - b.getHeight() * 0.18f);
+            p.lineTo(b.getRight() - inset, midY);
+            p.lineTo(b.getCentreX(), midY + b.getHeight() * 0.18f);
+            p.closeSubPath();
+            return p;
+        }
     } // namespace
 
     juce::Path pathForEngine(algorithm::EngineType engine, juce::Rectangle<float> bounds)
@@ -133,6 +146,7 @@ namespace pw8::plugin::ui::engineicons
             case algorithm::EngineType::Granular: return granularPath(bounds);
             case algorithm::EngineType::NoiseChaos: return noisePath(bounds);
             case algorithm::EngineType::Resonator: return resonatorPath(bounds);
+            case algorithm::EngineType::External: return externalPath(bounds);
         }
         return {};
     }
@@ -142,7 +156,10 @@ namespace pw8::plugin::ui::engineicons
     {
         const auto path = pathForEngine(engine, bounds.reduced(bounds.getWidth() * 0.08f));
         g.setColour(colour);
-        g.strokePath(path, juce::PathStrokeType(strokeWidth, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+        if (engine == algorithm::EngineType::External)
+            g.fillPath(path);
+        else
+            g.strokePath(path, juce::PathStrokeType(strokeWidth, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
     }
 
 } // namespace pw8::plugin::ui::engineicons

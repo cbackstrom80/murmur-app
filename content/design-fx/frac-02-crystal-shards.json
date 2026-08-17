@@ -1,0 +1,8 @@
+{
+  "chip": 6,
+  "name": "CRYSTAL SHARDS",
+  "params": {
+    "FractalMorph": 0.65,
+    "Mix": 0.55
+  }
+}

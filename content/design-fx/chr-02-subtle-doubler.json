@@ -1,0 +1,9 @@
+{
+  "chip": 2,
+  "name": "SUBTLE DOUBLER",
+  "params": {
+    "ChorusRate": 0.2,
+    "ChorusDepth": 3.0,
+    "Mix": 0.4
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "chip": 7,
+  "name": "SPRING TANK",
+  "modePill": "SPRING",
+  "params": {
+    "ReverbCharacter": 4,
+    "ReverbModDepth": 0.45,
+    "Mix": 0.42
+  }
+}

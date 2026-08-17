@@ -39,7 +39,7 @@ namespace
             for (int i = 0; i < kBlockSize; ++i)
             {
                 v.renderSample(compiled, tables, 120.0f, layerLfoValues, modRoutes, metaRoutes,
-                               render::QualityMode::Normal, l, r);
+                               render::QualityMode::Normal, 0.0f, 0.0f, l, r);
                 sumL += l;
                 sumR += r;
             }

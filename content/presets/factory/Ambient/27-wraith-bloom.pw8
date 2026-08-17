@@ -7,16 +7,26 @@
     "description": "Factory Ambient patch #27. Engines: Classic, PhaseShape, Granular, Resonator. Procedurally generated (seed 378105756) as part of the 250-patch factory content bank. Archetype: granular cloud ambient with resonant cavern ambient character.",
     "category": "ambient",
     "moods": [
-      "ambient"
+      "dreamy",
+      "airy",
+      "dark",
+      "spooky",
+      "evolving"
     ],
     "genres": [
+      "ambient-bed",
+      "sound-design",
+      "cinematic",
+      "meditation",
       "factory"
     ],
     "tags": [
       "factory",
       "ambient",
       "gran-cloud",
-      "resonant-cave"
+      "resonant-cave",
+      "dreamy",
+      "airy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

@@ -7,15 +7,23 @@
     "description": "Factory Basse patch #28. Engines: Classic. Procedurally generated (seed 3151056618) as part of the 250-patch factory content bank. Archetype: FM sub bass pulse.",
     "category": "bass",
     "moods": [
-      "basses"
+      "dark",
+      "massive",
+      "punchy",
+      "aggressive",
+      "gritty"
     ],
     "genres": [
+      "electronic",
+      "sound-design",
       "factory"
     ],
     "tags": [
       "factory",
       "bass",
-      "fm-sub"
+      "fm-sub",
+      "dark",
+      "massive"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

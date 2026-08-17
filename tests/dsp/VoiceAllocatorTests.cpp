@@ -77,7 +77,7 @@ TEST_CASE("VoiceAllocator steals a released voice over an actively-gated one", "
     {
         float l = 0.0f, r = 0.0f;
         pool[alloc0.index].renderSample(compiled, tables, 120.0f, layerLfoValues, modRoutes, metaRoutes,
-                                         render::QualityMode::Normal, l, r);
+                                         render::QualityMode::Normal, 0.0f, 0.0f, l, r);
     }
 
     const auto alloc2 = allocator.allocate(pool);

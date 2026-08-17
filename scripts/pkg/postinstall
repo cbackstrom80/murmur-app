@@ -9,7 +9,7 @@ STAGING="${PRESETS_ROOT}/.murmur-factory-staging"
 FACTORY="${PRESETS_ROOT}/factory"
 INTERSTELLAR="${FACTORY}/Interstellar"
 MIN_INTERSTELLAR=100
-MIN_TOTAL=900
+MIN_TOTAL=1000
 
 if [[ -d "$STAGING" ]]; then
     mkdir -p "$FACTORY"

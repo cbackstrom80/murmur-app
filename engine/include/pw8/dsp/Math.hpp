@@ -61,6 +61,16 @@ namespace pw8::dsp
         return std::isfinite(v) ? v : 0.0f;
     }
 
+    /// Key-track multiplier for filter cutoff (reference C4 ≈ 261.63 Hz). Clamps
+    /// non-positive base frequency before pow() so through-zero FM cannot NaN-poison filters.
+    [[nodiscard]] inline float filterKeyTrackFactor(float baseFrequencyHz, float keyTrack) noexcept
+    {
+        if (keyTrack == 0.0f)
+            return 1.0f;
+        const float baseHz = std::max(baseFrequencyHz, 1.0f);
+        return flushIfNotFinite(std::pow(baseHz / 261.6256f, keyTrack));
+    }
+
     /// Drive-normalized tanh soft saturation: `driveLinear == 1` is unity gain at
     /// small signals, larger drive compresses harder without the output level
     /// climbing alongside it. Shared by every effect in pw8/effects/ that needs a

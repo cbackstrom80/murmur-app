@@ -7,16 +7,25 @@
     "description": "Factory Ambient patch #17. Engines: Classic, Wavetable, PhaseShape, Granular, NoiseChaos, Resonator. Procedurally generated (seed 2434043966) as part of the 250-patch factory content bank. Archetype: resonant cavern ambient with slow hymn swell ambient character.",
     "category": "ambient",
     "moods": [
-      "ambient"
+      "dark",
+      "spooky",
+      "warm",
+      "restful",
+      "airy"
     ],
     "genres": [
+      "ambient-bed",
+      "cinematic",
+      "meditation",
       "factory"
     ],
     "tags": [
       "factory",
       "ambient",
       "resonant-cave",
-      "hymn-swell"
+      "hymn-swell",
+      "dark",
+      "spooky"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

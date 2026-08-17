@@ -7,16 +7,24 @@
     "description": "Factory Pad patch #20. Engines: Classic, Resonator. Procedurally generated (seed 2490999433) as part of the 250-patch factory content bank. Archetype: poly sweet chorus pad with evolving wavetable pad character.",
     "category": "pad",
     "moods": [
-      "pads"
+      "warm",
+      "lush",
+      "evolving",
+      "airy",
+      "dreamy"
     ],
     "genres": [
+      "ambient-bed",
+      "electronic",
       "factory"
     ],
     "tags": [
       "factory",
       "pad",
       "poly-sweet",
-      "wt-evolve"
+      "wt-evolve",
+      "warm",
+      "lush"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

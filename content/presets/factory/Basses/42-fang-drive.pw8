@@ -7,16 +7,25 @@
     "description": "Factory Basse patch #42. Engines: Classic. Procedurally generated (seed 3668981406) as part of the 250-patch factory content bank. Archetype: rubber funk bass with portamento with ladder-filter mono bass character.",
     "category": "bass",
     "moods": [
-      "basses"
+      "warm",
+      "punchy",
+      "dark",
+      "aggressive",
+      "gritty"
     ],
     "genres": [
+      "electronic",
+      "pop",
+      "techno",
       "factory"
     ],
     "tags": [
       "factory",
       "bass",
       "rubber-funk",
-      "ladder-bass"
+      "ladder-bass",
+      "warm",
+      "punchy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

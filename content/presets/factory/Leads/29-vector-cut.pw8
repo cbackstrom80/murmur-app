@@ -7,16 +7,22 @@
     "description": "Factory Lead patch #29. Engines: Classic, FM/PM. Procedurally generated (seed 2441081157) as part of the 250-patch factory content bank. Archetype: detuned fifth stack lead with hard sync lead character.",
     "category": "lead",
     "moods": [
-      "leads"
+      "bright",
+      "lush",
+      "aggressive"
     ],
     "genres": [
+      "electronic",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "lead",
       "fifth-lead",
-      "sync-lead"
+      "sync-lead",
+      "bright",
+      "lush"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

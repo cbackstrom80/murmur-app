@@ -46,6 +46,7 @@ target_sources(pw8_quasar_plugin PRIVATE
     src/ui/theme/ObsidianLookAndFeel.cpp
     src/ui/components/GlowKnob.cpp
     src/ui/components/MetadataFacetRow.cpp
+    src/ui/components/QuasarSpatialWireframeView.cpp
 )
 
 target_include_directories(pw8_quasar_plugin PRIVATE src)

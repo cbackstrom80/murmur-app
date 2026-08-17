@@ -7,15 +7,25 @@
     "description": "Factory Pad patch #10. Engines: Classic, Additive, NoiseChaos. Procedurally generated (seed 2399453995) as part of the 250-patch factory content bank. Archetype: brass-pad hybrid.",
     "category": "pad",
     "moods": [
-      "pads"
+      "warm",
+      "cinematic",
+      "dreamy",
+      "lush",
+      "soft"
     ],
     "genres": [
+      "cinematic",
+      "score",
+      "ambient-bed",
+      "electronic",
       "factory"
     ],
     "tags": [
       "factory",
       "pad",
-      "brass-pad"
+      "brass-pad",
+      "warm",
+      "cinematic"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

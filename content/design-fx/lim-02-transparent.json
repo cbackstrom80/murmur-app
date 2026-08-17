@@ -1,0 +1,8 @@
+{
+  "chip": 10,
+  "name": "TRANSPARENT CEILING",
+  "params": {
+    "LimiterCeilingDb": -1.0,
+    "LimiterReleaseMs": 80.0
+  }
+}

@@ -7,16 +7,26 @@
     "description": "Factory Lead patch #47. Engines: Classic. Procedurally generated (seed 3385385295) as part of the 250-patch factory content bank. Archetype: dual-saw brass stab with formant vocal lead character.",
     "category": "lead",
     "moods": [
-      "leads"
+      "punchy",
+      "bright",
+      "organic",
+      "digital",
+      "aggressive"
     ],
     "genres": [
+      "cinematic",
+      "score",
+      "electronic",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "lead",
       "brass-stab",
-      "formant-vox"
+      "formant-vox",
+      "punchy",
+      "bright"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

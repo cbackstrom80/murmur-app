@@ -1,0 +1,9 @@
+{
+  "chip": 8,
+  "name": "LOW CUT RUMBLE",
+  "params": {
+    "EqLowGainDb": -5.0,
+    "EqMidGainDb": -1.5,
+    "EqLowFreqHz": 120.0
+  }
+}

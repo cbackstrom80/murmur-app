@@ -7,15 +7,20 @@
     "description": "Factory Ambient patch #35. Engines: Classic, Granular, NoiseChaos, Resonator. Procedurally generated (seed 3477686991) as part of the 250-patch factory content bank. Archetype: wavetable wash drone.",
     "category": "ambient",
     "moods": [
-      "ambient"
+      "airy",
+      "evolving"
     ],
     "genres": [
+      "ambient-bed",
+      "meditation",
       "factory"
     ],
     "tags": [
       "factory",
       "ambient",
-      "wt-wash"
+      "wt-wash",
+      "airy",
+      "evolving"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

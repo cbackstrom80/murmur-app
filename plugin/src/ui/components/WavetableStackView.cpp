@@ -1,53 +1,19 @@
 #include "WavetableStackView.h"
 
 #include <algorithm>
-#include <array>
 #include <cmath>
-#include <limits>
 
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
+#include "wireframe/WavetableMeshPaint.h"
 #include "wireframe/WireframeProjection.h"
 #include "pw8/algorithm/AlgorithmTypes.hpp"
-#include "pw8/dsp/Math.hpp"
-#include "pw8/oscillator/WavetableWarp.hpp"
 #include "state/PluginState.h"
 
 namespace pw8::plugin::ui
 {
     namespace
     {
-        // Mesh density -- rows drawn regardless of the table's real frame
-        // count; extras are honest interpolation, see the header doc comment.
-        // Lower than the Python prototype's 26: that was tuned against a
-        // ~680x500 canvas, but this component's real bounds land closer to
-        // 554x176 (a much shorter aspect -- OperatorEditorPanel's Wavetable
-        // slot is wide, not tall). At the prototype's row count in this
-        // little vertical room, 26 rows land under 3px apart and visually
-        // mush together instead of reading as distinct mesh lines; fewer,
-        // more widely-separated rows read far better at this actual size.
-        constexpr int kMeshRows = 15;
-        // Points per row -- enough to read the waveform's real shape without
-        // painting a path per sample (a 2048-sample frame doesn't need 2048
-        // path points to look identical at this pixel scale).
-        constexpr int kPointsPerRow = 48;
-        // Connect every Nth sample index between a row and its farther
-        // neighbour -- this is what makes it read as one continuous mesh
-        // surface rather than a stack of independent parallel ribbons.
-        constexpr int kCrossLineStride = 6;
-
-        // Cheap pseudo-3D projection (validated against a Python prototype
-        // before porting): each row shifts right/up and shrinks as depth
-        // increases -- no real camera/projection matrix, just enough to read
-        // as perspective at this scale, same spirit as the shear the previous
-        // "deck of cards" rendering used. kRowStepYFrac raised well above the
-        // prototype's 0.34 for the same reason as kMeshRows above -- this
-        // component's real vertical budget is much smaller, so depth-rise
-        // needs a bigger share of it to stay legible.
-        constexpr float kRowStepXFrac = 0.16f;
-        constexpr float kRowStepYFrac = 0.40f;
-        constexpr float kFarShrink = 0.55f; // farthest row's scale relative to nearest.
-
         constexpr int kArrowWidth = 34;
         constexpr int kButtonHeight = 28;
         constexpr int kButtonMargin = 4;
@@ -127,9 +93,21 @@ namespace pw8::plugin::ui
         refreshSiblings();
     }
 
+    void WavetableStackView::setShowLoadButton(bool show)
+    {
+        loadButton_.setVisible(show);
+        resized();
+    }
+
     void WavetableStackView::resized()
     {
         auto bounds = getLocalBounds().reduced(kButtonMargin);
+
+        if (loadButton_.isVisible())
+        {
+            auto loadRow = bounds.removeFromTop(kButtonHeight + 2);
+            loadButton_.setBounds(loadRow.removeFromRight(88).reduced(1));
+        }
 
         auto captionRow = bounds.removeFromBottom(kCaptionHeight);
         tableNameLabel_.setBounds(captionRow);
@@ -302,142 +280,7 @@ namespace pw8::plugin::ui
 
         auto captionArea = bounds.removeFromBottom(14.0f);
 
-        // Table name is shown in tableNameLabel_; keep technical frame readout here.
-
-        // Interpolated sample at depth t in [0,1] (0 = front/nearest = table frame 0,
-        // 1 = back/farthest = the table's last frame) and point index p -- honest
-        // interpolation between the two real frames t falls between, see the header
-        // doc comment for why this isn't fabricated data.
-        auto sampleAt = [&](float depthT, int p) -> float
-        {
-            const float framePos = depthT * static_cast<float>(numFrames - 1);
-            const int f0 = static_cast<int>(framePos);
-            const int f1 = juce::jmin(f0 + 1, numFrames - 1);
-            const float frameFrac = framePos - static_cast<float>(f0);
-
-            const float tp = static_cast<float>(p) / static_cast<float>(kPointsPerRow - 1);
-            const float readPhase = oscillator::warpReadPhase(tp, warpParams);
-            const float srcPos = readPhase * static_cast<float>(samplesPerFrame - 1);
-            const int s0 = static_cast<int>(srcPos);
-            const int s1 = juce::jmin(s0 + 1, samplesPerFrame - 1);
-            const float sampleFrac = srcPos - static_cast<float>(s0);
-
-            const std::size_t off0 = static_cast<std::size_t>(f0) * static_cast<std::size_t>(samplesPerFrame);
-            const std::size_t off1 = static_cast<std::size_t>(f1) * static_cast<std::size_t>(samplesPerFrame);
-            const float v0 = pw8::dsp::lerp(mip.samples[off0 + static_cast<std::size_t>(s0)],
-                                             mip.samples[off0 + static_cast<std::size_t>(s1)], sampleFrac);
-            const float v1 = pw8::dsp::lerp(mip.samples[off1 + static_cast<std::size_t>(s0)],
-                                             mip.samples[off1 + static_cast<std::size_t>(s1)], sampleFrac);
-            return pw8::dsp::lerp(v0, v1, frameFrac);
-        };
-
-        // originY/rowHeight/stepY are chosen so every row's full amplitude
-        // swing, at every depth, stays inside `bounds` -- derived, not
-        // guessed: the nearest row (t=0, scale=1) needs
-        // originYFrac +/- rowHeightFrac/2 within [0,1], and the farthest row
-        // (t=1, scale=kFarShrink) needs (originYFrac - stepYFrac) +/-
-        // rowHeightFrac*kFarShrink/2 within [0,1]. 0.55/0.45/0.40 satisfies
-        // both with margin to spare (checked by hand before picking these).
-        const float originX = bounds.getX() + bounds.getWidth() * 0.42f;
-        const float originY = bounds.getY() + bounds.getHeight() * 0.55f;
-        const float rowWidth = bounds.getWidth() * 0.60f;
-        const float rowHeight = bounds.getHeight() * 0.45f;
-        const float stepX = bounds.getWidth() * kRowStepXFrac;
-        const float stepY = bounds.getHeight() * kRowStepYFrac;
-
-        struct RowPoints
-        {
-            std::array<juce::Point<float>, static_cast<std::size_t>(kPointsPerRow)> pts;
-        };
-        std::array<RowPoints, static_cast<std::size_t>(kMeshRows)> rows;
-
-        int liveRowIndex = 0;
-        float liveRowDist = std::numeric_limits<float>::max();
-
-        for (int r = 0; r < kMeshRows; ++r)
-        {
-            const float depthT = static_cast<float>(r) / static_cast<float>(kMeshRows - 1);
-            const float scale = 1.0f - (1.0f - kFarShrink) * depthT;
-
-            const float rowFramePos = depthT * static_cast<float>(numFrames - 1);
-            if (const float dist = std::abs(rowFramePos - liveFramePos); dist < liveRowDist)
-            {
-                liveRowDist = dist;
-                liveRowIndex = r;
-            }
-
-            for (int p = 0; p < kPointsPerRow; ++p)
-            {
-                const float sampleValue = sampleAt(depthT, p);
-                const float tp = static_cast<float>(p) / static_cast<float>(kPointsPerRow - 1);
-                const float x = originX - rowWidth * 0.5f * scale + tp * rowWidth * scale + stepX * depthT;
-                const float y = originY - stepY * depthT - sampleValue * rowHeight * 0.5f * scale;
-                rows[static_cast<std::size_t>(r)].pts[static_cast<std::size_t>(p)] = {x, y};
-            }
-        }
-
-        // Painter's algorithm, farthest row first: each nearer row's silhouette
-        // (its own line, filled down to a baseline below it, in the panel's own
-        // background colour) erases whatever farther content was already drawn
-        // in that footprint -- the classic hidden-line wireframe-landscape trick,
-        // validated in a Python prototype against this exact projection before
-        // porting here.
-        for (int r = kMeshRows - 1; r >= 0; --r)
-        {
-            const auto& row = rows[static_cast<std::size_t>(r)];
-            const float depthT = static_cast<float>(r) / static_cast<float>(kMeshRows - 1);
-
-            juce::Path linePath;
-            float maxY = row.pts.front().y;
-            for (int p = 0; p < kPointsPerRow; ++p)
-            {
-                const auto& pt = row.pts[static_cast<std::size_t>(p)];
-                if (p == 0)
-                    linePath.startNewSubPath(pt);
-                else
-                    linePath.lineTo(pt);
-                maxY = juce::jmax(maxY, pt.y);
-            }
-
-            juce::Path silhouette(linePath);
-            const float baselineY = maxY + 24.0f;
-            silhouette.lineTo(row.pts.back().x, baselineY);
-            silhouette.lineTo(row.pts.front().x, baselineY);
-            silhouette.closeSubPath();
-            g.setColour(palette::kPanel);
-            g.fillPath(silhouette);
-
-            const bool isLive = r == liveRowIndex;
-            const float alpha = isLive ? 1.0f : juce::jmap(depthT, 0.0f, 1.0f, 0.75f, 0.15f);
-            const float strokeWidth = isLive ? 2.0f : juce::jmap(depthT, 0.0f, 1.0f, 1.4f, 0.6f);
-
-            // Cheap glow: a wide, dim pass under the crisp line -- the same
-            // "reads as lit, not just coloured" trick ObsidianLookAndFeel's
-            // knob value-arc already uses, no image blur/convolution needed.
-            g.setColour(palette::kAccent.withAlpha(alpha * 0.25f));
-            g.strokePath(linePath, juce::PathStrokeType(strokeWidth * 2.2f, juce::PathStrokeType::curved,
-                                                          juce::PathStrokeType::rounded));
-            g.setColour((isLive ? palette::kAccent : palette::kBorderBright).withAlpha(alpha));
-            g.strokePath(linePath, juce::PathStrokeType(strokeWidth, juce::PathStrokeType::curved,
-                                                          juce::PathStrokeType::rounded));
-
-            // Cross-lines to the FARTHER neighbour (r+1, already drawn this
-            // pass) -- connecting to the nearer one instead would draw them
-            // before that row's own occluding silhouette exists yet, so a
-            // nearer row could never occlude a crossline the way it should.
-            if (r < kMeshRows - 1)
-            {
-                const auto& fartherRow = rows[static_cast<std::size_t>(r + 1)];
-                juce::Path crossPath;
-                for (int p = 0; p < kPointsPerRow; p += kCrossLineStride)
-                {
-                    crossPath.startNewSubPath(row.pts[static_cast<std::size_t>(p)]);
-                    crossPath.lineTo(fartherRow.pts[static_cast<std::size_t>(p)]);
-                }
-                g.setColour(palette::kBorderBright.withAlpha(alpha * 0.5f));
-                g.strokePath(crossPath, juce::PathStrokeType(0.8f, juce::PathStrokeType::curved, juce::PathStrokeType::butt));
-            }
-        }
+        wireframe::paintWavetableTableMesh(g, bounds, table, warpParams, livePos, wireframe::labHeroMeshOptions());
 
         g.setColour(palette::kTextSecondary);
         g.setFont(fonts::value(10.0f));
@@ -445,33 +288,18 @@ namespace pw8::plugin::ui
         juce::String libPos;
         if (libIndex >= 0)
             libPos = " · lib " + juce::String(libIndex + 1) + "/" + juce::String(wavetableIndex_.allEntries().size());
-        g.drawText(juce::String(numFrames) + " frames, mip 0 (" + juce::String(mip.maxHarmonic) + " harmonics) · frame " +
-                       juce::String(liveFrame) + " live" + libPos,
+        g.drawText(juce::String(numFrames) + " frames, mip 0 (" + juce::String(mip.maxHarmonic) + " harmonics) · frame "
+                       + juce::String(liveFrame) + " live" + libPos,
                    captionArea, juce::Justification::centredLeft);
 
         if (granularOverlay_)
         {
-            const auto posParam = operatorParamId(static_cast<std::size_t>(selectedNode_), "WavetablePos");
-            const auto sizeParam = operatorParamId(static_cast<std::size_t>(selectedNode_), "GrainSizeMs");
-            float pos = 0.35f;
-            float sizeMs = 60.0f;
-            if (auto* raw = processor_.apvts.getRawParameterValue(posParam))
-                pos = juce::jlimit(0.0f, 1.0f, raw->load());
-            if (auto* raw = processor_.apvts.getRawParameterValue(sizeParam))
-                sizeMs = raw->load();
-
-            const float grainW = juce::jmap(sizeMs, 1.0f, 500.0f, bounds.getWidth() * 0.06f, bounds.getWidth() * 0.22f);
-            for (int gIdx = 0; gIdx < 3; ++gIdx)
-            {
-                const float cx = bounds.getX() + bounds.getWidth() * juce::jlimit(0.05f, 0.95f, pos + static_cast<float>(gIdx - 1) * 0.12f);
-                const float top = bounds.getY() + bounds.getHeight() * 0.15f;
-                const float h = bounds.getHeight() * 0.55f;
-                juce::Rectangle<float> grain(cx - grainW * 0.5f, top, grainW, h);
-                g.setColour(palette::kAccentWarm.withAlpha(0.12f));
-                g.fillRect(grain);
-                g.setColour(palette::kAccentWarm.withAlpha(0.75f));
-                g.drawRect(grain, 1.2f);
-            }
+            wireframe::GranularOverlayParams grainParams;
+            grainParams.wavetablePos = livePos;
+            if (auto* raw = processor_.apvts.getRawParameterValue(
+                    operatorParamId(static_cast<std::size_t>(selectedNode_), "GrainSizeMs")))
+                grainParams.grainSizeMs = raw->load();
+            wireframe::paintGranularGrainOverlay(g, bounds, grainParams);
         }
     }
 

@@ -12,6 +12,8 @@
       "evolving"
     ],
     "genres": [
+      "demo",
+      "sound-design",
       "factory"
     ],
     "tags": [
@@ -19,7 +21,10 @@
       "fm",
       "bell",
       "feedback",
-      "template"
+      "template",
+      "templates",
+      "metallic",
+      "glassy"
     ],
     "createdAt": "2026-08-13T00:00:00Z",
     "engineVersion": "0.1.0",

@@ -66,6 +66,9 @@ namespace pw8::plugin::ui
         /// When true, draws example grain windows over the wavetable mesh (Granular engine).
         void setGranularOverlay(bool enabled) { granularOverlay_ = enabled; repaint(); }
 
+        /// Lab mode shows custom import alongside factory prev/next navigation.
+        void setShowLoadButton(bool show);
+
     private:
         void timerCallback() override;
         void loadWavetableFromFile();

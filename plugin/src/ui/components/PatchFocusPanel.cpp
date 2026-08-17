@@ -2,6 +2,7 @@
 
 #include <cmath>
 
+#include "../PlayModeLayout.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "ModRoutingUi.h"
@@ -71,6 +72,20 @@ namespace pw8::plugin::ui
         panel_.addAndMakeVisible(advancedButton_);
         advancedButton_.setVisible(false);
 
+        desktopDeckTitleLabel_.setText("OBSIDIAN ACTIVE PERFORMANCE CONTROL DECK", juce::dontSendNotification);
+        desktopDeckTitleLabel_.setJustificationType(juce::Justification::centredLeft);
+        desktopDeckTitleLabel_.setFont(fonts::label(9.0f));
+        desktopDeckTitleLabel_.setColour(juce::Label::textColourId, palette::kTextSecondary);
+        desktopDeckTitleLabel_.setVisible(false);
+        panel_.addChildComponent(desktopDeckTitleLabel_);
+
+        desktopDeckStatusLabel_.setText("ASSIGNED MACRO MAPPINGS OK", juce::dontSendNotification);
+        desktopDeckStatusLabel_.setJustificationType(juce::Justification::centredRight);
+        desktopDeckStatusLabel_.setFont(fonts::label(8.0f));
+        desktopDeckStatusLabel_.setColour(juce::Label::textColourId, palette::kAccent);
+        desktopDeckStatusLabel_.setVisible(false);
+        panel_.addChildComponent(desktopDeckStatusLabel_);
+
         setBasicPerformanceLayout(true);
         startTimerHz(12);
         timerCallback();
@@ -86,8 +101,8 @@ namespace pw8::plugin::ui
         basicLayout_ = basicLayout;
         if (basicLayout)
             compactLayout_ = false;
-        introLabel_.setVisible(basicLayout && !compactLayout_);
-        ringLegendLabel_.setVisible(basicLayout && !compactLayout_);
+        introLabel_.setVisible(basicLayout && !compactLayout_ && !desktopPlayModeLayout_);
+        ringLegendLabel_.setVisible(basicLayout && !compactLayout_ && !desktopPlayModeLayout_);
         if (!compactLayout_)
         {
             panel_.setVisible(true);
@@ -102,13 +117,51 @@ namespace pw8::plugin::ui
     {
         compactLayout_ = compactLayout;
         if (compactLayout)
+        {
             basicLayout_ = false;
-        introLabel_.setVisible(basicLayout_ && !compactLayout_);
-        ringLegendLabel_.setVisible(basicLayout_ && !compactLayout_);
+            desktopPlayModeLayout_ = false;
+        }
+        introLabel_.setVisible(basicLayout_ && !compactLayout_ && !desktopPlayModeLayout_);
+        ringLegendLabel_.setVisible(basicLayout_ && !compactLayout_ && !desktopPlayModeLayout_);
         panel_.setVisible(!compactLayout_);
         if (!compactLayout_)
             orbitHole_ = {};
         applyLayoutMode();
+        resized();
+    }
+
+    void PatchFocusPanel::setDesktopPlayModeLayout(bool desktopPlayMode)
+    {
+        desktopPlayModeLayout_ = desktopPlayMode;
+        if (desktopPlayMode)
+        {
+            compactLayout_ = false;
+            basicLayout_ = true;
+        }
+        introLabel_.setVisible(basicLayout_ && !compactLayout_ && !desktopPlayModeLayout_);
+        ringLegendLabel_.setVisible(basicLayout_ && !compactLayout_ && !desktopPlayModeLayout_);
+        desktopDeckTitleLabel_.setVisible(desktopPlayModeLayout_);
+        desktopDeckStatusLabel_.setVisible(desktopPlayModeLayout_);
+        modWheelBadge_.setVisible(!desktopPlayModeLayout_ && modWheelBadge_.isVisible());
+        expressionBadge_.setVisible(!desktopPlayModeLayout_ && expressionBadge_.isVisible());
+        sidechainBadge_.setVisible(!desktopPlayModeLayout_ && sidechainBadge_.isVisible());
+        macroHintsLabel_.setVisible(!desktopPlayModeLayout_ && macroHintsLabel_.isVisible());
+        standardSectionLabel_.setVisible(!desktopPlayModeLayout_ && standardSectionLabel_.isVisible());
+        panel_.setVisible(true);
+        if (panel_.getParentComponent() == nullptr)
+            addAndMakeVisible(panel_);
+        applyLayoutMode();
+        refreshFromPatch();
+        resized();
+    }
+
+    void PatchFocusPanel::setIpadPlayLayout(bool ipadPlayLayout)
+    {
+        ipadPlayLayout_ = ipadPlayLayout;
+        if (ipadPlayLayout)
+            desktopPlayModeLayout_ = true;
+        applyLayoutMode();
+        refreshFromPatch();
         resized();
     }
 
@@ -120,11 +173,15 @@ namespace pw8::plugin::ui
 
     void PatchFocusPanel::applyLayoutMode()
     {
-        const int featureDialCap = compactLayout_ ? 56 : (basicLayout_ ? 120 : 72);
+        const int featureDialCap = desktopPlayModeLayout_
+                                       ? layout::kDesktopPlayModeMacroKnobTouchSize
+                                       : (compactLayout_ ? 56 : (basicLayout_ ? 120 : 72));
         const int standardDialCap = compactLayout_ ? 52 : (basicLayout_ ? 96 : 68);
-        const auto featureDeckedSize = compactLayout_ ? GlowKnob::DeckedKnobSize::Small
-                                                      : (basicLayout_ ? GlowKnob::DeckedKnobSize::Large
-                                                                      : GlowKnob::DeckedKnobSize::Medium);
+        const auto featureDeckedSize = desktopPlayModeLayout_
+                                           ? GlowKnob::DeckedKnobSize::Large
+                                           : (compactLayout_ ? GlowKnob::DeckedKnobSize::Small
+                                                             : (basicLayout_ ? GlowKnob::DeckedKnobSize::Large
+                                                                             : GlowKnob::DeckedKnobSize::Medium));
         const auto standardDeckedSize = compactLayout_ ? GlowKnob::DeckedKnobSize::Small
                                                        : GlowKnob::DeckedKnobSize::Medium;
 
@@ -182,6 +239,16 @@ namespace pw8::plugin::ui
 
     void PatchFocusPanel::paint(juce::Graphics& g)
     {
+        if (desktopPlayModeLayout_)
+        {
+            auto bounds = getLocalBounds().toFloat();
+            g.setColour(palette::kPanelRaised.withAlpha(0.92f));
+            g.fillRoundedRectangle(bounds, 10.0f);
+            g.setColour(palette::kBorder.withAlpha(0.55f));
+            g.drawRoundedRectangle(bounds.reduced(0.5f), 10.0f, 1.0f);
+            return;
+        }
+
         if (!basicLayout_ || compactLayout_ || featureKnobCount_ == 0)
             return;
 
@@ -239,16 +306,40 @@ namespace pw8::plugin::ui
     void PatchFocusPanel::timerCallback()
     {
         const auto& patch = processor_.getCurrentPatch();
-        const std::size_t maxFeature = kMaxFeatureKoinCount;
-        const std::size_t maxStandard =
-            compactLayout_ ? kCompactStandardParamKoinCount : kStandardParamKoinCount;
-        const auto layout = inferPatchFocusLayout(patch, maxFeature, maxStandard, &processor_.apvts);
+
+        PatchFocusLayout layout;
+        if (desktopPlayModeLayout_)
+        {
+            const std::size_t macroCount = ipadPlayLayout_ ? layout::kIpadPlayMacroCount : layout::kDesktopPlayModeMacroCount;
+            layout.featureKnobs.reserve(macroCount);
+            for (std::size_t i = 0; i < macroCount; ++i)
+            {
+                const auto& macro = patch.macros[i];
+                const auto label = macro.name.empty() ? juce::String(kMacroParameterNames[i]) : juce::String(macro.name);
+                layout.featureKnobs.push_back({PatchFocusKnobKind::Macro, i, {}, label});
+            }
+        }
+        else if (compactLayout_)
+        {
+            layout = inferPatchFocusLayout(patch, 4, 0, &processor_.apvts);
+        }
+        else
+        {
+            const std::size_t maxFeature = kMaxFeatureKoinCount;
+            const std::size_t maxStandard =
+                compactLayout_ ? kCompactStandardParamKoinCount : kStandardParamKoinCount;
+            layout = inferPatchFocusLayout(patch, maxFeature, maxStandard, &processor_.apvts);
+        }
 
         const auto patchName = patch.metadata.name.empty() ? juce::String("Init") : juce::String(patch.metadata.name);
         const bool authored = !patch.uiFocus.knobs.empty();
         if (compactLayout_)
         {
             subtitleLabel_.setText(authored ? "Performance macros" : "Feature macros", juce::dontSendNotification);
+        }
+        else if (desktopPlayModeLayout_)
+        {
+            subtitleLabel_.setText({}, juce::dontSendNotification);
         }
         else
         {
@@ -282,7 +373,7 @@ namespace pw8::plugin::ui
         expressionBadge_.setVisible(!exprText.isEmpty());
 
         const auto scText = formatSidechainStatus(patch, processor_.getSidechainLevel(), processor_.getSidechainActive()
-#if JucePlugin_Build_AU
+#if JucePlugin_Build_AU || JucePlugin_Build_VST3
                                                       ,
                                                   true
 #else
@@ -325,6 +416,8 @@ namespace pw8::plugin::ui
             panel_.addAndMakeVisible(expressionBadge_);
             panel_.addAndMakeVisible(sidechainBadge_);
             panel_.addAndMakeVisible(advancedButton_);
+            panel_.addAndMakeVisible(desktopDeckTitleLabel_);
+            panel_.addAndMakeVisible(desktopDeckStatusLabel_);
         }
         else
         {
@@ -402,55 +495,80 @@ namespace pw8::plugin::ui
 
     void PatchFocusPanel::resized()
     {
+        if (desktopPlayModeLayout_)
+        {
+            panel_.setBounds(getLocalBounds());
+            auto bounds = panel_.getLocalBounds().reduced(layout::kDesktopPlayModePerformanceDeckPadding);
+
+            auto header = bounds.removeFromTop(layout::kDesktopPlayModeMacrosHeaderHeight);
+            desktopDeckTitleLabel_.setBounds(header.removeFromLeft(header.getWidth() - 160));
+            desktopDeckStatusLabel_.setBounds(header);
+
+            const int headerGap = ipadPlayLayout_ ? 12 : 20;
+            bounds.removeFromTop(headerGap);
+            auto knobRow = bounds.removeFromTop(ipadPlayLayout_ ? 148 : layout::kDesktopPlayModeKnobsRowHeight);
+
+            const int knobWidth =
+                ipadPlayLayout_ ? layout::kIpadPlayMacroKnobWidth : layout::kDesktopPlayModeMacroKnobWidth;
+            const int knobGap = ipadPlayLayout_ ? layout::kIpadPlayMacroKnobGap : layout::kDesktopPlayModeMacroKnobGap;
+            const std::size_t knobCount = juce::jmin(
+                knobs_.size(),
+                static_cast<std::size_t>(ipadPlayLayout_ ? layout::kIpadPlayMacroCount : layout::kDesktopPlayModeMacroCount));
+            for (std::size_t i = 0; i < knobCount; ++i)
+            {
+                const int x = static_cast<int>(i) * (knobWidth + knobGap);
+                knobs_[i]->setBounds(knobRow.getX() + x, knobRow.getY(), knobWidth, knobRow.getHeight());
+            }
+            return;
+        }
+
         if (compactLayout_)
         {
-            auto bounds = getLocalBounds().reduced(2, 0);
-            subtitleLabel_.setBounds(bounds.removeFromTop(16));
-            bounds.removeFromTop(4);
-
-            if (!orbitHole_.isEmpty() && featureKnobCount_ > 0)
+            if (!orbitHole_.isEmpty() && !knobs_.empty())
             {
+                subtitleLabel_.setBounds(0, 0, 0, 0);
                 const auto centre = orbitHole_.getCentre();
                 const int orbitRadius = juce::jmax(orbitHole_.getWidth(), orbitHole_.getHeight()) / 2 + 36;
                 const int knobSize = 64;
-                static constexpr float kAnglesOne[] = {-juce::MathConstants<float>::halfPi};
-                static constexpr float kAnglesTwo[] = {
-                    -juce::MathConstants<float>::halfPi,
-                    juce::MathConstants<float>::halfPi,
-                };
-                static constexpr float kAnglesThree[] = {
+                static constexpr float kAngles[] = {
                     -juce::MathConstants<float>::halfPi,
                     0.0f,
+                    juce::MathConstants<float>::halfPi,
                     juce::MathConstants<float>::pi,
                 };
-                const float* angles = kAnglesThree;
-                std::size_t angleCount = 3;
-                const std::size_t featureCount = juce::jmin(featureKnobCount_, knobs_.size());
-                if (featureCount == 1)
+                for (std::size_t i = 0; i < knobs_.size() && i < 4; ++i)
                 {
-                    angles = kAnglesOne;
-                    angleCount = 1;
-                }
-                else if (featureCount == 2)
-                {
-                    angles = kAnglesTwo;
-                    angleCount = 2;
-                }
-                for (std::size_t i = 0; i < featureCount && i < angleCount; ++i)
-                {
-                    const float a = angles[i];
+                    const float a = kAngles[i];
                     const int cx = centre.x + static_cast<int>(std::cos(a) * static_cast<float>(orbitRadius));
                     const int cy = centre.y + static_cast<int>(std::sin(a) * static_cast<float>(orbitRadius));
                     knobs_[i]->setBounds(cx - knobSize / 2, cy - knobSize / 2, knobSize, knobSize);
                 }
+                return;
             }
 
-            if (featureKnobCount_ < knobs_.size())
+            auto bounds = getLocalBounds().reduced(layout::kCompactMacroPanelPadding);
+            subtitleLabel_.setBounds(bounds.removeFromTop(16));
+            bounds.removeFromTop(layout::kCompactMacroRowGap);
+
+            const std::size_t knobCount = knobs_.size();
+            if (knobCount == 0)
+                return;
+
+            const int columns = 3;
+            const int rows = static_cast<int>((knobCount + static_cast<std::size_t>(columns) - 1)
+                                              / static_cast<std::size_t>(columns));
+            const int cellWidth = (bounds.getWidth() - (columns - 1) * layout::kCompactMacroKnobGap) / columns;
+            const int cellHeight = layout::kCompactMacroKnobSize + 18;
+
+            for (std::size_t i = 0; i < knobCount; ++i)
             {
-                standardSectionLabel_.setBounds(bounds.removeFromTop(14));
-                bounds.removeFromTop(2);
-                layoutKnobGrid(bounds, featureKnobCount_, knobs_.size() - featureKnobCount_, 88);
+                const int col = static_cast<int>(i) % columns;
+                const int row = static_cast<int>(i) / columns;
+                const int x = bounds.getX() + col * (cellWidth + layout::kCompactMacroKnobGap);
+                const int y = bounds.getY() + row * (cellHeight + layout::kCompactMacroRowGap);
+                knobs_[i]->setBounds(x, y, cellWidth, cellHeight);
             }
+            juce::ignoreUnused(rows);
             return;
         }
 

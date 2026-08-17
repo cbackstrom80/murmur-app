@@ -7,15 +7,22 @@
     "description": "Factory Basse patch #26. Engines: Classic, NoiseChaos. Procedurally generated (seed 1764786232) as part of the 250-patch factory content bank. Archetype: sync oscillator low lead-bass.",
     "category": "bass",
     "moods": [
-      "basses"
+      "bright",
+      "aggressive",
+      "punchy",
+      "dark"
     ],
     "genres": [
+      "electronic",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "bass",
-      "sync-low"
+      "sync-low",
+      "bright",
+      "aggressive"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

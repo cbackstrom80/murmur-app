@@ -28,12 +28,25 @@ FetchContent_MakeAvailable(JUCE)
 juce_add_binary_data(pw8_branding_data
     SOURCES
         resources/branding/murmur_mark_512.png
+        resources/fx-glyphs/fx_bypass.svg
+        resources/fx-glyphs/fx_sat.svg
+        resources/fx-glyphs/fx_chr.svg
+        resources/fx-glyphs/fx_tape.svg
+        resources/fx-glyphs/fx_mood.svg
+        resources/fx-glyphs/fx_fshf.svg
+        resources/fx-glyphs/fx_frac.svg
+        resources/fx-glyphs/fx_rev.svg
+        resources/fx-glyphs/fx_eq.svg
+        resources/fx-glyphs/fx_comp.svg
+        resources/fx-glyphs/fx_lim.svg
+        resources/fx-glyphs/fx_voc.svg
 )
 
 juce_add_plugin(pw8_plugin
     PRODUCT_NAME "MURMUR"
     COMPANY_NAME "Murmur"
     BUNDLE_ID "com.patchwork.murmur"
+    VERSION ${PROJECT_VERSION}
     PLUGIN_MANUFACTURER_CODE Murr
     PLUGIN_CODE Murm
     ICON_BIG resources/branding/murmur_mark_512.png
@@ -54,12 +67,17 @@ target_sources(pw8_plugin PRIVATE
     src/content/WavetableIndex.cpp
     src/content/FavoritesStore.cpp
     src/ui/MurmurRootEditor.cpp
+    src/ui/DesignModeEditor.cpp
     src/ui/PlayModeEditor.cpp
+    src/ui/DesignModeEditor.cpp
     src/ui/theme/ObsidianLookAndFeel.cpp
     src/ui/theme/DualKnobLookAndFeel.cpp
     src/ui/theme/BrandingAssets.cpp
+    src/ui/theme/FxTypeGlyphs.cpp
     src/ui/components/GlowKnob.cpp
     src/ui/components/ConcentricGlowKnob.cpp
+    src/ui/components/LabLauncherChip.cpp
+    src/ui/components/TripleGlowKnob.cpp
     src/ui/components/GlowRingButton.cpp
     src/ui/components/SectionPanel.cpp
     src/ui/components/WireframePanel.cpp
@@ -68,6 +86,26 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/EngineIconGrid.cpp
     src/ui/components/EdgeIconGrid.cpp
     src/ui/components/EngineNodeStrip.cpp
+    src/ui/components/EngineCard.cpp
+    src/ui/components/EngineOscillatorPicker.cpp
+    src/ui/components/EngineOscContextThumb.cpp
+    src/ui/components/EngineWaveformSelector.cpp
+    src/ui/components/EngineAdsrMini.cpp
+    src/ui/components/EngineGridPanel.cpp
+    src/ui/components/DesignModeHeaderBar.cpp
+    src/ui/components/MurmurChromeBar.cpp
+    src/ui/components/DashboardStrip.cpp
+    src/ui/components/DesignFxPanel.cpp
+    src/ui/components/DesignFxUiState.cpp
+    src/ui/components/DesignFxPresetLibrary.cpp
+    src/ui/components/DesignFxStubKnob.cpp
+    src/ui/components/DesignFxSignalChain.cpp
+    src/ui/components/DesignModMatrixPanel.cpp
+    src/ui/components/VstBottomBar.cpp
+    src/ui/components/VstTopBar.cpp
+    src/ui/components/VocoderLabPanel.cpp
+    src/ui/components/DualLfoLabPanel.cpp
+    src/ui/components/EngineDetailOverlay.cpp
     src/ui/components/LiveTopologyStrip.cpp
     src/ui/components/TopologyGraphOverlay.cpp
     src/ui/components/ContextStrip.cpp
@@ -90,6 +128,7 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/ModRoutingUi.cpp
     src/ui/components/ModSourcePalette.cpp
     src/ui/components/PatchFocusPanel.cpp
+    src/ui/components/MasterOutputDeck.cpp
     src/ui/components/ModLauncherPanel.cpp
     src/ui/components/ModRoutingOverlay.cpp
     src/ui/components/ModSourceStrip.cpp
@@ -98,13 +137,16 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/ArpStepStrip.cpp
     src/ui/components/ArpLauncherChip.cpp
     src/ui/components/ArpPanelOverlay.cpp
+    src/ui/components/WavetableLabPanel.cpp
     src/ui/components/WavetableStackView.cpp
     src/ui/components/wireframe/WireframeCanvas.cpp
     src/ui/components/wireframe/OscPreviewSampler.cpp
+    src/ui/components/wireframe/WavetableMeshPaint.cpp
     src/ui/components/wireframe/EngineWireframeViews.cpp
     src/ui/components/wireframe/OscWireframeHost.cpp
     src/ui/components/wireframe/EnvelopeCurveView.cpp
     src/ui/components/wireframe/FxWireframeView.cpp
+    src/ui/components/wireframe/DesignFxHeroViz.cpp
     src/ui/components/wireframe/FxChainFlowView.cpp
     src/ui/components/wireframe/LfoWireframeView.cpp
     src/ui/components/wireframe/FilterWireframeView.cpp
@@ -128,6 +170,7 @@ target_compile_definitions(pw8_plugin PRIVATE
     JUCE_WEB_BROWSER=0
     JUCE_USE_CURL=0
     JUCE_VST3_CAN_REPLACE_VST2=0
+    $<$<CONFIG:Debug>:PW8_DEV_CONTENT_ROOT="${CMAKE_SOURCE_DIR}">
 )
 
 pw8_set_warnings(pw8_plugin)

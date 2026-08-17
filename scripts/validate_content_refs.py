@@ -11,6 +11,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 PRESETS_DIR = REPO_ROOT / "content" / "presets"
 WAVETABLES_SRC = REPO_ROOT / "content" / "wavetables"
 INSTALLED_WT_DIR = Path("/Library/Application Support/Patchwork Eight/Wavetables")
+MURMUR_WT_DIR = Path.home() / "Library/Application Support/MURMUR/Wavetables"
 
 
 def resolve_installed(wavetable_id: str) -> Path | None:
@@ -24,6 +25,7 @@ def resolve_installed(wavetable_id: str) -> Path | None:
         REPO_ROOT / wavetable_id,
         WAVETABLES_SRC / base,
         INSTALLED_WT_DIR / base,
+        MURMUR_WT_DIR / base,
     ]
     for c in candidates:
         if c.is_file():

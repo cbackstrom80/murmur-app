@@ -29,23 +29,33 @@
 // Mod source chips use their own rainbow (kMod*) — distinct from all three accents.
 namespace pw8::plugin::ui::palette
 {
+    // -- Figma Obsidian tokens (PFt0LG6XmOiZWcSoUXIWIg) --
+    inline const juce::Colour kFigmaBgDeep{0xff0a1114};
+    inline const juce::Colour kFigmaHeader{0xff0a0e12};
+    inline const juce::Colour kFigmaTeal{0xff00ffd0};
+    inline const juce::Colour kFigmaTextDim{0xff596166};
+    inline const juce::Colour kFigmaTextPrimary{0xffe6ebed};
+    inline const juce::Colour kFigmaPillActive{0xff004033};
+    inline const juce::Colour kFigmaPillInactive{0xff141a1f};
+
     // -- Structure: background/panel/border, darkest to lightest. --
-    inline const juce::Colour kBackgroundTop{0xff0b0c0f};
-    inline const juce::Colour kBackgroundBottom{0xff101216};
-    inline const juce::Colour kPanel{0xff16181d};
-    inline const juce::Colour kPanelRaised{0xff1c1f26};
+    inline const juce::Colour kBackgroundTop{kFigmaBgDeep};
+    inline const juce::Colour kBackgroundBottom{kFigmaBgDeep};
+    inline const juce::Colour kHeader{kFigmaHeader};
+    inline const juce::Colour kPanel{0xff141a1f};
+    inline const juce::Colour kPanelRaised{0xff1a2128};
     inline const juce::Colour kBorder{0xff232630};
     inline const juce::Colour kBorderBright{0xff30343f};
 
     // -- Text (tuned for ~4.5:1+ on kPanel / kPanelRaised). --
-    inline const juce::Colour kTextPrimary{0xffeceef2};
+    inline const juce::Colour kTextPrimary{kFigmaTextPrimary};
     inline const juce::Colour kTextSecondary{0xffadb2bd};
-    inline const juce::Colour kTextDim{0xff858b98};
+    inline const juce::Colour kTextDim{kFigmaTextDim};
 
     // -- A deliberate tri-accent system (see role doc above): --
-    // Cyan = structural/signal topology (graph, routes, wireframes).
-    inline const juce::Colour kAccent{0xff7fe7e0};
-    inline const juce::Colour kAccentDim{0xff3d5c59};
+    // Teal = Figma Obsidian accent + structural/signal topology.
+    inline const juce::Colour kAccent{kFigmaTeal};
+    inline const juce::Colour kAccentDim{kFigmaPillActive};
 
     // Amber = performance / KOINS / macros / human-touch surfaces.
     inline const juce::Colour kAccentWarm{0xffe8a33d};

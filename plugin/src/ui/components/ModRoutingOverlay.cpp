@@ -32,18 +32,24 @@ namespace pw8::plugin::ui
     {
         setVisible(false);
         addAndMakeVisible(panel_);
+        panel_.addAndMakeVisible(badgeLabel_);
         panel_.addAndMakeVisible(titleLabel_);
         panel_.addAndMakeVisible(subtitleLabel_);
         panel_.addAndMakeVisible(closeButton_);
         panel_.addAndMakeVisible(modSourceStrip_);
 
-        titleLabel_.setText("Edit Modulation Routes", juce::dontSendNotification);
+        badgeLabel_.setText("UX-09", juce::dontSendNotification);
+        badgeLabel_.setFont(fonts::label(9.0f));
+        badgeLabel_.setColour(juce::Label::textColourId, palette::kAccent);
+        badgeLabel_.setJustificationType(juce::Justification::centred);
+
+        titleLabel_.setText("MOD MATRIX", juce::dontSendNotification);
         titleLabel_.setFont(fonts::title(16.0f));
         titleLabel_.setColour(juce::Label::textColourId, palette::kTextPrimary);
         titleLabel_.setJustificationType(juce::Justification::centredLeft);
 
         subtitleLabel_.setText("Connect a source (LFO, envelope, velocity) to a target (filter cutoff/resonance). "
-                               "① Pick source  →  ② Pick destination. Press Esc to close.",
+                               "Pick source, then destination. Esc to close.",
                                juce::dontSendNotification);
         subtitleLabel_.setFont(fonts::value(fonts::kBodyLabelSize));
         subtitleLabel_.setColour(juce::Label::textColourId, palette::kTextSecondary);
@@ -51,7 +57,7 @@ namespace pw8::plugin::ui
 
         closeButton_.onClick = [this] { dismiss(); };
         closeButton_.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
-        closeButton_.setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
+        closeButton_.setColour(juce::TextButton::textColourOffId, palette::kAccent);
     }
 
     void ModRoutingOverlay::showOverlay()
@@ -72,6 +78,16 @@ namespace pw8::plugin::ui
             onClosed();
     }
 
+    void ModRoutingOverlay::setEmbeddedInDesignMode(bool embedded)
+    {
+        if (embeddedInDesignMode_ == embedded)
+            return;
+
+        embeddedInDesignMode_ = embedded;
+        closeButton_.setButtonText(embedded ? "← DESIGN" : "← PLAY BOARD");
+        resized();
+    }
+
     void ModRoutingOverlay::setRoutingContext(FilterPanelScope scope, int engineIndex)
     {
         modSourceStrip_.setRoutingContext(scope, engineIndex);
@@ -89,6 +105,12 @@ namespace pw8::plugin::ui
         auto panelBounds = panel_.getBounds().toFloat();
         draw::fillRecessedRoundedRect(g, panelBounds, 8.0f);
         draw::strokeGlowPath(g, draw::roundedRectPath(panelBounds, 8.0f), 0.55f, 1.2f, false);
+
+        auto badge = badgeLabel_.getBounds().toFloat().expanded(4.0f, 2.0f);
+        g.setColour(palette::kAccent.withAlpha(0.13f));
+        g.fillRoundedRectangle(badge, 4.0f);
+        g.setColour(palette::kAccent);
+        g.drawRoundedRectangle(badge, 4.0f, 1.0f);
     }
 
     void ModRoutingOverlay::resized()
@@ -96,12 +118,16 @@ namespace pw8::plugin::ui
         panel_.setBounds(centeredAspectPanel(getLocalBounds(), layout::kOverlayFillRatio, layout::kAspectRatio));
         auto bounds = panel_.getLocalBounds().reduced(14);
 
-        titleLabel_.setBounds(bounds.removeFromTop(24));
+        const int headerHeight = embeddedInDesignMode_ ? layout::kDesignLabPanelHeaderHeight : 36;
+        auto header = bounds.removeFromTop(headerHeight);
+        closeButton_.setBounds(header.removeFromRight(120).reduced(2));
+        badgeLabel_.setBounds(header.removeFromLeft(40).withSizeKeepingCentre(36, 18));
+        header.removeFromLeft(8);
+        titleLabel_.setBounds(header);
+
         bounds.removeFromTop(4);
         subtitleLabel_.setBounds(bounds.removeFromTop(28));
-        bounds.removeFromTop(6);
-        closeButton_.setBounds(bounds.removeFromTop(28).removeFromRight(72));
-        bounds.removeFromTop(6);
+        bounds.removeFromTop(8);
         modSourceStrip_.setBounds(bounds);
     }
 

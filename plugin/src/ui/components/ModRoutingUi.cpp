@@ -1,6 +1,7 @@
 #include "ModRoutingUi.h"
 
 #include "ModSourceChip.h"
+#include "pw8/effects/EffectTypes.hpp"
 #include "pw8/modulation/MacroSpread.hpp"
 #include "state/PluginState.h"
 
@@ -15,6 +16,21 @@ namespace pw8::plugin::ui
             for (const auto& route : patch.layerA.modRoutes)
             {
                 if (route.isActive() && route.source == source)
+                    return true;
+            }
+            return false;
+        }
+
+        [[nodiscard]] bool hasActiveVocoderFxSlot(const patch::Patch& patch) noexcept
+        {
+            for (const auto& slot : patch.layerA.insertEffects)
+            {
+                if (slot.type == effects::EffectType::Vocoder && slot.mix > 0.01f)
+                    return true;
+            }
+            for (const auto& slot : patch.masterEffects)
+            {
+                if (slot.type == effects::EffectType::Vocoder && slot.mix > 0.01f)
                     return true;
             }
             return false;
@@ -409,6 +425,14 @@ namespace pw8::plugin::ui
         {
             const int pct = juce::roundToInt(juce::jlimit(0.0f, 1.0f, sidechainLevel01) * 100.0f);
             text += "  " + juce::String(pct) + "%";
+            if (!hasActiveVocoderFxSlot(patch))
+                text += "  — no VOCODER slot (load Sidechain preset or set I1 TYPE=VOCODER)";
+            if (hasActiveVocoderFxSlot(patch))
+                text += "  — hold MIDI/chords on this track while vocal plays on Side Chain";
+        }
+        else if (hasActiveVocoderFxSlot(patch) && auSidechainAvailable)
+        {
+            text += "  — pick Side Chain bus + hold MIDI for vocoder";
         }
         else if (route.has_value())
         {

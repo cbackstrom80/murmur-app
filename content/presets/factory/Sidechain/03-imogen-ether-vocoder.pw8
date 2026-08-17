@@ -1,0 +1,382 @@
+{
+  "schemaVersion": 3,
+  "metadata": {
+    "id": "pw8-factory-sidechain-03-imogen-ether",
+    "name": "ETHER SPEAK VOCODER",
+    "author": "MURMUR Sound Design",
+    "description": "Imogen Heap\u2013style breathy vocoder: PhaseShape shimmer over soft sine bed, 14 bands, gentle formant, SC-driven mix. Side Chain your vocal \u2014 synth holds vowels while the bus whispers consonants.",
+    "category": "sidechain",
+    "moods": [
+      "dreamy",
+      "breathy",
+      "glassy"
+    ],
+    "genres": [
+      "factory",
+      "indie",
+      "ambient",
+      "electronic"
+    ],
+    "tags": [
+      "factory",
+      "sidechain",
+      "vocoder",
+      "imogen-heap",
+      "ether",
+      "pad"
+    ],
+    "createdAt": "2026-08-15T00:00:00Z",
+    "engineVersion": "0.1.0",
+    "schemaVersion": 3,
+    "performanceHints": [
+      "Soft velocity; Side Chain a close-mic vocal send",
+      "Expression pedal opens vocoder mix if mapped"
+    ],
+    "seed": 815003,
+    "lineage": []
+  },
+  "layerMode": 0,
+  "layerMorph": 0.0,
+  "layerA": {
+    "operators": [
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.55,
+        "pan": 0.0
+      },
+      {
+        "engine": 4,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.48,
+        "pan": 0.14,
+        "phaseBend": 0.22,
+        "phaseFold": 0.08,
+        "phaseAsymmetry": 0.12,
+        "phaseShape": 0.35
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.01,
+        "keyTrack": true,
+        "level": 0.32,
+        "pan": -0.16
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      }
+    ],
+    "algorithm": {
+      "nodes": [
+        {
+          "id": 0,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 1,
+          "engine": 4,
+          "isOutput": true
+        },
+        {
+          "id": 2,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 3,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 4,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 5,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 6,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 7,
+          "engine": 0,
+          "isOutput": false
+        }
+      ],
+      "edges": []
+    },
+    "filter1": {
+      "enabled": true,
+      "mode": 0,
+      "cutoffHz": 4800.0,
+      "resonance": 0.08,
+      "keyTrack": 0.2
+    },
+    "envelopes": [
+      {
+        "attackSeconds": 0.28,
+        "decaySeconds": 0.55,
+        "sustainLevel": 0.75,
+        "releaseSeconds": 1.1,
+        "curveShape": 2.0
+      }
+    ],
+    "lfos": [
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 0.18,
+        "syncDivisionIndex": 6,
+        "phaseOffset": 0.25
+      }
+    ],
+    "modRoutes": [
+      {
+        "source": 30,
+        "destination": 21,
+        "targetIndex": 0,
+        "amount": 0.35,
+        "scope": 2
+      },
+      {
+        "source": 31,
+        "destination": 22,
+        "targetIndex": 0,
+        "amount": 0.12,
+        "scope": 2
+      },
+      {
+        "source": 1,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 8.0,
+        "scope": 1
+      },
+      {
+        "source": 21,
+        "destination": 21,
+        "targetIndex": 0,
+        "amount": 1.0,
+        "scope": 2
+      },
+      {
+        "source": 22,
+        "destination": 22,
+        "targetIndex": 0,
+        "amount": 0.45,
+        "scope": 2
+      }
+    ],
+    "gain": 0.86,
+    "pan": 0.0,
+    "width": 1.2,
+    "centerGravity": 0.42,
+    "insertEffects": [
+      {
+        "type": 11,
+        "mix": 1.0,
+        "vocoderBandCount": 14,
+        "vocoderFormant": 0.52,
+        "vocoderSibilance": 0.24,
+        "vocoderScGainDb": 24.0
+      }
+    ]
+  },
+  "layerB": {
+    "operators": [
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      }
+    ],
+    "algorithm": {
+      "nodes": [
+        {
+          "id": 0,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 1,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 2,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 3,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 4,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 5,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 6,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 7,
+          "engine": 0,
+          "isOutput": false
+        }
+      ],
+      "edges": []
+    },
+    "gain": 1.0,
+    "pan": 0.0,
+    "width": 1.0,
+    "centerGravity": 0.5
+  },
+  "voiceSettings": {
+    "polyphony": 8,
+    "masterGain": 0.8,
+    "a4Hz": 440.0
+  },
+  "locks": {},
+  "macros": [
+    {
+      "id": "m1",
+      "name": "VOC MIX",
+      "description": "Vocoder wet.",
+      "value": 0.0
+    },
+    {
+      "id": "m2",
+      "name": "FORMANT",
+      "description": "Formant shift.",
+      "value": 0.0
+    },
+    {
+      "id": "m3",
+      "name": "SHIMMER",
+      "description": "Phase shape depth.",
+      "value": 0.0
+    },
+    {
+      "id": "m4",
+      "name": "M4",
+      "description": "Reserved.",
+      "value": 0.0
+    },
+    {
+      "id": "m5",
+      "name": "M5",
+      "description": "Reserved.",
+      "value": 0.0
+    },
+    {
+      "id": "m6",
+      "name": "M6",
+      "description": "Reserved.",
+      "value": 0.0
+    },
+    {
+      "id": "m7",
+      "name": "M7",
+      "description": "Reserved.",
+      "value": 0.0
+    },
+    {
+      "id": "m8",
+      "name": "M8",
+      "description": "Reserved.",
+      "value": 0.0
+    }
+  ],
+  "masterEffects": [
+    {
+      "type": 10,
+      "mix": 1.0,
+      "limiterCeilingDb": -0.7,
+      "limiterLookaheadMs": 4.0,
+      "limiterReleaseMs": 55.0
+    }
+  ],
+  "uiFocus": {
+    "maxKnobs": 3,
+    "knobs": [
+      {
+        "kind": "insertFx",
+        "index": 0,
+        "label": "VOCODER"
+      },
+      {
+        "kind": "macro",
+        "index": 0,
+        "label": "VOC MIX"
+      },
+      {
+        "kind": "macro",
+        "index": 1,
+        "label": "FORMANT"
+      }
+    ]
+  }
+}

@@ -7,15 +7,24 @@
     "description": "Factory Pad patch #15. Engines: Classic, Additive, PhaseShape. Procedurally generated (seed 2445226714) as part of the 250-patch factory content bank. Archetype: dual-layer swell pad.",
     "category": "pad",
     "moods": [
-      "pads"
+      "lush",
+      "evolving",
+      "dreamy",
+      "warm",
+      "airy"
     ],
     "genres": [
+      "ambient-bed",
+      "cinematic",
+      "electronic",
       "factory"
     ],
     "tags": [
       "factory",
       "pad",
-      "dual-layer"
+      "dual-layer",
+      "lush",
+      "evolving"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

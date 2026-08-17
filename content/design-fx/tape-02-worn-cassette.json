@@ -1,0 +1,10 @@
+{
+  "chip": 3,
+  "name": "WORN CASSETTE",
+  "params": {
+    "TapeDriftRate": 0.6,
+    "TapeDriftDepth": 5.0,
+    "TapeDrive": 8.0,
+    "Mix": 0.6
+  }
+}

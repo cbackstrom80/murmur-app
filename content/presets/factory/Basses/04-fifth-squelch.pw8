@@ -7,16 +7,25 @@
     "description": "Factory Basse patch #04. Engines: Classic. Procedurally generated (seed 394102744) as part of the 250-patch factory content bank. Archetype: FM sub bass pulse with ladder-filter mono bass character.",
     "category": "bass",
     "moods": [
-      "basses"
+      "dark",
+      "massive",
+      "punchy",
+      "aggressive",
+      "gritty"
     ],
     "genres": [
+      "electronic",
+      "sound-design",
+      "techno",
       "factory"
     ],
     "tags": [
       "factory",
       "bass",
       "fm-sub",
-      "ladder-bass"
+      "ladder-bass",
+      "dark",
+      "massive"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

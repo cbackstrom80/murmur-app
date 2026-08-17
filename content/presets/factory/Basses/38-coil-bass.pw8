@@ -7,16 +7,24 @@
     "description": "Factory Basse patch #38. Engines: Classic, Wavetable, NoiseChaos. Procedurally generated (seed 995779521) as part of the 250-patch factory content bank. Archetype: ladder-filter mono bass with sync oscillator low lead-bass character.",
     "category": "bass",
     "moods": [
-      "basses"
+      "dark",
+      "punchy",
+      "bright",
+      "aggressive"
     ],
     "genres": [
+      "electronic",
+      "techno",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "bass",
       "ladder-bass",
-      "sync-low"
+      "sync-low",
+      "dark",
+      "punchy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

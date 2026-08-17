@@ -5,23 +5,33 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "PlayModeLayout.h"
 #include "SharedEditorChrome.h"
 #include "components/AmpEnvelopePanel.h"
-#include "components/ArpLauncherChip.h"
 #include "components/ArpPanelOverlay.h"
 #include "components/CompactModeEditor.h"
 #include "components/ContextStrip.h"
+#include "components/DashboardStrip.h"
+#include "components/DualLfoLabPanel.h"
+#include "components/EngineDetailOverlay.h"
+#include "components/EngineGridPanel.h"
+#include "components/EngineNodeStrip.h"
 #include "components/FilterLfoPanel.h"
 #include "components/FxChainStrip.h"
 #include "components/GlobalPanel.h"
+#include "components/LiveTopologyStrip.h"
+#include "components/MasterOutputDeck.h"
 #include "components/ModAssignmentController.h"
 #include "components/ModLauncherPanel.h"
 #include "components/ModRoutingOverlay.h"
-#include "components/EngineNodeStrip.h"
-#include "components/LiveTopologyStrip.h"
-#include "components/TopologyGraphOverlay.h"
 #include "components/OperatorEditorPanel.h"
+#include "components/OscilloscopeView.h"
+#include "components/PatchFocusPanel.h"
 #include "components/SectionPanel.h"
+#include "components/TopologyGraphOverlay.h"
+#include "components/VocoderLabPanel.h"
+#include "components/WavetableLabPanel.h"
+#include "components/VstBottomBar.h"
 #include "content/PresetIndex.h"
 #include "processor/PatchworkEightProcessor.h"
 #include "theme/ObsidianLookAndFeel.h"
@@ -41,17 +51,13 @@ namespace pw8::plugin::ui
         void refreshFromPatch();
         void setBrowseFilter(const content::PresetMetadataFilter& filter);
         [[nodiscard]] bool isCompactView() const noexcept;
+        [[nodiscard]] layout::PlayViewMode getPlayViewMode() const noexcept { return viewMode_; }
+        void setPlayViewMode(layout::PlayViewMode mode);
+        void openArpDrawer();
 
         std::function<void()> onLayoutOrViewModeChanged;
 
     private:
-        enum class ViewMode
-        {
-            Basic,
-            Advanced,
-            Compact,
-        };
-
         enum class Page
         {
             Osc = 0,
@@ -62,7 +68,6 @@ namespace pw8::plugin::ui
             Global,
         };
 
-        void setViewMode(ViewMode mode);
         void showPage(Page page);
         void updateScopeUi();
         void refreshFilterPanelScope();
@@ -76,20 +81,35 @@ namespace pw8::plugin::ui
         void closeGraphOverlay();
         void syncNodeSelection(int nodeIndex);
 
+        void openEngineDetail(int engineIndex);
+        void closeEngineDetail();
+
+        void openVocoderLab(std::size_t fxSlotIndex);
+        void closeVocoderLab();
+        void openDualLfoLab();
+        void closeDualLfoLab();
+        void openWavetableLab(int engineIndex);
+        void closeWavetableLab();
+        [[nodiscard]] std::size_t preferredVocoderFxSlotIndex() const;
+
         ModAssignmentController modAssignmentController_;
         ObsidianLookAndFeel lookAndFeel_;
+        PatchworkEightProcessor& processor_;
         SharedEditorChrome& chrome_;
 
-        ArpLauncherChip arpLauncherChip_;
         EngineNodeStrip nodeSelectorRow_;
         LiveTopologyStrip liveTopologyStrip_;
+        juce::Component advancedGridPage_;
+        EngineGridPanel engineGridPanel_;
+        DashboardStrip dashboardStrip_;
+        VstBottomBar vstBottomBar_;
+        EngineDetailOverlay engineDetailOverlay_;
         TopologyGraphOverlay topologyGraphOverlay_;
         ContextStrip contextStrip_;
+        OscilloscopeView desktopScope_;
+        MasterOutputDeck masterOutputDeck_;
         PatchFocusPanel patchFocusPanel_;
         CompactModeEditor compactEditor_;
-        juce::TextButton basicViewButton_{"Basic"};
-        juce::TextButton advancedViewButton_{"Advanced"};
-        std::unique_ptr<juce::TextButton> compactViewButton_;
         std::array<juce::TextButton, 6> tabButtons_{
             juce::TextButton{"OSC"},
             juce::TextButton{"FILTER"},
@@ -98,7 +118,8 @@ namespace pw8::plugin::ui
             juce::TextButton{"FX"},
             juce::TextButton{"GLOBAL"},
         };
-        ViewMode viewMode_ = ViewMode::Basic;
+        layout::PlayViewMode viewMode_ = layout::PlayViewMode::Basic;
+        bool settingPlayViewMode_ = false;
         Page currentPage_ = Page::Filter;
         juce::Component oscPage_;
         juce::Component filterPage_;
@@ -117,6 +138,9 @@ namespace pw8::plugin::ui
         GlobalPanel globalPanel_;
         ModRoutingOverlay modRoutingOverlay_;
         ArpPanelOverlay arpPanelOverlay_;
+        VocoderLabPanel vocoderLabPanel_;
+        DualLfoLabPanel dualLfoLabPanel_;
+        WavetableLabPanel wavetableLabPanel_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlayModeEditor)
     };

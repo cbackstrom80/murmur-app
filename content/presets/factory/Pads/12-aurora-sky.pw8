@@ -7,16 +7,24 @@
     "description": "Factory Pad patch #12. Engines: Classic, Additive, NoiseChaos. Procedurally generated (seed 3686385494) as part of the 250-patch factory content bank. Archetype: poly sweet chorus pad with dual-layer swell pad character.",
     "category": "pad",
     "moods": [
-      "pads"
+      "warm",
+      "lush",
+      "evolving",
+      "dreamy"
     ],
     "genres": [
+      "ambient-bed",
+      "electronic",
+      "cinematic",
       "factory"
     ],
     "tags": [
       "factory",
       "pad",
       "poly-sweet",
-      "dual-layer"
+      "dual-layer",
+      "warm",
+      "lush"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

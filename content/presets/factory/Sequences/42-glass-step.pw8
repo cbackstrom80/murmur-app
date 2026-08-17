@@ -7,16 +7,25 @@
     "description": "Factory Sequence patch #42. Engines: Classic, PhaseShape. Procedurally generated (seed 2463388826) as part of the 250-patch factory content bank. Archetype: arp bell pluck sequence with gated 80s pulse sequence character.",
     "category": "seq",
     "moods": [
-      "sequences"
+      "bright",
+      "glassy",
+      "punchy",
+      "evolving",
+      "metallic"
     ],
     "genres": [
+      "electronic",
+      "pop",
+      "techno",
       "factory"
     ],
     "tags": [
       "factory",
       "seq",
       "arp-bell",
-      "gated-80s"
+      "gated-80s",
+      "bright",
+      "glassy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

@@ -59,5 +59,18 @@ else
   exit 1
 fi
 
+PRESETS_SRC="${REPO_ROOT}/content/presets/quasar"
+PRESETS_DEST="${HOME}/Library/Application Support/QUASAR/Presets/quasar"
+if [[ -d "$PRESETS_SRC" ]]; then
+  echo "==> Install factory presets"
+  echo "    from: $PRESETS_SRC"
+  echo "    to:   $PRESETS_DEST"
+  mkdir -p "$PRESETS_DEST"
+  rsync -a --delete "${PRESETS_SRC}/" "${PRESETS_DEST}/"
+  PLAY_COUNT=$(find "${PRESETS_DEST}/play" -name '*.quasar' 2>/dev/null | wc -l | tr -d ' ')
+  TOTAL_COUNT=$(find "$PRESETS_DEST" -name '*.quasar' | wc -l | tr -d ' ')
+  echo "    ${TOTAL_COUNT} presets (${PLAY_COUNT} PLAY)"
+fi
+
 echo ""
 echo "Logic Pro: quit Logic completely, reopen, then Plug-in Manager → Reset & Rescan Selection"

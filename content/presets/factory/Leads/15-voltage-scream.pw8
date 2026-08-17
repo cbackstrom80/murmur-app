@@ -7,16 +7,24 @@
     "description": "Factory Lead patch #15. Engines: Classic, FM/PM. Procedurally generated (seed 4070640017) as part of the 250-patch factory content bank. Archetype: 8-bit square lead with detuned fifth stack lead character.",
     "category": "lead",
     "moods": [
-      "leads"
+      "digital",
+      "bright",
+      "lush",
+      "aggressive"
     ],
     "genres": [
+      "electronic",
+      "game",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "lead",
       "chip-lead",
-      "fifth-lead"
+      "fifth-lead",
+      "digital",
+      "bright"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

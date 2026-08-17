@@ -66,7 +66,7 @@ namespace pw8::plugin::ui::branding
 
     int headerBarHeight() noexcept
     {
-        return 64;
+        return 54;
     }
 
     void paintMarkGlow(juce::Graphics& g, const juce::Image& mark, juce::Rectangle<float> bounds) noexcept

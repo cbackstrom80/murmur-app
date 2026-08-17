@@ -7,9 +7,17 @@
     "description": "Factory Pad patch #01. Engines: Classic, FM/PM, Additive. Procedurally generated (seed 4074785574) as part of the 250-patch factory content bank. Archetype: brass-pad hybrid with dual-layer swell pad character.",
     "category": "pad",
     "moods": [
-      "pads"
+      "warm",
+      "cinematic",
+      "lush",
+      "evolving",
+      "dreamy"
     ],
     "genres": [
+      "cinematic",
+      "score",
+      "ambient-bed",
+      "electronic",
       "factory"
     ],
     "tags": [
@@ -17,7 +25,9 @@
       "pad",
       "brass-pad",
       "dual-layer",
-      "dissemination"
+      "dissemination",
+      "warm",
+      "cinematic"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

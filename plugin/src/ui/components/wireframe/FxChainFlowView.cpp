@@ -1,7 +1,9 @@
 #include "FxChainFlowView.h"
 
+#include "../../theme/FxTypeGlyphs.h"
 #include "../../theme/ObsidianFonts.h"
 #include "../../theme/ObsidianPalette.h"
+#include "state/PluginState.h"
 
 namespace pw8::plugin::ui::wireframe
 {
@@ -49,6 +51,15 @@ namespace pw8::plugin::ui::wireframe
     void FxChainFlowView::timerCallback()
     {
         bool changed = false;
+        const bool postFader =
+            apvts_.getRawParameterValue(kFxRoutingPrePostId) != nullptr
+            && apvts_.getRawParameterValue(kFxRoutingPrePostId)->load() >= 0.5f;
+        if (postFader != insertsPostFader_)
+        {
+            insertsPostFader_ = postFader;
+            changed = true;
+        }
+
         for (std::size_t i = 0; i < prefixes_.size(); ++i)
         {
             const int t = prefixes_[i].isEmpty() ? 0 : readEffectType(apvts_, prefixes_[i]);
@@ -110,67 +121,45 @@ namespace pw8::plugin::ui::wireframe
         const bool active = effectType != 0;
         const auto& spec = pw8::plugin::ui::fxPlaySpecForType(effectType);
 
-        g.setColour(selected ? palette::kAccentDim : palette::kPanelRaised);
+        g.setColour(selected ? palette::kAccentDim.withAlpha(0.55f) : palette::kPanelRaised);
         g.fillRoundedRectangle(box, 5.0f);
-        g.setColour(selected ? palette::kAccent : palette::kBorderBright);
+        g.setColour(selected ? palette::kAccent : palette::kBorder.withAlpha(0.75f));
         g.drawRoundedRectangle(box.reduced(0.5f), 5.0f, selected ? 1.8f : 1.0f);
+        if (selected)
+        {
+            g.setColour(palette::kAccent.withAlpha(0.18f));
+            g.fillRoundedRectangle(box.reduced(1.5f), 4.0f);
+        }
 
         auto inner = box.reduced(4.0f, 3.0f);
         g.setColour(palette::kTextDim);
-        g.setFont(fonts::label(8.0f));
-        g.drawText(slotShortLabel(slotIndex), inner.removeFromTop(11.0f), juce::Justification::centred);
+        g.setFont(fonts::label(7.5f));
+        g.drawText(slotShortLabel(slotIndex), inner.removeFromTop(10.0f), juce::Justification::centred);
 
-        g.setColour(active ? palette::kAccent.withAlpha(juce::jlimit(0.45f, 1.0f, mix + 0.25f)) : palette::kTextDim);
-        g.setFont(fonts::label(9.5f));
-        g.drawText(active ? spec.flowAbbrev : "OFF", inner.removeFromTop(14.0f), juce::Justification::centred);
+        g.setColour(active ? palette::kAccent.withAlpha(juce::jlimit(0.55f, 1.0f, mix + 0.3f)) : palette::kTextDim);
+        g.setFont(fonts::label(9.0f));
+        const juce::String abbrev = active ? spec.flowAbbrev : "OFF";
+        g.drawText(abbrev, inner.removeFromTop(13.0f), juce::Justification::centred);
 
-        // Mini schematic strip
+        // Figma SEC_02 mini glyph
         auto schematic = inner.reduced(2.0f, 1.0f);
+        g.setColour(palette::kBackgroundBottom.withAlpha(0.65f));
+        g.fillRoundedRectangle(schematic, 3.0f);
         g.setColour(palette::kBorderBright.withAlpha(active ? 0.55f : 0.2f));
         g.drawRoundedRectangle(schematic, 3.0f, 0.8f);
         if (active)
+            fxglyphs::paintEffectTypeGlyph(g, schematic.reduced(2.0f), effectType, true);
+
+        auto mixBar = inner.reduced(1.0f, 0.0f);
+        mixBar = mixBar.removeFromBottom(3.0f);
+        g.setColour(palette::kBackgroundBottom);
+        g.fillRoundedRectangle(mixBar, 1.5f);
+        if (active)
         {
-            juce::Path p;
-            p.startNewSubPath(schematic.getX() + 4.0f, schematic.getCentreY());
-            switch (effectType)
-            {
-                case 1: // sat curve
-                    for (int i = 0; i <= 12; ++i)
-                    {
-                        const float t = static_cast<float>(i) / 12.0f;
-                        const float x = schematic.getX() + 4.0f + t * (schematic.getWidth() - 8.0f);
-                        const float v = std::tanh((t * 2.0f - 1.0f) * 2.0f);
-                        const float y = schematic.getCentreY() - v * schematic.getHeight() * 0.35f;
-                        if (i == 0)
-                            p.startNewSubPath(x, y);
-                        else
-                            p.lineTo(x, y);
-                    }
-                    break;
-                case 3:
-                case 5:
-                case 6: // delay loop
-                    p.lineTo(schematic.getRight() - 4.0f, schematic.getCentreY());
-                    p.quadraticTo(schematic.getRight() - 4.0f, schematic.getY() + 3.0f, schematic.getCentreX(),
-                                  schematic.getY() + 3.0f);
-                    p.quadraticTo(schematic.getX() + 4.0f, schematic.getY() + 3.0f, schematic.getX() + 4.0f,
-                                  schematic.getCentreY());
-                    break;
-                case 7: // reverb ring
-                    g.drawEllipse(schematic.getCentreX() - schematic.getWidth() * 0.18f,
-                                 schematic.getCentreY() - schematic.getHeight() * 0.22f, schematic.getWidth() * 0.36f,
-                                 schematic.getHeight() * 0.44f, 1.0f);
-                    break;
-                case 9: // comp knee
-                    p.lineTo(schematic.getX() + schematic.getWidth() * 0.45f, schematic.getCentreY());
-                    p.lineTo(schematic.getRight() - 4.0f, schematic.getBottom() - 4.0f);
-                    break;
-                default:
-                    p.lineTo(schematic.getRight() - 4.0f, schematic.getCentreY());
-                    break;
-            }
-            g.setColour(palette::kAccent.withAlpha(0.85f));
-            g.strokePath(p, juce::PathStrokeType(1.2f));
+            auto mixFill = mixBar.reduced(0.5f);
+            mixFill.setWidth(mixFill.getWidth() * juce::jlimit(0.08f, 1.0f, mix));
+            g.setColour(palette::kAccentWarm.withAlpha(0.85f));
+            g.fillRoundedRectangle(mixFill, 1.0f);
         }
     }
 
@@ -198,7 +187,14 @@ namespace pw8::plugin::ui::wireframe
 
         g.setColour(palette::kTextDim);
         g.setFont(fonts::label(8.5f));
-        g.drawText("LAYER", juce::Rectangle<float>(x, full.getY(), labelW, full.getHeight()),
+        g.drawText(insertsPostFader_ ? "POST" : "PRE",
+                   juce::Rectangle<int>(static_cast<int>(x), static_cast<int>(full.getY()), static_cast<int>(labelW),
+                                        static_cast<int>(full.getHeight()) - 12),
+                   juce::Justification::centred);
+        g.setFont(fonts::label(7.0f));
+        g.setColour(palette::kTextSecondary);
+        g.drawText("TAP", juce::Rectangle<int>(static_cast<int>(x), static_cast<int>(full.getBottom()) - 12,
+                                               static_cast<int>(labelW), 12),
                    juce::Justification::centred);
         x += labelW + gap;
 

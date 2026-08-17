@@ -7,15 +7,22 @@
     "description": "Factory Lead patch #13. Engines: Classic, FM/PM. Procedurally generated (seed 536885983) as part of the 250-patch factory content bank. Archetype: portamento solo line.",
     "category": "lead",
     "moods": [
-      "leads"
+      "warm",
+      "expressive",
+      "bright",
+      "aggressive"
     ],
     "genres": [
+      "electronic",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "lead",
-      "portamento"
+      "portamento",
+      "warm",
+      "expressive"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

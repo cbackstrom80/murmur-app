@@ -28,6 +28,9 @@ namespace pw8::quasar
         {"quasarCrossfeed", "Crossfeed", 0.0f, 1.0f, 0.0f, false},
         {"quasarDelaySync", "Delay Sync", 0.0f, 1.0f, 0.0f, true},
         {"quasarDelaySyncDivision", "Delay Sync Division", 0.0f, 8.0f, 2.0f, true},
+        {"orbitMacro", "Orbit Macro", 0.0f, 1.0f, 0.5f, false},
+        {"spreadMacro", "Spread Macro", 0.0f, 1.0f, 0.5f, false},
+        {"sidechainToQsr2", "Sidechain To QSR2", 0.0f, 1.0f, 1.0f, true},
     }};
 
     namespace

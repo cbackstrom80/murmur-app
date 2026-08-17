@@ -12,9 +12,12 @@ namespace pw8::plugin::content
         juce::String name;
         juce::String category;
         juce::String description;
+        juce::String author;
         juce::StringArray moods;
         juce::StringArray genres;
         juce::StringArray tags;
+        /// Comma-separated active engine indices (e.g. `"01, 02, 04"` or `"ALL 8"`).
+        juce::String enginesSummary;
     };
 
     /// Multi-facet preset browser filter — AND across dimensions (docs/PATCH_BROWSER.md Phase 4).

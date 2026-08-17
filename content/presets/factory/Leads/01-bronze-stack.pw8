@@ -7,16 +7,24 @@
     "description": "Factory Lead patch #01. Engines: Classic, NoiseChaos. Procedurally generated (seed 3552715229) as part of the 250-patch factory content bank. Archetype: detuned fifth stack lead with portamento solo line character.",
     "category": "lead",
     "moods": [
-      "leads"
+      "bright",
+      "lush",
+      "warm",
+      "expressive",
+      "aggressive"
     ],
     "genres": [
+      "electronic",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "lead",
       "fifth-lead",
-      "portamento"
+      "portamento",
+      "bright",
+      "lush"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

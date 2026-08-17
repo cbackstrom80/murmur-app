@@ -7,16 +7,26 @@
     "description": "Factory Ambient patch #41. Engines: Classic, Wavetable, Granular, NoiseChaos, Resonator. Procedurally generated (seed 896030544) as part of the 250-patch factory content bank. Archetype: noise texture drone with noise riser FX character.",
     "category": "ambient",
     "moods": [
-      "ambient"
+      "dark",
+      "desolate",
+      "evolving",
+      "massive",
+      "airy"
     ],
     "genres": [
-      "factory"
+      "ambient-bed",
+      "sound-design",
+      "cinematic",
+      "trailer",
+      "meditation"
     ],
     "tags": [
       "factory",
       "ambient",
       "noise-drone",
-      "fx-riser"
+      "fx-riser",
+      "dark",
+      "desolate"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

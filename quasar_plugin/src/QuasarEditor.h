@@ -13,6 +13,7 @@ namespace pw8::quasar::ui
 {
     class GlowKnob;
     class MetadataFacetRow;
+    class QuasarSpatialWireframeView;
 }
 
 namespace pw8::quasar
@@ -28,21 +29,31 @@ namespace pw8::quasar
 
     private:
         void timerCallback() override;
-        void rebuildKnobs();
+        void rebuildMacroKnobs();
+        void rebuildPlayKnobs();
+        void rebuildDeepKnobs();
         void layoutKnobGrid(juce::Rectangle<int> area, const std::vector<juce::Component*>& knobs, int cols);
+        void toggleDeepPanel();
 
         QuasarProcessor& processor_;
         ui::ObsidianLookAndFeel laf_;
 
         juce::Label titleLabel_;
         juce::Label helpLabel_;
-        juce::Label scopeLabel_;
+        juce::Label playLegendLabel_;
         juce::Label sidechainLabel_;
 
+        std::unique_ptr<ui::QuasarSpatialWireframeView> spatialScope_;
+        std::vector<std::unique_ptr<ui::GlowKnob>> macroKnobs_;
+        std::vector<std::unique_ptr<ui::GlowKnob>> playKnobs_;
+        std::vector<std::unique_ptr<ui::GlowKnob>> deepKnobs_;
+
+        juce::TextButton deepToggle_{"DEEP ▾"};
+        std::unique_ptr<ui::MetadataFacetRow> sidechainModeRow_;
         std::unique_ptr<ui::MetadataFacetRow> delaySyncRow_;
         std::unique_ptr<ui::MetadataFacetRow> delayDivisionRow_;
 
-        std::vector<std::unique_ptr<ui::GlowKnob>> knobs_;
+        bool deepPanelOpen_ = false;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(QuasarEditor)
     };

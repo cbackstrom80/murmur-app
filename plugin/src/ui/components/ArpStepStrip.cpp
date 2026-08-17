@@ -1,76 +1,151 @@
 #include "ArpStepStrip.h"
 
+#include "../PlayModeLayout.h"
 #include "../theme/ObsidianDraw.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 
 namespace pw8::plugin::ui
 {
-    namespace
-    {
-        constexpr int kMinCellWidth = 18;
-        constexpr int kCellHeight = 36;
-        constexpr int kCellGap = 4;
-        constexpr int kPolyRowHeight = 14;
-    } // namespace
-
     ArpStepStrip::ArpStepStrip(PatchworkEightProcessor& processor) : processor_(processor)
     {
         startTimerHz(15);
     }
 
-    ArpStepStrip::~ArpStepStrip()
+    ArpStepStrip::~ArpStepStrip() { stopTimer(); }
+
+    void ArpStepStrip::syncLayoutMetrics(int viewportWidth) noexcept
     {
-        stopTimer();
+        const auto& arp = processor_.getCurrentPatch().arpeggiator;
+        const int count = juce::jmax(1, static_cast<int>(arp.numSteps));
+        const int totalGap = juce::jmax(0, count - 1) * layout::kArpStepColumnGap;
+        const int preferredWidth = count * layout::kArpStepColumnWidth + totalGap;
+
+        laneWidth_ = layout::kArpStepColumnWidth;
+        if (viewportWidth > 0 && preferredWidth > viewportWidth)
+        {
+            contentWidth_ = preferredWidth;
+        }
+        else if (viewportWidth > preferredWidth)
+        {
+            contentWidth_ = viewportWidth;
+        }
+        else
+        {
+            contentWidth_ = juce::jmax(preferredWidth, viewportWidth);
+        }
+
+        const int height = layout::kArpSeqHeaderHeight + 12 + layout::kArpStepSequencerRowHeight;
+        setSize(contentWidth_, height);
     }
 
-    int ArpStepStrip::cellWidthForCount(int count) const noexcept
+    int ArpStepStrip::getPreferredContentWidth() const noexcept
     {
-        const int totalGap = juce::jmax(0, count - 1) * kCellGap;
-        return juce::jmax(kMinCellWidth, (getWidth() - totalGap) / count);
+        const auto& arp = processor_.getCurrentPatch().arpeggiator;
+        const int count = juce::jmax(1, static_cast<int>(arp.numSteps));
+        const int totalGap = juce::jmax(0, count - 1) * layout::kArpStepColumnGap;
+        return count * layout::kArpStepColumnWidth + totalGap;
+    }
+
+    int ArpStepStrip::laneWidthForIndex(int index, int count) const noexcept
+    {
+        juce::ignoreUnused(index, count);
+        return laneWidth_ > 0 ? laneWidth_ : layout::kArpStepColumnWidth;
+    }
+
+    int ArpStepStrip::laneOffsetForIndex(int index, int count) const noexcept
+    {
+        int x = 0;
+        for (int i = 0; i < index; ++i)
+            x += laneWidthForIndex(i, count) + layout::kArpStepColumnGap;
+        return x;
     }
 
     void ArpStepStrip::timerCallback()
     {
-        const auto numSteps = processor_.getCurrentPatch().arpeggiator.numSteps;
+        const auto& arp = processor_.getCurrentPatch().arpeggiator;
+        const auto numSteps = arp.numSteps;
         playheadStep_ = processor_.getArpPlayheadStep();
         noteSequenceIndex_ = processor_.getArpNoteSequenceIndex();
         if (numSteps != lastNumSteps_)
         {
             lastNumSteps_ = numSteps;
-            resized();
+            if (auto* parent = getParentComponent())
+                parent->resized();
         }
+
+        if (arp.enabled && numSteps > 0)
+        {
+            if (auto* viewport = dynamic_cast<juce::Viewport*>(getParentComponent()))
+            {
+                const int count = juce::jmax(1, static_cast<int>(numSteps));
+                const int playheadIndex = static_cast<int>(playheadStep_ % static_cast<std::size_t>(count));
+                const int playheadX = laneOffsetForIndex(playheadIndex, count) + laneWidthForIndex(playheadIndex, count) / 2;
+                const int viewX = viewport->getViewPositionX();
+                const int viewW = viewport->getViewWidth();
+                if (playheadX < viewX + 24)
+                    viewport->setViewPosition(juce::jmax(0, playheadX - 48), 0);
+                else if (playheadX > viewX + viewW - 24)
+                    viewport->setViewPosition(juce::jmax(0, playheadX - viewW + 48), 0);
+            }
+        }
+
         repaint();
     }
 
     void ArpStepStrip::resized()
     {
-        const auto& arp = processor_.getCurrentPatch().arpeggiator;
-        const int count = juce::jmax(1, static_cast<int>(arp.numSteps));
-        const int width = count * kMinCellWidth + juce::jmax(0, count - 1) * kCellGap;
-        setSize(juce::jmax(getWidth(), width), kCellHeight + kPolyRowHeight + 18);
+        syncLayoutMetrics(getWidth());
+    }
+
+    juce::Rectangle<int> ArpStepStrip::laneBounds(int index, int count) const
+    {
+        auto area = getLocalBounds();
+        area.removeFromTop(layout::kArpSeqHeaderHeight + 12);
+        const int x = area.getX() + laneOffsetForIndex(index, count);
+        const int laneW = laneWidthForIndex(index, count);
+        return {x, area.getY(), laneW, layout::kArpStepSequencerRowHeight};
+    }
+
+    juce::Rectangle<int> ArpStepStrip::velocityLaneBounds(juce::Rectangle<int> lane) const
+    {
+        const int laneW = juce::jmin(layout::kArpStepLaneWidth, lane.getWidth() - 4);
+        const int x = lane.getX() + (lane.getWidth() - laneW) / 2;
+        return {x, lane.getY() + 14, laneW, layout::kArpStepLaneHeight};
     }
 
     void ArpStepStrip::mouseDown(const juce::MouseEvent& event)
     {
         const auto& arp = processor_.getCurrentPatch().arpeggiator;
         const int count = juce::jmax(1, static_cast<int>(arp.numSteps));
-        const int cellWidth = cellWidthForCount(count);
-        auto bounds = getLocalBounds();
-        bounds.removeFromTop(18);
-        bounds.removeFromTop(kPolyRowHeight + 4);
 
-        int x = bounds.getX();
         for (int i = 0; i < count; ++i)
         {
-            juce::Rectangle<int> cell(x, bounds.getY(), cellWidth, bounds.getHeight());
-            if (cell.contains(event.getPosition()))
+            auto lane = laneBounds(i, count);
+            auto meta = lane.removeFromBottom(layout::kArpStepMetaHeight);
+            auto accentBadge = meta.removeFromTop(10).withSizeKeepingCentre(18, 10);
+            meta.removeFromTop(4);
+            auto ratchetBadge = meta.removeFromTop(10).withSizeKeepingCentre(22, 10);
+            auto laneBody = velocityLaneBounds(lane);
+
+            if (accentBadge.contains(event.getPosition()))
+            {
+                processor_.toggleArpStepAccent(static_cast<std::size_t>(i));
+                repaint();
+                return;
+            }
+            if (ratchetBadge.contains(event.getPosition()))
+            {
+                processor_.cycleArpStepRatchet(static_cast<std::size_t>(i));
+                repaint();
+                return;
+            }
+            if (laneBody.contains(event.getPosition()) || lane.contains(event.getPosition()))
             {
                 processor_.toggleArpStepEnabled(static_cast<std::size_t>(i));
                 repaint();
                 return;
             }
-            x += cellWidth + kCellGap;
         }
     }
 
@@ -78,74 +153,88 @@ namespace pw8::plugin::ui
     {
         const auto& arp = processor_.getCurrentPatch().arpeggiator;
         const int count = juce::jmax(1, static_cast<int>(arp.numSteps));
-        const int cellWidth = cellWidthForCount(count);
-
-        auto bounds = getLocalBounds();
-        g.setColour(palette::kTextSecondary);
-        g.setFont(fonts::label(10.0f));
-        g.drawText("STEP PATTERN — click to toggle rest", bounds.removeFromTop(14), juce::Justification::centredLeft);
-
-        auto polyRow = bounds.removeFromTop(kPolyRowHeight);
-        g.setColour(palette::kTextDim);
-        g.setFont(fonts::value(9.0f));
         const auto numSteps = static_cast<std::size_t>(count);
-        const auto noteIdx = noteSequenceIndex_ % juce::jmax<std::size_t>(1, numSteps);
-        g.drawText("Polymetric: step " + juce::String(static_cast<int>(playheadStep_ % numSteps) + 1) + " / note " +
-                       juce::String(static_cast<int>(noteIdx) + 1),
-                   polyRow, juce::Justification::centredLeft);
-        bounds.removeFromTop(4);
+
+        auto header = getLocalBounds().removeFromTop(layout::kArpSeqHeaderHeight);
+        g.setColour(palette::kAccent);
+        g.fillEllipse(static_cast<float>(header.getX() + 2), static_cast<float>(header.getCentreY() - 3), 6.0f, 6.0f);
+        g.setColour(palette::kTextPrimary);
+        g.setFont(fonts::label(11.0f));
+        g.drawText(juce::String(count) + "-STEP VELOCITY & PATTERN EDITOR", header.withTrimmedLeft(14),
+                   juce::Justification::centredLeft);
+
+        g.setColour(palette::kTextDim);
+        g.setFont(fonts::label(8.0f));
+        juce::String syncText = "SYNC: ";
+        syncText += arp.rateMode == sequencer::ArpRateMode::TempoSync ? "INTERNAL 120 BPM" : "FREE";
+        if (arp.enabled)
+            syncText += "  ·  STEP " + juce::String(static_cast<int>((playheadStep_ % numSteps) + 1));
+        g.drawText(syncText, header, juce::Justification::centredRight);
+
+        getLocalBounds().removeFromTop(layout::kArpSeqHeaderHeight + 12);
 
         for (int i = 0; i < count; ++i)
         {
             const auto& step = arp.steps[static_cast<std::size_t>(i)];
-            auto cell = bounds.removeFromLeft(cellWidth).reduced(0, 1);
-            if (i + 1 < count)
-                bounds.removeFromLeft(kCellGap);
-
-            const bool isPlayhead =
-                arp.enabled && (static_cast<std::size_t>(i) == (playheadStep_ % static_cast<std::size_t>(count)));
-            const auto cellF = cell.toFloat();
-            draw::fillRecessedRoundedRect(g, cellF, 4.0f);
+            auto lane = laneBounds(i, count);
+            const bool isPlayhead = arp.enabled && (static_cast<std::size_t>(i) == (playheadStep_ % numSteps));
 
             if (isPlayhead)
             {
-                g.setColour(palette::kAccent.withAlpha(0.35f));
-                g.drawRoundedRectangle(cellF.expanded(1.0f), 5.0f, 2.0f);
+                g.setColour(palette::kAccent.withAlpha(0.12f));
+                g.fillRect(lane.expanded(1, 0));
+                g.setColour(palette::kAccent.withAlpha(0.55f));
+                g.drawVerticalLine(lane.getCentreX(), static_cast<float>(lane.getY()),
+                                   static_cast<float>(lane.getBottom()));
             }
 
-            if (!step.enabled)
+            auto ledArea = lane.removeFromTop(6);
+            g.setColour(step.enabled ? palette::kAccent : palette::kTextDim.withAlpha(0.35f));
+            if (isPlayhead)
+                g.fillEllipse(ledArea.getCentreX() - 4.0f, static_cast<float>(ledArea.getY()), 8.0f, 8.0f);
+            else
+                g.fillEllipse(ledArea.getCentreX() - 3.0f, static_cast<float>(ledArea.getY()), 6.0f, 6.0f);
+
+            lane.removeFromTop(8);
+            auto meta = lane.removeFromBottom(layout::kArpStepMetaHeight);
+            auto laneBody = velocityLaneBounds(lane).toFloat();
+
+            draw::fillRecessedRoundedRect(g, laneBody, 4.0f);
+            g.setColour(step.enabled ? palette::kBorderBright.withAlpha(0.65f) : palette::kBorder.withAlpha(0.45f));
+            g.drawRoundedRectangle(laneBody.reduced(0.5f), 4.0f, 1.0f);
+
+            if (step.enabled)
             {
-                g.setColour(palette::kTextDim.withAlpha(0.55f));
-                g.setFont(fonts::label(11.0f));
-                g.drawText("REST", cell, juce::Justification::centred);
-                g.setColour(palette::kBorder);
-                g.drawRoundedRectangle(cellF.reduced(0.5f), 4.0f, 1.0f);
-                continue;
+                const float vel = juce::jlimit(0.0f, 1.0f, step.velocityScale * (step.accent ? 1.0f : 0.85f));
+                const float barH = laneBody.getHeight() * vel;
+                juce::Rectangle<float> bar = laneBody.reduced(2.0f);
+                bar = bar.removeFromBottom(barH);
+                g.setColour(step.accent ? palette::kAccentWarm : palette::kAccent);
+                g.fillRoundedRectangle(bar, 2.0f);
             }
 
-            juce::Colour fill = palette::kAccent.withAlpha(step.probability < 0.999f ? 0.35f : 0.55f);
-            if (step.accent)
-                fill = palette::kAccentWarm.withAlpha(0.75f);
-            g.setColour(fill);
-            g.fillRoundedRectangle(cellF.reduced(1.5f), 3.0f);
+            auto accentBadge = meta.removeFromTop(10).withSizeKeepingCentre(18, 10).toFloat();
+            meta.removeFromTop(4);
+            auto ratchetBadge = meta.removeFromTop(10).withSizeKeepingCentre(22, 10).toFloat();
+            meta.removeFromTop(4);
+            auto stepNum = meta;
 
-            if (step.tie)
-            {
-                g.setColour(palette::kAccentWarm);
-                g.drawHorizontalLine(cell.getCentreY(), static_cast<float>(cell.getX() + 2),
-                                     static_cast<float>(cell.getRight() - 2));
-            }
+            g.setColour(step.accent ? palette::kAccentWarm : palette::kPanel);
+            g.fillRoundedRectangle(accentBadge, 2.0f);
+            g.setColour(step.accent ? palette::kBackgroundTop : palette::kTextDim);
+            g.setFont(juce::Font(juce::FontOptions(6.0f)));
+            g.drawText("ACC", accentBadge, juce::Justification::centred);
 
-            g.setColour(palette::kTextPrimary);
+            const bool ratchetActive = step.ratchetCount > 1;
+            g.setColour(ratchetActive ? palette::kMurmurViolet : palette::kPanelRaised);
+            g.fillRoundedRectangle(ratchetBadge, 3.0f);
+            g.setColour(ratchetActive ? palette::kBackgroundTop : palette::kTextDim);
+            g.setFont(juce::Font(juce::FontOptions(7.0f)));
+            g.drawText("x" + juce::String(step.ratchetCount), ratchetBadge, juce::Justification::centred);
+
+            g.setColour(step.enabled ? palette::kTextPrimary : palette::kTextDim);
             g.setFont(fonts::label(9.0f));
-            juce::String glyph = juce::String(i + 1);
-            if (step.ratchetCount > 1)
-                glyph += " x" + juce::String(step.ratchetCount);
-            if (step.accent)
-                glyph += " !";
-            if (step.probability < 0.999f)
-                glyph += " ?";
-            g.drawText(glyph, cell, juce::Justification::centred);
+            g.drawText(juce::String(i + 1).paddedLeft('0', 2), stepNum, juce::Justification::centred);
         }
     }
 

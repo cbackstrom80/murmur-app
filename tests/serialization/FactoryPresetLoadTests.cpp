@@ -1,3 +1,4 @@
+#include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <filesystem>
 #include <fstream>
@@ -8,6 +9,8 @@
 #include "pw8/algorithm/AlgorithmTypes.hpp"
 #include "pw8/content/ContentPaths.hpp"
 #include "pw8/core/Version.hpp"
+#include "pw8/effects/EffectTypes.hpp"
+#include "pw8/modulation/ModMatrixTypes.hpp"
 #include "pw8/patch/PatchSerializer.hpp"
 
 using namespace pw8;
@@ -128,4 +131,62 @@ TEST_CASE("feedback-bell factory preset matches template topology", "[patch][ser
     }
     REQUIRE(hasFeedback);
     REQUIRE(hasPmToCarrier);
+}
+
+TEST_CASE("vocal-ext-vocoder sidechain showcase preset loads", "[patch][serialization][factory][sidechain]")
+{
+    const auto path = repoRoot() / "content/presets/factory/Sidechain/01-vocal-ext-vocoder.pw8";
+    if (!fs::is_regular_file(path))
+        SKIP("Missing content/presets/factory/Sidechain/01-vocal-ext-vocoder.pw8");
+
+    const auto patch = loadPresetFile(path);
+    REQUIRE(patch.layerA.operators[0].engine == algorithm::EngineType::External);
+    REQUIRE(patch.layerA.insertEffects[0].type == effects::EffectType::Vocoder);
+    REQUIRE(patch.layerA.insertEffects[0].vocoderBandCount == 12);
+
+    bool hasSidechainVocoderFormant = false;
+    for (const auto& route : patch.layerA.modRoutes)
+    {
+        if (route.source == modulation::ModSource::Sidechain &&
+            route.destination == modulation::ModDestination::VocoderFormant && route.targetIndex == 0)
+            hasSidechainVocoderFormant = true;
+    }
+    REQUIRE(hasSidechainVocoderFormant);
+}
+
+TEST_CASE("Imogen Hide & Seek vocoder preset loads with 16 bands", "[patch][serialization][factory][sidechain]")
+{
+    const auto path = repoRoot() / "content/presets/factory/Sidechain/02-imogen-hide-seek-vocoder.pw8";
+    if (!fs::is_regular_file(path))
+        SKIP("Missing Sidechain/02-imogen-hide-seek-vocoder.pw8");
+
+    const auto patch = loadPresetFile(path);
+    REQUIRE(patch.layerA.insertEffects[0].type == effects::EffectType::Vocoder);
+    REQUIRE(patch.layerA.insertEffects[0].vocoderBandCount == 16);
+    REQUIRE(patch.layerA.insertEffects[0].mix > 0.95f);
+}
+
+TEST_CASE("Def Leppard Love Bites vocoder preset loads rock stack", "[patch][serialization][factory][sidechain]")
+{
+    const auto path = repoRoot() / "content/presets/factory/Sidechain/05-def-leppard-love-bites-vocoder.pw8";
+    if (!fs::is_regular_file(path))
+        SKIP("Missing Sidechain/05-def-leppard-love-bites-vocoder.pw8");
+
+    const auto patch = loadPresetFile(path);
+    REQUIRE(patch.layerA.insertEffects[0].type == effects::EffectType::Vocoder);
+    REQUIRE(patch.layerA.insertEffects[0].vocoderBandCount == 8);
+    REQUIRE(patch.layerA.insertEffects[0].vocoderFormant > 0.6f);
+    REQUIRE(patch.layerA.insertEffects[0].mix > 0.8f);
+    REQUIRE(static_cast<int>(patch.layerA.operators[0].classicWaveform) == 2);
+}
+
+TEST_CASE("Interstellar legacy type-11 Quasar master slot loads as Bypass", "[patch][serialization][factory]")
+{
+    const auto path = repoRoot() / "content/presets/factory/Interstellar/001-cathedral-nebula.pw8";
+    if (!fs::is_regular_file(path))
+        SKIP("Missing Interstellar/001-cathedral-nebula.pw8");
+
+    const auto patch = loadPresetFile(path);
+    REQUIRE(patch.masterEffects[2].type == effects::EffectType::Bypass);
+    REQUIRE(patch.masterEffects[2].mix == Catch::Approx(0.72f));
 }

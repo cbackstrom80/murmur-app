@@ -7,16 +7,24 @@
     "description": "Factory Sequence patch #40. Engines: Classic, FM/PM. Procedurally generated (seed 1176457327) as part of the 250-patch factory content bank. Archetype: gated 80s pulse sequence with sync oscillator sequence character.",
     "category": "seq",
     "moods": [
-      "sequences"
+      "punchy",
+      "bright",
+      "evolving",
+      "glassy"
     ],
     "genres": [
+      "electronic",
+      "pop",
+      "techno",
       "factory"
     ],
     "tags": [
       "factory",
       "seq",
       "gated-80s",
-      "sync-seq"
+      "sync-seq",
+      "punchy",
+      "bright"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

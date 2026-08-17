@@ -61,7 +61,7 @@ namespace pw8::effects
         }
 
         void processStereo(float inL, float inR, float sidechainL, float sidechainR, const EffectSlotParams& p,
-                           float& outL, float& outR, float bpm = 120.0f) noexcept
+                           float& outL, float& outR, bool sidechainConnected = false, float bpm = 120.0f) noexcept
         {
             switch (p.type)
             {
@@ -77,7 +77,7 @@ namespace pw8::effects
                 case EffectType::Compressor: compressor_.processStereo(inL, inR, p, outL, outR); return;
                 case EffectType::Limiter: limiter_.processStereo(inL, inR, p, outL, outR); return;
                 case EffectType::Vocoder:
-                    vocoder_.processStereo(inL, inR, sidechainL, sidechainR, p, outL, outR);
+                    vocoder_.processStereo(inL, inR, sidechainL, sidechainR, p, outL, outR, sidechainConnected);
                     return;
             }
             outL = inL;
@@ -123,15 +123,32 @@ namespace pw8::effects
         }
 
         void process(const std::array<EffectSlotParams, NumSlots>& params, float& l, float& r, float sidechainL,
-                     float sidechainR, float bpm = 120.0f) noexcept
+                     float sidechainR, bool sidechainConnected = false, float bpm = 120.0f) noexcept
+        {
+            process(params, defaultOrder(), l, r, sidechainL, sidechainR, sidechainConnected, bpm);
+        }
+
+        void process(const std::array<EffectSlotParams, NumSlots>& params,
+                     const std::array<std::uint8_t, NumSlots>& slotOrder, float& l, float& r, float sidechainL,
+                     float sidechainR, bool sidechainConnected = false, float bpm = 120.0f) noexcept
         {
             for (std::size_t i = 0; i < NumSlots; ++i)
             {
+                const std::size_t paramIndex = slotOrder[i] < NumSlots ? slotOrder[i] : i;
                 float outL = l, outR = r;
-                slots_[i].processStereo(l, r, sidechainL, sidechainR, params[i], outL, outR, bpm);
+                slots_[i].processStereo(l, r, sidechainL, sidechainR, params[paramIndex], outL, outR,
+                                          sidechainConnected, bpm);
                 l = outL;
                 r = outR;
             }
+        }
+
+        [[nodiscard]] static std::array<std::uint8_t, NumSlots> defaultOrder() noexcept
+        {
+            std::array<std::uint8_t, NumSlots> order{};
+            for (std::size_t i = 0; i < NumSlots; ++i)
+                order[i] = static_cast<std::uint8_t>(i);
+            return order;
         }
 
         [[nodiscard]] float getCompressorGainReductionDb(std::size_t slot) const noexcept

@@ -9,6 +9,7 @@
 #include "pw8/dsp/HilbertTransformer.hpp"
 #include "pw8/effects/BinauralPanner.hpp"
 #include "pw8/effects/BinauralSpace.hpp"
+#include "pw8/effects/QuasarSpatialMacros.hpp"
 #include "pw8/effects/EffectChain.hpp"
 #include "pw8/effects/Vocoder.hpp"
 
@@ -191,6 +192,28 @@ TEST_CASE("Saturation compresses a loud signal more than a quiet one", "[effects
     // increase in output once saturation is biting -- that's the whole point.
     REQUIRE(outLoudL < 40.0f * outQuietL);
     REQUIRE(outLoudL <= 1.01f); // tanh never exceeds unity.
+}
+
+TEST_CASE("Saturation character changes waveshape output", "[effects][saturation]")
+{
+    SaturationProcessor proc;
+    proc.prepare(kSampleRate);
+
+    EffectSlotParams tube;
+    tube.type = EffectType::Saturation;
+    tube.mix = 1.0f;
+    tube.saturationDriveDb = 18.0f;
+    tube.saturationCharacter = static_cast<int>(SaturationCharacter::Tube);
+
+    EffectSlotParams fold = tube;
+    fold.saturationCharacter = static_cast<int>(SaturationCharacter::Fold);
+
+    float tubeL = 0.0f, tubeR = 0.0f;
+    float foldL = 0.0f, foldR = 0.0f;
+    proc.processStereo(0.75f, -0.75f, tube, tubeL, tubeR);
+    proc.processStereo(0.75f, -0.75f, fold, foldL, foldR);
+
+    REQUIRE(foldL != Catch::Approx(tubeL).margin(0.02f));
 }
 
 // ---------------------------------------------------------------------------
@@ -652,6 +675,26 @@ TEST_CASE("Eq is a transparent passthrough at mix 0", "[effects][eq]")
     proc.processStereo(0.5f, -0.3f, p, outL, outR);
     REQUIRE(outL == Catch::Approx(0.5f));
     REQUIRE(outR == Catch::Approx(-0.3f));
+}
+
+TEST_CASE("Eq out gain trim scales wet output amplitude", "[effects][eq]")
+{
+    EqProcessor proc;
+    proc.prepare(kSampleRate);
+
+    EffectSlotParams flat;
+    flat.type = EffectType::Eq;
+    flat.mix = 1.0f;
+    flat.eqLowGainDb = 6.0f;
+    flat.eqOutGainDb = 0.0f;
+
+    EffectSlotParams boosted = flat;
+    boosted.eqOutGainDb = 6.0f;
+
+    const float rmsFlat = measureToneRms(proc, flat, 120.0f, 0.3f, 0.05);
+    const float rmsBoosted = measureToneRms(proc, boosted, 120.0f, 0.3f, 0.05);
+
+    REQUIRE(rmsBoosted > rmsFlat * 1.8f);
 }
 
 TEST_CASE("Compressor reduces a loud tone's level by roughly the expected amount above threshold",
@@ -1219,6 +1262,125 @@ TEST_CASE("BinauralSpace bypass mix=0 passes input unchanged", "[effects][quasar
     REQUIRE(outR == Catch::Approx(-0.17f));
 }
 
+TEST_CASE("BinauralSpace stereo split routes L and R inputs to separate QSR paths", "[effects][quasar]")
+{
+    auto renderImpulse = [](float inL, float inR) {
+        BinauralSpaceProcessor proc;
+        proc.prepare(kSampleRate);
+        BinauralSpaceParams p;
+        p.mix = 1.0f;
+        p.qsrStereoSplit = true;
+        p.qsr1AngleDeg = 90.0f;
+        p.qsr2AngleDeg = 270.0f;
+        p.qsr1Distance = 0.5f;
+        p.qsr2Distance = 0.5f;
+        p.cntrLevel = 0.0f;
+        p.qsr1Level = 1.0f;
+        p.qsr2Level = 1.0f;
+        p.qsr1RoomAmount = 0.0f;
+        p.qsr2RoomAmount = 0.0f;
+        p.quasarDelayVolume = 0.0f;
+
+        std::vector<StereoSample> out;
+        constexpr int kSamples = static_cast<int>(0.02 * kSampleRate);
+        out.reserve(static_cast<std::size_t>(kSamples));
+        for (int i = 0; i < kSamples; ++i)
+        {
+            const float impulseL = (i == 0) ? inL : 0.0f;
+            const float impulseR = (i == 0) ? inR : 0.0f;
+            float outL = 0.0f, outR = 0.0f;
+            proc.processStereo(impulseL, impulseR, p, outL, outR);
+            out.push_back({outL, outR});
+        }
+        return out;
+    };
+
+    const auto fromLeftOnly = renderImpulse(1.0f, 0.0f);
+    const auto fromRightOnly = renderImpulse(0.0f, 1.0f);
+    REQUIRE(allFinite(fromLeftOnly));
+    REQUIRE(allFinite(fromRightOnly));
+
+    const std::size_t leftOnlyPeakL = peakIndex(fromLeftOnly, 0, fromLeftOnly.size(), true);
+    const std::size_t leftOnlyPeakR = peakIndex(fromLeftOnly, 0, fromLeftOnly.size(), false);
+    const std::size_t rightOnlyPeakL = peakIndex(fromRightOnly, 0, fromRightOnly.size(), true);
+    const std::size_t rightOnlyPeakR = peakIndex(fromRightOnly, 0, fromRightOnly.size(), false);
+
+    REQUIRE(leftOnlyPeakL < leftOnlyPeakR);
+    REQUIRE(rightOnlyPeakR < rightOnlyPeakL);
+}
+
+TEST_CASE("Quasar ORBIT macro rotates both QSR feeds together", "[effects][quasar][macro]")
+{
+    effects::QuasarSpatialTargets base{30.0f, 330.0f, 0.35f, 0.40f, 0.0f, 0.0f};
+    const auto neutral = effects::applyQuasarMacroKoins(base, {0.5f, 0.5f});
+    REQUIRE(neutral.qsr1AngleDeg == Catch::Approx(30.0f));
+    REQUIRE(neutral.qsr2AngleDeg == Catch::Approx(330.0f));
+
+    const auto rotated = effects::applyQuasarMacroKoins(base, {1.0f, 0.5f});
+    REQUIRE(rotated.qsr1AngleDeg == Catch::Approx(210.0f));
+    REQUIRE(rotated.qsr2AngleDeg == Catch::Approx(150.0f));
+}
+
+TEST_CASE("Quasar SPREAD macro widens angular separation", "[effects][quasar][macro]")
+{
+    effects::QuasarSpatialTargets base{60.0f, 300.0f, 0.35f, 0.40f, 0.0f, 0.0f};
+    const auto narrow = effects::applyQuasarMacroKoins(base, {0.5f, 0.0f});
+    const auto wide = effects::applyQuasarMacroKoins(base, {0.5f, 1.0f});
+
+    const auto angularGap = [](float a, float b) {
+        const float delta = std::abs(effects::wrapDegrees360(a - b));
+        return std::min(delta, 360.0f - delta);
+    };
+
+    REQUIRE(angularGap(wide.qsr1AngleDeg, wide.qsr2AngleDeg) > angularGap(narrow.qsr1AngleDeg, narrow.qsr2AngleDeg));
+}
+
+TEST_CASE("BinauralSpace QSR2 sidechain aux replaces right feed input", "[effects][quasar][sidechain]")
+{
+    BinauralSpaceParams p;
+    p.mix = 1.0f;
+    p.qsrStereoSplit = true;
+    p.qsr1AngleDeg = 90.0f;
+    p.qsr2AngleDeg = 270.0f;
+    p.cntrLevel = 0.0f;
+    p.qsr1Level = 1.0f;
+    p.qsr2Level = 1.0f;
+    p.qsr1RoomAmount = 0.0f;
+    p.qsr2RoomAmount = 0.0f;
+    p.quasarDelayVolume = 0.0f;
+
+    auto render = [&](float inL, float inR, float auxIn, bool useAux) {
+        BinauralSpaceProcessor localProc;
+        localProc.prepare(kSampleRate);
+        std::vector<StereoSample> out;
+        constexpr int kSamples = static_cast<int>(0.02 * kSampleRate);
+        out.reserve(static_cast<std::size_t>(kSamples));
+        for (int i = 0; i < kSamples; ++i)
+        {
+            const float impulseL = (i == 0) ? inL : 0.0f;
+            const float impulseR = (i == 0) ? inR : 0.0f;
+            const float impulseAux = (i == 0) ? auxIn : 0.0f;
+            float outL = 0.0f, outR = 0.0f;
+            localProc.processStereo(impulseL, impulseR, p, outL, outR, 120.0f, impulseAux, useAux);
+            out.push_back({outL, outR});
+        }
+        return out;
+    };
+
+    const auto mainRight = render(0.0f, 1.0f, 0.0f, false);
+    const auto auxOnly = render(0.0f, 0.0f, 1.0f, true);
+    REQUIRE(allFinite(mainRight));
+    REQUIRE(allFinite(auxOnly));
+
+    const std::size_t mainPeakL = peakIndex(mainRight, 0, mainRight.size(), true);
+    const std::size_t mainPeakR = peakIndex(mainRight, 0, mainRight.size(), false);
+    const std::size_t auxPeakL = peakIndex(auxOnly, 0, auxOnly.size(), true);
+    const std::size_t auxPeakR = peakIndex(auxOnly, 0, auxOnly.size(), false);
+
+    REQUIRE(mainPeakR < mainPeakL);
+    REQUIRE(auxPeakR < auxPeakL);
+}
+
 TEST_CASE("BinauralSpace delay freeze holds tail at feedback 1.0", "[effects][quasar]")
 {
     BinauralSpaceProcessor proc;
@@ -1303,6 +1465,39 @@ TEST_CASE("BinauralSpace quasar delay tempo sync doubles when BPM halves", "[eff
     REQUIRE(slowPeak > fastPeak * 15 / 10);
 }
 
+TEST_CASE("Vocoder sidechain modulator articulates carrier vs silent modulator", "[effects][vocoder]")
+{
+    VocoderProcessor proc;
+    proc.prepare(kSampleRate);
+    EffectSlotParams p;
+    p.type = EffectType::Vocoder;
+    p.mix = 1.0f;
+    p.vocoderBandCount = 16;
+    p.vocoderFormant = 0.5f;
+    p.vocoderSibilance = 0.1f;
+    p.vocoderScGainDb = 24.0f;
+
+    auto renderBlock = [&](float modAmp) {
+        float outL = 0.0f, outR = 0.0f;
+        for (int i = 0; i < 9600; ++i)
+        {
+            const float t = static_cast<float>(i) / static_cast<float>(kSampleRate);
+            const float carrier = 0.55f * std::sin(2.0f * dsp::kPi * 220.0f * t);
+            const float mod = modAmp * std::sin(2.0f * dsp::kPi * 880.0f * t);
+            proc.processStereo(carrier, carrier, mod, mod, p, outL, outR);
+        }
+        return std::abs(outL);
+    };
+
+    proc.reset();
+    const float voicedPeak = renderBlock(0.85f);
+    proc.reset();
+    const float silentPeak = renderBlock(0.0f);
+
+    REQUIRE(voicedPeak > silentPeak * 4.0f);
+    REQUIRE(voicedPeak > 0.05f);
+}
+
 TEST_CASE("Vocoder sidechain modulator gates carrier bands", "[effects][vocoder]")
 {
     VocoderProcessor proc;
@@ -1310,10 +1505,10 @@ TEST_CASE("Vocoder sidechain modulator gates carrier bands", "[effects][vocoder]
     EffectSlotParams p;
     p.type = EffectType::Vocoder;
     p.mix = 1.0f;
-    p.freqShiftLowCutHz = 8.0f;
-    p.fractalMorph = 0.5f;
-    p.freqShiftHz = 0.0f;
-    p.saturationDriveDb = 24.0f;
+    p.vocoderBandCount = 8;
+    p.vocoderFormant = 0.5f;
+    p.vocoderSibilance = 0.0f;
+    p.vocoderScGainDb = 24.0f;
 
     float outSilentL = 0.0f, outSilentR = 0.0f;
     for (int i = 0; i < 600; ++i)
@@ -1345,10 +1540,125 @@ TEST_CASE("Vocoder mix=0 passes carrier dry", "[effects][vocoder]")
     EffectSlotParams p;
     p.type = EffectType::Vocoder;
     p.mix = 0.0f;
-    p.freqShiftLowCutHz = 8.0f;
+    p.vocoderBandCount = 8;
 
     float outL = 0.0f, outR = 0.0f;
     proc.processStereo(0.42f, -0.33f, 1.0f, 1.0f, p, outL, outR);
     REQUIRE(outL == Catch::Approx(0.42f));
     REQUIRE(outR == Catch::Approx(-0.33f));
+}
+
+TEST_CASE("EffectChain vocoder applies distinct vocoderScGainDb values", "[effects][chain][vocoder]")
+{
+    EffectChain<1> chain;
+    chain.prepare(kSampleRate);
+
+    auto finalSample = [&](float scGainDb) {
+        std::array<EffectSlotParams, 1> params{};
+        params[0].type = EffectType::Vocoder;
+        params[0].mix = 1.0f;
+        params[0].vocoderBandCount = 8;
+        params[0].vocoderFormant = 0.5f;
+        params[0].vocoderScGainDb = scGainDb;
+        params[0].saturationDriveDb = 6.0f;
+
+        float outL = 0.0f, outR = 0.0f;
+        for (int i = 0; i < 4800; ++i)
+        {
+            const float t = static_cast<float>(i) / static_cast<float>(kSampleRate);
+            const float carrier = 0.45f * std::sin(2.0f * dsp::kPi * 220.0f * t);
+            const float mod = 0.8f * std::sin(2.0f * dsp::kPi * 880.0f * t);
+            outL = carrier;
+            outR = carrier;
+            chain.process(params, outL, outR, mod, mod, true);
+        }
+        return outL;
+    };
+
+    REQUIRE(std::abs(finalSample(48.0f) - finalSample(6.0f)) > 0.002f);
+}
+
+TEST_CASE("EffectChain vocoder slot changes tone vs bypass", "[effects][chain][vocoder]")
+{
+    EffectChain<1> chain;
+    chain.prepare(kSampleRate);
+
+    std::array<EffectSlotParams, 1> params{};
+    params[0].type = EffectType::Vocoder;
+    params[0].mix = 1.0f;
+    params[0].vocoderBandCount = 8;
+    params[0].vocoderFormant = 0.5f;
+
+    float bypassL = 0.0f, bypassR = 0.0f;
+    float wetL = 0.0f, wetR = 0.0f;
+    for (int i = 0; i < 4800; ++i)
+    {
+        const float t = static_cast<float>(i) / static_cast<float>(kSampleRate);
+        const float in = 0.5f * std::sin(2.0f * dsp::kPi * 220.0f * t);
+        std::array<EffectSlotParams, 1> bypassParams{};
+        float outBL = in, outBR = in;
+        chain.process(bypassParams, outBL, outBR, 0.0f, 0.0f);
+        bypassL = outBL;
+        bypassR = outBR;
+
+        float outL = in, outR = in;
+        chain.process(params, outL, outR, in, in, true);
+        wetL = outL;
+        wetR = outR;
+    }
+    REQUIRE(std::abs(wetL - bypassL) > 0.001f);
+}
+
+TEST_CASE("Vocoder wet differs from dry at mix=1 for sustained tone", "[effects][vocoder]")
+{
+    VocoderProcessor proc;
+    proc.prepare(kSampleRate);
+    EffectSlotParams p;
+    p.type = EffectType::Vocoder;
+    p.mix = 1.0f;
+    p.vocoderBandCount = 8;
+
+    float in = 0.0f, outL = 0.0f, outR = 0.0f;
+    for (int i = 0; i < 4800; ++i)
+    {
+        const float t = static_cast<float>(i) / static_cast<float>(kSampleRate);
+        in = 0.5f * std::sin(2.0f * dsp::kPi * 220.0f * t);
+        proc.processStereo(in, in, in, in, p, outL, outR);
+    }
+    REQUIRE(std::abs(outL - in) > 0.001f);
+}
+
+TEST_CASE("Vocoder remains finite under extreme parameters", "[effects][vocoder][stability]")
+{
+    VocoderProcessor proc;
+    proc.prepare(kSampleRate);
+
+    const float formants[] = {0.0f, 0.5f, 1.0f};
+    const int bandCounts[] = {8, 12, 16};
+
+    for (float formant : formants)
+    {
+        for (int bands : bandCounts)
+        {
+            proc.reset();
+            EffectSlotParams p;
+            p.type = EffectType::Vocoder;
+            p.mix = 1.0f;
+            p.vocoderBandCount = bands;
+            p.vocoderFormant = formant;
+            p.vocoderSibilance = 1.0f;
+            p.vocoderScGainDb = 48.0f;
+
+            float outL = 0.0f, outR = 0.0f;
+            for (int i = 0; i < 2400; ++i)
+            {
+                const float t = static_cast<float>(i) / static_cast<float>(kSampleRate);
+                const float in = 0.7f * std::sin(2.0f * dsp::kPi * 440.0f * t);
+                const float sc = 0.5f * std::sin(2.0f * dsp::kPi * 880.0f * t);
+                proc.processStereo(in, in, sc, sc, p, outL, outR);
+                REQUIRE(std::isfinite(outL));
+                REQUIRE(std::isfinite(outR));
+            }
+        }
+    }
 }

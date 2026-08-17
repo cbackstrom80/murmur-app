@@ -1,15 +1,19 @@
 #pragma once
 
 #include <array>
+#include <functional>
 #include <memory>
 #include <vector>
 
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "DesignFxStubKnob.h"
+#include "DesignFxUiState.h"
 #include "FxEffectPlayParams.h"
 #include "GlowKnob.h"
 #include "GlowRingButton.h"
+#include "LabLauncherChip.h"
 #include "MetadataFacetRow.h"
 #include "SectionPanel.h"
 #include "processor/PatchworkEightProcessor.h"
@@ -28,6 +32,19 @@ namespace pw8::plugin::ui
         ~FxChainStrip() override;
 
         void resized() override;
+        void paintOverChildren(juce::Graphics& g) override;
+
+        /// PLAY dashboard: 7-slot chain without VOCODER in TYPE row; vocoder slots open lab.
+        void setPlayDashboardMode(bool dashboardMode);
+        /// Figma design FX page (35:4 / murmur-fx-*): full-width hero detail editor.
+        void setDesignFxPageMode(bool designMode);
+        void setDesignFxChipIndex(std::size_t chipIndex);
+        void setDesignFxUiState(DesignFxUiState* uiState);
+        void selectEngineSlot(std::size_t index);
+        void applyDesignModePill(const juce::String& pill);
+        std::function<void(std::size_t fxSlotIndex)> onVocoderLabRequested;
+        std::function<void(const juce::String& modePill)> onDesignModeChanged;
+        std::function<void()> onDesignUiChanged;
 
     private:
         struct SlotUi
@@ -44,6 +61,8 @@ namespace pw8::plugin::ui
         void toggleSelectedSlotEnabled();
         void setSelectedEffectType(int typeOrdinal);
         void rebuildParamKnobs();
+        void rebuildDesignFxParamKnobs();
+        void syncDesignModeRowFromChip();
         void swapSelectedSlot(int direction);
         [[nodiscard]] SlotUi& selectedSlot();
         [[nodiscard]] const SlotUi& selectedSlot() const;
@@ -67,7 +86,17 @@ namespace pw8::plugin::ui
         [[nodiscard]] bool showsDelaySyncControls() const;
         [[nodiscard]] bool canSwapSelectedSlot(int direction) const;
         void updateFlowPrefixes();
+        void updatePlayDashboardUi();
+        void resizedDashboard(juce::Rectangle<int> content);
+        void resizedDesignFxPage(juce::Rectangle<int> content);
         void timerCallback() override;
+
+        bool playDashboardMode_ = false;
+        bool designFxPageMode_ = false;
+        std::size_t designFxChipIndex_ = 1;
+        DesignFxUiState* designFxUiState_ = nullptr;
+        std::array<std::unique_ptr<DesignFxStubKnob>, kDesignFxKnobCount> designStubKnobs_{};
+        std::unique_ptr<LabLauncherChip> vocoderLabChip_;
 
         PatchworkEightProcessor& processor_;
         juce::AudioProcessorValueTreeState& apvts_;
@@ -79,6 +108,7 @@ namespace pw8::plugin::ui
         std::size_t selectedSlotIndex_ = 0;
 
         std::unique_ptr<MetadataFacetRow> typeRow_;
+        std::unique_ptr<MetadataFacetRow> designModeRow_;
         juce::Label slotTitleLabel_;
         std::unique_ptr<GlowRingButton> enableButton_;
         juce::TextButton swapLeft_{"◀ Swap"};
@@ -86,6 +116,8 @@ namespace pw8::plugin::ui
 
         std::unique_ptr<GlowKnob> mixKnob_;
         std::vector<std::unique_ptr<GlowKnob>> paramKnobs_;
+        std::vector<GlowKnob*> designKnobGrid_;
+        juce::Rectangle<int> designKnobGridBounds_;
 
         std::unique_ptr<MetadataFacetRow> transCoreRow_;
         std::unique_ptr<MetadataFacetRow> transBrandRow_;

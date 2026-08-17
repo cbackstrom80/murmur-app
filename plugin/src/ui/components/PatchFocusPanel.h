@@ -30,6 +30,12 @@ namespace pw8::plugin::ui
         /// Compact 320px column: smaller knobs, tighter grid, up to 3 feature macro KOINS.
         void setCompactLayout(bool compactLayout);
 
+        /// Figma `murmur-desktop-play-mode` performance-macros-deck (36:155).
+        void setDesktopPlayModeLayout(bool desktopPlayMode);
+
+        /// Figma `ipad-play-view` performance-macros (4:2472) — 6-knob row.
+        void setIpadPlayLayout(bool ipadPlayLayout);
+
         /// Teleprompter: orbit up to 3 feature macro KOINS around `centerHole`.
         void setOrbitHole(juce::Rectangle<int> centerHole);
 
@@ -58,8 +64,12 @@ namespace pw8::plugin::ui
         juce::Label expressionBadge_;
         juce::Label sidechainBadge_;
         juce::TextButton advancedButton_{"Mod Matrix (M)"};
+        juce::Label desktopDeckTitleLabel_;
+        juce::Label desktopDeckStatusLabel_;
         bool basicLayout_ = true;
         bool compactLayout_ = false;
+        bool desktopPlayModeLayout_ = false;
+        bool ipadPlayLayout_ = false;
         juce::Rectangle<int> orbitHole_;
         PatchFocusLayout lastLayout_;
         std::size_t featureKnobCount_ = 0;

@@ -7,6 +7,7 @@
 #include "ObsidianDraw.h"
 #include "ObsidianPalette.h"
 #include "ObsidianRotary.h"
+#include "RadialGlowDraw.h"
 
 namespace pw8::plugin::ui::decked
 {
@@ -262,80 +263,39 @@ namespace pw8::plugin::ui::decked
     constexpr float kDualKnobInnerInset = 22.0f;
     constexpr float kDualOuterArcStroke = 6.0f;
 
-    /// Outer ring of a stacked dual knob: hollow track + structural accent value arc (leaves centre hole).
+    /// Outer ring of a stacked dual knob: hollow track + structural accent value arc (Figma UX-09).
     inline void drawDualOuterRotarySlider(juce::Graphics& g, juce::Rectangle<float> knobBounds, float proportional,
-                                          float rotaryStartAngle, float rotaryEndAngle, bool active)
+                                          float rotaryStartAngle, float rotaryEndAngle, bool active,
+                                          float dimAlpha = 1.0f)
     {
         juce::ignoreUnused(active);
         const float diameter = juce::jmax(16.0f, juce::jmin(knobBounds.getWidth(), knobBounds.getHeight()));
-        const auto centre = knobBounds.getCentre();
-        const float maxRadius = diameter * 0.5f;
-        const float arcRadius = maxRadius * 0.94f;
+        const auto layout = radialglow::computeLayout(knobBounds.withSizeKeepingCentre(diameter, diameter));
         const float angle = rotary::proportionalToAngle(proportional, rotaryStartAngle, rotaryEndAngle);
-        const float trackThickness = juce::jmax(2.0f, maxRadius * 0.08f);
 
-        g.setColour(palette::kBackgroundBottom);
-        g.fillEllipse(centre.x - maxRadius, centre.y - maxRadius, maxRadius * 2.0f, maxRadius * 2.0f);
-
-        juce::Path track;
-        track.addCentredArc(centre.x, centre.y, arcRadius, arcRadius, 0.0f, rotaryStartAngle, rotaryEndAngle, true);
-        g.setColour(palette::kBorder.withAlpha(0.72f));
-        g.strokePath(track, juce::PathStrokeType(trackThickness, juce::PathStrokeType::curved,
-                                                 juce::PathStrokeType::rounded));
-
-        if (proportional > 0.001f)
-        {
-            juce::Path value;
-            value.addCentredArc(centre.x, centre.y, arcRadius, arcRadius, 0.0f, rotaryStartAngle, angle, true);
-            g.setColour(palette::kAccent.withAlpha(0.22f));
-            g.strokePath(value, juce::PathStrokeType(kDualOuterArcStroke * 1.35f, juce::PathStrokeType::curved,
-                                                     juce::PathStrokeType::rounded));
-            g.setColour(palette::kAccent.withAlpha(0.95f));
-            g.strokePath(value, juce::PathStrokeType(kDualOuterArcStroke, juce::PathStrokeType::curved,
-                                                     juce::PathStrokeType::rounded));
-        }
-
-        g.setColour(palette::kBorderBright.withAlpha(0.55f));
-        g.drawEllipse(centre.x - maxRadius, centre.y - maxRadius, maxRadius * 2.0f, maxRadius * 2.0f,
-                      juce::jmax(1.0f, trackThickness * 0.55f));
-
-        const float holeRadius = juce::jmax(8.0f, maxRadius - kDualKnobInnerInset);
-        g.setColour(palette::kBackgroundTop);
-        g.fillEllipse(centre.x - holeRadius, centre.y - holeRadius, holeRadius * 2.0f, holeRadius * 2.0f);
+        if (dimAlpha >= 0.99f)
+            radialglow::drawBackgroundHalo(g, layout.centre, layout.outerRingRadius, juce::Colour(0xff00ffd2));
+        radialglow::strokeDimTrackArc(g, layout.centre, layout.outerRingRadius, layout.outerStroke, rotaryStartAngle,
+                                       rotaryEndAngle, palette::kBorder, dimAlpha);
+        radialglow::strokeGlowValueArc(g, layout.centre, layout.outerRingRadius, layout.outerStroke, rotaryStartAngle,
+                                       angle, juce::Colour(0xff00ffd2), dimAlpha);
     }
 
-    /// Inner cap of a stacked dual knob: category fill + white pointer rectangle.
+    /// Inner ring of a stacked dual knob: second glow arc (Figma UX-09), not a filled cap.
     inline void drawDualInnerRotarySlider(juce::Graphics& g, juce::Rectangle<float> knobBounds, float proportional,
-                                          float rotaryStartAngle, float rotaryEndAngle, juce::Colour accent, bool active)
+                                          float rotaryStartAngle, float rotaryEndAngle, juce::Colour accent, bool active,
+                                          float dimAlpha = 1.0f)
     {
+        juce::ignoreUnused(active);
         const float diameter = juce::jmax(16.0f, juce::jmin(knobBounds.getWidth(), knobBounds.getHeight()));
-        const auto centre = knobBounds.getCentre();
-        const float maxRadius = diameter * 0.5f;
-        const float capRadius = juce::jmax(8.0f, maxRadius - 2.0f);
+        const auto layout = radialglow::computeLayout(knobBounds.withSizeKeepingCentre(diameter, diameter));
         const float angle = rotary::proportionalToAngle(proportional, rotaryStartAngle, rotaryEndAngle);
+        const juce::Colour ringColour = accent.isTransparent() ? juce::Colour(0xff9f80ff) : accent;
 
-        const juce::Colour fill = accent.isTransparent() ? palette::kPanelRaised : accent;
-        fillColouredInnerCap(g, centre, capRadius, fill, active);
-
-        const juce::Point<float> direction = rotary::unitDirectionAtAngle(angle);
-        const float pointerInner = capRadius * 0.22f;
-        const float pointerOuter = capRadius * 0.82f;
-        const float pointerWidth = juce::jmax(2.4f, capRadius * 0.14f);
-        const juce::Point<float> tangent(-direction.y, direction.x);
-        const auto p0 = centre + direction * pointerInner + tangent * pointerWidth * 0.5f;
-        const auto p1 = centre + direction * pointerOuter + tangent * pointerWidth * 0.35f;
-        const auto p2 = centre + direction * pointerOuter - tangent * pointerWidth * 0.35f;
-        const auto p3 = centre + direction * pointerInner - tangent * pointerWidth * 0.5f;
-        juce::Path pointer;
-        pointer.startNewSubPath(p0);
-        pointer.lineTo(p1);
-        pointer.lineTo(p2);
-        pointer.lineTo(p3);
-        pointer.closeSubPath();
-        g.setColour(palette::kShadow.withAlpha(0.35f));
-        g.fillPath(pointer);
-        g.setColour(palette::kTextPrimary);
-        g.fillPath(pointer);
+        radialglow::strokeDimTrackArc(g, layout.centre, layout.middleRingRadius, layout.middleStroke,
+                                       rotaryStartAngle, rotaryEndAngle, palette::kBorder, dimAlpha);
+        radialglow::strokeGlowValueArc(g, layout.centre, layout.middleRingRadius, layout.middleStroke,
+                                       rotaryStartAngle, angle, ringColour, dimAlpha);
     }
 
     /// Concentric decked rotary — outer recess, accent middle rim, inner cap with value arc.

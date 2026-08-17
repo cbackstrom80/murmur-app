@@ -92,6 +92,16 @@ namespace pw8::effects
         Opto,
     };
 
+    /// Saturation waveshaper character (design FX mode pills).
+    enum class SaturationCharacter : std::uint8_t
+    {
+        Tube = 0,
+        Tape,
+        Diode,
+        Fold,
+        Crush,
+    };
+
     /// One node in a NodeDelay tree. `parentIndex < static_cast<int>(ownIndex)` is
     /// required (validated/clamped at load, same "always route from a lower index"
     /// discipline the algorithm graph compiler and fuzz tool already rely on to
@@ -116,6 +126,7 @@ namespace pw8::effects
 
         // -- Saturation --
         float saturationDriveDb = 6.0f;
+        int saturationCharacter = 0; ///< SaturationCharacter — Tube/Tape/Diode/Fold/Crush waveshapers.
 
         // -- Chorus --
         float chorusRateHz = 0.5f;
@@ -191,6 +202,7 @@ namespace pw8::effects
         float eqMidQ = 0.8f;
         float eqHighFreqHz = 6000.0f;
         float eqHighGainDb = 0.0f;
+        float eqOutGainDb = 0.0f; ///< Post-EQ output trim, -12..+12 dB (Design FX OUT GAIN knob).
 
         // -- Compressor (feedforward, peak detector, soft knee) --
         float compThresholdDb = -18.0f;
@@ -206,11 +218,12 @@ namespace pw8::effects
         bool compAutoMakeup = false;        ///< estimate makeup from threshold/ratio when true
         int compCharacter = 0;              ///< CompCharacter — VCA/FET/Opto attack/release curves
 
-        // -- Vocoder (Phase 2 dedicated fields; legacy scalar aliases still read as fallback) --
+        // -- Vocoder (sidechain band vocoder; APVTS VocoderBandCount/Formant/Sibilance/ScGainDb) --
         int vocoderBandCount = 8;     ///< 8..16 bands
         float vocoderFormant = 0.5f;  ///< 0..1 → formant multiplier
         float vocoderSibilance = 0.0f; ///< 0..1 high-band envelope boost
         float vocoderScGainDb = 0.0f;  ///< sidechain modulator gain in dB
+        float vocoderReleaseMs = 40.0f; ///< envelope follower release (5..250 ms)
 
         // -- Limiter (lookahead, sliding-window-minimum gain -- true no-overshoot) --
         float limiterCeilingDb = -0.3f;

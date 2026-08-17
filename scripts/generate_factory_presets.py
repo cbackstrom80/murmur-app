@@ -938,6 +938,44 @@ CATEGORIES = {
 COUNT_PER_CATEGORY = 50
 
 
+def _load_retag_module():
+    import importlib.util
+
+    path = REPO_ROOT / "scripts" / "retag_factory_presets.py"
+    spec = importlib.util.spec_from_file_location("retag_factory_presets", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _derive_factory_moods(category, tags, name, description):
+    mod = _load_retag_module()
+    meta = {
+        "category": category,
+        "tags": tags,
+        "name": name,
+        "description": description,
+        "moods": [],
+        "genres": ["factory"],
+    }
+    updated = mod.retag_metadata(meta)
+    return updated["moods"] if updated else mod.CATEGORY_MOODS.get(category, ["evolving"])
+
+
+def _derive_factory_genres(category, tags, name, description):
+    mod = _load_retag_module()
+    meta = {
+        "category": category,
+        "tags": tags,
+        "name": name,
+        "description": description,
+        "moods": [],
+        "genres": ["factory"],
+    }
+    updated = mod.retag_metadata(meta)
+    return updated["genres"] if updated else ["factory", category]
+
+
 def main():
     manifest = []
     global GLOBAL_USED_NAMES
@@ -974,11 +1012,13 @@ def main():
             full_name = f"{name.upper()}"
             patch = build_patch(
                 name=full_name, description=desc, category=cat_key,
-                moods=[cat_label.lower()], tags=patch_tags,
+                moods=_derive_factory_moods(cat_key, patch_tags, full_name, desc),
+                tags=patch_tags,
                 seed=seed, operators=ops, ampEnv=ampEnv, filter1=filter1, lfo1=lfo1, lfo2=lfo2,
                 modRoutes=modRoutes, insertEffects=insert, masterEffects=master, macroNames=macroNames,
                 arpeggiator=arpeggiator,
             )
+            patch["metadata"]["genres"] = _derive_factory_genres(cat_key, patch_tags, full_name, desc)
             fname = f"{i+1:02d}-{name.lower().replace(' ', '-')}.pw8"
             path = f"{out_dir}/{fname}"
             with open(path, "w") as f:

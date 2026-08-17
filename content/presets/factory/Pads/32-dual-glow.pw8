@@ -7,16 +7,26 @@
     "description": "Factory Pad patch #32. Engines: Classic, Wavetable, FM/PM. Procedurally generated (seed 1721992722) as part of the 250-patch factory content bank. Archetype: formant choir pad with brass-pad hybrid character.",
     "category": "pad",
     "moods": [
-      "pads"
+      "dreamy",
+      "lush",
+      "warm",
+      "cinematic",
+      "organic"
     ],
     "genres": [
+      "cinematic",
+      "score",
+      "ambient-bed",
+      "electronic",
       "factory"
     ],
     "tags": [
       "factory",
       "pad",
       "formant-choir",
-      "brass-pad"
+      "brass-pad",
+      "dreamy",
+      "lush"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

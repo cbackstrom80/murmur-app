@@ -7,16 +7,24 @@
     "description": "Factory Pad patch #39. Engines: Classic, Additive, PhaseShape. Procedurally generated (seed 907213292) as part of the 250-patch factory content bank. Archetype: evolving wavetable pad with poly sweet chorus pad character.",
     "category": "pad",
     "moods": [
-      "pads"
+      "evolving",
+      "airy",
+      "warm",
+      "lush",
+      "dreamy"
     ],
     "genres": [
+      "ambient-bed",
+      "electronic",
       "factory"
     ],
     "tags": [
       "factory",
       "pad",
       "wt-evolve",
-      "poly-sweet"
+      "poly-sweet",
+      "evolving",
+      "airy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

@@ -7,15 +7,23 @@
     "description": "Factory Sequence patch #20. Engines: Classic, FM/PM. Procedurally generated (seed 1092705338) as part of the 250-patch factory content bank. Archetype: chord stab sequence.",
     "category": "seq",
     "moods": [
-      "sequences"
+      "punchy",
+      "aggressive",
+      "evolving",
+      "bright",
+      "digital"
     ],
     "genres": [
+      "electronic",
+      "techno",
       "factory"
     ],
     "tags": [
       "factory",
       "seq",
-      "stab-seq"
+      "stab-seq",
+      "punchy",
+      "aggressive"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

@@ -7,15 +7,22 @@
     "description": "Factory Lead patch #24. Engines: Classic. Procedurally generated (seed 247824790) as part of the 250-patch factory content bank. Archetype: 8-bit square lead.",
     "category": "lead",
     "moods": [
-      "leads"
+      "digital",
+      "bright",
+      "aggressive"
     ],
     "genres": [
+      "electronic",
+      "game",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "lead",
-      "chip-lead"
+      "chip-lead",
+      "digital",
+      "bright"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

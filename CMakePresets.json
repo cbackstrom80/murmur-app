@@ -92,6 +92,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_OSX_ARCHITECTURES": "arm64",
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "13.0",
         "PW8_BUILD_TESTS": "OFF",
         "PW8_BUILD_TOOLS": "OFF",
         "PW8_BUILD_PLUGIN": "ON"
@@ -105,6 +106,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_OSX_ARCHITECTURES": "arm64",
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "13.0",
         "PW8_BUILD_TESTS": "OFF",
         "PW8_BUILD_TOOLS": "OFF",
         "PW8_BUILD_PLUGIN": "OFF",

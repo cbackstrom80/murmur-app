@@ -97,7 +97,8 @@ namespace pw8::plugin::ui
     juce::Rectangle<int> SectionPanel::getContentBounds() const
     {
         auto bounds = getLocalBounds().reduced(kShadowMargin);
-        bounds.removeFromTop(kTitleHeight);
+        if (title_.isNotEmpty())
+            bounds.removeFromTop(kTitleHeight);
         return bounds.reduced(kPadding);
     }
 

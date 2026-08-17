@@ -7,16 +7,24 @@
     "description": "Factory Basse patch #01. Engines: Classic, NoiseChaos. Procedurally generated (seed 1635261524) as part of the 250-patch factory content bank. Archetype: mono growl bass with FM sub bass pulse character.",
     "category": "bass",
     "moods": [
-      "basses"
+      "dark",
+      "gritty",
+      "massive",
+      "punchy",
+      "aggressive"
     ],
     "genres": [
+      "electronic",
+      "sound-design",
       "factory"
     ],
     "tags": [
       "factory",
       "bass",
       "mono-growl",
-      "fm-sub"
+      "fm-sub",
+      "dark",
+      "gritty"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

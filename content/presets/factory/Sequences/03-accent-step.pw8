@@ -7,16 +7,23 @@
     "description": "Factory Sequence patch #03. Engines: Classic, Resonator. Procedurally generated (seed 1815939330) as part of the 250-patch factory content bank. Archetype: sync oscillator sequence with FM pluck sequence character.",
     "category": "seq",
     "moods": [
-      "sequences"
+      "bright",
+      "punchy",
+      "evolving"
     ],
     "genres": [
+      "electronic",
+      "techno",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "seq",
       "sync-seq",
-      "fm-pluck"
+      "fm-pluck",
+      "bright",
+      "punchy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

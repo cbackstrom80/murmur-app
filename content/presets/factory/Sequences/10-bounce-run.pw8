@@ -7,16 +7,23 @@
     "description": "Factory Sequence patch #10. Engines: Classic, Wavetable. Procedurally generated (seed 3148643548) as part of the 250-patch factory content bank. Archetype: sync oscillator sequence with gated 80s pulse sequence character.",
     "category": "seq",
     "moods": [
-      "sequences"
+      "bright",
+      "punchy",
+      "evolving"
     ],
     "genres": [
+      "electronic",
+      "techno",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "seq",
       "sync-seq",
-      "gated-80s"
+      "gated-80s",
+      "bright",
+      "punchy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

@@ -25,6 +25,7 @@ add_executable(pw8_tests
     dsp/ResonatorOscillatorTests.cpp
     dsp/GranularOscillatorTests.cpp
     dsp/SyncEdgeTests.cpp
+    dsp/SidechainFollowerTests.cpp
     unit/AlgorithmGraphCompilerTests.cpp
     unit/AlgorithmGraphCommitTests.cpp
     unit/ContentPathsTests.cpp
@@ -36,6 +37,7 @@ add_executable(pw8_tests
     unit/WavetableTableTests.cpp
     unit/ArpeggiatorTests.cpp
     unit/EffectsTests.cpp
+    unit/ExternalEngineTests.cpp
     unit/EngineMacroLiveUpdateTests.cpp
     unit/EngineLiveParamsTests.cpp
     unit/MacroKoinTests.cpp

@@ -8,32 +8,6 @@
 
 namespace pw8::plugin::ui
 {
-    namespace
-    {
-        juce::String performanceHintFromDescription(const std::string& description)
-        {
-            if (description.empty())
-                return {};
-
-            juce::String text = juce::String::fromUTF8(description.data(), static_cast<int>(description.size())).trim();
-            int end = -1;
-            for (int i = 0; i < text.length(); ++i)
-            {
-                const juce::juce_wchar c = text[i];
-                if (c == '.' || c == '!' || c == '?')
-                {
-                    end = i;
-                    break;
-                }
-            }
-
-            juce::String hint = end >= 0 ? text.substring(0, end + 1).trim() : text;
-            if (hint.length() > 72)
-                hint = hint.substring(0, 69).trimEnd() + "...";
-            return hint;
-        }
-    } // namespace
-
     CompactModeEditor::CompactModeEditor(PatchworkEightProcessor& processor)
         : processor_(processor),
           circularScope_(processor),
@@ -86,10 +60,7 @@ namespace pw8::plugin::ui
 
         juce::String category;
         if (const auto presetPath = processor_.getCurrentPresetPath(); presetPath.isNotEmpty())
-        {
-            const juce::File presetFile(presetPath);
-            category = presetFile.getParentDirectory().getFileName();
-        }
+            category = juce::File(presetPath).getParentDirectory().getFileName();
         if (category.isEmpty())
             category = "Factory";
         missionCategoryLabel_.setText(category.toUpperCase(), juce::dontSendNotification);
@@ -135,7 +106,7 @@ namespace pw8::plugin::ui
 
     void CompactModeEditor::paint(juce::Graphics& g)
     {
-        auto card = juce::Rectangle<int>(8, 4, getWidth() - 16, layout::kCompactHeaderHeight + 38).toFloat();
+        auto card = juce::Rectangle<int>(8, 4, getWidth() - 16, layout::kCompactMissionCardHeight).toFloat();
         g.setColour(palette::kPanel.withAlpha(0.55f));
         g.fillRoundedRectangle(card, 6.0f);
         g.setColour(palette::kAccentWarm.withAlpha(0.28f));
@@ -149,7 +120,7 @@ namespace pw8::plugin::ui
     {
         auto bounds = getLocalBounds().reduced(layout::kCompactOuterMargin);
 
-        auto missionCard = bounds.removeFromTop(layout::kCompactHeaderHeight + 38);
+        auto missionCard = bounds.removeFromTop(layout::kCompactMissionCardHeight);
         auto navRow = missionCard.removeFromTop(layout::kCompactHeaderHeight);
         prevButton_.setBounds(navRow.removeFromLeft(26).reduced(1, 4));
         nextButton_.setBounds(navRow.removeFromRight(26).reduced(1, 4));

@@ -7,15 +7,23 @@
     "description": "Factory Pad patch #43. Engines: Classic, Wavetable, FM/PM, PhaseShape, NoiseChaos. Procedurally generated (seed 1333592642) as part of the 250-patch factory content bank. Archetype: evolving wavetable pad.",
     "category": "pad",
     "moods": [
-      "pads"
+      "evolving",
+      "airy",
+      "dreamy",
+      "lush"
     ],
     "genres": [
+      "ambient-bed",
+      "electronic",
+      "meditation",
       "factory"
     ],
     "tags": [
       "factory",
       "pad",
-      "wt-evolve"
+      "wt-evolve",
+      "evolving",
+      "airy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

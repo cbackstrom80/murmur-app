@@ -1,0 +1,9 @@
+{
+  "chip": 4,
+  "name": "ETHEREAL AIR",
+  "modePill": "ETHEREAL",
+  "params": {
+    "Mix": 0.38
+  },
+  "uiKnobs": [0.42, 0.72, 0.62, 0.35, 0.18, 0.5]
+}

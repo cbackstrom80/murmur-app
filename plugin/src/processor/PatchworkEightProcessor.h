@@ -103,6 +103,13 @@ namespace pw8::plugin
         /// fail the whole patch, that operator just renders silence" contract.
         bool setOperatorWavetableFile(std::size_t opIndex, const juce::String& filePath);
 
+        /// Message-thread: assign the first factory wavetable when an operator uses
+        /// Wavetable/Granular but has no `wavetableId`. Returns true if a table was loaded.
+        bool ensureOperatorWavetableLoaded(std::size_t opIndex);
+
+        /// Message-thread: runs `ensureOperatorWavetableLoaded` for every operator that needs one.
+        void ensureDefaultWavetablesForPatch();
+
         /// Message-thread only: pull every automatable APVTS field into `currentPatch_`
         /// so UI edits (engine pills, knobs) and patch-only fields (wavetableId) stay
         /// aligned before a reload or save.
@@ -111,9 +118,15 @@ namespace pw8::plugin
         /// Message-thread only: sync algorithm node engines from operators and notify UI.
         void notifyPatchMetadataChanged() noexcept;
 
+        /// Message-thread only: silence all voices immediately (UI panic).
+        void panicAllNotes() noexcept;
+
         /// Swap two adjacent effect slots within the layer insert chain (0..2) or
         /// master chain (0..3). Message-thread only; reloads the engine.
         bool swapEffectSlots(bool masterChain, std::size_t indexA, std::size_t indexB);
+
+        /// Apply Design FX signal-chain display order to engine insert/master process permutations.
+        bool applyFxProcessOrderFromChipDisplay(const std::array<std::size_t, 12>& chipDisplayOrder);
 
         /// Message-thread only (JUCE guarantees editor construction/paint/resize all
         /// run on the message thread, the same thread every currentPatch_ mutation
@@ -173,6 +186,9 @@ namespace pw8::plugin
 
         /// Message-thread only: toggle step enabled/rest and push to live engine.
         void toggleArpStepEnabled(std::size_t stepIndex) noexcept;
+        void toggleArpStepAccent(std::size_t stepIndex) noexcept;
+        void cycleArpStepRatchet(std::size_t stepIndex) noexcept;
+        void setAllArpStepsGate(float gate01) noexcept;
 
         /// Message-thread only: pull mono mix samples for header spectrum scope.
         [[nodiscard]] int readScopeSamples(float* dest, int maxSamples) noexcept { return scopeAudioTap_.readMono(dest, maxSamples); }
@@ -208,6 +224,39 @@ namespace pw8::plugin
             if (slot >= kNumInsertFxSlots)
                 return 0.0f;
             return insertCompressorGrDb_[slot].load(std::memory_order_relaxed);
+        }
+
+        /// Message-thread read of audio-thread CPU estimate (0..100, smoothed block time ratio).
+        [[nodiscard]] float getCpuLoadPercent() const noexcept
+        {
+            return cpuLoadPercent_.load(std::memory_order_relaxed);
+        }
+
+        /// Message-thread read of currently active voices (gate on or releasing).
+        [[nodiscard]] int getActiveVoiceCount() const noexcept
+        {
+            return activeVoiceCount_.load(std::memory_order_relaxed);
+        }
+
+        /// Synth bus peak (post-voice, pre-insert FX), linear 0..1.
+        [[nodiscard]] float getSynthBusPeakLinear() const noexcept
+        {
+            const auto* engine = activeEngine_.load(std::memory_order_acquire);
+            return engine != nullptr ? engine->getSynthBusPeakLinear() : 0.0f;
+        }
+
+        /// Master output peak (post FX chain), linear 0..1.
+        [[nodiscard]] float getMasterOutPeakLinear() const noexcept
+        {
+            const auto* engine = activeEngine_.load(std::memory_order_acquire);
+            return engine != nullptr ? engine->getMasterOutPeakLinear() : 0.0f;
+        }
+
+        /// Per-engine audio peak for PLAY board meters. Linear; compare to level param range 0..4.
+        [[nodiscard]] float getOperatorPeakLinear(std::size_t opIndex) const noexcept
+        {
+            const auto* engine = activeEngine_.load(std::memory_order_acquire);
+            return engine != nullptr ? engine->getOperatorPeakLinear(opIndex) : 0.0f;
         }
 
         /// Message-thread mod preview for UI ghost rings (macros, MW, LFO layer tick).
@@ -304,6 +353,7 @@ namespace pw8::plugin
         std::array<std::array<std::atomic<float>*, kNumLfoFields>, kNumLfos> lfoParamPointers_{};
         std::array<std::array<std::atomic<float>*, kNumOperatorFields>, kNumOperators> operatorParamPointers_{};
         std::array<std::array<std::atomic<float>*, kNumOperatorFilterFields>, kNumOperators> operatorFilterParamPointers_{};
+        std::array<std::array<std::atomic<float>*, kNumOperatorMixFields>, kNumOperators> operatorMixParamPointers_{};
         std::array<std::array<std::atomic<float>*, kNumEnvelopeFields>, kNumEnvelopes> envelopeParamPointers_{};
         std::atomic<float>* layerGainPointer_ = nullptr;
         std::atomic<float>* layerPanPointer_ = nullptr;
@@ -311,6 +361,15 @@ namespace pw8::plugin
         std::array<std::array<std::atomic<float>*, kNumEffectSlotFields>, kNumInsertFxSlots> insertFxParamPointers_{};
         std::array<std::array<std::atomic<float>*, kNumEffectSlotFields>, kNumMasterFxSlots> masterFxParamPointers_{};
         std::array<std::atomic<float>*, kNumArpFields> arpParamPointers_{};
+        std::atomic<float>* unisonVoicesPointer_ = nullptr;
+        std::atomic<float>* unisonDetunePointer_ = nullptr;
+        std::atomic<float>* unisonSpreadPointer_ = nullptr;
+        std::atomic<float>* unisonPhaseRandomPointer_ = nullptr;
+        std::atomic<float>* fxRoutingPrePostPointer_ = nullptr;
+        std::atomic<float>* fxGlobalBypassPointer_ = nullptr;
+        std::atomic<float>* fxGlobalWetMixPointer_ = nullptr;
+        std::atomic<float>* fxSendAPointer_ = nullptr;
+        std::atomic<float>* fxSendBPointer_ = nullptr;
         std::atomic<float>* modWheelParamPointer_ = nullptr;
         std::atomic<float> mirroredModWheel_{0.0f};
         std::atomic<float>* expressionParamPointer_ = nullptr;
@@ -318,10 +377,17 @@ namespace pw8::plugin
         std::atomic<float>* morphPositionPointer_ = nullptr;
 
         ::pw8::dsp::SidechainFollower sidechainFollower_{};
+        /// Sidechain bus samples copied here before `buffer.clear()` — AU/VST3 synths
+        /// share the process buffer with the sidechain input bus, so clearing output
+        /// would zero the modulator if we only held pointers into `buffer`.
+        juce::AudioBuffer<float> sidechainScratch_;
         std::atomic<bool> sidechainActive_{false};
         std::atomic<float> sidechainLevel_{0.0f};
         std::array<std::atomic<float>, kNumInsertFxSlots> insertCompressorGrDb_{};
         std::array<std::atomic<float>, kNumMasterFxSlots> masterCompressorGrDb_{};
+        std::atomic<float> cpuLoadPercent_{0.0f};
+        std::atomic<int> activeVoiceCount_{0};
+        float cpuLoadSmootherState_ = 0.0f;
         std::array<lfo::Lfo, kNumLfos> modPreviewLfos_{};
 
         /// Tracks host transport so we can all-sound-off when playback stops (Logic rarely

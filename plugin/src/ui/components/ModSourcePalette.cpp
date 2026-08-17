@@ -3,6 +3,8 @@
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 
+#include <juce_audio_processors/juce_audio_processors.h>
+
 namespace pw8::plugin::ui
 {
     ModSourcePalette::ModSourcePalette(ModAssignmentController& controller)
@@ -18,7 +20,7 @@ namespace pw8::plugin::ui
         viewport_.setScrollBarsShown(true, false);
         addAndMakeVisible(viewport_);
 
-        const std::vector<ChipSpec> specs = {
+        std::vector<ChipSpec> specs = {
             {modulation::ModSource::Lfo1, "LFO 1", palette::kModLfo},
             {modulation::ModSource::Lfo2, "LFO 2", palette::kModLfo},
             {modulation::ModSource::Lfo3, "LFO 3", palette::kModLfo},
@@ -38,6 +40,10 @@ namespace pw8::plugin::ui
             {modulation::ModSource::Macro7, "M7", palette::kModMacro},
             {modulation::ModSource::Macro8, "M8", palette::kModMacro},
         };
+
+#if JucePlugin_Build_AU
+        specs.push_back({modulation::ModSource::Sidechain, "SC", palette::kMurmurViolet});
+#endif
 
         for (const auto& spec : specs)
         {

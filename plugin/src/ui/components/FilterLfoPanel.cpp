@@ -1,8 +1,10 @@
 #include "FilterLfoPanel.h"
 
+#include "../PlayModeLayout.h"
 #include "../theme/BrandingAssets.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
+#include "LabLauncherChip.h"
 #include "state/PluginState.h"
 
 namespace pw8::plugin::ui
@@ -19,6 +21,19 @@ namespace pw8::plugin::ui
                 case 3: return "NOTCH";
                 case 4: return "PEAK";
                 default: return juce::String(v);
+            }
+        }
+
+        juce::String filterModeChipText(float v)
+        {
+            switch (static_cast<int>(v))
+            {
+                case 0: return "LP4";
+                case 1: return "HP4";
+                case 2: return "BP4";
+                case 3: return "NOTCH";
+                case 4: return "PEAK";
+                default: return filterModeToText(v);
             }
         }
 
@@ -90,7 +105,44 @@ namespace pw8::plugin::ui
         addAndMakeVisible(scopeFrame_);
         scopeFrame_.addAndMakeVisible(filterScope_);
 
+        lfoLabChip_ = std::make_unique<LabLauncherChip>();
+        lfoLabChip_->setLabel("LFO 1·2 →");
+        lfoLabChip_->setAccentColour(juce::Colour(0xff9f80ff));
+        lfoLabChip_->setIcon(LabLauncherIcon::Lfo);
+        lfoLabChip_->onClick = [this] {
+            if (onLfoLabRequested)
+                onLfoLabRequested();
+        };
+        lfoLabChip_->setVisible(false);
+        addAndMakeVisible(*lfoLabChip_);
+
+        filterModeChipLabel_.setFont(fonts::label(8.0f));
+        filterModeChipLabel_.setColour(juce::Label::textColourId, palette::kTextDim);
+        filterModeChipLabel_.setJustificationType(juce::Justification::centredLeft);
+        filterModeChipLabel_.setVisible(false);
+        addAndMakeVisible(filterModeChipLabel_);
+
+        filterSlopeChipLabel_.setFont(fonts::label(7.0f));
+        filterSlopeChipLabel_.setColour(juce::Label::textColourId, palette::kAccent);
+        filterSlopeChipLabel_.setJustificationType(juce::Justification::centredRight);
+        filterSlopeChipLabel_.setVisible(false);
+        addAndMakeVisible(filterSlopeChipLabel_);
+
         setScope(FilterPanelScope::Global, 0);
+    }
+
+    void FilterLfoPanel::setDashboardMode(bool dashboardMode)
+    {
+        dashboardMode_ = dashboardMode;
+        lfoLabChip_->setVisible(dashboardMode_ && scope_ == FilterPanelScope::Global);
+        filterModeChipLabel_.setVisible(dashboardMode_ && scope_ == FilterPanelScope::Global);
+        filterSlopeChipLabel_.setVisible(dashboardMode_ && scope_ == FilterPanelScope::Global);
+        lfoPanel_.setVisible(!dashboardMode_ && scope_ == FilterPanelScope::Global);
+        filter2Panel_.setVisible(!dashboardMode_ && scope_ == FilterPanelScope::Global);
+        modSourcePalette_.setVisible(!dashboardMode_);
+        scopeFrame_.setVisible(!dashboardMode_);
+        filterWireframe_.setVisible(!dashboardMode_);
+        resized();
     }
 
     void FilterLfoPanel::setScope(FilterPanelScope scope, int engineIndex)
@@ -98,11 +150,16 @@ namespace pw8::plugin::ui
         scope_ = scope;
         engineIndex_ = juce::jlimit(0, 7, engineIndex);
         rebuildAttachments();
-        lfoPanel_.setVisible(scope_ == FilterPanelScope::Global);
-        filter2Panel_.setVisible(scope_ == FilterPanelScope::Global);
+        lfoPanel_.setVisible(!dashboardMode_ && scope_ == FilterPanelScope::Global);
+        filter2Panel_.setVisible(!dashboardMode_ && scope_ == FilterPanelScope::Global);
         filterPanel_.setTitle(scope_ == FilterPanelScope::Global
-                                  ? "Global Filter"
+                                  ? (dashboardMode_ ? "Global Filter" : "Global Filter")
                                   : "Engine " + juce::String(engineIndex_) + " Filter");
+        lfoLabChip_->setVisible(dashboardMode_ && scope_ == FilterPanelScope::Global);
+        filterModeChipLabel_.setVisible(dashboardMode_ && scope_ == FilterPanelScope::Global);
+        filterSlopeChipLabel_.setVisible(dashboardMode_ && scope_ == FilterPanelScope::Global);
+        filterWireframe_.setVisible(!dashboardMode_);
+        modSourcePalette_.setVisible(!dashboardMode_);
         resized();
         repaint();
     }
@@ -202,45 +259,88 @@ namespace pw8::plugin::ui
 
         g.setColour(branding::glowColour().withAlpha(0.06f));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), 8.0f);
+
+        if (dashboardMode_ && !modeChipBounds_.isEmpty())
+        {
+            for (const auto& chip : {modeChipBounds_, slopeChipBounds_})
+            {
+                if (chip.isEmpty())
+                    continue;
+                g.setColour(palette::kBackgroundTop);
+                g.fillRoundedRectangle(chip.toFloat(), 4.0f);
+                g.setColour(palette::kBorder);
+                g.drawRoundedRectangle(chip.toFloat().reduced(0.5f), 4.0f, 0.9f);
+            }
+        }
     }
 
     void FilterLfoPanel::resized()
     {
         auto bounds = getLocalBounds();
 
-        auto scopeRow = bounds.removeFromBottom(64);
-        scopeFrame_.setBounds(scopeRow.reduced(4, 2));
-        filterScope_.setBounds(scopeFrame_.getContentBounds());
+        if (!dashboardMode_)
+        {
+            auto scopeRow = bounds.removeFromBottom(64);
+            scopeFrame_.setBounds(scopeRow.reduced(4, 2));
+            filterScope_.setBounds(scopeFrame_.getContentBounds());
 
-        auto paletteRow = bounds.removeFromTop(30);
-        modSourcePalette_.setBounds(paletteRow.reduced(4, 2));
-        bounds.removeFromTop(4);
+            auto paletteRow = bounds.removeFromTop(30);
+            modSourcePalette_.setBounds(paletteRow.reduced(4, 2));
+            bounds.removeFromTop(4);
+        }
+        else
+        {
+            scopeFrame_.setBounds({});
+            modSourcePalette_.setBounds({});
+        }
 
         if (scope_ == FilterPanelScope::Global)
         {
-            auto filter2Row = bounds.removeFromBottom(88);
-            filter2Panel_.setBounds(filter2Row.reduced(4, 0));
+            if (!dashboardMode_)
             {
-                auto content = filter2Panel_.getContentBounds().reduced(4, 0);
-                auto enableRow = content.removeFromTop(32);
-                const int ringSize = 28;
-                filter2EnabledButton_->setBounds(enableRow.removeFromLeft(ringSize + 6).withSizeKeepingCentre(ringSize, ringSize));
-                filter2EnabledLabel_.setBounds(enableRow.removeFromLeft(72));
-                const int knobWidth = content.getWidth() / 4;
-                if (filter2Cutoff_)
-                    filter2Cutoff_->setBounds(content.removeFromLeft(knobWidth).reduced(4));
-                if (filter2Resonance_)
-                    filter2Resonance_->setBounds(content.removeFromLeft(knobWidth).reduced(4));
-                if (filter2Drive_)
-                    filter2Drive_->setBounds(content.removeFromLeft(knobWidth).reduced(4));
-                if (filter2KeyTrack_)
-                    filter2KeyTrack_->setBounds(content.removeFromLeft(knobWidth).reduced(4));
+                auto filter2Row = bounds.removeFromBottom(88);
+                filter2Panel_.setBounds(filter2Row.reduced(4, 0));
+                {
+                    auto content = filter2Panel_.getContentBounds().reduced(4, 0);
+                    auto enableRow = content.removeFromTop(32);
+                    const int ringSize = 28;
+                    filter2EnabledButton_->setBounds(enableRow.removeFromLeft(ringSize + 6).withSizeKeepingCentre(ringSize, ringSize));
+                    filter2EnabledLabel_.setBounds(enableRow.removeFromLeft(72));
+                    const int knobWidth = content.getWidth() / 4;
+                    if (filter2Cutoff_)
+                        filter2Cutoff_->setBounds(content.removeFromLeft(knobWidth).reduced(4));
+                    if (filter2Resonance_)
+                        filter2Resonance_->setBounds(content.removeFromLeft(knobWidth).reduced(4));
+                    if (filter2Drive_)
+                        filter2Drive_->setBounds(content.removeFromLeft(knobWidth).reduced(4));
+                    if (filter2KeyTrack_)
+                        filter2KeyTrack_->setBounds(content.removeFromLeft(knobWidth).reduced(4));
+                }
+                bounds.removeFromBottom(4);
             }
-            bounds.removeFromBottom(4);
 
-            const int half = bounds.getWidth() / 2;
-            filterPanel_.setBounds(bounds.removeFromLeft(half).reduced(4, 0));
-            lfoPanel_.setBounds(bounds.reduced(4, 0));
+            if (dashboardMode_)
+            {
+                auto chipCol = bounds.removeFromRight(juce::jmax(110, bounds.getWidth() / 3)).reduced(4, 0);
+                lfoLabChip_->setBounds(chipCol.removeFromTop(layout::kLabChipHeight).reduced(0, 2));
+                chipCol.removeFromTop(6);
+                modeChipBounds_ = chipCol.removeFromTop(26).reduced(0, 2);
+                slopeChipBounds_ = chipCol.removeFromTop(26).reduced(0, 2);
+                filterModeChipLabel_.setBounds(modeChipBounds_.reduced(8, 0));
+                filterSlopeChipLabel_.setBounds(slopeChipBounds_.reduced(8, 0));
+                if (auto* modeRaw = processor_.apvts.getRawParameterValue(juce::String(kFilterIdPrefix) + "Mode"))
+                {
+                    filterModeChipLabel_.setText("MODE: " + filterModeChipText(modeRaw->load()), juce::dontSendNotification);
+                    filterSlopeChipLabel_.setText("SLOPE: 24dB", juce::dontSendNotification);
+                }
+                filterPanel_.setBounds(bounds.reduced(4, 0));
+            }
+            else
+            {
+                const int half = bounds.getWidth() / 2;
+                filterPanel_.setBounds(bounds.removeFromLeft(half).reduced(4, 0));
+                lfoPanel_.setBounds(bounds.reduced(4, 0));
+            }
         }
         else
         {
@@ -249,21 +349,38 @@ namespace pw8::plugin::ui
 
         {
             auto content = filterPanel_.getContentBounds();
-            auto wireBounds = content.removeFromLeft(static_cast<int>(content.getWidth() * 0.42f)).reduced(0, 2);
-            filterWireframe_.setBounds(wireBounds);
+            if (dashboardMode_ && scope_ == FilterPanelScope::Global)
+            {
+                content = content.reduced(4, 0);
+                const int knobWidth = content.getWidth() / 3;
+                filterToneKnob_->setMaxDialDiameter(layout::kDashboardGlobalFilterKnobSize);
+                filterKeyTrack_->setMaxDialDiameter(layout::kDashboardGlobalFilterKnobSize);
+                filterMode_->setMaxDialDiameter(layout::kDashboardGlobalFilterKnobSize);
+                filterToneKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(4));
+                filterKeyTrack_->setBounds(content.removeFromLeft(knobWidth).reduced(4));
+                filterMode_->setBounds(content.removeFromLeft(knobWidth).reduced(4));
+                filterEnabledButton_->setBounds({});
+                filterEnabledLabel_.setBounds({});
+                filterWireframe_.setBounds({});
+            }
+            else
+            {
+                auto wireBounds = content.removeFromLeft(static_cast<int>(content.getWidth() * 0.42f)).reduced(0, 2);
+                filterWireframe_.setBounds(wireBounds);
 
-            content = content.reduced(4, 0);
-            auto enableRow = content.removeFromTop(36);
-            const int ringSize = 30;
-            filterEnabledButton_->setBounds(enableRow.removeFromLeft(ringSize + 6).withSizeKeepingCentre(ringSize, ringSize));
-            filterEnabledLabel_.setBounds(enableRow.removeFromLeft(70));
+                content = content.reduced(4, 0);
+                auto enableRow = content.removeFromTop(36);
+                const int ringSize = 30;
+                filterEnabledButton_->setBounds(enableRow.removeFromLeft(ringSize + 6).withSizeKeepingCentre(ringSize, ringSize));
+                filterEnabledLabel_.setBounds(enableRow.removeFromLeft(70));
 
-            const int knobWidth = content.getWidth() / 3;
-            filterMode_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
-            filterToneKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
-            filterKeyTrack_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+                const int knobWidth = content.getWidth() / 3;
+                filterMode_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+                filterToneKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+                filterKeyTrack_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            }
         }
-        if (scope_ == FilterPanelScope::Global)
+        if (scope_ == FilterPanelScope::Global && !dashboardMode_)
         {
             auto content = lfoPanel_.getContentBounds();
             auto wireBounds = content.removeFromLeft(static_cast<int>(content.getWidth() * 0.42f)).reduced(0, 2);

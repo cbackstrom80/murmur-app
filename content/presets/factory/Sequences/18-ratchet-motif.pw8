@@ -7,16 +7,24 @@
     "description": "Factory Sequence patch #18. Engines: Classic. Procedurally generated (seed 4001402248) as part of the 250-patch factory content bank. Archetype: sync oscillator sequence with acid squelch sequence character.",
     "category": "seq",
     "moods": [
-      "sequences"
+      "bright",
+      "punchy",
+      "aggressive",
+      "evolving",
+      "gritty"
     ],
     "genres": [
+      "electronic",
+      "techno",
       "factory"
     ],
     "tags": [
       "factory",
       "seq",
       "sync-seq",
-      "acid-seq"
+      "acid-seq",
+      "bright",
+      "punchy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

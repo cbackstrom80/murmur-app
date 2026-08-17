@@ -7,16 +7,24 @@
     "description": "Factory Sequence patch #05. Engines: Classic. Procedurally generated (seed 3102870829) as part of the 250-patch factory content bank. Archetype: acid squelch sequence with chord stab sequence character.",
     "category": "seq",
     "moods": [
-      "sequences"
+      "aggressive",
+      "bright",
+      "punchy",
+      "evolving",
+      "gritty"
     ],
     "genres": [
+      "electronic",
+      "techno",
       "factory"
     ],
     "tags": [
       "factory",
       "seq",
       "acid-seq",
-      "stab-seq"
+      "stab-seq",
+      "aggressive",
+      "bright"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

@@ -7,16 +7,25 @@
     "description": "Factory Sequence patch #12. Engines: Classic, Wavetable. Procedurally generated (seed 2288091399) as part of the 250-patch factory content bank. Archetype: gated 80s pulse sequence with arp bell pluck sequence character.",
     "category": "seq",
     "moods": [
-      "sequences"
+      "punchy",
+      "bright",
+      "glassy",
+      "evolving",
+      "metallic"
     ],
     "genres": [
+      "electronic",
+      "pop",
+      "techno",
       "factory"
     ],
     "tags": [
       "factory",
       "seq",
       "gated-80s",
-      "arp-bell"
+      "arp-bell",
+      "punchy",
+      "bright"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

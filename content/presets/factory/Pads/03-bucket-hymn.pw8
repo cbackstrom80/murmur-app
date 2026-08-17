@@ -7,16 +7,23 @@
     "description": "Factory Pad patch #03. Engines: Classic, Additive, PhaseShape, NoiseChaos. Procedurally generated (seed 3214233425) as part of the 250-patch factory content bank. Archetype: poly sweet chorus pad.",
     "category": "pad",
     "moods": [
-      "pads"
+      "warm",
+      "lush",
+      "dreamy"
     ],
     "genres": [
+      "ambient-bed",
+      "electronic",
+      "meditation",
       "factory"
     ],
     "tags": [
       "factory",
       "pad",
       "poly-sweet",
-      "dissemination"
+      "dissemination",
+      "warm",
+      "lush"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

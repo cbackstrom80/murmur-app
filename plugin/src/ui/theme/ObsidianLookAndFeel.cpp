@@ -7,6 +7,7 @@
 #include "ObsidianFonts.h"
 #include "ObsidianPalette.h"
 #include "ObsidianRotary.h"
+#include "RadialGlowDraw.h"
 
 namespace pw8::plugin::ui
 {
@@ -65,7 +66,7 @@ namespace pw8::plugin::ui
         }
 
         draw::paintButtonFace(g, bounds, corner, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown, toggledOn,
-                              accent);
+                              toggledOn ? palette::kFigmaPillActive : accent);
     }
 
     juce::Font ObsidianLookAndFeel::getTextButtonFont(juce::TextButton& button, int buttonHeight)
@@ -200,6 +201,9 @@ namespace pw8::plugin::ui
         const float trackThickness = juce::jmax(2.0f, radius * (drawSatellites ? 0.068f : 0.058f));
         const float valueArcRadius = outerOnly ? orbitRadius : (innerRole ? bodyRadius * 0.92f : orbitRadius);
         const juce::Point<float> direction = rotary::unitDirectionAtAngle(angle);
+
+        if (!outerOnly && !innerRole)
+            radialglow::drawBackgroundHalo(g, centre, orbitRadius, accent.isTransparent() ? palette::kAccent : accent);
 
         if (outerOnly)
         {

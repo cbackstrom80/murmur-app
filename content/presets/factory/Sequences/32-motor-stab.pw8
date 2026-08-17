@@ -7,16 +7,25 @@
     "description": "Factory Sequence patch #32. Engines: Classic. Procedurally generated (seed 2371843388) as part of the 250-patch factory content bank. Archetype: sync oscillator sequence with arp bell pluck sequence character.",
     "category": "seq",
     "moods": [
-      "sequences"
+      "bright",
+      "punchy",
+      "glassy",
+      "evolving",
+      "metallic"
     ],
     "genres": [
+      "electronic",
+      "techno",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "seq",
       "sync-seq",
-      "arp-bell"
+      "arp-bell",
+      "bright",
+      "punchy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

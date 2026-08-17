@@ -1,0 +1,8 @@
+{
+  "chip": 6,
+  "name": "DUST CLOUD",
+  "params": {
+    "FractalMorph": 0.35,
+    "Mix": 0.5
+  }
+}

@@ -52,8 +52,9 @@ namespace pw8::effects
             const float wetR = highR_.renderSample(midR_.renderSample(lowR_.renderSample(inR)));
 
             const float mix = dsp::clamp(p.mix, 0.0f, 1.0f);
-            outL = dsp::lerp(inL, wetL, mix);
-            outR = dsp::lerp(inR, wetR, mix);
+            const float outGain = dsp::dbToGain(dsp::clamp(p.eqOutGainDb, -12.0f, 12.0f));
+            outL = dsp::lerp(inL, wetL, mix) * outGain;
+            outR = dsp::lerp(inR, wetR, mix) * outGain;
         }
 
     private:

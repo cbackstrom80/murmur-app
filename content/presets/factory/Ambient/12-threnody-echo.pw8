@@ -7,15 +7,23 @@
     "description": "Factory Ambient patch #12. Engines: Classic, Wavetable, Granular, NoiseChaos, Resonator. Procedurally generated (seed 2388271247) as part of the 250-patch factory content bank. Archetype: noise texture drone.",
     "category": "ambient",
     "moods": [
-      "ambient"
+      "dark",
+      "desolate",
+      "airy",
+      "evolving"
     ],
     "genres": [
+      "ambient-bed",
+      "sound-design",
+      "meditation",
       "factory"
     ],
     "tags": [
       "factory",
       "ambient",
-      "noise-drone"
+      "noise-drone",
+      "dark",
+      "desolate"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

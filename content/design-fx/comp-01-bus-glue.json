@@ -1,0 +1,11 @@
+{
+  "chip": 9,
+  "name": "BUS GLUE",
+  "modePill": "VCA",
+  "params": {
+    "CompThresholdDb": -18.0,
+    "CompRatio": 3.0,
+    "CompCharacter": 0,
+    "Mix": 1.0
+  }
+}

@@ -7,16 +7,25 @@
     "description": "Factory Lead patch #22. Engines: Classic, PhaseShape, NoiseChaos. Procedurally generated (seed 3255860587) as part of the 250-patch factory content bank. Archetype: dual-saw brass stab with 8-bit square lead character.",
     "category": "lead",
     "moods": [
-      "leads"
+      "punchy",
+      "bright",
+      "digital",
+      "aggressive"
     ],
     "genres": [
-      "factory"
+      "cinematic",
+      "score",
+      "electronic",
+      "game",
+      "pop"
     ],
     "tags": [
       "factory",
       "lead",
       "brass-stab",
-      "chip-lead"
+      "chip-lead",
+      "punchy",
+      "bright"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

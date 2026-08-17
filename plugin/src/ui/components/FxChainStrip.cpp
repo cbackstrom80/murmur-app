@@ -1,7 +1,9 @@
 #include "FxChainStrip.h"
 
+#include "../PlayModeLayout.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
+#include "LabLauncherChip.h"
 #include "state/PluginState.h"
 
 namespace pw8::plugin::ui
@@ -108,7 +110,7 @@ namespace pw8::plugin::ui
 
         typeRow_ = std::make_unique<MetadataFacetRow>("TYPE");
         typeRow_->setValues(
-            juce::StringArray{"SATUR", "CHORUS", "TAPE", "NODE", "FSHF", "FRACT", "REVERB", "EQ", "COMP", "LIMIT", "VOCODER"});
+            juce::StringArray{"SATUR", "CHORUS", "TAPE", "NODE", "FSHF", "FRACT", "REVERB", "EQ", "COMP", "LIMIT"});
         typeRow_->onChange = [this]() {
             const auto chip = typeRow_->getSelectedValue();
             if (chip.isEmpty())
@@ -116,6 +118,27 @@ namespace pw8::plugin::ui
             setSelectedEffectType(fxTypeOrdinalFromChipLabel(chip));
         };
         panel_.addAndMakeVisible(*typeRow_);
+
+        designModeRow_ = std::make_unique<MetadataFacetRow>("MODE");
+        designModeRow_->setVisible(false);
+        designModeRow_->onChange = [this]() {
+            const auto pill = designModeRow_->getSelectedValue();
+            if (pill.isEmpty())
+                return;
+            applyDesignModePill(pill);
+        };
+        panel_.addAndMakeVisible(*designModeRow_);
+
+        vocoderLabChip_ = std::make_unique<LabLauncherChip>();
+        vocoderLabChip_->setLabel("VOCODER LAB →");
+        vocoderLabChip_->setHighlighted(true);
+        vocoderLabChip_->setIcon(LabLauncherIcon::Vocoder);
+        vocoderLabChip_->setVisible(false);
+        vocoderLabChip_->onClick = [this]() {
+            if (onVocoderLabRequested)
+                onVocoderLabRequested(selectedSlotIndex_);
+        };
+        panel_.addAndMakeVisible(*vocoderLabChip_);
 
         slotTitleLabel_.setJustificationType(juce::Justification::centredLeft);
         slotTitleLabel_.setFont(fonts::label(12.0f));
@@ -213,6 +236,100 @@ namespace pw8::plugin::ui
 
     FxChainStrip::~FxChainStrip() { stopTimer(); }
 
+    void FxChainStrip::setPlayDashboardMode(bool dashboardMode)
+    {
+        if (designFxPageMode_)
+            return;
+
+        playDashboardMode_ = dashboardMode;
+        helpLabel_.setVisible(!playDashboardMode_);
+        wireframe_.setVisible(!playDashboardMode_);
+        swapLeft_.setVisible(!playDashboardMode_);
+        swapRight_.setVisible(!playDashboardMode_);
+        slotTitleLabel_.setVisible(!playDashboardMode_);
+        for (auto& slot : slots_)
+        {
+            slot.selector->setVisible(!playDashboardMode_);
+            slot.selectorLabel.setVisible(!playDashboardMode_);
+        }
+        panel_.setTitle(playDashboardMode_ ? "FX RACK" : "FX Chain — All 10 Algorithms Live");
+        updatePlayDashboardUi();
+        resized();
+    }
+
+    void FxChainStrip::setDesignFxPageMode(bool designMode)
+    {
+        designFxPageMode_ = designMode;
+        playDashboardMode_ = false;
+        helpLabel_.setVisible(false);
+        chainFlow_.setVisible(false);
+        wireframe_.setVisible(!designMode);
+        swapLeft_.setVisible(false);
+        swapRight_.setVisible(false);
+        slotTitleLabel_.setVisible(false);
+        if (typeRow_ != nullptr)
+            typeRow_->setVisible(!designMode);
+        if (designModeRow_ != nullptr)
+            designModeRow_->setVisible(designMode);
+        for (auto& slot : slots_)
+        {
+            slot.selector->setVisible(false);
+            slot.selectorLabel.setVisible(false);
+        }
+        panel_.setTitle("");
+        if (designMode)
+            rebuildDesignFxParamKnobs();
+        else
+            rebuildParamKnobs();
+        updatePlayDashboardUi();
+        resized();
+    }
+
+    void FxChainStrip::setDesignFxChipIndex(std::size_t chipIndex)
+    {
+        designFxChipIndex_ = chipIndex;
+        if (designFxPageMode_)
+        {
+            rebuildDesignFxParamKnobs();
+            syncDesignModeRowFromChip();
+            resized();
+        }
+    }
+
+    void FxChainStrip::setDesignFxUiState(DesignFxUiState* uiState)
+    {
+        designFxUiState_ = uiState;
+        if (designFxPageMode_)
+            rebuildDesignFxParamKnobs();
+    }
+
+    void FxChainStrip::selectEngineSlot(std::size_t index) { selectSlot(index); }
+
+    void FxChainStrip::updatePlayDashboardUi()
+    {
+        if (designFxPageMode_)
+        {
+            vocoderLabChip_->setVisible(designFxChipIndex_ == 11);
+            return;
+        }
+
+        if (!playDashboardMode_)
+        {
+            vocoderLabChip_->setVisible(false);
+            return;
+        }
+
+        const int type = readEffectType(apvts_, selectedSlot().paramPrefix);
+        const bool vocoderSlot = type == 11;
+        vocoderLabChip_->setVisible(vocoderSlot);
+        if (typeRow_ != nullptr)
+            typeRow_->setVisible(!vocoderSlot);
+        for (auto& knob : paramKnobs_)
+            knob->setVisible(!vocoderSlot);
+        if (mixKnob_ != nullptr)
+            mixKnob_->setVisible(!vocoderSlot && type != 0);
+    }
+
     void FxChainStrip::updateFlowPrefixes()
     {
         std::array<juce::String, 7> prefixes{};
@@ -271,6 +388,12 @@ namespace pw8::plugin::ui
 
     void FxChainStrip::rebuildParamKnobs()
     {
+        if (designFxPageMode_)
+        {
+            rebuildDesignFxParamKnobs();
+            return;
+        }
+
         paramKnobs_.clear();
         const auto& prefix = selectedSlot().paramPrefix;
         const int type = readEffectType(apvts_, prefix);
@@ -288,12 +411,167 @@ namespace pw8::plugin::ui
             paramKnobs_.push_back(std::move(knob));
         }
 
+        updatePlayDashboardUi();
         resized();
+    }
+
+    void FxChainStrip::rebuildDesignFxParamKnobs()
+    {
+        paramKnobs_.clear();
+        designKnobGrid_.clear();
+        for (auto& stub : designStubKnobs_)
+            stub.reset();
+
+        const auto& prefix = selectedSlot().paramPrefix;
+        const int type = readEffectType(apvts_, prefix);
+        const auto& spec = fxDesignSpecForChip(designFxChipIndex_);
+
+        if (mixKnob_ != nullptr)
+            mixKnob_->setVisible(false);
+
+        for (std::size_t i = 0; i < spec.knobs.size(); ++i)
+        {
+            const auto& def = spec.knobs[i];
+            if (def.fieldSuffix == nullptr || def.fieldSuffix[0] == '\0')
+            {
+                if (def.label != nullptr && def.label[0] != '\0')
+                {
+                    auto stub = std::make_unique<DesignFxStubKnob>(def.label);
+                    if (designFxUiState_ != nullptr)
+                        stub->setNormalizedValue(designFxUiState_->knobValue(designFxChipIndex_, i));
+                    const std::size_t chip = designFxChipIndex_;
+                    stub->onValueChanged = [this, chip, i](float value) {
+                        if (designFxUiState_ != nullptr)
+                            designFxUiState_->setKnobValue(chip, i, value);
+                        if (onDesignUiChanged)
+                            onDesignUiChanged();
+                    };
+                    panel_.addAndMakeVisible(*stub);
+                    designStubKnobs_[i] = std::move(stub);
+                }
+                designKnobGrid_.push_back(nullptr);
+                continue;
+            }
+
+            if (juce::String(def.fieldSuffix) == "Mix")
+            {
+                if (mixKnob_ != nullptr)
+                {
+                    mixKnob_->setVisible(type != 0);
+                    designKnobGrid_.push_back(mixKnob_.get());
+                }
+                else
+                    designKnobGrid_.push_back(nullptr);
+                continue;
+            }
+
+            auto knob = std::make_unique<GlowKnob>(apvts_, prefix + def.fieldSuffix, def.label);
+            auto* raw = knob.get();
+            panel_.addAndMakeVisible(*knob);
+            paramKnobs_.push_back(std::move(knob));
+            designKnobGrid_.push_back(raw);
+        }
+
+        syncDesignModeRowFromChip();
+        updatePlayDashboardUi();
+    }
+
+    void FxChainStrip::syncDesignModeRowFromChip()
+    {
+        if (designModeRow_ == nullptr)
+            return;
+
+        const auto& spec = fxDesignSpecForChip(designFxChipIndex_);
+        if (spec.modePillCount == 0)
+        {
+            designModeRow_->setVisible(false);
+            return;
+        }
+
+        juce::StringArray pills;
+        for (std::size_t i = 0; i < spec.modePillCount && i < spec.modePills.size(); ++i)
+        {
+            if (spec.modePills[i] != nullptr)
+                pills.add(spec.modePills[i]);
+        }
+        designModeRow_->setVisible(designFxPageMode_ && !pills.isEmpty());
+        designModeRow_->setValues(pills);
+
+        juce::String selected = pills.isEmpty() ? juce::String() : pills[0];
+        const auto& prefix = selectedSlot().paramPrefix;
+        if (designFxChipIndex_ == 1)
+            selected = saturationDesignPillFromCharacter(readIntParam(apvts_, prefix + "SaturationCharacter"));
+        else if (designFxChipIndex_ == 7)
+        {
+            const int character = readIntParam(apvts_, prefix + "ReverbCharacter");
+            const float modDepth = apvts_.getRawParameterValue(prefix + "ReverbModDepth") != nullptr
+                                       ? apvts_.getRawParameterValue(prefix + "ReverbModDepth")->load()
+                                       : 0.0f;
+            selected = reverbDesignPillFromCharacter(character, modDepth);
+        }
+        else if (designFxChipIndex_ == 9)
+            selected = compDesignPillFromCharacter(readIntParam(apvts_, prefix + "CompCharacter"));
+        else if (designFxChipIndex_ == 4 && designFxUiState_ != nullptr)
+            selected = designFxUiState_->moodPill();
+
+        if (!selected.isEmpty() && pills.contains(selected))
+            designModeRow_->setSelectedValue(selected);
+        else if (!pills.isEmpty())
+            designModeRow_->setSelectedValue(pills[0]);
+    }
+
+    void FxChainStrip::applyDesignModePill(const juce::String& pill)
+    {
+        const auto& prefix = selectedSlot().paramPrefix;
+
+        if (designFxChipIndex_ == 7)
+        {
+            setIntParam(apvts_, prefix + "ReverbCharacter", reverbCharacterFromDesignPill(pill));
+            if (pill == "SHIMMER")
+            {
+                if (auto* param = apvts_.getParameter(prefix + "ReverbModDepth"))
+                    param->setValueNotifyingHost(param->convertTo0to1(0.85f));
+                if (auto* param = apvts_.getParameter(prefix + "ReverbHighRatio"))
+                    param->setValueNotifyingHost(param->convertTo0to1(0.95f));
+            }
+        }
+        else if (designFxChipIndex_ == 1)
+            setIntParam(apvts_, prefix + "SaturationCharacter", saturationCharacterFromDesignPill(pill));
+        else if (designFxChipIndex_ == 9)
+            setIntParam(apvts_, prefix + "CompCharacter", compCharacterFromDesignPill(pill));
+        else if (designFxChipIndex_ == 4 && designFxUiState_ != nullptr)
+        {
+            designFxUiState_->setMoodPill(pill);
+            applyMoodKnobsToEq(apvts_, prefix, *designFxUiState_);
+        }
+
+        if (onDesignModeChanged)
+            onDesignModeChanged(pill);
     }
 
     void FxChainStrip::setSelectedEffectType(int typeOrdinal)
     {
         setEffectType(apvts_, selectedSlot().paramPrefix, typeOrdinal);
+        if (typeOrdinal == 11)
+        {
+            const juce::String prefix = selectedSlot().paramPrefix;
+            if (auto* raw = apvts_.getRawParameterValue(prefix + "VocoderScGainDb"))
+            {
+                if (raw->load() < 1.0f)
+                {
+                    if (auto* param = apvts_.getParameter(prefix + "VocoderScGainDb"))
+                        param->setValueNotifyingHost(param->convertTo0to1(18.0f));
+                }
+            }
+            if (auto* raw = apvts_.getRawParameterValue(prefix + "Mix"))
+            {
+                if (raw->load() < 0.05f)
+                {
+                    if (auto* param = apvts_.getParameter(prefix + "Mix"))
+                        param->setValueNotifyingHost(param->convertTo0to1(0.85f));
+                }
+            }
+        }
         if (typeOrdinal != 0)
             selectedSlot().lastEnabledType = typeOrdinal;
         enableButton_->setToggleState(typeOrdinal != 0, juce::dontSendNotification);
@@ -329,6 +607,7 @@ namespace pw8::plugin::ui
         swapLeft_.setEnabled(canSwapSelectedSlot(-1));
         swapRight_.setEnabled(canSwapSelectedSlot(1));
         updateGainReductionLabel();
+        updatePlayDashboardUi();
     }
 
     void FxChainStrip::syncTypeRowFromParams()
@@ -500,6 +779,7 @@ namespace pw8::plugin::ui
         slotTitleLabel_.setText(selectedSlot().shortLabel + " · " + fxPlaySpecForType(type).name,
                                 juce::dontSendNotification);
         enableButton_->setToggleState(type != 0, juce::dontSendNotification);
+        updatePlayDashboardUi();
         resized();
     }
 
@@ -534,6 +814,18 @@ namespace pw8::plugin::ui
         panel_.setBounds(getLocalBounds());
         auto content = panel_.getContentBounds();
 
+        if (designFxPageMode_)
+        {
+            resizedDesignFxPage(content);
+            return;
+        }
+
+        if (playDashboardMode_)
+        {
+            resizedDashboard(content);
+            return;
+        }
+
         helpLabel_.setBounds(content.removeFromTop(28));
         content.removeFromTop(4);
         chainFlow_.setBounds(content.removeFromTop(72));
@@ -562,6 +854,12 @@ namespace pw8::plugin::ui
         if (typeRow_ != nullptr)
             typeRow_->setBounds(main.removeFromTop(34));
         main.removeFromTop(4);
+
+        if (playDashboardMode_ && vocoderLabChip_->isVisible())
+        {
+            vocoderLabChip_->setBounds(main.removeFromTop(28).reduced(2));
+            main.removeFromTop(4);
+        }
 
         auto topRow = main.removeFromTop(36);
         const int enableSize = 32;
@@ -623,6 +921,207 @@ namespace pw8::plugin::ui
 
         if (showTrans && transAmountKnob_ != nullptr)
             transAmountKnob_->setBounds(main.removeFromTop(88).removeFromLeft(72).reduced(3));
+    }
+
+    void FxChainStrip::resizedDashboard(juce::Rectangle<int> content)
+    {
+        chainFlow_.setBounds(content.removeFromTop(layout::kFxChainFlowHeight));
+        content.removeFromTop(layout::kFxChainEditorGap);
+
+        auto editor = content.removeFromTop(layout::kFxSlotEditorHeight);
+
+        if (vocoderLabChip_->isVisible())
+        {
+            vocoderLabChip_->setBounds(editor.removeFromTop(layout::kLabChipHeight).reduced(2));
+            editor.removeFromTop(4);
+        }
+
+        if (typeRow_ != nullptr && typeRow_->isVisible())
+        {
+            typeRow_->setBounds(editor.removeFromTop(30));
+            editor.removeFromTop(4);
+        }
+
+        auto topRow = editor.removeFromTop(26);
+        const int enableSize = 26;
+        enableButton_->setBounds(topRow.removeFromLeft(enableSize + 4).withSizeKeepingCentre(enableSize, enableSize));
+
+        auto knobRow = editor;
+        const int knobCount = static_cast<int>(paramKnobs_.size()) + (mixKnob_ != nullptr && mixKnob_->isVisible() ? 1 : 0);
+        if (knobCount > 0)
+        {
+            const int knobH = juce::jmin(64, knobRow.getHeight());
+            knobRow = knobRow.removeFromTop(knobH);
+            const int knobW = knobRow.getWidth() / knobCount;
+            for (auto& knob : paramKnobs_)
+            {
+                if (knob->isVisible())
+                {
+                    knob->setMaxDialDiameter(juce::jmin(36, knobW - 4));
+                    knob->setBounds(knobRow.removeFromLeft(knobW).reduced(2));
+                }
+            }
+            if (mixKnob_ != nullptr && mixKnob_->isVisible())
+            {
+                mixKnob_->setMaxDialDiameter(juce::jmin(36, knobRow.getWidth() - 4));
+                mixKnob_->setBounds(knobRow.removeFromLeft(knobRow.getWidth()).reduced(2));
+            }
+        }
+
+        wireframe_.setBounds({});
+        slotTitleLabel_.setBounds({});
+        swapLeft_.setBounds({});
+        swapRight_.setBounds({});
+        if (transAmountKnob_ != nullptr)
+            transAmountKnob_->setBounds({});
+    }
+
+    void FxChainStrip::resizedDesignFxPage(juce::Rectangle<int> content)
+    {
+        wireframe_.setVisible(false);
+        if (typeRow_ != nullptr)
+            typeRow_->setVisible(false);
+        if (enableButton_ != nullptr)
+            enableButton_->setVisible(false);
+        if (compCharacterRow_ != nullptr)
+            compCharacterRow_->setVisible(false);
+        if (compAutoMakeupRow_ != nullptr)
+            compAutoMakeupRow_->setVisible(false);
+        if (transCoreRow_ != nullptr)
+            transCoreRow_->setVisible(false);
+        if (transBrandRow_ != nullptr)
+            transBrandRow_->setVisible(false);
+        if (delaySyncRow_ != nullptr)
+            delaySyncRow_->setVisible(false);
+        if (delayDivisionRow_ != nullptr)
+            delayDivisionRow_->setVisible(false);
+        grMeterLabel_.setVisible(false);
+
+        const bool eqSidebar = designFxChipIndex_ == 8;
+        auto controls = eqSidebar ? content : content.removeFromLeft(layout::kDesignFxPageDetailControlsWidth);
+
+        if (eqSidebar)
+        {
+            designKnobGridBounds_ = controls;
+            const int knobW = juce::jmin(controls.getWidth(), layout::kDesignFxPageDetailKnobWidth);
+            const int knobH = layout::kDesignFxPageDetailKnobHeight;
+            const int rowStep = knobH + 6;
+            std::size_t row = 0;
+
+            for (auto* knob : designKnobGrid_)
+            {
+                if (knob == nullptr || !knob->isVisible())
+                    continue;
+                knob->setMaxDialDiameter(juce::jmin(28, knobW - 4));
+                knob->setBounds(controls.getX(), controls.getY() + static_cast<int>(row) * rowStep, knobW, knobH);
+                ++row;
+            }
+
+            for (std::size_t i = 0; i < designStubKnobs_.size(); ++i)
+            {
+                if (designStubKnobs_[i] == nullptr)
+                    continue;
+                designStubKnobs_[i]->setBounds(controls.getX(), controls.getY() + static_cast<int>(row) * rowStep,
+                                               knobW, knobH);
+                ++row;
+            }
+
+            if (designModeRow_ != nullptr)
+                designModeRow_->setVisible(false);
+        }
+        else
+        {
+            designKnobGridBounds_ = controls.removeFromTop(layout::kDesignFxPageDetailKnobGridHeight);
+            auto knobGrid = designKnobGridBounds_;
+
+            const int knobW = layout::kDesignFxPageDetailKnobWidth;
+            const int knobH = layout::kDesignFxPageDetailKnobHeight;
+            const int colStep = knobW + layout::kDesignFxPageDetailKnobColGap;
+            const int rowStep = knobH + (layout::kDesignFxPageDetailKnobRowGap - knobH);
+
+            auto placeKnob = [&](GlowKnob* knob, std::size_t index) {
+                const int col = static_cast<int>(index % 3);
+                const int row = static_cast<int>(index / 3);
+                const juce::Rectangle<int> cell(knobGrid.getX() + col * colStep, knobGrid.getY() + row * rowStep, knobW,
+                                                knobH);
+
+                if (knob != nullptr && knob->isVisible())
+                {
+                    knob->setMaxDialDiameter(layout::kDesignFxPageDetailKnobDialSize);
+                    knob->setBounds(cell);
+                }
+                else if (index < designStubKnobs_.size() && designStubKnobs_[index] != nullptr)
+                    designStubKnobs_[index]->setBounds(cell);
+            };
+
+            for (std::size_t i = 0; i < designKnobGrid_.size(); ++i)
+                placeKnob(designKnobGrid_[i], i);
+
+            controls.removeFromTop(8);
+            if (designModeRow_ != nullptr && designModeRow_->isVisible())
+                designModeRow_->setBounds(controls.removeFromTop(layout::kDesignFxPageDetailModeStripHeight));
+        }
+
+        if (vocoderLabChip_ != nullptr && vocoderLabChip_->isVisible())
+            vocoderLabChip_->setBounds(controls.removeFromTop(layout::kLabChipHeight).reduced(0, 2));
+
+        chainFlow_.setBounds({});
+        helpLabel_.setBounds({});
+        slotTitleLabel_.setBounds({});
+        swapLeft_.setBounds({});
+        swapRight_.setBounds({});
+        wireframe_.setBounds({});
+        if (transAmountKnob_ != nullptr)
+            transAmountKnob_->setBounds({});
+    }
+
+    void FxChainStrip::paintOverChildren(juce::Graphics& g)
+    {
+        if (!designFxPageMode_ || designKnobGridBounds_.isEmpty())
+            return;
+
+        const auto& spec = fxDesignSpecForChip(designFxChipIndex_);
+        const int knobW = layout::kDesignFxPageDetailKnobWidth;
+        const int knobH = layout::kDesignFxPageDetailKnobHeight;
+        const int colStep = knobW + layout::kDesignFxPageDetailKnobColGap;
+        const int rowStep = knobH + (layout::kDesignFxPageDetailKnobRowGap - knobH);
+        const int dialSize = layout::kDesignFxPageDetailKnobDialSize;
+        const bool eqSidebar = designFxChipIndex_ == 8;
+
+        for (std::size_t i = 0; i < designKnobGrid_.size() && i < spec.knobs.size(); ++i)
+        {
+            if (designKnobGrid_[i] != nullptr || (i < designStubKnobs_.size() && designStubKnobs_[i] != nullptr))
+                continue;
+
+            juce::Rectangle<int> cell;
+            if (eqSidebar)
+            {
+                const int visibleBefore = static_cast<int>(std::count_if(
+                    designKnobGrid_.begin(), designKnobGrid_.begin() + static_cast<std::ptrdiff_t>(i),
+                    [](GlowKnob* knob) { return knob != nullptr && knob->isVisible(); }));
+                cell = juce::Rectangle<int>(designKnobGridBounds_.getX(),
+                                              designKnobGridBounds_.getY() + visibleBefore * (knobH + 6), knobW, knobH);
+            }
+            else
+            {
+                const int col = static_cast<int>(i % 3);
+                const int row = static_cast<int>(i / 3);
+                cell = juce::Rectangle<int>(designKnobGridBounds_.getX() + col * colStep,
+                                            designKnobGridBounds_.getY() + row * rowStep, knobW, knobH);
+            }
+            cell = getLocalArea(&panel_, cell);
+
+            const auto dial = juce::Rectangle<int>(cell.getCentreX() - dialSize / 2, cell.getY(), dialSize, dialSize);
+            g.setColour(palette::kPanel);
+            g.fillEllipse(dial.toFloat());
+            g.setColour(palette::kBorder.withAlpha(0.55f));
+            g.drawEllipse(dial.toFloat(), 1.0f);
+
+            g.setColour(palette::kTextDim.withAlpha(0.45f));
+            g.setFont(fonts::label(7.0f));
+            g.drawText(spec.knobs[i].label != nullptr ? spec.knobs[i].label : "",
+                       cell.removeFromTop(knobH).removeFromBottom(18), juce::Justification::centred);
+        }
     }
 
 } // namespace pw8::plugin::ui

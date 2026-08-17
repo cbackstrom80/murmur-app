@@ -80,6 +80,9 @@ namespace pw8::patch
         bool keyTrack = true;
         float level = 1.0f;
         float pan = 0.0f; ///< reserved for per-operator stereo placement (PLANNED).
+        bool mixEnabled = true;
+        bool mixMute = false;
+        bool mixSolo = false;
 
         // Engine Type 3 (FM/PM) only -- see op::OperatorParams's matching fields for
         // the full doc comment on what these mean.
@@ -132,6 +135,11 @@ namespace pw8::patch
         float wtSyncRatio = 1.0f;
         float wtSyncAmount = 0.0f;
         float wtFormantShift = 0.0f;
+        /// Wavetable frame morph mode (0=Spectral, 1=Formant, 2=Crossfade).
+        float wtMorphMode = 2.0f;
+
+        /// External engine input selector (0=AUD1, 1=AUD2, 2=S.CH, 3=RESMP) — op 0 only.
+        float externalInputSource = 0.0f;
 
         /// Optional per-engine multimode SVF on this operator's own generated output
         /// (before routed graph audio is mixed in). Off by default.
@@ -297,6 +305,13 @@ namespace pw8::patch
         std::vector<UiFocusKnob> knobs;
     };
 
+    /// Per-slot processing permutation for insert/master FX chains (Design FX drag-reorder).
+    struct FxProcessOrder
+    {
+        std::array<std::uint8_t, effects::kNumLayerInsertSlots> insert{0, 1, 2};
+        std::array<std::uint8_t, effects::kNumMasterSlots> master{0, 1, 2, 3};
+    };
+
     struct Patch
     {
         int schemaVersion = core::kPatchSchemaVersion;
@@ -316,6 +331,7 @@ namespace pw8::patch
         /// 4 master FX slots, applied in order to the final mixed stereo bus (after
         /// all layers' insert effects). See docs/FX_BANK.md.
         std::array<effects::EffectSlotParams, effects::kNumMasterSlots> masterEffects{};
+        FxProcessOrder fxProcessOrder{};
         std::uint64_t seed = 0;
 
         [[nodiscard]] static Patch makeInit() noexcept

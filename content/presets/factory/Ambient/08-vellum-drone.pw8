@@ -7,16 +7,24 @@
     "description": "Factory Ambient patch #08. Engines: Classic, Wavetable, PhaseShape, Granular, Resonator. Procedurally generated (seed 1961891897) as part of the 250-patch factory content bank. Archetype: wavetable wash drone with noise texture drone character.",
     "category": "ambient",
     "moods": [
-      "ambient"
+      "airy",
+      "evolving",
+      "dark",
+      "desolate"
     ],
     "genres": [
+      "ambient-bed",
+      "meditation",
+      "sound-design",
       "factory"
     ],
     "tags": [
       "factory",
       "ambient",
       "wt-wash",
-      "noise-drone"
+      "noise-drone",
+      "airy",
+      "evolving"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

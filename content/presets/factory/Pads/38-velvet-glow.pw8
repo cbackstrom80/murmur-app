@@ -7,16 +7,26 @@
     "description": "Factory Pad patch #38. Engines: Classic, Wavetable, PhaseShape. Procedurally generated (seed 3435303571) as part of the 250-patch factory content bank. Archetype: formant choir pad with poly sweet chorus pad character.",
     "category": "pad",
     "moods": [
-      "pads"
+      "dreamy",
+      "lush",
+      "warm",
+      "soft",
+      "organic"
     ],
     "genres": [
-      "factory"
+      "cinematic",
+      "score",
+      "ambient-bed",
+      "electronic",
+      "pop"
     ],
     "tags": [
       "factory",
       "pad",
       "formant-choir",
-      "poly-sweet"
+      "poly-sweet",
+      "dreamy",
+      "lush"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

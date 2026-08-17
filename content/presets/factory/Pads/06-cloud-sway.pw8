@@ -7,9 +7,17 @@
     "description": "Factory Pad patch #06. Engines: Classic, Wavetable, PhaseShape. Procedurally generated (seed 1973074645) as part of the 250-patch factory content bank. Archetype: detuned string ensemble with evolving wavetable pad character.",
     "category": "pad",
     "moods": [
-      "pads"
+      "warm",
+      "lush",
+      "evolving",
+      "airy",
+      "dreamy"
     ],
     "genres": [
+      "cinematic",
+      "score",
+      "ambient-bed",
+      "electronic",
       "factory"
     ],
     "tags": [
@@ -17,7 +25,9 @@
       "pad",
       "string-ensemble",
       "wt-evolve",
-      "dissemination"
+      "dissemination",
+      "warm",
+      "lush"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

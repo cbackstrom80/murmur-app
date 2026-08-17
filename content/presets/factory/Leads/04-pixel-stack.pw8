@@ -7,15 +7,24 @@
     "description": "Factory Lead patch #04. Engines: Classic, FM/PM. Procedurally generated (seed 64733914) as part of the 250-patch factory content bank. Archetype: dual-saw brass stab.",
     "category": "lead",
     "moods": [
-      "leads"
+      "punchy",
+      "bright",
+      "aggressive",
+      "digital"
     ],
     "genres": [
+      "cinematic",
+      "score",
+      "electronic",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "lead",
-      "brass-stab"
+      "brass-stab",
+      "punchy",
+      "bright"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

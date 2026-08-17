@@ -252,3 +252,39 @@ TEST_CASE("ModMatrixExecutor applyMasterBus ignores Voice-scoped master routes",
     const auto out = ModMatrixExecutor::applyMasterBus(routes, sources);
     REQUIRE(out.mixOffset[2] == 0.0f);
 }
+
+TEST_CASE("ModMatrixExecutor routes Sidechain to FilterCutoff", "[modulation][sidechain]")
+{
+    pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;
+    routes.push_back(ModRoute{ModSource::Sidechain, ModDestination::FilterCutoff, 0, 24.0f, ModScope::Global});
+
+    ModSourceValues sources;
+    sources.sidechain = 0.5f;
+
+    const auto out = ModMatrixExecutor::apply(routes, sources);
+    REQUIRE(out.filterCutoffSemitones == Catch::Approx(12.0f));
+}
+
+TEST_CASE("ModMatrixExecutor routes Sidechain to VocoderMix on master slot", "[modulation][sidechain][vocoder]")
+{
+    pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;
+    routes.push_back(ModRoute{ModSource::Sidechain, ModDestination::VocoderMix, 1, 0.8f, ModScope::Global});
+
+    ModSourceValues sources;
+    sources.sidechain = 0.75f;
+
+    const auto out = ModMatrixExecutor::applyMasterBus(routes, sources);
+    REQUIRE(out.masterVocoderMixOffset[1] == Catch::Approx(0.6f));
+}
+
+TEST_CASE("ModMatrixExecutor routes Sidechain to VocoderFormant on master slot", "[modulation][sidechain][vocoder]")
+{
+    pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;
+    routes.push_back(ModRoute{ModSource::Sidechain, ModDestination::VocoderFormant, 0, 1.0f, ModScope::Global});
+
+    ModSourceValues sources;
+    sources.sidechain = 0.4f;
+
+    const auto out = ModMatrixExecutor::applyMasterBus(routes, sources);
+    REQUIRE(out.masterVocoderFormantOffset[0] == Catch::Approx(0.4f));
+}

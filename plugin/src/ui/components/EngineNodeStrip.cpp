@@ -26,6 +26,7 @@ namespace pw8::plugin::ui
             case algorithm::EngineType::Granular: return "GRN";
             case algorithm::EngineType::NoiseChaos: return "NSE";
             case algorithm::EngineType::Resonator: return "RES";
+            case algorithm::EngineType::External: return "EXT";
             default: return "?";
         }
     }

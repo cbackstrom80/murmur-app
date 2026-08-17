@@ -7,16 +7,25 @@
     "description": "Factory Basse patch #08. Engines: Classic, Wavetable. Procedurally generated (seed 820482094) as part of the 250-patch factory content bank. Archetype: rubber funk bass with portamento with resonant acid sequence bass character.",
     "category": "bass",
     "moods": [
-      "basses"
+      "warm",
+      "punchy",
+      "aggressive",
+      "bright",
+      "dark"
     ],
     "genres": [
+      "electronic",
+      "pop",
+      "techno",
       "factory"
     ],
     "tags": [
       "factory",
       "bass",
       "rubber-funk",
-      "acid-line"
+      "acid-line",
+      "warm",
+      "punchy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

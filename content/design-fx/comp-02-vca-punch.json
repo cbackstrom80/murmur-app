@@ -1,0 +1,10 @@
+{
+  "chip": 9,
+  "name": "VCA PUNCH",
+  "modePill": "VCA",
+  "params": {
+    "CompThresholdDb": -14.0,
+    "CompRatio": 4.0,
+    "CompCharacter": 0
+  }
+}

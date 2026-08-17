@@ -7,16 +7,26 @@
     "description": "Factory Pad patch #09. Engines: Classic, Additive, PhaseShape. Procedurally generated (seed 632576978) as part of the 250-patch factory content bank. Archetype: formant choir pad with detuned string ensemble character.",
     "category": "pad",
     "moods": [
-      "pads"
+      "dreamy",
+      "lush",
+      "warm",
+      "organic",
+      "digital"
     ],
     "genres": [
+      "cinematic",
+      "score",
+      "ambient-bed",
+      "electronic",
       "factory"
     ],
     "tags": [
       "factory",
       "pad",
       "formant-choir",
-      "string-ensemble"
+      "string-ensemble",
+      "dreamy",
+      "lush"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

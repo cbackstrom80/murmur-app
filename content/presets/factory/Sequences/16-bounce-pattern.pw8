@@ -7,15 +7,23 @@
     "description": "Factory Sequence patch #16. Engines: Classic, Resonator. Procedurally generated (seed 2714470749) as part of the 250-patch factory content bank. Archetype: acid squelch sequence.",
     "category": "seq",
     "moods": [
-      "sequences"
+      "aggressive",
+      "bright",
+      "punchy",
+      "evolving",
+      "gritty"
     ],
     "genres": [
+      "electronic",
+      "techno",
       "factory"
     ],
     "tags": [
       "factory",
       "seq",
-      "acid-seq"
+      "acid-seq",
+      "aggressive",
+      "bright"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

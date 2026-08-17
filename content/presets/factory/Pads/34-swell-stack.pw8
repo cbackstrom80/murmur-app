@@ -7,15 +7,21 @@
     "description": "Factory Pad patch #34. Engines: Classic, Wavetable, PhaseShape. Procedurally generated (seed 3008924221) as part of the 250-patch factory content bank. Archetype: poly sweet chorus pad.",
     "category": "pad",
     "moods": [
-      "pads"
+      "warm",
+      "lush",
+      "dreamy"
     ],
     "genres": [
+      "ambient-bed",
+      "electronic",
       "factory"
     ],
     "tags": [
       "factory",
       "pad",
-      "poly-sweet"
+      "poly-sweet",
+      "warm",
+      "lush"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

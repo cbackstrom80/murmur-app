@@ -45,6 +45,8 @@ namespace pw8::algorithm
         core::FixedVector<CompiledEdge, core::kMaxAlgorithmEdges> feedbackEdges;
         core::FixedVector<core::NodeId, core::kNodesPerLayer> outputNodes;
         std::array<EngineType, core::kNodesPerLayer> nodeEngines{};
+        /// Op 0 is External and marked isOutput — bus is mixed once at layer level, not per voice.
+        bool externalOp0DirectOutput = false;
         bool isValid = false;
     };
 

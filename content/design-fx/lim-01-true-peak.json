@@ -1,0 +1,9 @@
+{
+  "chip": 10,
+  "name": "TRUE PEAK MAXIMIZER",
+  "params": {
+    "LimiterCeilingDb": -0.3,
+    "LimiterLookaheadMs": 5.0,
+    "Mix": 1.0
+  }
+}

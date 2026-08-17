@@ -1,0 +1,10 @@
+{
+  "chip": 1,
+  "name": "TAPE SATURATOR",
+  "modePill": "TAPE",
+  "params": {
+    "SaturationCharacter": 1,
+    "SaturationDrive": 12.0,
+    "Mix": 0.75
+  }
+}

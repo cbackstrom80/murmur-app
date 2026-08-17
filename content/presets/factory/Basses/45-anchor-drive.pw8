@@ -7,16 +7,25 @@
     "description": "Factory Basse patch #45. Engines: Classic, NoiseChaos. Procedurally generated (seed 181000091) as part of the 250-patch factory content bank. Archetype: rubber funk bass with portamento with FM sub bass pulse character.",
     "category": "bass",
     "moods": [
-      "basses"
+      "warm",
+      "punchy",
+      "dark",
+      "massive",
+      "evolving"
     ],
     "genres": [
+      "electronic",
+      "pop",
+      "sound-design",
       "factory"
     ],
     "tags": [
       "factory",
       "bass",
       "rubber-funk",
-      "fm-sub"
+      "fm-sub",
+      "warm",
+      "punchy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

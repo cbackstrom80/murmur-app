@@ -7,16 +7,24 @@
     "description": "Factory Sequence patch #29. Engines: Classic, FM/PM. Procedurally generated (seed 1564857407) as part of the 250-patch factory content bank. Archetype: FM pluck sequence with chord stab sequence character.",
     "category": "seq",
     "moods": [
-      "sequences"
+      "bright",
+      "punchy",
+      "aggressive",
+      "evolving"
     ],
     "genres": [
+      "electronic",
+      "pop",
+      "techno",
       "factory"
     ],
     "tags": [
       "factory",
       "seq",
       "fm-pluck",
-      "stab-seq"
+      "stab-seq",
+      "bright",
+      "punchy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

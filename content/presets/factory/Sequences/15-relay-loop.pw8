@@ -7,16 +7,23 @@
     "description": "Factory Sequence patch #15. Engines: Classic, Resonator. Procedurally generated (seed 1046932619) as part of the 250-patch factory content bank. Archetype: sync oscillator sequence with chord stab sequence character.",
     "category": "seq",
     "moods": [
-      "sequences"
+      "bright",
+      "punchy",
+      "aggressive",
+      "evolving"
     ],
     "genres": [
+      "electronic",
+      "techno",
       "factory"
     ],
     "tags": [
       "factory",
       "seq",
       "sync-seq",
-      "stab-seq"
+      "stab-seq",
+      "bright",
+      "punchy"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

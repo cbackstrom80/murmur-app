@@ -7,16 +7,25 @@
     "description": "Factory Lead patch #16. Engines: Classic, FM/PM. Procedurally generated (seed 3590694499) as part of the 250-patch factory content bank. Archetype: portamento solo line with 8-bit square lead character.",
     "category": "lead",
     "moods": [
-      "leads"
+      "warm",
+      "expressive",
+      "digital",
+      "bright",
+      "aggressive"
     ],
     "genres": [
+      "electronic",
+      "pop",
+      "game",
       "factory"
     ],
     "tags": [
       "factory",
       "lead",
       "portamento",
-      "chip-lead"
+      "chip-lead",
+      "warm",
+      "expressive"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

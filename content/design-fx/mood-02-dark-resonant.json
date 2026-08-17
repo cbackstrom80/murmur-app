@@ -1,0 +1,9 @@
+{
+  "chip": 4,
+  "name": "DARK RESONANT",
+  "modePill": "DARK",
+  "params": {
+    "Mix": 0.65
+  },
+  "uiKnobs": [0.62, 0.35, 0.32, 0.72, 0.4, 0.5]
+}

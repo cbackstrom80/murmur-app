@@ -7,16 +7,25 @@
     "description": "Factory Basse patch #32. Engines: Classic. Procedurally generated (seed 3577435968) as part of the 250-patch factory content bank. Archetype: mono growl bass with sync oscillator low lead-bass character.",
     "category": "bass",
     "moods": [
-      "basses"
+      "dark",
+      "gritty",
+      "bright",
+      "aggressive",
+      "punchy"
     ],
     "genres": [
+      "electronic",
+      "sound-design",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "bass",
       "mono-growl",
-      "sync-low"
+      "sync-low",
+      "dark",
+      "gritty"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

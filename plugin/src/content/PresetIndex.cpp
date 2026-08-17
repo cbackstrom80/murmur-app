@@ -44,6 +44,39 @@ namespace pw8::plugin::content
         {
             return entry.category.trim().toLowerCase() + "|" + entry.name.trim().toLowerCase();
         }
+
+        [[nodiscard]] juce::String summarizeEnginesFromPatchJson(const juce::var& parsed)
+        {
+            if (!parsed.isObject() || !parsed.hasProperty("layerA"))
+                return "01";
+
+            const auto layerA = parsed["layerA"];
+            if (!layerA.isObject() || !layerA.hasProperty("operators"))
+                return "01";
+
+            const auto operators = layerA["operators"];
+            if (!operators.isArray())
+                return "01";
+
+            juce::StringArray active;
+            for (int i = 0; i < operators.size() && i < 8; ++i)
+            {
+                const auto op = operators[i];
+                if (!op.isObject())
+                    continue;
+
+                const bool mixEnabled = op.hasProperty("mixEnabled") ? static_cast<bool>(op["mixEnabled"]) : true;
+                const float level = static_cast<float>(op.getProperty("level", 0.0));
+                if (mixEnabled && level > 0.01f)
+                    active.add(juce::String(i + 1).paddedLeft('0', 2));
+            }
+
+            if (active.isEmpty())
+                return "01";
+            if (active.size() == 8)
+                return "ALL 8";
+            return active.joinIntoString(", ");
+        }
     } // namespace
 
     void PresetIndex::rescan()
@@ -110,9 +143,11 @@ namespace pw8::plugin::content
         if (entry.category.isEmpty())
             entry.category = file.getParentDirectory().getFileName();
         entry.description = readMetadataString(meta, "description");
+        entry.author = readMetadataString(meta, "author");
         entry.moods = readStringArray(meta, "moods");
         entry.genres = readStringArray(meta, "genres");
         entry.tags = readStringArray(meta, "tags");
+        entry.enginesSummary = summarizeEnginesFromPatchJson(parsed);
         return entry;
     }
 

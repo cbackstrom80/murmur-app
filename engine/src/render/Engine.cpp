@@ -184,6 +184,12 @@ namespace pw8::render
         layerAInsertChain_.prepare(sampleRate_);
         layerBInsertChain_.prepare(sampleRate_);
         masterChain_.prepare(sampleRate_);
+        sendReturnA_.prepare(sampleRate_);
+        sendReturnB_.prepare(sampleRate_);
+        synthBusPeak_.store(0.0f, std::memory_order_relaxed);
+        masterOutPeak_.store(0.0f, std::memory_order_relaxed);
+        for (auto& peak : operatorPeaks_)
+            peak.store(0.0f, std::memory_order_relaxed);
     }
 
     op::OperatorParams Engine::toOperatorParams(const patch::OperatorPatch& p) noexcept
@@ -198,6 +204,10 @@ namespace pw8::render
         out.fixedFrequencyHz = p.fixedFrequencyHz;
         out.keyTrack = p.keyTrack;
         out.level = p.level;
+        out.mixEnabled = p.mixEnabled;
+        out.mixMute = p.mixMute;
+        out.mixSolo = p.mixSolo;
+        out.mixGain = 1.0f;
         out.fmModulatorRatio = p.fmModulatorRatio;
         out.fmModulatorIndex = p.fmModulatorIndex;
         out.fmModulatorFeedback = p.fmModulatorFeedback;
@@ -226,6 +236,8 @@ namespace pw8::render
         out.wtSyncRatio = p.wtSyncRatio;
         out.wtSyncAmount = p.wtSyncAmount;
         out.wtFormantShift = p.wtFormantShift;
+        out.wtMorphMode = p.wtMorphMode;
+        out.externalInputSource = p.externalInputSource;
         return out;
     }
 
@@ -250,6 +262,26 @@ namespace pw8::render
 
         for (std::size_t i = 0; i < core::kNodesPerLayer; ++i)
             templatesOut[i] = toOperatorParams(layer.operators[i]);
+
+        bool anyMixSolo = false;
+        for (const auto& op : layer.operators)
+        {
+            if (op.mixSolo)
+            {
+                anyMixSolo = true;
+                break;
+            }
+        }
+        for (std::size_t i = 0; i < core::kNodesPerLayer; ++i)
+        {
+            const auto& op = layer.operators[i];
+            if (!op.mixEnabled || op.mixMute)
+                templatesOut[i].mixGain = 0.0f;
+            else if (anyMixSolo)
+                templatesOut[i].mixGain = op.mixSolo ? 1.0f : 0.0f;
+            else
+                templatesOut[i].mixGain = 1.0f;
+        }
 
         for (std::size_t i = 0; i < core::kNodesPerLayer; ++i)
         {
@@ -801,7 +833,8 @@ namespace pw8::render
         // too -- mapping back into OperatorPatch's flattened field names, and
         // deliberately NOT touching wavetableId or pan (not part of the live API).
         auto& stored = patch_.layerA.operators[opIndex];
-        stored.engine = params.engine;
+        stored.engine =
+            algorithm::sanitizeEngineForNode(core::NodeId(static_cast<std::uint8_t>(opIndex)), params.engine);
         stored.classicWaveform = params.classic.waveform;
         stored.classicMorph = params.classic.morph;
         stored.pulseWidth = params.classic.pulseWidth;
@@ -810,6 +843,9 @@ namespace pw8::render
         stored.fixedFrequencyHz = params.fixedFrequencyHz;
         stored.keyTrack = params.keyTrack;
         stored.level = params.level;
+        stored.mixEnabled = params.mixEnabled;
+        stored.mixMute = params.mixMute;
+        stored.mixSolo = params.mixSolo;
     }
 
     void Engine::setEnvelopeLive(std::size_t envIndex, const envelope::DahdsrParams& params) noexcept
@@ -883,6 +919,11 @@ namespace pw8::render
             v.pan = pan;
     }
 
+    void Engine::setUnisonLive(const patch::UnisonSettings& unison) noexcept
+    {
+        patch_.layerA.unison = unison;
+    }
+
     void Engine::setMasterGainLive(float masterGain) noexcept
     {
         patch_.voiceSettings.masterGain = masterGain;
@@ -914,6 +955,7 @@ namespace pw8::render
         merged.syncDivisionIndex = params.syncDivisionIndex;
         merged.octaveRange = params.octaveRange;
         merged.numSteps = params.numSteps;
+        merged.swing = params.swing;
         merged.latch = params.latch;
         patch_.arpeggiator = merged;
         arpeggiator_.setLiveParams(merged);
@@ -932,6 +974,7 @@ namespace pw8::render
                           const float* sidechainLeft, const float* sidechainRight) noexcept
     {
         const dsp::ScopedDenormalGuard denormalGuard;
+        const bool sidechainConnected = sidechainLeft != nullptr;
 
         output.clear();
         const auto numFrames = output.numFrames();
@@ -949,6 +992,10 @@ namespace pw8::render
                 modulation::ModMatrixExecutor::hasActiveMasterBusRoutes(patch_.layerA.modRoutes);
             std::array<effects::EffectSlotParams, effects::kNumMasterSlots> moddedMasterEffects =
                 patch_.masterEffects;
+            std::array<effects::EffectSlotParams, effects::kNumLayerInsertSlots> moddedInsertEffects =
+                patch_.layerA.insertEffects;
+            std::array<effects::EffectSlotParams, effects::kNumLayerInsertSlots> moddedInsertEffectsB =
+                patch_.layerB.insertEffects;
             float masterGainMul = 1.0f;
 
             if (masterBusModActive)
@@ -963,15 +1010,23 @@ namespace pw8::render
                 const auto masterMod =
                     modulation::ModMatrixExecutor::applyMasterBus(patch_.layerA.modRoutes, modSources);
                 applyMasterModToEffects(moddedMasterEffects, masterMod);
+                applyInsertModToEffects(moddedInsertEffects, masterMod);
+                applyInsertModToEffects(moddedInsertEffectsB, masterMod);
                 masterGainMul = masterGainMultiplier(patch_.voiceSettings.masterGain, masterMod.masterGainOffset);
             }
 
+            float subBlockSynthPeak = 0.0f;
+            float subBlockMasterPeak = 0.0f;
+            std::array<float, core::kNodesPerLayer> subBlockOperatorPeaks{};
+            subBlockOperatorPeaks.fill(0.0f);
+
             for (std::size_t s = subBlockStart; s < subBlockEnd; ++s)
             {
-                const float sidechainSampleL = sidechainLeft != nullptr ? sidechainLeft[s] : 0.0f;
+                const float sidechainSampleL =
+                    sidechainLeft != nullptr ? dsp::flushIfNotFinite(sidechainLeft[s]) : 0.0f;
                 const float sidechainSampleR =
-                    sidechainRight != nullptr ? sidechainRight[s]
-                                              : (sidechainLeft != nullptr ? sidechainLeft[s] : 0.0f);
+                    sidechainRight != nullptr ? dsp::flushIfNotFinite(sidechainRight[s])
+                                              : (sidechainLeft != nullptr ? sidechainSampleL : 0.0f);
 
                 while (nextMidiIndex < blockMidiCount && blockMidi[nextMidiIndex].sampleOffset == s)
                 {
@@ -1009,17 +1064,53 @@ namespace pw8::render
                 for (std::size_t i = 0; i < allocator_.getPolyphony(); ++i)
                 {
                     float vl = 0.0f, vr = 0.0f;
+                    std::array<float, core::kNodesPerLayer> voiceOperatorPeaks{};
                     voices_[i].renderSample(compiledLayerA_, wavetableTablesA_, bpm_, layerLfoValues,
-                                             patch_.layerA.modRoutes, patch_.layerA.metaRoutes, qualityMode_, vl, vr);
+                                             patch_.layerA.modRoutes, patch_.layerA.metaRoutes, qualityMode_,
+                                             sidechainSampleL, sidechainSampleR, vl, vr, &voiceOperatorPeaks);
+                    for (std::size_t op = 0; op < core::kNodesPerLayer; ++op)
+                        subBlockOperatorPeaks[op] = std::max(subBlockOperatorPeaks[op], voiceOperatorPeaks[op]);
                     kahanAdd(sumL, kahanL, vl);
                     kahanAdd(sumR, kahanR, vr);
                 }
 
-                layerAInsertChain_.process(patch_.layerA.insertEffects, sumL, sumR, sidechainSampleL,
-                                           sidechainSampleR, bpm_);
-
-                if (isStackModeActive())
+                if (compiledLayerA_.externalOp0DirectOutput)
                 {
+                    const auto& op0 = patch_.layerA.operators[0];
+                    const float extMono =
+                        dsp::flushIfNotFinite((sidechainSampleL + sidechainSampleR) * 0.5f * op0.level);
+                    if (std::abs(extMono) > 1.0e-8f)
+                    {
+                        const float panClamped = dsp::clamp(op0.pan, -1.0f, 1.0f);
+                        const float panRad = (panClamped * 0.5f + 0.5f) * (dsp::kPi * 0.5f);
+                        kahanAdd(sumL, kahanL, extMono * std::cos(panRad));
+                        kahanAdd(sumR, kahanR, extMono * std::sin(panRad));
+                    }
+                }
+
+                subBlockSynthPeak =
+                    std::max(subBlockSynthPeak, std::max(std::abs(sumL), std::abs(sumR)));
+
+                const float preInsertTapL = sumL;
+                const float preInsertTapR = sumR;
+
+                const auto applyMasterGainMul = [&]() {
+                    if (masterBusModActive)
+                    {
+                        sumL *= masterGainMul;
+                        sumR *= masterGainMul;
+                    }
+                };
+
+                const auto processLayerAInserts = [&]() {
+                    layerAInsertChain_.process(moddedInsertEffects, patch_.fxProcessOrder.insert, sumL, sumR,
+                                               sidechainSampleL, sidechainSampleR, sidechainConnected, bpm_);
+                };
+
+                const auto renderAndMergeLayerB = [&]() {
+                    if (!isStackModeActive())
+                        return;
+
                     std::array<float, core::kNumLfosPerLayer> layerLfoValuesB{};
                     const bool layerBLfoRoutesActive =
                         modulation::ModMatrixExecutor::hasActiveLayerLfoRoutes(patch_.layerB.modRoutes);
@@ -1036,31 +1127,112 @@ namespace pw8::render
                     for (std::size_t i = 0; i < allocatorB_.getPolyphony(); ++i)
                     {
                         float vl = 0.0f, vr = 0.0f;
+                        std::array<float, core::kNodesPerLayer> voiceOperatorPeaks{};
                         voicesB_[i].renderSample(compiledLayerB_, wavetableTablesB_, bpm_, layerLfoValuesB,
-                                                  patch_.layerB.modRoutes, patch_.layerB.metaRoutes, qualityMode_, vl, vr);
+                                                  patch_.layerB.modRoutes, patch_.layerB.metaRoutes, qualityMode_,
+                                                  sidechainSampleL, sidechainSampleR, vl, vr, &voiceOperatorPeaks);
+                        for (std::size_t op = 0; op < core::kNodesPerLayer; ++op)
+                            subBlockOperatorPeaks[op] = std::max(subBlockOperatorPeaks[op], voiceOperatorPeaks[op]);
                         kahanAdd(sumBL, kahanBL, vl);
                         kahanAdd(sumBR, kahanBR, vr);
                     }
 
-                    layerBInsertChain_.process(patch_.layerB.insertEffects, sumBL, sumBR, sidechainSampleL,
-                                               sidechainSampleR, bpm_);
+                    if (!fxInsertsPostFader_)
+                        layerBInsertChain_.process(moddedInsertEffectsB, patch_.fxProcessOrder.insert, sumBL, sumBR,
+                                                   sidechainSampleL, sidechainSampleR, sidechainConnected, bpm_);
                     kahanAdd(sumL, kahanL, sumBL);
                     kahanAdd(sumR, kahanR, sumBR);
+                };
+
+                if (fxInsertsPostFader_)
+                {
+                    renderAndMergeLayerB();
+                    applyMasterGainMul();
+                    processLayerAInserts();
+                }
+                else
+                {
+                    processLayerAInserts();
+                    renderAndMergeLayerB();
+                    applyMasterGainMul();
+                }
+
+                const float sendTapL = fxInsertsPostFader_ ? sumL : preInsertTapL;
+                const float sendTapR = fxInsertsPostFader_ ? sumR : preInsertTapR;
+
+                const auto& masterFxForSend = masterBusModActive ? moddedMasterEffects : patch_.masterEffects;
+
+                float sendMixL = 0.0f;
+                float sendMixR = 0.0f;
+                if (fxSendA_ > 1.0e-5f && masterFxForSend.size() > 0)
+                {
+                    const float auxL = sendTapL * fxSendA_;
+                    const float auxR = sendTapR * fxSendA_;
+                    float wetL = 0.0f;
+                    float wetR = 0.0f;
+                    sendReturnA_.processStereo(auxL, auxR, sidechainSampleL, sidechainSampleR, masterFxForSend[0], wetL,
+                                               wetR, sidechainConnected, bpm_);
+                    sendMixL += wetL;
+                    sendMixR += wetR;
+                }
+                if (fxSendB_ > 1.0e-5f && masterFxForSend.size() > 1)
+                {
+                    const float auxL = sendTapL * fxSendB_;
+                    const float auxR = sendTapR * fxSendB_;
+                    float wetL = 0.0f;
+                    float wetR = 0.0f;
+                    sendReturnB_.processStereo(auxL, auxR, sidechainSampleL, sidechainSampleR, masterFxForSend[1], wetL,
+                                               wetR, sidechainConnected, bpm_);
+                    sendMixL += wetL;
+                    sendMixR += wetR;
                 }
 
                 if (masterBusModActive)
-                {
-                    sumL *= masterGainMul;
-                    sumR *= masterGainMul;
-                    masterChain_.process(moddedMasterEffects, sumL, sumR, sidechainSampleL, sidechainSampleR, bpm_);
-                }
+                    masterChain_.process(moddedMasterEffects, patch_.fxProcessOrder.master, sumL, sumR, sidechainSampleL,
+                                         sidechainSampleR, sidechainConnected, bpm_);
                 else
-                    masterChain_.process(patch_.masterEffects, sumL, sumR, sidechainSampleL, sidechainSampleR, bpm_);
+                    masterChain_.process(patch_.masterEffects, patch_.fxProcessOrder.master, sumL, sumR,
+                                         sidechainSampleL, sidechainSampleR, sidechainConnected, bpm_);
+
+                sumL += sendMixL;
+                sumR += sendMixR;
 
                 left[s] = sumL;
                 right[s] = sumR;
+                subBlockMasterPeak =
+                    std::max(subBlockMasterPeak, std::max(std::abs(sumL), std::abs(sumR)));
             }
+
+            updatePeakHold(synthBusPeak_, subBlockSynthPeak);
+            updatePeakHold(masterOutPeak_, subBlockMasterPeak);
+            for (std::size_t op = 0; op < core::kNodesPerLayer; ++op)
+                updatePeakHold(operatorPeaks_[op], subBlockOperatorPeaks[op]);
         }
+    }
+
+    void Engine::updatePeakHold(std::atomic<float>& hold, float blockPeak) noexcept
+    {
+        const float prev = hold.load(std::memory_order_relaxed);
+        const float decayed = prev * 0.86f;
+        hold.store(std::max(blockPeak, decayed), std::memory_order_relaxed);
+    }
+
+    std::size_t Engine::countActiveVoices() const noexcept
+    {
+        const auto countPool = [](const voice::VoicePool& voices, std::size_t poly) -> std::size_t {
+            std::size_t active = 0;
+            for (std::size_t i = 0; i < poly; ++i)
+            {
+                if (voices[i].gateOn || voices[i].isSounding())
+                    ++active;
+            }
+            return active;
+        };
+
+        std::size_t total = countPool(voices_, allocator_.getPolyphony());
+        if (isStackModeActive())
+            total += countPool(voicesB_, allocatorB_.getPolyphony());
+        return total;
     }
 
 } // namespace pw8::render

@@ -7,16 +7,25 @@
     "description": "Factory Ambient patch #21. Engines: Classic, Wavetable, PhaseShape, Granular, NoiseChaos, Resonator. Procedurally generated (seed 812278555) as part of the 250-patch factory content bank. Archetype: wavetable wash drone with resonant cavern ambient character.",
     "category": "ambient",
     "moods": [
-      "ambient"
+      "airy",
+      "evolving",
+      "dark",
+      "spooky",
+      "massive"
     ],
     "genres": [
+      "ambient-bed",
+      "meditation",
+      "cinematic",
       "factory"
     ],
     "tags": [
       "factory",
       "ambient",
       "wt-wash",
-      "resonant-cave"
+      "resonant-cave",
+      "airy",
+      "evolving"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

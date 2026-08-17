@@ -39,10 +39,15 @@ namespace pw8::algorithm
                                            std::array<filter::StateVariableFilter, core::kNodesPerLayer>& operatorFilters,
                                            const std::array<float, core::kNodesPerLayer>& operatorFilterCutoffSemitones,
                                            const std::array<float, core::kNodesPerLayer>& operatorFilterResonanceOffset,
-                                           int nonlinearOsFactor = 1) noexcept
+                                           float externalSampleL = 0.0f, float externalSampleR = 0.0f,
+                                           int nonlinearOsFactor = 1,
+                                           std::array<float, core::kNodesPerLayer>* operatorPeakScratch = nullptr) noexcept
         {
             if (!compiled.isValid)
                 return 0.0f;
+
+            if (operatorPeakScratch != nullptr)
+                operatorPeakScratch->fill(0.0f);
 
             std::array<float, core::kNodesPerLayer> phaseModAcc{};
             std::array<float, core::kNodesPerLayer> freqModAcc{};
@@ -81,17 +86,20 @@ namespace pw8::algorithm
                     states[i].reset(0.0f);
 
                 const float raw = states[i].render(params[i], wavetableTables[i], baseFrequencyHz,
-                                                     phaseModAcc[i], freqModAcc[i], nonlinearOsFactor);
+                                                     phaseModAcc[i], freqModAcc[i], externalSampleL, externalSampleR,
+                                                     nonlinearOsFactor);
 
-                float shaped = raw * ampMulAcc[i] * ringMulAcc[i];
+                const float ampMul = dsp::clamp(dsp::flushIfNotFinite(ampMulAcc[i]), 0.0f, 32.0f);
+                const float ringMul = dsp::clamp(dsp::flushIfNotFinite(ringMulAcc[i]), -32.0f, 32.0f);
+                float shaped = raw * ampMul * ringMul;
                 shaped = dsp::clamp(dsp::flushIfNotFinite(shaped), -16.0f, 16.0f);
 
                 if (operatorFilterParams[i].enabled)
                 {
                     const float keyTrackFactor =
-                        std::pow(baseFrequencyHz / 261.6256f, operatorFilterParams[i].keyTrack);
+                        dsp::filterKeyTrackFactor(baseFrequencyHz, operatorFilterParams[i].keyTrack);
                     const float cutoffHz = operatorFilterParams[i].cutoffHz * keyTrackFactor *
-                                            std::pow(2.0f, operatorFilterCutoffSemitones[i] / 12.0f);
+                                           std::pow(2.0f, operatorFilterCutoffSemitones[i] / 12.0f);
                     const float resonance =
                         dsp::clamp(operatorFilterParams[i].resonance + operatorFilterResonanceOffset[i], 0.0f, 1.0f);
                     shaped = operatorFilters[i].renderSample(shaped, operatorFilterParams[i].mode, cutoffHz, resonance);
@@ -101,6 +109,13 @@ namespace pw8::algorithm
                 states[i].prevLastOutput = states[i].lastOutput;
                 finalOutputs[i] = finalOut;
                 states[i].lastOutput = finalOut;
+
+                if (operatorPeakScratch != nullptr)
+                {
+                    const float peak = std::abs(finalOut);
+                    if (peak > (*operatorPeakScratch)[i])
+                        (*operatorPeakScratch)[i] = peak;
+                }
 
                 // Propagate this node's finished output along its outgoing feed-forward edges.
                 for (const auto& edge : compiled.feedForwardEdges)
@@ -138,7 +153,11 @@ namespace pw8::algorithm
 
             float output = 0.0f;
             for (const auto nodeId : compiled.outputNodes)
+            {
+                if (compiled.externalOp0DirectOutput && nodeId.get() == 0)
+                    continue;
                 output += finalOutputs[nodeId.get()];
+            }
 
             return dsp::clamp(dsp::flushIfNotFinite(output), -16.0f, 16.0f);
         }

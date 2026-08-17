@@ -7,16 +7,25 @@
     "description": "Factory Basse patch #03. Engines: Classic, FM/PM. Procedurally generated (seed 774709375) as part of the 250-patch factory content bank. Archetype: resonant acid sequence bass with FM sub bass pulse character.",
     "category": "bass",
     "moods": [
-      "basses"
+      "aggressive",
+      "bright",
+      "dark",
+      "massive",
+      "punchy"
     ],
     "genres": [
+      "electronic",
+      "techno",
+      "sound-design",
       "factory"
     ],
     "tags": [
       "factory",
       "bass",
       "acid-line",
-      "fm-sub"
+      "fm-sub",
+      "aggressive",
+      "bright"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

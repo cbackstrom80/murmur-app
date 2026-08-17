@@ -7,16 +7,25 @@
     "description": "Factory Basse patch #14. Engines: Classic. Procedurally generated (seed 485648182) as part of the 250-patch factory content bank. Archetype: FM sub bass pulse with rubber funk bass with portamento character.",
     "category": "bass",
     "moods": [
-      "basses"
+      "dark",
+      "massive",
+      "warm",
+      "punchy",
+      "aggressive"
     ],
     "genres": [
+      "electronic",
+      "sound-design",
+      "pop",
       "factory"
     ],
     "tags": [
       "factory",
       "bass",
       "fm-sub",
-      "rubber-funk"
+      "rubber-funk",
+      "dark",
+      "massive"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

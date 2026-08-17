@@ -1,0 +1,9 @@
+{
+  "chip": 2,
+  "name": "WIDE ENSEMBLE",
+  "params": {
+    "ChorusRate": 0.45,
+    "ChorusDepth": 8.0,
+    "Mix": 0.55
+  }
+}

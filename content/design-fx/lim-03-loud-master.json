@@ -1,0 +1,8 @@
+{
+  "chip": 10,
+  "name": "LOUD MASTER",
+  "params": {
+    "LimiterCeilingDb": -0.1,
+    "LimiterReleaseMs": 40.0
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "chip": 5,
+  "name": "SUB OCTAVE DRIFT",
+  "params": {
+    "FreqShiftHz": -12.0,
+    "FreqShiftFeedback": 0.35,
+    "Mix": 0.55
+  }
+}

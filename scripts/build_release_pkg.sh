@@ -15,6 +15,7 @@
 #   --system-only            Alias for default AU-only scope (kept for CI/scripts)
 #   --sign IDENTITY          Code-sign bundles (Developer ID Application: …)
 #   --notarize               Notarize the .pkg (requires --sign and Apple credentials)
+#   --skip-auval             Skip hard-fail auval gate (not recommended for shipping)
 #   -h, --help               Show help
 #
 # Environment (optional, for --notarize):
@@ -38,6 +39,7 @@ MAKE_DMG=0
 SYSTEM_ONLY=1
 SIGN_IDENTITY="${CODESIGN_IDENTITY:-}"
 DO_NOTARIZE=0
+SKIP_AUVAL=0
 VERSION=""
 
 usage() {
@@ -70,6 +72,10 @@ while [[ $# -gt 0 ]]; do
             DO_NOTARIZE=1
             shift
             ;;
+        --skip-auval)
+            SKIP_AUVAL=1
+            shift
+            ;;
         -h|--help)
             usage
             exit 0
@@ -91,6 +97,21 @@ if [[ "$TARGET" != "user" && "$TARGET" != "system" ]]; then
     exit 1
 fi
 
+resolve_release_notes() {
+    local ver="$1"
+    local base="${ver%%-*}"
+    for candidate in \
+        "$REPO_ROOT/docs/RELEASE_${ver}.md" \
+        "$REPO_ROOT/docs/RELEASE_${base}.md"
+    do
+        if [[ -f "$candidate" ]]; then
+            echo "$candidate"
+            return 0
+        fi
+    done
+    return 1
+}
+
 if [[ -z "$VERSION" ]]; then
     VERSION="$(python3 - <<'PY'
 import re, pathlib
@@ -101,17 +122,20 @@ PY
 )-rc.$(date +%Y%m%d)"
 fi
 
+RELEASE_NOTES="$(resolve_release_notes "$VERSION" || true)"
+
 BUILD_DIR="build/plugin-release"
 ARTEFACT_DIR="$BUILD_DIR/plugin/pw8_plugin_artefacts/Release"
 STAGE_DIR="$BUILD_DIR/pkg-stage"
 DIST_DIR="dist"
 if [[ "$TARGET" == "user" && "$SYSTEM_ONLY" -eq 1 ]]; then
     SCOPE_SUFFIX="arm64"
-    PKG_NAME="MURMUR-${VERSION}-macOS-arm64.pkg"
+elif [[ "$TARGET" == "user" && "$SYSTEM_ONLY" -eq 0 ]]; then
+    SCOPE_SUFFIX="arm64-full"
 else
     SCOPE_SUFFIX="${TARGET}$([[ "$SYSTEM_ONLY" -eq 1 ]] && echo '-au' || echo '-full')"
-    PKG_NAME="MURMUR-${VERSION}-macOS-${SCOPE_SUFFIX}.pkg"
 fi
+PKG_NAME="MURMUR-${VERSION}-macOS-${SCOPE_SUFFIX}.pkg"
 
 VST3_SRC="$ARTEFACT_DIR/VST3/MURMUR.vst3"
 AU_SRC="$ARTEFACT_DIR/AU/MURMUR.component"
@@ -119,6 +143,7 @@ APP_SRC="$ARTEFACT_DIR/Standalone/MURMUR.app"
 PRESETS_SRC="content/presets/factory"
 SHOWCASE_PRESETS_SRC="content/presets"
 WAVETABLES_SRC="content/wavetables"
+DESIGN_FX_SRC="content/design-fx"
 
 if [[ "$TARGET" == "user" ]]; then
     INSTALL_BLURB="your home folder (no admin password):
@@ -214,6 +239,8 @@ make_root() {
     mkdir -p "$STAGE_DIR/${name}-root/Library/Application Support/MURMUR/Presets/.murmur-factory-staging"
     mkdir -p "$STAGE_DIR/${name}-root/Library/Application Support/MURMUR/Presets/showcase"
     mkdir -p "$STAGE_DIR/${name}-root/Library/Application Support/MURMUR/Wavetables"
+    mkdir -p "$STAGE_DIR/${name}-root/Library/Application Support/MURMUR/design-fx"
+    mkdir -p "$STAGE_DIR/${name}-root/Library/Application Support/MURMUR/design-fx/user"
 }
 
 make_root "payload"
@@ -240,6 +267,13 @@ find "$SHOWCASE_PRESETS_SRC" -maxdepth 1 -name '*.pw8' -exec cp {} \
     "$PAYLOAD/Library/Application Support/MURMUR/Presets/showcase/" \;
 cp "$WAVETABLES_SRC"/*.json "$PAYLOAD/Library/Application Support/MURMUR/Wavetables/"
 
+if [[ -d "$DESIGN_FX_SRC" ]]; then
+    cp -R "$DESIGN_FX_SRC/"* "$PAYLOAD/Library/Application Support/MURMUR/design-fx/" 2>/dev/null || true
+    mkdir -p "$PAYLOAD/Library/Application Support/MURMUR/design-fx/user"
+    DESIGN_FX_COUNT=$(find "$PAYLOAD/Library/Application Support/MURMUR/design-fx" -maxdepth 1 -name '*.json' | wc -l | tr -d ' ')
+    echo "==> Staged ${DESIGN_FX_COUNT} design-FX preset files."
+fi
+
 # Logic / Ben MVP docs shipped beside presets.
 DOCS_DIR="$PAYLOAD/Library/Application Support/MURMUR/Docs"
 mkdir -p "$DOCS_DIR"
@@ -248,6 +282,9 @@ for doc in BEN_MVP.md DESIGN_AND_WARPS_PLAN.md INSTALL.md KAWAI_MP11SE.md LOGIC_
         cp "$REPO_ROOT/docs/$doc" "$DOCS_DIR/"
     fi
 done
+if [[ -n "$RELEASE_NOTES" && -f "$RELEASE_NOTES" ]]; then
+    cp "$RELEASE_NOTES" "$DOCS_DIR/WHATS_NEW.md"
+fi
 if [[ -d "$REPO_ROOT/docs/product" ]]; then
     mkdir -p "$DOCS_DIR/product"
     cp "$REPO_ROOT/docs/product/"*.md "$DOCS_DIR/product/"
@@ -314,6 +351,7 @@ Included:
 ${OPTIONAL_FORMATS_LINE}
   • ${PRESET_COUNT} factory presets (Basses, Leads, Pads, Sequences, Ambient, Interstellar)
   • ${WAVETABLE_COUNT} wavetable files
+  • Design FX preset library (Application Support/MURMUR/design-fx/)
   • Logic + Kawai MP11SE setup guides (Application Support/MURMUR/Docs/)
   • MURMUR product documentation (Docs/product/)
 
@@ -377,6 +415,7 @@ DIST_EOF
 
 mkdir -p "$DIST_DIR"
 PKG_PATH="$DIST_DIR/$PKG_NAME"
+DMG_PATH=""
 
 echo "==> Building installer package..."
 PRODUCTBUILD_ARGS=(--distribution "$STAGE_DIR/distribution.xml" --resources "$RES_DIR" --package-path "$STAGE_DIR/components")
@@ -421,15 +460,92 @@ if [[ "$MAKE_DMG" -eq 1 ]]; then
     DMG_STAGE="$STAGE_DIR/dmg"
     rm -rf "$DMG_STAGE"
     mkdir -p "$DMG_STAGE"
-    cp "$PKG_PATH" "$DMG_STAGE/"
-    cp "$REPO_ROOT/docs/BEN_MVP.md" "$DMG_STAGE/BEN MVP — Read Me.txt"
+    cp "$PKG_PATH" "$DMG_STAGE/Install MURMUR.pkg"
+    cp "$REPO_ROOT/docs/BEN_MVP.md" "$DMG_STAGE/1 — READ ME FIRST.txt"
     cp "$REPO_ROOT/docs/product/README.md" "$DMG_STAGE/MURMUR Product Docs.txt"
     cp "$REPO_ROOT/docs/INSTALL.md" "$DMG_STAGE/INSTALL.txt"
-    ln -s /Applications "$DMG_STAGE/Applications" 2>/dev/null || true
-    DMG_PATH="$DIST_DIR/MURMUR-${VERSION}-macOS-${SCOPE_SUFFIX}.dmg"
-    hdiutil create -volname "MURMUR ${VERSION}" -srcfolder "$DMG_STAGE" -ov -format UDZO "$DMG_PATH" >/dev/null
+    if [[ -n "$RELEASE_NOTES" && -f "$RELEASE_NOTES" ]]; then
+        cp "$RELEASE_NOTES" "$DMG_STAGE/WHATS NEW.txt"
+    elif [[ -f "$REPO_ROOT/docs/RELEASE_1.4.0.md" ]]; then
+        cp "$REPO_ROOT/docs/RELEASE_1.4.0.md" "$DMG_STAGE/WHATS NEW.txt"
+    fi
+    cp "$REPO_ROOT/docs/LOGIC_SMART_CONTROLS.md" "$DMG_STAGE/LOGIC SETUP.txt" 2>/dev/null || true
+    if [[ "$SYSTEM_ONLY" -eq 0 && -d "$APP_SRC" ]]; then
+        cp -R "$APP_SRC" "$DMG_STAGE/MURMUR.app"
+        ln -s /Applications "$DMG_STAGE/Applications" 2>/dev/null || true
+    fi
+    cat > "$DMG_STAGE/2 — Double-click Install MURMUR.pkg.txt" << 'DMG_README'
+MURMUR — Installation (Apple Silicon Mac)
+=========================================
+
+1. Double-click "Install MURMUR.pkg"
+2. Follow the installer (no admin password — installs to your home folder)
+3. Quit Logic Pro completely, then reopen
+4. Logic → Settings → Plug-in Manager → Reset & Rescan Selection
+5. New Software Instrument track → AU Instruments → Murmur → MURMUR
+
+Optional: drag MURMUR.app to Applications to launch standalone (test without Logic).
+
+If macOS blocks the installer: right-click Install MURMUR.pkg → Open → Open.
+
+Presets: click the preset name in the header to open Preset Explorer.
+
+Support docs are in "1 — READ ME FIRST.txt" and INSTALL.txt.
+DMG_README
+    if [[ "$SYSTEM_ONLY" -eq 1 ]]; then
+        PKG_SUFFIX="arm64"
+    else
+        PKG_SUFFIX="${SCOPE_SUFFIX}"
+    fi
+    DMG_PATH="$DIST_DIR/MURMUR-${VERSION}-macOS-${PKG_SUFFIX}.dmg"
+    # Use /tmp for hdiutil scratch — avoids failures when repo volume is nearly full
+    if ! TMPDIR="${TMPDIR:-/tmp}" hdiutil create -volname "MURMUR ${VERSION}" -srcfolder "$DMG_STAGE" -ov -format UDZO "$DMG_PATH" >/dev/null; then
+        echo "ERROR: DMG creation failed (often disk space). pkg is still at: $PKG_PATH" >&2
+        exit 1
+    fi
     echo "==> DMG: $DMG_PATH"
 fi
+
+echo ""
+echo "==> Verifying AU (auval)..."
+if [[ "$SKIP_AUVAL" -eq 1 ]]; then
+    echo "    (skipped — --skip-auval)"
+elif command -v auval >/dev/null 2>&1; then
+    mkdir -p "$HOME/Library/Audio/Plug-Ins/Components"
+    rsync -a --delete "$AU_SRC/" "$HOME/Library/Audio/Plug-Ins/Components/MURMUR.component/"
+    rm -rf "$HOME/Library/Caches/AudioUnitCache/com.apple.audiounits.cache" 2>/dev/null || true
+    killall -9 AudioComponentRegistrar 2>/dev/null || true
+    for _ in $(seq 1 10); do
+        if auval -v aumu Murm Murr >/dev/null 2>&1; then
+            break
+        fi
+        sleep 1
+    done
+    if auval -v aumu Murm Murr; then
+        echo "==> auval: PASS"
+    else
+        echo "ERROR: auval FAILED — fix before shipping (or pass --skip-auval for dev only)" >&2
+        exit 1
+    fi
+else
+    echo "ERROR: auval not found — install Xcode CLT" >&2
+    exit 1
+fi
+
+if [[ -f "$AU_SRC/Contents/MacOS/MURMUR" ]]; then
+    echo "==> Binary arch: $(lipo -info "$AU_SRC/Contents/MacOS/MURMUR" 2>/dev/null || file "$AU_SRC/Contents/MacOS/MURMUR")"
+    echo "==> Bundle version: $(plutil -extract CFBundleShortVersionString raw "$AU_SRC/Contents/Info.plist" 2>/dev/null || echo 'unknown')"
+    echo "==> Min macOS: $(plutil -extract LSMinimumSystemVersion raw "$AU_SRC/Contents/Info.plist" 2>/dev/null || echo 'unknown')"
+fi
+
+# Checksums for Ben / release integrity
+CHECKSUM_FILE="$DIST_DIR/SHA256SUMS.txt"
+{
+    echo "# MURMUR ${VERSION} — $(date -u +%Y-%m-%dT%H:%MZ)"
+    shasum -a 256 "$PKG_PATH"
+    [[ -f "${DMG_PATH:-}" ]] && shasum -a 256 "$DMG_PATH"
+} > "$CHECKSUM_FILE"
+echo "==> Checksums: $CHECKSUM_FILE"
 
 echo ""
 echo "==> Done."

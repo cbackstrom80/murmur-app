@@ -42,10 +42,12 @@ namespace pw8::dsp
             {
                 const float r = right != nullptr ? right[i] : left[i];
                 // RMS-ish mono sum — smoother than half-wave rectified peak.
-                const float mono = std::sqrt((left[i] * left[i] + r * r) * 0.5f);
+                const float monoRaw = std::sqrt((left[i] * left[i] + r * r) * 0.5f);
+                const float mono = flushIfNotFinite(monoRaw);
                 blockPeak = std::max(blockPeak, mono);
                 const float coeff = mono > envelope_ ? attackCoeff : releaseCoeff;
                 envelope_ = mono + coeff * (envelope_ - mono);
+                envelope_ = flushIfNotFinite(envelope_);
             }
 
             if (blockPeak >= peakHold_)

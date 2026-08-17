@@ -131,6 +131,18 @@ namespace pw8::algorithm
         if (outputNodes.empty())
             return CompileStatus::NoOutputNodes;
 
+        if (engineByNode[0] == EngineType::External)
+        {
+            for (const auto outId : outputNodes)
+            {
+                if (outId.get() == 0)
+                {
+                    out.externalOp0DirectOutput = true;
+                    break;
+                }
+            }
+        }
+
         // --- Build final compiled edges (execution-order-relative for feed-forward). ---
         out.executionOrder = order;
         out.outputNodes = outputNodes;

@@ -7,16 +7,26 @@
     "description": "Factory Ambient patch #48. Engines: Classic, Granular, NoiseChaos, Resonator. Procedurally generated (seed 81251114) as part of the 250-patch factory content bank. Archetype: noise riser FX with resonant cavern ambient character.",
     "category": "ambient",
     "moods": [
-      "ambient"
+      "evolving",
+      "massive",
+      "dark",
+      "spooky",
+      "airy"
     ],
     "genres": [
+      "cinematic",
+      "trailer",
+      "ambient-bed",
+      "meditation",
       "factory"
     ],
     "tags": [
       "factory",
       "ambient",
       "fx-riser",
-      "resonant-cave"
+      "resonant-cave",
+      "evolving",
+      "massive"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

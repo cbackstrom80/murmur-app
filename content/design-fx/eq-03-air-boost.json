@@ -1,0 +1,9 @@
+{
+  "chip": 8,
+  "name": "AIR BOOST",
+  "params": {
+    "EqHighGainDb": 4.0,
+    "EqMidGainDb": 1.0,
+    "EqHighFreqHz": 10000.0
+  }
+}

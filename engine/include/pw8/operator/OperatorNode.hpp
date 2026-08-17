@@ -40,6 +40,11 @@ namespace pw8::op
         /// Output level of this node before it's summed into any output bus or consumed
         /// by AUDIO edges downstream.
         float level = 1.0f;
+        bool mixEnabled = true;
+        bool mixMute = false;
+        bool mixSolo = false;
+        /// Effective bus gain from mixEnabled/mute/solo (computed on UI thread each block).
+        float mixGain = 1.0f;
 
         // Engine Type 3 (FM/PM) only -- a self-contained 2-operator FM voice inside
         // this one node, distinct from the graph-level PM/FM edges (which modulate
@@ -103,6 +108,9 @@ namespace pw8::op
         float wtSyncRatio = 1.0f;
         float wtSyncAmount = 0.0f;
         float wtFormantShift = 0.0f;
+        float wtMorphMode = 0.0f;
+        /// External engine input selector (0=AUD1, 1=AUD2, 2=S.CH, 3=RESMP) — op 0 only; passthrough stub.
+        float externalInputSource = 0.0f;
     };
 
     struct OperatorState
@@ -208,6 +216,7 @@ namespace pw8::op
         /// a cheap linear scan, no allocation -- safe on the audio thread).
         [[nodiscard]] float render(const OperatorParams& params, const oscillator::WavetableTable* wavetableTable,
                                     float baseFrequencyHz, float phaseMod, float freqModHz,
+                                    float externalSampleL = 0.0f, float externalSampleR = 0.0f,
                                     int nonlinearOsFactor = 1) noexcept
         {
             const float carrierHz = (params.keyTrack ? baseFrequencyHz * params.frequencyRatio
@@ -234,6 +243,8 @@ namespace pw8::op
                     warp.syncRatio = params.wtSyncRatio;
                     warp.syncAmount = params.wtSyncAmount;
                     warp.formantShift = params.wtFormantShift;
+                    warp.morphMode = static_cast<oscillator::WtMorphMode>(
+                        dsp::clamp(static_cast<int>(params.wtMorphMode + 0.5f), 0, 2));
                     out = waveOsc.renderSample(view, params.wavetableFramePosition, phaseMod, warp);
                     break;
                 }
@@ -346,12 +357,27 @@ namespace pw8::op
                     break;
                 }
 
+                case algorithm::EngineType::External:
+                {
+                    const int src =
+                        dsp::clamp(static_cast<int>(params.externalInputSource + 0.5f), 0, 3);
+                    switch (src)
+                    {
+                        case 0: out = externalSampleL; break;
+                        case 1: out = externalSampleR; break;
+                        case 2: out = (externalSampleL + externalSampleR) * 0.5f; break;
+                        default: out = (externalSampleL + externalSampleR) * 0.5f; break;
+                    }
+                    out = dsp::flushIfNotFinite(out);
+                    break;
+                }
+
                 default:
                     out = 0.0f;
                     break;
             }
 
-            out *= params.level;
+            out *= params.level * params.mixGain;
             lastOutput = out;
             return out;
         }

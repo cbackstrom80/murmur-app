@@ -1,0 +1,13 @@
+{
+  "chip": 8,
+  "name": "MASTER CLEAN-UP",
+  "params": {
+    "EqLowGainDb": 0.0,
+    "EqMidGainDb": 0.0,
+    "EqHighGainDb": 0.0,
+    "EqLowFreqHz": 200.0,
+    "EqMidFreqHz": 1000.0,
+    "EqHighFreqHz": 6000.0,
+    "EqMidQ": 0.8
+  }
+}

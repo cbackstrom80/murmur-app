@@ -7,16 +7,24 @@
     "description": "Factory Ambient patch #47. Engines: Classic, Granular, Resonator. Procedurally generated (seed 561196632) as part of the 250-patch factory content bank. Archetype: wavetable wash drone with slow hymn swell ambient character.",
     "category": "ambient",
     "moods": [
-      "ambient"
+      "airy",
+      "evolving",
+      "warm",
+      "restful",
+      "lush"
     ],
     "genres": [
+      "ambient-bed",
+      "meditation",
       "factory"
     ],
     "tags": [
       "factory",
       "ambient",
       "wt-wash",
-      "hymn-swell"
+      "hymn-swell",
+      "airy",
+      "evolving"
     ],
     "createdAt": "2026-08-12T00:00:00Z",
     "engineVersion": "0.1.0",

@@ -1,4 +1,5 @@
 #include "ConcentricGlowKnob.h"
+#include "../theme/RadialGlowDraw.h"
 
 #include "../theme/DeckedKnobDraw.h"
 #include "../theme/KnobRingDraw.h"
@@ -14,7 +15,6 @@ namespace pw8::plugin::ui
     {
         constexpr int kInnerLabelHeight = 12;
         constexpr int kOuterLabelHeight = 10;
-        constexpr int kTextBoxHeight = 16;
         constexpr int kDepthPopoverHeight = 22;
     } // namespace
 
@@ -40,8 +40,12 @@ namespace pw8::plugin::ui
         innerSlider_.setLookAndFeel(&innerLookAndFeel_);
 
         outerSlider_.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-        innerSlider_.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 76, kTextBoxHeight);
-        innerSlider_.setColour(juce::Slider::rotarySliderFillColourId, palette::kAccent);
+        innerSlider_.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+        innerSlider_.setColour(juce::Slider::rotarySliderFillColourId, juce::Colour(0xff9f80ff));
+
+        outerSlider_.getProperties().set("ringChannel", 0);
+        innerSlider_.getProperties().set("ringChannel", 1);
+        syncFocusProperties();
 
         addAndMakeVisible(outerSlider_);
         addAndMakeVisible(innerSlider_);
@@ -64,6 +68,9 @@ namespace pw8::plugin::ui
             std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, innerParamId, innerSlider_);
         outerAttachment_ =
             std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, outerParamId, outerSlider_);
+
+        outerSlider_.onValueChange = [this] { repaint(); };
+        innerSlider_.onValueChange = [this] { repaint(); };
     }
 
     ConcentricGlowKnob::~ConcentricGlowKnob()
@@ -115,6 +122,21 @@ namespace pw8::plugin::ui
     void ConcentricGlowKnob::setModAssignmentController(ModAssignmentController* controller)
     {
         modAssignment_ = controller;
+    }
+
+    void ConcentricGlowKnob::syncFocusProperties()
+    {
+        outerSlider_.getProperties().set("focusedRingChannel", focusedChannel_);
+        innerSlider_.getProperties().set("focusedRingChannel", focusedChannel_);
+        outerSlider_.repaint();
+        innerSlider_.repaint();
+    }
+
+    void ConcentricGlowKnob::setFocusedChannel(int channel)
+    {
+        focusedChannel_ = juce::jlimit(0, 1, channel);
+        syncFocusProperties();
+        repaint();
     }
 
     void ConcentricGlowKnob::setMaxDialDiameter(int diameter)
@@ -249,6 +271,11 @@ namespace pw8::plugin::ui
 
     void ConcentricGlowKnob::mouseDown(const juce::MouseEvent& event)
     {
+        if (event.eventComponent == &outerSlider_ || outerSlider_.isParentOf(event.eventComponent))
+            setFocusedChannel(0);
+        else if (event.eventComponent == &innerSlider_ || innerSlider_.isParentOf(event.eventComponent))
+            setFocusedChannel(1);
+
         auto& modState = modStateForEvent(event);
 
         if (modState.showDepthPopover && modState.depthPopoverArea_.contains(event.getPosition()))
@@ -335,16 +362,13 @@ namespace pw8::plugin::ui
         innerLabel_.setBounds(bounds.removeFromBottom(kInnerLabelHeight));
 
         const int outerDiameter =
-            juce::jmin(maxDialDiameter_, bounds.getWidth(), juce::jmax(32, bounds.getHeight() - kTextBoxHeight));
+            juce::jmin(maxDialDiameter_, bounds.getWidth(), juce::jmax(32, bounds.getHeight()));
         const int innerDiameter =
             juce::jmax(24, outerDiameter - static_cast<int>(decked::kDualKnobInnerInset * 2.0f));
-        const int textBoxWidth = juce::jmin(72, juce::jmax(44, bounds.getWidth() - 4));
 
-        const auto dialColumn = bounds.withSizeKeepingCentre(bounds.getWidth(), outerDiameter + kTextBoxHeight);
+        const auto dialColumn = bounds.withSizeKeepingCentre(bounds.getWidth(), outerDiameter);
         outerSlider_.setBounds(dialColumn.withHeight(outerDiameter));
-
-        innerSlider_.setTextBoxStyle(juce::Slider::TextBoxBelow, false, textBoxWidth, kTextBoxHeight);
-        innerSlider_.setBounds(dialColumn.withSizeKeepingCentre(bounds.getWidth(), innerDiameter + kTextBoxHeight));
+        innerSlider_.setBounds(dialColumn.withSizeKeepingCentre(bounds.getWidth(), innerDiameter));
 
         if (innerMod_.showDepthPopover || outerMod_.showDepthPopover)
         {
@@ -408,6 +432,16 @@ namespace pw8::plugin::ui
         };
         drawDepth(innerMod_);
         drawDepth(outerMod_);
+
+        const auto dialBounds = outerSlider_.getBounds().toFloat();
+        const auto layout = radialglow::computeLayout(dialBounds);
+        const bool outerFocused = focusedChannel_ == 0;
+        const juce::String& title = outerFocused ? outerLabel_.getText() : innerLabel_.getText();
+        const juce::String value =
+            outerFocused ? outerSlider_.getTextFromValue(outerSlider_.getValue())
+                         : innerSlider_.getTextFromValue(innerSlider_.getValue());
+        const juce::Colour accent = outerFocused ? juce::Colour(0xff00ffd2) : innerSlider_.findColour(juce::Slider::rotarySliderFillColourId);
+        radialglow::drawCenterReadout(g, layout, title, value, accent);
     }
 
 } // namespace pw8::plugin::ui

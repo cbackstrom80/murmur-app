@@ -1,0 +1,10 @@
+{
+  "chip": 1,
+  "name": "FOLD DESTROYER",
+  "modePill": "FOLD",
+  "params": {
+    "SaturationCharacter": 3,
+    "SaturationDrive": 32.0,
+    "Mix": 0.7
+  }
+}

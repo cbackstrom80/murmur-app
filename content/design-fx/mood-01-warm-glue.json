@@ -1,0 +1,9 @@
+{
+  "chip": 4,
+  "name": "WARM ANALOG GLUE",
+  "modePill": "WARM",
+  "params": {
+    "Mix": 0.55
+  },
+  "uiKnobs": [0.55, 0.42, 0.38, 0.48, 0.28, 0.5]
+}

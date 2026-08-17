@@ -26,10 +26,16 @@
 ## Signal flow
 
 ```
-Main Input (stereo) ──┐
-                      ├──► [optional sum] ──► BinauralSpaceProcessor ──► Output (stereo)
-Sidechain (AU, stereo) ┘
+Main Input (stereo L/R)
+    │
+    ├── L (HPF) ──► QSR1 path (binaural pan + room) ──┐
+    ├── R (HPF) ──► QSR2 path (binaural pan + room) ──┼──► sum + delay ──► Output
+    └── CNTR (HPF L/R anchor) ──────────────────────────┘
+
+Sidechain (AU, stereo) — **QSR2-only aux** (default) or legacy sum-with-main (`sidechainToQsr2` off)
 ```
+
+**Stereo split (always on in standalone QUASAR):** the left input channel feeds QSR1 only; the right channel feeds QSR2 only. This lets you place each side of a stereo field independently in headphone space. MURMUR's legacy master-bus path still uses summed mono to both QSR paths when `qsrStereoSplit` is false.
 
 ### Sidechain (MVP)
 
@@ -41,9 +47,9 @@ Delay time sync reads BPM from the host playhead (`AudioPlayHead::getPosition()`
 
 ---
 
-## Parameters (25)
+## Parameters (28)
 
-All parameters are flat APVTS floats (discrete params use integer steps). IDs match MURMUR master FX Quasar field names.
+All parameters are flat APVTS floats (discrete params use integer steps). IDs match MURMUR master FX Quasar field names where applicable.
 
 | Group | Parameters |
 |-------|------------|
@@ -52,6 +58,8 @@ All parameters are flat APVTS floats (discrete params use integer steps). IDs ma
 | **Input split** | `inputSplitHpfHz`, `cntrHpfHz` |
 | **QSR1 spatial** | `qsr1Height`, `qsr1Angle`, `qsr1Distance` |
 | **QSR2 spatial** | `qsr2Height`, `qsr2Angle`, `qsr2Distance` |
+| **Macro KOINS** | `orbitMacro`, `spreadMacro` (0.5 = neutral; fan to both QSR paths at DSP) |
+| **Sidechain** | `sidechainToQsr2` (on = AU sidechain feeds QSR2 only) |
 | **QSR1 room** | `qsr1RoomAmount`, `qsr1RoomSize`, `qsr1RoomDamping` |
 | **QSR2 room** | `qsr2RoomAmount`, `qsr2RoomSize`, `qsr2RoomDamping` |
 | **Delay** | `quasarDelayTimeMs`, `quasarDelayFeedback`, `quasarDelayVolume`, `quasarDelaySync`, `quasarDelaySyncDivision` |
@@ -73,8 +81,11 @@ JSON, `schemaVersion: 1`:
 }
 ```
 
-- Factory presets: `content/presets/quasar/*.quasar`
+- Factory presets: `content/presets/quasar/*.quasar` and subfolders:
+  - `interstellar/` — 75 MURMUR Spatial companions
+  - `play/` — 20 PLAY-surface showcases (stereo split, macros, sidechain)
 - Host state save/load uses the same JSON envelope (params only, no metadata required)
+- Regenerate PLAY batch: `python3 scripts/generate_quasar_play_presets.py`
 - Example: `001-orbit-cathedral.quasar` — migrated from Interstellar **VOID CATHEDRAL** spatial character
 
 ---
@@ -83,13 +94,14 @@ JSON, `schemaVersion: 1`:
 
 Obsidian skin adapted from MURMUR `GlobalPanel` QUASAR tab:
 
-- **ObsidianLookAndFeel**, **GlowKnob**, **MetadataFacetRow** (minimal copy under `quasar_plugin/src/ui/`)
-- Spatial knobs: Distance, Angle, Height, Room, CNTR/QSR levels
-- Delay sync rows (FREE/TEMPO + division chips)
-- Output mode + crossfeed
-- Spherical scope placeholder (Phase 4)
+- **PLAY surface**
+  - **Macro KOINS:** ORBIT (`orbitMacro`) rotates both feeds ±180°; SPREAD (`spreadMacro`) widens/narrows angle + depth + height
+  - **6 spatial knobs:** L/R ORBIT · DEPTH · LIFT (direct APVTS)
+- **Wireframe scope** — draggable L/R markers write spatial params; glow tethers from listener head
+- **SC AUX row** — QSR2 (sidechain-only into QSR2 path) vs SUM (legacy add-to-main)
+- **DEEP panel** — mix, CNTR, room, delay, output mode, HPFs
 
-Editor size: 920×640.
+Editor size: 920×720.
 
 ---
 
@@ -117,17 +129,19 @@ Links: `pw8::core`, JUCE (`juce_audio_utils`, `juce_dsp`). Branding icon reused 
 
 ## Roadmap (post-MVP)
 
-1. **QSR2 aux** — route sidechain to QSR2 only (not summed with main)
-2. **Spherical scope** — live QSR1/QSR2 position visualization
-3. **Preset browser** — load/save `.quasar` from UI
-4. **VST3 sidechain** — host-dependent sidechain bus
-5. **Mod matrix / LFO** — internal orbit motion (Phase 3 destinations from GLOBAL plan)
-6. **Quality tiers** — Eco/Normal/High HRTF (see GLOBAL plan §2.7)
+1. ~~**QSR2 aux** — route sidechain to QSR2 only~~ (shipped)
+2. ~~**Draggable scope**~~ (shipped)
+3. ~~**Macro KOINS** — ORBIT/SPREAD~~ (shipped)
+4. **Preset browser** — load/save `.quasar` from UI
+5. **VST3 sidechain** — host-dependent sidechain bus
+6. **Mod matrix / LFO** — internal orbit motion
+7. **Quality tiers** — Eco/Normal/High HRTF (see GLOBAL plan §2.7)
 
 ---
 
 ## Related docs
 
+- [`QUASAR_FIGMA_BUILD_GUIDE.md`](QUASAR_FIGMA_BUILD_GUIDE.md) — Figma build order, region map, param→control table, preset fixtures
 - [`GLOBAL_QUASAR_FX_PLAN.md`](GLOBAL_QUASAR_FX_PLAN.md) — full Quasar DSP + MURMUR integration plan
 - [`NEUZEIT_QUASAR_RESEARCH.md`](NEUZEIT_QUASAR_RESEARCH.md) — research reference
 - [`PLUGIN_ARCHITECTURE.md`](PLUGIN_ARCHITECTURE.md) — MURMUR JUCE wrapper patterns
