@@ -51,6 +51,19 @@ namespace pw8::plugin::ui::branding
             return logo.convertedToFormat(juce::Image::ARGB);
         }
 
+        juce::Image buildWhaleIcon()
+        {
+            auto whale = loadEmbedded(BinaryData::murmur_whale_512_png, BinaryData::murmur_whale_512_pngSize);
+            if (!whale.isValid())
+                return {};
+
+            // Source PNG already has a transparent background (verified at
+            // export time) -- no black-keying needed, unlike the M mark.
+            // It also already bakes in a small "MURMUR" wordmark under the
+            // whale (verified visually) -- see the getWhaleIcon() doc comment.
+            return whale.convertedToFormat(juce::Image::ARGB);
+        }
+
         const juce::Image& cachedMarkIcon()
         {
             static const juce::Image icon = buildMarkIcon();
@@ -61,6 +74,12 @@ namespace pw8::plugin::ui::branding
         {
             static const juce::Image logo = buildLogoLockup();
             return logo;
+        }
+
+        const juce::Image& cachedWhaleIcon()
+        {
+            static const juce::Image whale = buildWhaleIcon();
+            return whale;
         }
     } // namespace
 
@@ -77,6 +96,11 @@ namespace pw8::plugin::ui::branding
     juce::Image getLogoLockup()
     {
         return cachedLogoLockup();
+    }
+
+    juce::Image getWhaleIcon()
+    {
+        return cachedWhaleIcon();
     }
 
     int logoLockupWidth() noexcept

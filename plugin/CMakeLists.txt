@@ -29,6 +29,8 @@ juce_add_binary_data(pw8_branding_data
     SOURCES
         resources/branding/murmur_mark_512.png
         resources/branding/murmur_logo_lockup.png
+        resources/branding/murmur_splash_bg.jpg
+        resources/branding/murmur_whale_512.png
         resources/fx-glyphs/fx_bypass.svg
         resources/fx-glyphs/fx_sat.svg
         resources/fx-glyphs/fx_chr.svg
@@ -80,6 +82,8 @@ target_sources(pw8_plugin PRIVATE
     src/content/WavetableIndex.cpp
     src/content/FavoritesStore.cpp
     src/content/PresetRatingsStore.cpp
+    src/content/LicenseStore.cpp
+    src/net/MurmurApiClient.cpp
     src/ui/MurmurRootEditor.cpp
     src/ui/DesignModeEditor.cpp
     src/ui/PlayModeEditor.cpp
@@ -141,6 +145,8 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/CompactModeEditor.cpp
     src/ui/components/MetadataFacetRow.cpp
     src/ui/components/PresetBrowserOverlay.cpp
+    src/ui/components/SplashOverlay.cpp
+    src/ui/components/KeyActivationOverlay.cpp
     src/ui/components/AmpEnvelopePanel.cpp
     src/ui/components/ObsidianEnvelopeVisualizer.cpp
     src/ui/components/ModSourceChip.cpp

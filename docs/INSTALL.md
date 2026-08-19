@@ -94,7 +94,7 @@ If Logic still shows an old version after updating, hold **Option** while openin
 |---------|-----|
 | "Incompatible" in Logic | Reinstall pkg, reset & rescan plug-ins |
 | Crash on open | Reinstall 1.4.3 full pkg; try Standalone app first |
-| No presets | Re-run installer; check factory folder has `.pw8` files |
+| No presets | Re-run installer; check factory folder has `.murmur` files |
 | Can't open preset browser | Click **BROWSE** or press **⌘B** |
 
 See also [`RELEASE_1.4.3.md`](RELEASE_1.4.3.md) for release-specific notes.

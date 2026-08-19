@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "PlayModeLayout.h"
+#include "net/MurmurApiClient.h"
 #include "theme/BrandingAssets.h"
 #include "theme/ObsidianPalette.h"
 
@@ -122,6 +123,67 @@ namespace pw8::plugin::ui
         syncChromeState();
         applyWindowConstraints();
         setSize(layout::kDefaultWidth, layout::defaultPlayRootHeight(layout::PlayViewMode::Desktop));
+
+        // Key activation goes above everything but under the splash -- shown
+        // once the splash clears, only if no license is stored locally yet
+        // (content::LicenseStore's own file, checked fresh here rather than
+        // cached, so a license activated in another editor instance is
+        // picked up too).
+        addChildComponent(keyActivationOverlay_);
+        keyActivationOverlay_.setBounds(getLocalBounds());
+        keyActivationOverlay_.onDismissed = [this] { keyActivationOverlay_.setVisible(false); };
+        keyActivationOverlay_.onLibraryFetched = [this](const juce::Array<net::LibraryPatch>& patches) {
+            if (patches.isEmpty())
+                return;
+
+            // Sequential downloads on one background thread (polite to the
+            // server, and there's no UI progress for this yet) into the real,
+            // already-scanned user preset root (pw8::content::presetSearchRoots()
+            // includes "<AppData>/MURMUR/Presets") -- refreshPresetIndex() below
+            // picks them up the same way any other user-dropped file would be.
+            juce::Thread::launch([this, patches] {
+                const auto destDir = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
+                                          .getChildFile("MURMUR/Presets/library");
+                destDir.createDirectory();
+
+                int downloaded = 0;
+                for (const auto& patch : patches)
+                {
+                    if (patch.downloadUrl.isEmpty() || patch.slug.isEmpty())
+                        continue;
+
+                    const juce::URL url(patch.downloadUrl);
+                    const auto options =
+                        juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress).withConnectionTimeoutMs(8000);
+                    auto stream = url.createInputStream(options);
+                    if (stream == nullptr)
+                        continue;
+
+                    const auto body = stream->readEntireStreamAsString();
+                    if (body.isEmpty())
+                        continue;
+
+                    destDir.getChildFile(patch.slug + ".murmur").replaceWithText(body);
+                    ++downloaded;
+                }
+
+                juce::MessageManager::callAsync([this, downloaded] {
+                    if (downloaded > 0)
+                        patchBrowserBar_.refreshPresetIndex();
+                });
+            });
+        };
+
+        // Splash goes last so it paints on top of everything else added above.
+        addAndMakeVisible(splashOverlay_);
+        splashOverlay_.setBounds(getLocalBounds());
+        splashOverlay_.onDismissed = [this] {
+            splashOverlay_.setVisible(false);
+
+            const content::LicenseStore licenseCheck;
+            if (!licenseCheck.info().isActivated())
+                keyActivationOverlay_.setVisible(true);
+        };
     }
 
     MurmurRootEditor::~MurmurRootEditor()
@@ -313,6 +375,12 @@ namespace pw8::plugin::ui
     void MurmurRootEditor::resized()
     {
         auto bounds = getLocalBounds();
+
+        if (splashOverlay_.isVisible())
+            splashOverlay_.setBounds(bounds);
+
+        if (keyActivationOverlay_.isVisible())
+            keyActivationOverlay_.setBounds(bounds);
 
         if (presetBrowserOverlay_.isVisible())
             presetBrowserOverlay_.setBounds(bounds);
