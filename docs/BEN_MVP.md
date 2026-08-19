@@ -1,13 +1,15 @@
-# Ben MVP — MURMUR 1.4.4
+# Ben MVP — MURMUR 1.5.0
 
 First installable release for **Ben** on **Apple Silicon Mac + Logic Pro + Kawai MP11SE**.
 
 ## What's included
 
 - **MURMUR** Audio Unit + VST3 + Standalone app
-- **1800+ factory presets** (core banks + 100 Interstellar cinematic)
+- **1129+ factory presets** (Interstellar, MasterSpatial, Blades, Streams, core banks)
 - **Wavetable library** + design-FX presets + showcase patches
 - **Obsidian UI** — PLAY / DESIGN / COMPACT modes
+- **Design FX** — card browser, chain view, CPU hero visualizers (Figma-aligned)
+- **Quasar** master spatial panel + binaural chain UI
 - **Preset Explorer** — search, categories, mood/genre/tag filters, favorites
 - **iPad-style PLAY view** — scope + master output deck + 6 performance macros
 - **MP11SE performance mapping** (mod wheel, expression, knobs A–D → macros)
@@ -15,7 +17,7 @@ First installable release for **Ben** on **Apple Silicon Mac + Logic Pro + Kawai
 
 ## Install
 
-1. Download `MURMUR-1.4.4-macOS-arm64-full.dmg` from [GitHub Releases](https://github.com/cbackstrom80/patchwork-eight/releases).
+1. Download `MURMUR-1.5.0-macOS-arm64-full.dmg` from [GitHub Releases](https://github.com/cbackstrom80/patchwork-eight/releases).
 2. Open the DMG → double-click **`Install MURMUR.pkg`** (no admin password).
 3. **Quit Logic** completely, reopen.
 4. **Logic → Settings → Plug-in Manager → Reset & Rescan Selection**.
@@ -28,11 +30,13 @@ First installable release for **Ben** on **Apple Silicon Mac + Logic Pro + Kawai
 |------|-------|-------------|------------|
 | **Interstellar** | 175 | Category **INTERSTELLAR** | CATHEDRAL NEBULA, CORNFIELD CHASE |
 | **Interstellar Spatial** | 75 | `Interstellar/Spatial/` subfolder | VOID CATHEDRAL |
+| **MasterSpatial** | 20 | Category **MASTER SPATIAL** | NEBULA DRIFT |
+| **Blades** | 15 | Category **BLADES** | SERIAL SWEEP |
 | **Hoover Bass** | 28 | Category **BASS**, genre **hoover-bass** | CLUB HOOVER, RAVE DRIVE |
 
 Full walkthrough: [`BEN_DEMO_PRESETS.md`](BEN_DEMO_PRESETS.md)
 
-Copy-paste email for Ben: [`BEN_EMAIL_1.4.4.md`](BEN_EMAIL_1.4.4.md)
+Copy-paste email for Ben: [`BEN_EMAIL_1.5.0.md`](BEN_EMAIL_1.5.0.md)
 
 ## Logic + MP11SE quick start
 
@@ -76,7 +80,7 @@ Re-run the latest `.dmg` or `.pkg` from Releases — it overwrites the AU and re
 ## Maintainer build
 
 ```bash
-scripts/release_gate.sh 1.4.4
+scripts/release_gate.sh 1.5.0
 ```
 
-Verify: [`RELEASE_1.4.4_VERIFY.md`](RELEASE_1.4.4_VERIFY.md)
+Verify: [`RELEASE_1.5.0_VERIFY.md`](RELEASE_1.5.0_VERIFY.md)

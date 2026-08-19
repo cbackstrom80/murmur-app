@@ -1,6 +1,6 @@
 # Installing MURMUR on macOS (Ben)
 
-**MURMUR 1.4.4** — install like any Mac app: download the DMG, double-click the pkg, open Logic. No Xcode or terminal required.
+**MURMUR 1.5.0** — install like any Mac app: download the DMG, double-click the pkg, open Logic. No Xcode or terminal required.
 
 Built for **Apple Silicon (M1/M2/M3/M4)** + **macOS 13+** + **Logic Pro** + **Kawai MP11SE**.
 
@@ -9,7 +9,7 @@ Built for **Apple Silicon (M1/M2/M3/M4)** + **macOS 13+** + **Logic Pro** + **Ka
 ## Quick install (recommended — DMG)
 
 1. **Download** from [GitHub Releases](https://github.com/cbackstrom80/patchwork-eight/releases):
-   - `MURMUR-1.4.4-macOS-arm64-full.dmg`
+   - `MURMUR-1.5.0-macOS-arm64-full.dmg`
 
 2. **Open the DMG** and read `1 — READ ME FIRST.txt`.
 
@@ -82,7 +82,7 @@ If macOS blocks the installer:
 1. Download the latest `.dmg` or `.pkg` from [Releases](https://github.com/cbackstrom80/patchwork-eight/releases)
 2. Run the installer (overwrites previous install)
 3. **Quit Logic completely**, reopen, **Reset & Rescan Selection**
-4. Confirm version **1.4.4** in the plug-in (footer or about)
+4. Confirm version **1.5.0** in the plug-in (footer or about)
 
 If Logic still shows an old version after updating, hold **Option** while opening Plug-in Manager for a full reset.
 
@@ -106,7 +106,7 @@ See also [`RELEASE_1.4.3.md`](RELEASE_1.4.3.md) for release-specific notes.
 One-command Cadillac build:
 
 ```bash
-scripts/release_gate.sh 1.4.4
+scripts/release_gate.sh 1.5.0
 ```
 
-Verify checklist: [`RELEASE_1.4.4_VERIFY.md`](RELEASE_1.4.4_VERIFY.md)
+Verify checklist: [`RELEASE_1.5.0_VERIFY.md`](RELEASE_1.5.0_VERIFY.md)
