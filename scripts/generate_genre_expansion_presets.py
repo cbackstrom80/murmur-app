@@ -80,7 +80,8 @@ def load_factory_module():
 
 def load_existing_names():
     used = set()
-    for pw8 in (REPO_ROOT / "content" / "presets").rglob("*.pw8"):
+    for pw8 in sorted((REPO_ROOT / "content" / "presets").rglob("*.pw8")) + \
+               sorted((REPO_ROOT / "content" / "presets").rglob("*.murmur")):
         if "factory" in pw8.parts:
             slot_str = pw8.stem.split("-", 1)[0]
             if slot_str.isdigit() and START_INDEX <= int(slot_str) <= END_INDEX:
@@ -656,12 +657,12 @@ def main():
 
         for offset, genre in enumerate(plan):
             slot = START_INDEX + offset
-            for stale in out_dir.glob(f"{slot:02d}-*.pw8"):
+            for stale in sorted(out_dir.glob(f"{slot:02d}-*.pw8")) + sorted(out_dir.glob(f"{slot:02d}-*.murmur")):
                 stale.unlink()
 
             display_name = make_genre_name(genre, random.Random(hash((BATCH_TAG, "name", cat_key, slot))), used_names)
             patch = build_expansion_patch(cat_key, cat_label, slot, display_name, genre, None)
-            fname = f"{slot:03d}-{slugify(display_name)}.pw8"
+            fname = f"{slot:03d}-{slugify(display_name)}.murmur"
             path = out_dir / fname
             path.write_text(json.dumps(patch, indent=2) + "\n")
             generated.append(str(path.relative_to(REPO_ROOT)))

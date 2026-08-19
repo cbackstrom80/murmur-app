@@ -3,7 +3,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "FilterLfoPanel.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -11,7 +11,7 @@ namespace pw8::plugin::ui
     class ContextStrip : public juce::Component
     {
     public:
-        explicit ContextStrip(PatchworkEightProcessor& processor);
+        explicit ContextStrip(MurmurProcessor& processor);
 
         void paint(juce::Graphics& g) override;
         void resized() override;
@@ -19,7 +19,7 @@ namespace pw8::plugin::ui
         void setScope(FilterPanelScope scope, int engineIndex = 0);
 
     private:
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         FilterPanelScope scope_ = FilterPanelScope::Engine;
         int engineIndex_ = 0;
     };

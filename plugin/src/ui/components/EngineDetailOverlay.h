@@ -11,7 +11,7 @@
 #include "GlowKnob.h"
 #include "ModAssignmentController.h"
 #include "OperatorEditorPanel.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -19,7 +19,7 @@ namespace pw8::plugin::ui
     class EngineDetailOverlay : public juce::Component, private juce::Timer
     {
     public:
-        EngineDetailOverlay(PatchworkEightProcessor& processor, ModAssignmentController& modAssignmentController);
+        EngineDetailOverlay(MurmurProcessor& processor, ModAssignmentController& modAssignmentController);
 
         void showForEngine(int engineIndex);
         void dismiss();
@@ -43,7 +43,7 @@ namespace pw8::plugin::ui
         void mouseDown(const juce::MouseEvent& event) override;
         void timerCallback() override;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         int engineIndex_ = 0;
 
         juce::Component contentHost_;

@@ -1,7 +1,7 @@
 # iPad Port Research — MURMUR
 
 **Status:** Research (Aug 2026)  
-**Scope:** Feasibility of porting MURMUR (Patchwork Eight plugin) to iPad — engine, plugin wrapper, UI, AU vs standalone.
+**Scope:** Feasibility of porting MURMUR (MURMUR plugin) to iPad — engine, plugin wrapper, UI, AU vs standalone.
 
 ---
 
@@ -16,7 +16,7 @@
 | Area | Assessment |
 |------|------------|
 | **Engine (`pw8_core`)** | Strong — no JUCE in engine; standard C++20 DSP. Same code path as macOS AU. |
-| **Plugin wrapper** | Medium — `PatchworkEightProcessor` is JUCE-based; iOS needs AUv3 + optional standalone target. |
+| **Plugin wrapper** | Medium — `MurmurProcessor` is JUCE-based; iOS needs AUv3 + optional standalone target. |
 | **UI (`MurmurRootEditor`)** | Medium–Large — Component tree works on iOS; needs layout pass for touch targets, safe areas, no hover-only affordances. |
 | **Content / wavetables** | Medium — bundle `content/` in app; replicate `ContentPaths` search roots for iOS bundle. |
 | **Sidechain input** | Different UX — AUv3 on iOS exposes **audio input bus** when host supports it (GarageBand, AUM); not Logic bus picker. Mic + IAA/USB audio as modulator source. |

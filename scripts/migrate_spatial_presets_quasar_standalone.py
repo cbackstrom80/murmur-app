@@ -209,7 +209,7 @@ def migrate_preset(path: pathlib.Path) -> None:
 
 
 def main() -> None:
-    paths = sorted(SPATIAL_DIR.glob("*.pw8"))
+    paths = sorted(SPATIAL_DIR.glob("*.pw8")) + sorted(SPATIAL_DIR.glob("*.murmur"))
     migrated = 0
     for path in paths:
         before = path.read_text(encoding="utf-8")

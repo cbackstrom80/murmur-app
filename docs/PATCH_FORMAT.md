@@ -116,7 +116,7 @@ direct APVTS parameter binding. Mod Wheel and Expression remain separate MIDI ba
 - Each featured macro has **2–4 `modRoutes`** to audible targets (filter, level, WT pos, pan).
 - `uiFocus` lists macro entries only — no `param`-kind padding on the performance surface.
 
-See any regenerated factory pad (e.g. `content/presets/factory/Pads/01-pale-glow.pw8`) for an example.
+See any regenerated factory pad (e.g. `content/presets/factory/Pads/01-pale-glow.murmur`) for an example.
 
 ## `LayerMode`
 
@@ -191,19 +191,19 @@ tables shared across operators yet (each operator slot that references a table
 loads and owns its own copy in memory, even if two slots name the same file). A
 missing or malformed file does not fail the whole patch load -- that operator just
 renders silence, matching `WavetableOscillator`'s existing "invalid view -> silence"
-contract. `content/presets/wt-morph.pw8` names
+contract. `content/presets/wt-morph.murmur` names
 `"content/wavetables/basic_harmonic.json"` and works correctly when run from the
-repo root (e.g. via `pw8-render` or the Python bindings, both of which resolve
+repo root (e.g. via `murmur-render` or the Python bindings, both of which resolve
 relative paths against the caller's working directory). A proper content-addressed
 resolution system, matching the rest of the content pipeline, is PLANNED.
 
 The plugin's PLAY mode (`WavetableStackView`'s "Load..." button, UI GATE 5) can now
 set `wavetableId` on a running instance -- a native file chooser picks an existing
-`pw8-wavetable-builder` JSON table (absolute path, so the CWD caveat above doesn't
+`murmur-wavetable-builder` JSON table (absolute path, so the CWD caveat above doesn't
 bite there) and triggers a full patch reload to actually load it
-(`PatchworkEightProcessor::setOperatorWavetableFile()`). It picks an
+(`MurmurProcessor::setOperatorWavetableFile()`). It picks an
 **already-built** table, not a raw `.wav` -- turning a source recording into mip
-levels is still `pw8-wavetable-builder`'s job as a separate offline tool, not
+levels is still `murmur-wavetable-builder`'s job as a separate offline tool, not
 something the plugin runs live yet.
 
 ## Metadata & Categories

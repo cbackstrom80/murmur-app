@@ -16,7 +16,7 @@ namespace pw8::plugin::ui
         constexpr int kNumNodes = 8;
     } // namespace
 
-    LiveTopologyStrip::LiveTopologyStrip(PatchworkEightProcessor& processor) : processor_(processor)
+    LiveTopologyStrip::LiveTopologyStrip(MurmurProcessor& processor) : processor_(processor)
     {
         startTimerHz(24);
         setMouseCursor(juce::MouseCursor::PointingHandCursor);

@@ -36,7 +36,7 @@ def resolve_installed(wavetable_id: str) -> Path | None:
 def main() -> int:
     missing: list[tuple[str, str]] = []
     refs = 0
-    for pw8 in sorted(PRESETS_DIR.rglob("*.pw8")):
+    for pw8 in sorted(PRESETS_DIR.rglob("*.pw8")) + sorted(PRESETS_DIR.rglob("*.murmur")):
         data = json.loads(pw8.read_text())
         for op in data.get("layerA", {}).get("operators", []):
             wt = op.get("wavetableId") or ""

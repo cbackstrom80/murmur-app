@@ -6,7 +6,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "GlowKnob.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -14,7 +14,7 @@ namespace pw8::plugin::ui
     class MorphTimelineStrip : public juce::Component, private juce::Timer
     {
     public:
-        explicit MorphTimelineStrip(PatchworkEightProcessor& processor);
+        explicit MorphTimelineStrip(MurmurProcessor& processor);
 
         std::function<void(std::size_t keyframeIndex)> onKeyframeSelected;
 
@@ -40,7 +40,7 @@ namespace pw8::plugin::ui
         void paintChip(juce::Graphics& g, juce::Rectangle<float> bounds, const juce::String& text,
                        juce::Colour accent) const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         std::unique_ptr<GlowKnob> morphKnob_;
         bool showMorphKnob_ = true;
         bool compactHubMode_ = false;

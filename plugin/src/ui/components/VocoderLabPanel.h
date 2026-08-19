@@ -11,7 +11,7 @@
 #include "GlowKnob.h"
 #include "GlowRingButton.h"
 #include "../PlayModeLayout.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -19,7 +19,7 @@ namespace pw8::plugin::ui
     class VocoderLabPanel : public juce::Component, private juce::Timer
     {
     public:
-        explicit VocoderLabPanel(PatchworkEightProcessor& processor);
+        explicit VocoderLabPanel(MurmurProcessor& processor);
         ~VocoderLabPanel() override;
 
         std::function<void()> onClosed;
@@ -49,7 +49,7 @@ namespace pw8::plugin::ui
         static constexpr int kFftOrder = 10;
         static constexpr int kFftSize = 1 << kFftOrder;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         juce::AudioProcessorValueTreeState& apvts_;
         std::size_t slotIndex_ = 2;
 

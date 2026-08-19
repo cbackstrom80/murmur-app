@@ -10,7 +10,7 @@
 #include "GlowKnob.h"
 #include "GlowRingButton.h"
 #include "MetadataFacetRow.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "SectionPanel.h"
 #include "wireframe/FxChainFlowView.h"
 
@@ -20,7 +20,7 @@ namespace pw8::plugin::ui
 class GlobalPanel : public juce::Component, private juce::Timer
 {
 public:
-    explicit GlobalPanel(PatchworkEightProcessor& processor);
+    explicit GlobalPanel(MurmurProcessor& processor);
     ~GlobalPanel() override;
 
     void resized() override;
@@ -38,7 +38,7 @@ private:
     [[nodiscard]] int readEffectType(const juce::String& prefix) const;
     void timerCallback() override;
 
-    PatchworkEightProcessor& processor_;
+    MurmurProcessor& processor_;
     juce::AudioProcessorValueTreeState& apvts_;
     SectionPanel panel_{"GLOBAL", palette::kAccent};
 

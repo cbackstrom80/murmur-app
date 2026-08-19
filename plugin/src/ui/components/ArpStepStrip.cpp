@@ -9,7 +9,7 @@
 
 namespace pw8::plugin::ui
 {
-    ArpStepStrip::ArpStepStrip(PatchworkEightProcessor& processor) : processor_(processor)
+    ArpStepStrip::ArpStepStrip(MurmurProcessor& processor) : processor_(processor)
     {
         startTimerHz(30);
     }

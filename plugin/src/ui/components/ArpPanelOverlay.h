@@ -10,7 +10,7 @@
 #include "GlowKnob.h"
 #include "GlowRingButton.h"
 #include "SectionPanel.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "pw8/modulation/ModMatrixTypes.hpp"
 
 namespace pw8::plugin::ui
@@ -19,7 +19,7 @@ namespace pw8::plugin::ui
     class ArpPanelOverlay : public juce::Component, private juce::Timer
     {
     public:
-        explicit ArpPanelOverlay(PatchworkEightProcessor& processor);
+        explicit ArpPanelOverlay(MurmurProcessor& processor);
         ~ArpPanelOverlay() override;
 
         std::function<void()> onClosed;
@@ -53,7 +53,7 @@ namespace pw8::plugin::ui
         void paintFooterModChips(juce::Graphics& g) const;
         [[nodiscard]] bool modSourceActive(modulation::ModSource source) const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         juce::AudioProcessorValueTreeState& apvts_;
 
         juce::TextButton backButton_{"← PLAY BOARD"};

@@ -9,7 +9,7 @@ export default {
   id: 'design-fx-hero-viz',
   imports: [
     '#include "wireframe/DesignFxHeroViz.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 wireframe::DesignFxHeroViz heroViz_(processor.apvts);

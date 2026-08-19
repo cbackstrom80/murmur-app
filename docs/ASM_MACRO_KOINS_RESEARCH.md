@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-13 (updated)  
 **Author:** Agent research pass for Curtis  
-**Goal:** Understand how Ashun Sound Machines (ASM) Hydrasynth implements Performance Macros, audit MURMUR/Patchwork Eight KOINS today, and define **1–3 feature macro KOINS** for Basic/Compact PLAY + agentic preset generation.
+**Goal:** Understand how Ashun Sound Machines (ASM) Hydrasynth implements Performance Macros, audit MURMUR/MURMUR KOINS today, and define **1–3 feature macro KOINS** for Basic/Compact PLAY + agentic preset generation.
 
 ---
 
@@ -126,7 +126,7 @@ KOINS are **UI labels for existing parameters**. Multi-destination behavior only
 | Compact PLAY KOINS | **Up to 4** (cardinal orbit) | `PatchFocusPanel`: `maxKnobs = 4` when `compactLayout_` |
 | Authored list cap | `uiFocus.maxKnobs` (default 6, clamp 1–8) | `PATCH_FORMAT.md` |
 
-**Typical factory `uiFocus` mix** (example: `content/presets/factory/Pads/07-cloud-glow.pw8`):
+**Typical factory `uiFocus` mix** (example: `content/presets/factory/Pads/07-cloud-glow.murmur`):
 
 - 1 named macro (e.g. WARMTH → Macro 1, routed to WT position)
 - 5 direct params (Cutoff, Reso, Layer, Pan, …)

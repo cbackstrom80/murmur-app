@@ -23,7 +23,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    OscilloscopeView::OscilloscopeView(PatchworkEightProcessor& processor) : processor_(processor)
+    OscilloscopeView::OscilloscopeView(MurmurProcessor& processor) : processor_(processor)
     {
         if (murmur8::visualizerGpuEnabled())
         {

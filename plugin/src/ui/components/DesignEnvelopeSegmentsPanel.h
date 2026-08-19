@@ -8,7 +8,7 @@
 
 #include "GlowRingButton.h"
 #include "SectionPanel.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "pw8/envelope/SegmentEnvelope.hpp"
 
 namespace pw8::plugin::ui
@@ -17,7 +17,7 @@ namespace pw8::plugin::ui
     class DesignEnvelopeSegmentsPanel : public juce::Component
     {
     public:
-        explicit DesignEnvelopeSegmentsPanel(PatchworkEightProcessor& processor);
+        explicit DesignEnvelopeSegmentsPanel(MurmurProcessor& processor);
         ~DesignEnvelopeSegmentsPanel() override;
 
         std::function<void()> onClosed;
@@ -47,7 +47,7 @@ namespace pw8::plugin::ui
         void commitChain();
         void paintSegmentPreview(juce::Graphics& g, juce::Rectangle<int> bounds) const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         bool embeddedInDesignMode_ = false;
         std::size_t selectedEnv_ = 0;
         std::size_t selectedSegment_ = 0;

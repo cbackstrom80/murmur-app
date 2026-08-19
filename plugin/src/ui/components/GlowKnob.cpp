@@ -116,7 +116,7 @@ namespace pw8::plugin::ui
         repaint();
     }
 
-    void GlowKnob::enableModulationTarget(PatchworkEightProcessor& processor, modulation::ModDestination destination,
+    void GlowKnob::enableModulationTarget(MurmurProcessor& processor, modulation::ModDestination destination,
                                            std::uint8_t targetIndex)
     {
         if (manualMode_)
@@ -130,7 +130,7 @@ namespace pw8::plugin::ui
         timerCallback();
     }
 
-    void GlowKnob::enableMacroActivityRing(PatchworkEightProcessor& processor, std::size_t macroIndex)
+    void GlowKnob::enableMacroActivityRing(MurmurProcessor& processor, std::size_t macroIndex)
     {
         modProcessor_ = &processor;
         macroActivityMode_ = true;

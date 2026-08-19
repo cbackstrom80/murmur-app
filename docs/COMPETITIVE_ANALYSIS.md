@@ -16,20 +16,20 @@ records *what features exist* for gap analysis, and *what UI paradigm category* 
 product uses at a one-sentence level of abstraction, for roadmap planning only. It
 does **not** contain pixel layouts, color schemes, panel dimensions, iconography, or
 any other visual-identity detail, and no code or asset was copied from any product.
-Where Patchwork Eight's own planned UI (PLUGIN_ARCHITECTURE.md "Signature UI:
+Where MURMUR's own planned UI (PLUGIN_ARCHITECTURE.md "Signature UI:
 Graph") is described below, it is described as already independently specified in
 this repository, not as an adaptation of any product's screens.
 
 ## Feature parity matrix
 
-| Feature area | Serum 2 | Phase Plant | Zebra 3 | Patchwork Eight |
+| Feature area | Serum 2 | Phase Plant | Zebra 3 | MURMUR |
 |---|---|---|---|---|
 | Multiple independent sound-source types per voice | 5 types (wavetable, multisample, sample, granular, spectral) | 4 generator types (analog, wavetable, sampler, noise) + filter/distortion as generators | 4 main oscillators, each independently a spline/hand-drawn morph, classic wavetable, or additive engine | 8 nodes/layer, each independently one of 8 `EngineType`s -- **more slots than any of the three**, and 3 of 8 (Classic, Wavetable, FM/PM) now actually produce sound; Additive/PhaseShape/Granular/NoiseChaos/Resonator remain PLANNED, being built out one at a time |
 | Additive synthesis partial count | -- | -- | Up to **1024** sine partials | Master spec targets 64-128 partials for Engine Type 4 (PLANNED, Phase 10) -- Zebra's 1024 is a useful upper-bound data point but not adopted as a new target; a vectorized oscillator-bank design (already specified) is what makes any large partial count tractable |
 | Wavetable oscillator warp/distortion modes | Bend, sync, FM, phase distortion, ring mod, formant/vocode-from-another-osc, spectral warps | Wavetable osc with standard controls | Spline-based morphing between hand-drawn curves (continuous, not frame-interpolated) | `docs/DSP_ENGINE.md` "Wavetable Warp" already specifies an equivalent taxonomy (bend, mirror, fold, sync-style, phase distortion, asymmetry, spectral tilt) from the *original* master spec, independently of this research -- PARTIAL: mip-mapping (this same pass) closes the anti-aliasing gap; warp modes remain PLANNED |
 | Wavetable band-limiting / mip-mapping | Yes (implied by "smooth interpolation... near-infinite frame positions") | Not a stated focus | Spline curves are continuous, sidestepping frame-mip-mapping entirely (a different technique) | **IMPLEMENTED** this pass: FFT-based harmonic-truncation mip levels (`pw8::dsp::fft`, `oscillator::WavetableTable`), runtime mip selection by note frequency vs. actual sample rate -- see DSP_ENGINE.md |
 | FM oscillator stability at extremes | -- | -- | **Through-zero FM** specifically called out for stability under extreme modulation | Validates the master spec's existing "be extremely careful with... frequency extremes" instruction. Engine Type 3 (FM/PM) is now **IMPLEMENTED** and through-zero-safe by construction (`ClassicOscillator`'s plain phase accumulator handles a negative instantaneous frequency correctly, no special-casing needed -- explicitly tested in `tests/dsp/FmPmOperatorTests.cpp`); graph-level PM/FM edges remain separately soft-guarded (feedback gain clamp, `flushIfNotFinite`) |
-| Unison / detune | Per-oscillator, up to ~16 voices | Per-generator | Wavetable mode: up to 16-voice unison | `UnisonSettings` data model exists (`FULL`/`OPERATOR`/`STEREO`/`HYPER`/`HARMONIC` modes specified, max 16 voices -- `core::kMaxUnisonVoices`); DSP wiring PLANNED (Phase 7). `content/presets/wide-saw.pw8` demonstrates the target *sound* today via hand-detuned operators |
+| Unison / detune | Per-oscillator, up to ~16 voices | Per-generator | Wavetable mode: up to 16-voice unison | `UnisonSettings` data model exists (`FULL`/`OPERATOR`/`STEREO`/`HYPER`/`HARMONIC` modes specified, max 16 voices -- `core::kMaxUnisonVoices`); DSP wiring PLANNED (Phase 7). `content/presets/wide-saw.murmur` demonstrates the target *sound* today via hand-detuned operators |
 | Filter types | 11+ (analog emulations + creative) | Multimode filter as a generator/effect Snapin | **13 models x up to 12 responses each** (Ladder, Cascade, SVF, etc.) | Filter 1: **IMPLEMENTED** (lowpass/highpass/bandpass/notch/peak, one TPT SVF topology). Filter 2 ("character"/nonlinear, PLANNED) is where topology variety would grow -- Zebra's breadth is a scale gap, not a missing category |
 | Physical modeling / resonators | -- | -- | Modal resonators + comb filters, detailed feedback/damping control | Directly validates Engine Type 8 (Resonator/Spectral, PLANNED Phase 10) scope -- `content/algorithms/spectral_exciter.json` already anticipates the exciter/resonator routing shape |
 | Ring modulation variants | Standard ring mod | -- | **Bode-style frequency shifting** (an established, non-proprietary analog technique -- Harald Bode) alongside standard ring mod | `EdgeType::RingMod` (IMPLEMENTED) is multiplicative ring mod only; a dedicated frequency-shifter effect is already listed (not newly added) under the PLANNED second effects wave in DSP_ENGINE.md ("frequency shift") |
@@ -42,7 +42,7 @@ this repository, not as an adaptation of any product's screens.
 | Effects | Multiple independent effects buses, dynamic routing | 3 Snapin lanes (per-voice + global), serial/parallel, per-lane polyphony toggle | Per-oscillator FX (above) plus presumed master bus | PLANNED (Phase 11): 3 layer insert slots + 4 master slots specified -- comparable slot count to Phase Plant's 3 lanes |
 | Algorithm/signal-routing graph | No general node graph (fixed osc/filter signal flow, per-oscillator warp params) | **Explicitly not a node graph** ("modules automatically route vertically unless explicitly rerouted") | Grid-based "wireless modular" (four-lane rack), not a free-form node graph | **IMPLEMENTED**: an actual typed, validated, compiled 8-node graph (`AlgorithmGraphCompiler`/`AlgorithmExecutor`) with 7 edge types (AUDIO/PHASE_MOD/FREQUENCY_MOD/AMPLITUDE_MOD/RING_MOD/SYNC/FEEDBACK). **This is a genuine structural differentiator from all three products**, not a gap -- see below |
 | Deterministic/reproducible rendering | Not a stated design goal (real-time performance instrument) | Not a stated design goal | Not a stated design goal | **IMPLEMENTED** and a first-class requirement (`dsp::DeterministicRng`, `Patch::seed`) -- needed for AI-generated-patch evaluation, a use case none of the three target |
-| Native headless/offline rendering (no plugin host) | No (DAW/host-only) | No (DAW/host-only) | No (DAW/host-only) | **IMPLEMENTED** (`pw8-render`, Python bindings) -- another differentiator, not a gap |
+| Native headless/offline rendering (no plugin host) | No (DAW/host-only) | No (DAW/host-only) | No (DAW/host-only) | **IMPLEMENTED** (`murmur-render`, Python bindings) -- another differentiator, not a gap |
 
 ## Where we're genuinely ahead vs. where we're genuinely behind
 
@@ -89,7 +89,7 @@ starts, described here at the paradigm level only:
   destination, targetIndex, amount}`) supports any of the three presentations
   equally -- the engine doesn't care how the route was drawn or assigned.
 - **A small, fixed number of prominent macro knobs** (Serum has a macro row, Phase
-  Plant has exactly 8 under the patch name) is consistent with Patchwork Eight's own
+  Plant has exactly 8 under the patch name) is consistent with MURMUR's own
   already-specified 8-macro design (`Patch::macros[8]`) -- independent convergence,
   not something adopted from this research.
 - **Tabbed/paneled complexity disclosure** (hide deep parameters behind tabs, or --

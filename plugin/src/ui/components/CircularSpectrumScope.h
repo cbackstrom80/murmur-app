@@ -5,7 +5,7 @@
 #include <juce_dsp/juce_dsp.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "ui/ScopeViewMode.h"
 #include "ui/ScopeVuMeter.h"
 
@@ -15,7 +15,7 @@ namespace pw8::plugin::ui
     class CircularSpectrumScope : public juce::Component, private juce::Timer
     {
     public:
-        explicit CircularSpectrumScope(PatchworkEightProcessor& processor);
+        explicit CircularSpectrumScope(MurmurProcessor& processor);
         ~CircularSpectrumScope() override;
 
         void setViewMode(ScopeViewMode mode);
@@ -43,7 +43,7 @@ namespace pw8::plugin::ui
         void paintVuArc(juce::Graphics& g, juce::Point<float> centre, float innerR, float outerR) const;
         [[nodiscard]] juce::Path buildOutlinePath(juce::Point<float> centre, float innerR, float outerR) const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         ScopeViewMode viewMode_ = ScopeViewMode::Fft;
         juce::dsp::FFT fft_{kFftOrder};
         std::array<float, static_cast<std::size_t>(kFftSize * 2)> fftData_{};

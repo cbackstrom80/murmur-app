@@ -6,7 +6,7 @@
 
 #include "HeaderSpectrumScope.h"
 #include "OscilloscopeView.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -20,7 +20,7 @@ namespace pw8::plugin::ui
     class FilterPanelScopeView : public juce::Component
     {
     public:
-        explicit FilterPanelScopeView(PatchworkEightProcessor& processor);
+        explicit FilterPanelScopeView(MurmurProcessor& processor);
 
         void setDisplayMode(FilterScopeDisplayMode mode);
         [[nodiscard]] FilterScopeDisplayMode getDisplayMode() const noexcept { return mode_; }
@@ -33,7 +33,7 @@ namespace pw8::plugin::ui
         [[nodiscard]] juce::Rectangle<float> toggleBounds() const;
         [[nodiscard]] int toggleSegmentAt(juce::Point<float> pos) const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         FilterScopeDisplayMode mode_ = FilterScopeDisplayMode::Waveform;
         OscilloscopeView oscilloscope_;
         HeaderSpectrumScope spectrum_;

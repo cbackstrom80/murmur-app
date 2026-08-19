@@ -7,7 +7,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "GlowKnob.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "ui/ScopeVuMeter.h"
 
 namespace pw8::plugin::ui
@@ -16,7 +16,7 @@ namespace pw8::plugin::ui
     class BasicPerformanceSidebar : public juce::Component, private juce::Timer
     {
     public:
-        explicit BasicPerformanceSidebar(PatchworkEightProcessor& processor);
+        explicit BasicPerformanceSidebar(MurmurProcessor& processor);
 
         void paint(juce::Graphics& g) override;
         void resized() override;
@@ -28,7 +28,7 @@ namespace pw8::plugin::ui
         void paintVerticalMeter(juce::Graphics& g, juce::Rectangle<float> bounds, const scope::VuBallistics& vu,
                                 const char* label) const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         std::unique_ptr<GlowKnob> portamentoKnob_;
         std::vector<std::unique_ptr<GlowKnob>> macroKnobs_;
         scope::VuBallistics leftVu_;

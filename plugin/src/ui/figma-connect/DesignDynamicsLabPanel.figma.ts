@@ -8,7 +8,7 @@ export default {
   id: 'mi-design-dynamics-lab',
   imports: [
     '#include "DesignDynamicsLabPanel.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 DesignDynamicsLabPanel dynamicsLab_(processor_);

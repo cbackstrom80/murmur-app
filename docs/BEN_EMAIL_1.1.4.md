@@ -8,7 +8,7 @@ Hi Ben,
 
 **MURMUR v1.1.4** is ready. This bundles everything since 1.1.0: the **GLOBAL** Quasar panel, **tempo-synced delays**, **mod ghost pointers** on knobs, a clearer **knob ring** hierarchy, and a new **8-band sidechain vocoder** FX you can drop in the chain.
 
-**Download:** [MURMUR v1.1.4 release](https://github.com/cbackstrom80/patchwork-eight/releases/tag/v1.1.4)  
+**Download:** [MURMUR v1.1.4 release](https://github.com/cbackstrom80/murmur-app/releases/tag/v1.1.4)  
 Grab **`MURMUR-1.1.4-macOS-arm64.pkg`** (or the `.dmg` if you prefer drag-and-drop).
 
 ---

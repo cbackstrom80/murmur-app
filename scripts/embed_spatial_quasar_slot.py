@@ -149,7 +149,7 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true", help="Report without writing files")
     args = parser.parse_args()
 
-    paths = sorted(SPATIAL_DIR.glob("*.pw8"))
+    paths = sorted(SPATIAL_DIR.glob("*.pw8")) + sorted(SPATIAL_DIR.glob("*.murmur"))
     embedded = 0
     missing = 0
     for path in paths:

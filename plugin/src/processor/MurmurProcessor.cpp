@@ -1,10 +1,10 @@
-// STATUS: PARTIAL -- see PatchworkEightProcessor.h.
+// STATUS: PARTIAL -- see MurmurProcessor.h.
 
 #include <algorithm>
 #include <array>
 #include <cstdlib>
 
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "processor/PerformanceMidiMap.hpp"
 #include "content/WavetableIndex.h"
 
@@ -103,7 +103,7 @@ namespace pw8::plugin
         }
     } // namespace
 
-    PatchworkEightProcessor::PatchworkEightProcessor()
+    MurmurProcessor::MurmurProcessor()
 #if JucePlugin_Build_AU || JucePlugin_Build_VST3
         : juce::AudioProcessor(BusesProperties()
                                    .withInput("Sidechain", juce::AudioChannelSet::stereo(), true)
@@ -161,14 +161,14 @@ namespace pw8::plugin
 #endif
     }
 
-    PatchworkEightProcessor::~PatchworkEightProcessor()
+    MurmurProcessor::~MurmurProcessor()
     {
 #if JucePlugin_Build_Standalone
         standaloneMcpBridge_.reset();
 #endif
     }
 
-    void PatchworkEightProcessor::cacheParameterPointers()
+    void MurmurProcessor::cacheParameterPointers()
     {
         for (std::size_t i = 0; i < kMacroParameterIds.size(); ++i)
             macroParamPointers_[i] = apvts.getRawParameterValue(kMacroParameterIds[i]);
@@ -239,7 +239,7 @@ namespace pw8::plugin
         fxSendBPointer_ = apvts.getRawParameterValue(kFxSendBId);
     }
 
-    bool PatchworkEightProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
+    bool MurmurProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
     {
         if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
             return false;
@@ -255,7 +255,7 @@ namespace pw8::plugin
         return true;
     }
 
-    void PatchworkEightProcessor::prepareToPlay(double sampleRate, int /*samplesPerBlock*/)
+    void MurmurProcessor::prepareToPlay(double sampleRate, int /*samplesPerBlock*/)
     {
         currentSampleRate_ = sampleRate;
         scopeAudioTap_.reset();
@@ -275,9 +275,9 @@ namespace pw8::plugin
         updateReportedLatency();
     }
 
-    void PatchworkEightProcessor::releaseResources() {}
+    void MurmurProcessor::releaseResources() {}
 
-    void PatchworkEightProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+    void MurmurProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
     {
         const double blockStartMs = juce::Time::getMillisecondCounterHiRes();
 
@@ -498,7 +498,7 @@ namespace pw8::plugin
         }
     }
 
-    void PatchworkEightProcessor::pushLiveParametersToEngine(render::Engine& engine) noexcept
+    void MurmurProcessor::pushLiveParametersToEngine(render::Engine& engine) noexcept
     {
         // Drag-to-modulate (docs/UI.md): consume a pending mod-route publish, if the
         // message thread has posted one since the last block -- see
@@ -801,12 +801,12 @@ namespace pw8::plugin
         }
     }
 
-    juce::AudioProcessorEditor* PatchworkEightProcessor::createEditor()
+    juce::AudioProcessorEditor* MurmurProcessor::createEditor()
     {
         return new ui::MurmurRootEditor(*this);
     }
 
-    void PatchworkEightProcessor::getStateInformation(juce::MemoryBlock& destData)
+    void MurmurProcessor::getStateInformation(juce::MemoryBlock& destData)
     {
         // Bake every automatable field's current (possibly host-automated-since-load)
         // value back into currentPatch_ before serializing, so a saved session
@@ -817,7 +817,7 @@ namespace pw8::plugin
         destData.replaceAll(json.data(), json.size());
     }
 
-    void PatchworkEightProcessor::setStateInformation(const void* data, int sizeInBytes)
+    void MurmurProcessor::setStateInformation(const void* data, int sizeInBytes)
     {
         const std::string_view json(static_cast<const char*>(data), static_cast<std::size_t>(sizeInBytes));
         const auto result = patch::loadPatchFromJson(json);
@@ -825,7 +825,7 @@ namespace pw8::plugin
             loadPatch(result.patch, PatchReloadIntent::ExternalLoad);
     }
 
-    void PatchworkEightProcessor::setPatchDirty(bool dirty) noexcept
+    void MurmurProcessor::setPatchDirty(bool dirty) noexcept
     {
         if (patchDirty_ == dirty)
             return;
@@ -834,7 +834,7 @@ namespace pw8::plugin
             onPatchDirtyChanged();
     }
 
-    juce::File PatchworkEightProcessor::userPresetsDirectory()
+    juce::File MurmurProcessor::userPresetsDirectory()
     {
         return juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
             .getChildFile("MURMUR")
@@ -842,7 +842,7 @@ namespace pw8::plugin
             .getChildFile("user");
     }
 
-    bool PatchworkEightProcessor::isUserPresetPath(const juce::String& filePath)
+    bool MurmurProcessor::isUserPresetPath(const juce::String& filePath)
     {
         if (filePath.isEmpty())
             return false;
@@ -852,7 +852,7 @@ namespace pw8::plugin
         return file == userDir || file.isAChildOf(userDir);
     }
 
-    bool PatchworkEightProcessor::saveCurrentPatchToFile(const juce::String& filePath)
+    bool MurmurProcessor::saveCurrentPatchToFile(const juce::String& filePath)
     {
         if (filePath.isEmpty())
             return false;
@@ -872,7 +872,7 @@ namespace pw8::plugin
         return true;
     }
 
-    bool PatchworkEightProcessor::loadPatch(const patch::Patch& newPatch, PatchReloadIntent intent)
+    bool MurmurProcessor::loadPatch(const patch::Patch& newPatch, PatchReloadIntent intent)
     {
         currentPatch_ = newPatch;
         patch::ensureDefaultModWheelRoute(currentPatch_.layerA);
@@ -901,7 +901,7 @@ namespace pw8::plugin
         return ok;
     }
 
-    bool PatchworkEightProcessor::loadPatchFromFile(const juce::String& filePath)
+    bool MurmurProcessor::loadPatchFromFile(const juce::String& filePath)
     {
         const juce::File file(filePath);
         if (!file.existsAsFile())
@@ -916,7 +916,7 @@ namespace pw8::plugin
         return loadPatch(result.patch, PatchReloadIntent::ExternalLoad);
     }
 
-    bool PatchworkEightProcessor::loadPatchFromJsonString(const juce::String& jsonUtf8)
+    bool MurmurProcessor::loadPatchFromJsonString(const juce::String& jsonUtf8)
     {
         const auto result = patch::loadPatchFromJson(jsonUtf8.toStdString());
         if (!result.ok)
@@ -926,7 +926,7 @@ namespace pw8::plugin
         return loadPatch(result.patch, PatchReloadIntent::ExternalLoad);
     }
 
-    GraphEditResult PatchworkEightProcessor::tryCompileAlgorithm(
+    GraphEditResult MurmurProcessor::tryCompileAlgorithm(
         const algorithm::AlgorithmGraphDefinition& def) const
     {
         GraphEditResult result;
@@ -955,7 +955,7 @@ namespace pw8::plugin
         return result;
     }
 
-    bool PatchworkEightProcessor::commitAlgorithmGraph(const algorithm::AlgorithmGraphDefinition& def)
+    bool MurmurProcessor::commitAlgorithmGraph(const algorithm::AlgorithmGraphDefinition& def)
     {
         const auto preview = tryCompileAlgorithm(def);
         if (!preview.ok)
@@ -966,7 +966,7 @@ namespace pw8::plugin
         return loadPatch(currentPatch_);
     }
 
-    bool PatchworkEightProcessor::commitModMatrix(
+    bool MurmurProcessor::commitModMatrix(
         const core::FixedVector<modulation::ModRoute, core::kMaxModRoutes>& routes)
     {
         currentPatch_.layerA.modRoutes = routes;
@@ -975,17 +975,17 @@ namespace pw8::plugin
         return true;
     }
 
-    float PatchworkEightProcessor::getModWheelValue() const noexcept
+    float MurmurProcessor::getModWheelValue() const noexcept
     {
         return mirroredModWheel_.load(std::memory_order_relaxed);
     }
 
-    float PatchworkEightProcessor::getExpressionValue() const noexcept
+    float MurmurProcessor::getExpressionValue() const noexcept
     {
         return mirroredExpression_.load(std::memory_order_relaxed);
     }
 
-    void PatchworkEightProcessor::noteMidiLearnCc(int controller, int value7) noexcept
+    void MurmurProcessor::noteMidiLearnCc(int controller, int value7) noexcept
     {
         if (controller < 0 || controller > 127 || value7 < 0 || value7 > 127)
             return;
@@ -995,7 +995,7 @@ namespace pw8::plugin
         midiLearnCcEvent_.store(packed, std::memory_order_relaxed);
     }
 
-    bool PatchworkEightProcessor::consumeMidiLearnCc(int& controller, int& value7) noexcept
+    bool MurmurProcessor::consumeMidiLearnCc(int& controller, int& value7) noexcept
     {
         const auto packed = midiLearnCcEvent_.exchange(0, std::memory_order_acq_rel);
         if (packed == 0)
@@ -1006,7 +1006,7 @@ namespace pw8::plugin
         return controller >= 0 && controller <= 127 && value7 >= 0 && value7 <= 127;
     }
 
-    float PatchworkEightProcessor::getHostBpm() const noexcept
+    float MurmurProcessor::getHostBpm() const noexcept
     {
         float bpm = 120.0f;
         if (auto* playHead = getPlayHead())
@@ -1020,13 +1020,13 @@ namespace pw8::plugin
         return bpm;
     }
 
-    bool PatchworkEightProcessor::isSustainPedalHeld(int channel) const noexcept
+    bool MurmurProcessor::isSustainPedalHeld(int channel) const noexcept
     {
         const auto* engine = activeEngine_.load(std::memory_order_acquire);
         return engine != nullptr ? engine->isSustainPedalHeld(channel) : false;
     }
 
-    modulation::ModSourceValues PatchworkEightProcessor::buildModPreviewSources(float bpm) noexcept
+    modulation::ModSourceValues MurmurProcessor::buildModPreviewSources(float bpm) noexcept
     {
         modulation::ModSourceValues sources;
         sources.modWheel = getModWheelValue();
@@ -1043,7 +1043,7 @@ namespace pw8::plugin
         return sources;
     }
 
-    bool PatchworkEightProcessor::hasModRouteTo(modulation::ModDestination destination,
+    bool MurmurProcessor::hasModRouteTo(modulation::ModDestination destination,
                                                  std::uint8_t targetIndex) const noexcept
     {
         for (const auto& route : currentPatch_.layerA.modRoutes)
@@ -1054,7 +1054,7 @@ namespace pw8::plugin
         return false;
     }
 
-    bool PatchworkEightProcessor::macroHasActiveRoutes(std::size_t macroIndex) const noexcept
+    bool MurmurProcessor::macroHasActiveRoutes(std::size_t macroIndex) const noexcept
     {
         if (macroIndex >= 8)
             return false;
@@ -1068,24 +1068,24 @@ namespace pw8::plugin
         return false;
     }
 
-    void PatchworkEightProcessor::syncCurrentPatchFromApvts() noexcept
+    void MurmurProcessor::syncCurrentPatchFromApvts() noexcept
     {
         syncPatchFromAllParameters();
     }
 
-    void PatchworkEightProcessor::notifyPatchMetadataChanged() noexcept
+    void MurmurProcessor::notifyPatchMetadataChanged() noexcept
     {
         if (onPatchMetadataChanged)
             onPatchMetadataChanged();
     }
 
-    void PatchworkEightProcessor::panicAllNotes() noexcept
+    void MurmurProcessor::panicAllNotes() noexcept
     {
         if (auto* engine = activeEngine_.load(std::memory_order_acquire))
             engine->allSoundOff();
     }
 
-    bool PatchworkEightProcessor::swapEffectSlots(bool masterChain, std::size_t indexA, std::size_t indexB)
+    bool MurmurProcessor::swapEffectSlots(bool masterChain, std::size_t indexA, std::size_t indexB)
     {
         syncCurrentPatchFromApvts();
         if (masterChain)
@@ -1103,7 +1103,7 @@ namespace pw8::plugin
         return loadPatch(currentPatch_);
     }
 
-    bool PatchworkEightProcessor::applyFxProcessOrderFromChipDisplay(
+    bool MurmurProcessor::applyFxProcessOrderFromChipDisplay(
         const std::array<std::size_t, 12>& chipDisplayOrder)
     {
         static constexpr int kEngineSlotByChip[] = {0, 0, 1, 2, 2, 3, 4, 2, 5, 6, 6, 2};
@@ -1173,7 +1173,7 @@ namespace pw8::plugin
         }
     } // namespace
 
-    bool PatchworkEightProcessor::addMorphKeyframeAt(float position, const std::string& name)
+    bool MurmurProcessor::addMorphKeyframeAt(float position, const std::string& name)
     {
         syncCurrentPatchFromApvts();
         auto& mk = currentPatch_.morphKoin;
@@ -1187,7 +1187,7 @@ namespace pw8::plugin
         return loadPatch(currentPatch_);
     }
 
-    bool PatchworkEightProcessor::removeMorphKeyframe(const std::size_t index)
+    bool MurmurProcessor::removeMorphKeyframe(const std::size_t index)
     {
         syncCurrentPatchFromApvts();
         auto& mk = currentPatch_.morphKoin;
@@ -1198,7 +1198,7 @@ namespace pw8::plugin
         return loadPatch(currentPatch_);
     }
 
-    bool PatchworkEightProcessor::recaptureMorphKeyframe(const std::size_t index)
+    bool MurmurProcessor::recaptureMorphKeyframe(const std::size_t index)
     {
         syncCurrentPatchFromApvts();
         auto& mk = currentPatch_.morphKoin;
@@ -1214,7 +1214,7 @@ namespace pw8::plugin
         return loadPatch(currentPatch_);
     }
 
-    bool PatchworkEightProcessor::setMorphKeyframeColor(const std::size_t index, const std::string& color)
+    bool MurmurProcessor::setMorphKeyframeColor(const std::size_t index, const std::string& color)
     {
         syncCurrentPatchFromApvts();
         auto& mk = currentPatch_.morphKoin;
@@ -1225,7 +1225,7 @@ namespace pw8::plugin
         return loadPatch(currentPatch_);
     }
 
-    bool PatchworkEightProcessor::setMorphKeyframeParamEasing(const std::size_t index, const std::string& path,
+    bool MurmurProcessor::setMorphKeyframeParamEasing(const std::size_t index, const std::string& path,
                                                               const std::string& easing)
     {
         syncCurrentPatchFromApvts();
@@ -1241,7 +1241,7 @@ namespace pw8::plugin
         return loadPatch(currentPatch_);
     }
 
-    bool PatchworkEightProcessor::setMorphKoinSettings(const std::string& curve, const bool wrap,
+    bool MurmurProcessor::setMorphKoinSettings(const std::string& curve, const bool wrap,
                                                        const std::string& autoplaySource,
                                                        const bool morphDissemination)
     {
@@ -1253,7 +1253,7 @@ namespace pw8::plugin
         return loadPatch(currentPatch_);
     }
 
-    pw8::envelope::SegmentEnvelopeChain PatchworkEightProcessor::getSegmentEnvelopeChain(
+    pw8::envelope::SegmentEnvelopeChain MurmurProcessor::getSegmentEnvelopeChain(
         const std::size_t envIndex) const noexcept
     {
         if (envIndex >= core::kNumEnvelopesPerLayer)
@@ -1261,7 +1261,7 @@ namespace pw8::plugin
         return currentPatch_.layerA.segmentEnvelopeChains[envIndex];
     }
 
-    bool PatchworkEightProcessor::setSegmentEnvelopeChain(const std::size_t envIndex,
+    bool MurmurProcessor::setSegmentEnvelopeChain(const std::size_t envIndex,
                                                            const pw8::envelope::SegmentEnvelopeChain& chain)
     {
         if (envIndex >= core::kNumEnvelopesPerLayer)
@@ -1273,7 +1273,7 @@ namespace pw8::plugin
         return true;
     }
 
-    bool PatchworkEightProcessor::setOperatorWavetableFile(std::size_t opIndex, const juce::String& filePath)
+    bool MurmurProcessor::setOperatorWavetableFile(std::size_t opIndex, const juce::String& filePath)
     {
         if (opIndex >= currentPatch_.layerA.operators.size())
             return false;
@@ -1293,7 +1293,7 @@ namespace pw8::plugin
         return table != nullptr;
     }
 
-    bool PatchworkEightProcessor::ensureOperatorWavetableLoaded(std::size_t opIndex)
+    bool MurmurProcessor::ensureOperatorWavetableLoaded(std::size_t opIndex)
     {
         if (opIndex >= currentPatch_.layerA.operators.size())
             return false;
@@ -1319,13 +1319,13 @@ namespace pw8::plugin
         return setOperatorWavetableFile(opIndex, index.allEntries().getFirst().absolutePath);
     }
 
-    void PatchworkEightProcessor::ensureDefaultWavetablesForPatch()
+    void MurmurProcessor::ensureDefaultWavetablesForPatch()
     {
         for (std::size_t i = 0; i < currentPatch_.layerA.operators.size(); ++i)
             ensureOperatorWavetableLoaded(i);
     }
 
-    bool PatchworkEightProcessor::morphTimelineIsModulated() const noexcept
+    bool MurmurProcessor::morphTimelineIsModulated() const noexcept
     {
         if (currentPatch_.morphKoin.keyframes.size() < 2)
             return false;
@@ -1344,7 +1344,7 @@ namespace pw8::plugin
         return false;
     }
 
-    void PatchworkEightProcessor::updateMorphTimelineModulation(render::Engine& engine, float bpm,
+    void MurmurProcessor::updateMorphTimelineModulation(render::Engine& engine, float bpm,
                                                                 int numSamples) noexcept
     {
         if (!morphTimelineIsModulated())
@@ -1394,7 +1394,7 @@ namespace pw8::plugin
         currentPatch_.morphKoin.position = position;
     }
 
-    void PatchworkEightProcessor::applyMorphFromPosition(float position) noexcept
+    void MurmurProcessor::applyMorphFromPosition(float position) noexcept
     {
         if (currentPatch_.morphKoin.keyframes.size() < 2)
             return;
@@ -1423,7 +1423,7 @@ namespace pw8::plugin
             syncFx(currentPatch_.masterEffects[slot], juce::String("masterFx") + juce::String(static_cast<int>(slot)));
     }
 
-    ParamGroup PatchworkEightProcessor::paramGroupForId(const juce::String& parameterID) const noexcept
+    ParamGroup MurmurProcessor::paramGroupForId(const juce::String& parameterID) const noexcept
     {
         if (parameterID.startsWith("macro"))
             return ParamGroup::Macros;
@@ -1477,7 +1477,7 @@ namespace pw8::plugin
         return ParamGroup::Macros;
     }
 
-    void PatchworkEightProcessor::registerParamListeners()
+    void MurmurProcessor::registerParamListeners()
     {
         for (auto* param : getParameters())
         {
@@ -1488,7 +1488,7 @@ namespace pw8::plugin
         }
     }
 
-    void PatchworkEightProcessor::parameterChanged(const juce::String& parameterID, float /*newValue*/)
+    void MurmurProcessor::parameterChanged(const juce::String& parameterID, float /*newValue*/)
     {
         if (parameterID == kModWheelId || parameterID == kExpressionId)
             return;
@@ -1529,13 +1529,13 @@ namespace pw8::plugin
         setPatchDirty(true);
     }
 
-    void PatchworkEightProcessor::updateReportedLatency() noexcept
+    void MurmurProcessor::updateReportedLatency() noexcept
     {
         const int latency = computeTotalEffectLatencySamples(currentPatch_, currentSampleRate_, qualityMode_);
         setLatencySamples(latency);
     }
 
-    void PatchworkEightProcessor::publishModRoutesLive(
+    void MurmurProcessor::publishModRoutesLive(
         const core::FixedVector<modulation::ModRoute, core::kMaxModRoutes>& routes)
     {
         // Write into whichever slot wasn't published last -- see the member's doc
@@ -1546,7 +1546,7 @@ namespace pw8::plugin
         pendingModRoutes_.store(&slot, std::memory_order_release);
     }
 
-    void PatchworkEightProcessor::setOrReplaceModRouteLive(modulation::ModSource source,
+    void MurmurProcessor::setOrReplaceModRouteLive(modulation::ModSource source,
                                                              modulation::ModDestination destination,
                                                              std::uint8_t targetIndex, float amount,
                                                              modulation::ModScope scope)
@@ -1581,7 +1581,7 @@ namespace pw8::plugin
         setPatchDirty(true);
     }
 
-    void PatchworkEightProcessor::setModRouteCurveLive(modulation::ModSource source,
+    void MurmurProcessor::setModRouteCurveLive(modulation::ModSource source,
                                                         modulation::ModDestination destination,
                                                         std::uint8_t targetIndex, modulation::ModCurve curve)
     {
@@ -1599,7 +1599,7 @@ namespace pw8::plugin
         }
     }
 
-    void PatchworkEightProcessor::removeModRouteLive(modulation::ModSource source,
+    void MurmurProcessor::removeModRouteLive(modulation::ModSource source,
                                                        modulation::ModDestination destination,
                                                        std::uint8_t targetIndex)
     {
@@ -1613,19 +1613,19 @@ namespace pw8::plugin
         setPatchDirty(true);
     }
 
-    std::size_t PatchworkEightProcessor::getArpPlayheadStep() const noexcept
+    std::size_t MurmurProcessor::getArpPlayheadStep() const noexcept
     {
         const auto* engine = activeEngine_.load(std::memory_order_acquire);
         return engine != nullptr ? engine->getArpCurrentStepIndex() : 0;
     }
 
-    std::size_t PatchworkEightProcessor::getArpNoteSequenceIndex() const noexcept
+    std::size_t MurmurProcessor::getArpNoteSequenceIndex() const noexcept
     {
         const auto* engine = activeEngine_.load(std::memory_order_acquire);
         return engine != nullptr ? engine->getArpNoteSequenceIndex() : 0;
     }
 
-    void PatchworkEightProcessor::toggleArpStepEnabled(std::size_t stepIndex) noexcept
+    void MurmurProcessor::toggleArpStepEnabled(std::size_t stepIndex) noexcept
     {
         if (stepIndex >= sequencer::kMaxArpSteps)
             return;
@@ -1635,7 +1635,7 @@ namespace pw8::plugin
             engine->setArpStepLive(stepIndex, step);
     }
 
-    void PatchworkEightProcessor::toggleArpStepAccent(std::size_t stepIndex) noexcept
+    void MurmurProcessor::toggleArpStepAccent(std::size_t stepIndex) noexcept
     {
         if (stepIndex >= sequencer::kMaxArpSteps)
             return;
@@ -1645,7 +1645,7 @@ namespace pw8::plugin
             engine->setArpStepLive(stepIndex, step);
     }
 
-    void PatchworkEightProcessor::cycleArpStepRatchet(std::size_t stepIndex) noexcept
+    void MurmurProcessor::cycleArpStepRatchet(std::size_t stepIndex) noexcept
     {
         if (stepIndex >= sequencer::kMaxArpSteps)
             return;
@@ -1655,7 +1655,7 @@ namespace pw8::plugin
             engine->setArpStepLive(stepIndex, step);
     }
 
-    void PatchworkEightProcessor::toggleArpStepTie(std::size_t stepIndex) noexcept
+    void MurmurProcessor::toggleArpStepTie(std::size_t stepIndex) noexcept
     {
         if (stepIndex >= sequencer::kMaxArpSteps)
             return;
@@ -1665,7 +1665,7 @@ namespace pw8::plugin
             engine->setArpStepLive(stepIndex, step);
     }
 
-    void PatchworkEightProcessor::cycleArpStepProbability(std::size_t stepIndex) noexcept
+    void MurmurProcessor::cycleArpStepProbability(std::size_t stepIndex) noexcept
     {
         if (stepIndex >= sequencer::kMaxArpSteps)
             return;
@@ -1685,7 +1685,7 @@ namespace pw8::plugin
             engine->setArpStepLive(stepIndex, step);
     }
 
-    void PatchworkEightProcessor::cycleArpStepOctaveOffset(std::size_t stepIndex) noexcept
+    void MurmurProcessor::cycleArpStepOctaveOffset(std::size_t stepIndex) noexcept
     {
         if (stepIndex >= sequencer::kMaxArpSteps)
             return;
@@ -1695,7 +1695,7 @@ namespace pw8::plugin
             engine->setArpStepLive(stepIndex, step);
     }
 
-    void PatchworkEightProcessor::setArpStepVelocity(std::size_t stepIndex, float velocity01) noexcept
+    void MurmurProcessor::setArpStepVelocity(std::size_t stepIndex, float velocity01) noexcept
     {
         if (stepIndex >= sequencer::kMaxArpSteps)
             return;
@@ -1706,7 +1706,7 @@ namespace pw8::plugin
             engine->setArpStepLive(stepIndex, step);
     }
 
-    void PatchworkEightProcessor::setAllArpStepsGate(float gate01) noexcept
+    void MurmurProcessor::setAllArpStepsGate(float gate01) noexcept
     {
         const float gate = juce::jlimit(0.05f, 1.0f, gate01);
         const auto numSteps = currentPatch_.arpeggiator.numSteps;
@@ -1725,7 +1725,7 @@ namespace pw8::plugin
         }
     }
 
-    void PatchworkEightProcessor::setAllArpStepsEnabled(bool enabled) noexcept
+    void MurmurProcessor::setAllArpStepsEnabled(bool enabled) noexcept
     {
         const auto numSteps = currentPatch_.arpeggiator.numSteps;
         if (auto* engine = activeEngine_.load(std::memory_order_acquire))
@@ -1743,7 +1743,7 @@ namespace pw8::plugin
         }
     }
 
-    void PatchworkEightProcessor::randomizeArpPattern(float activeDensity01) noexcept
+    void MurmurProcessor::randomizeArpPattern(float activeDensity01) noexcept
     {
         const auto numSteps = currentPatch_.arpeggiator.numSteps;
         const float density = juce::jlimit(0.15f, 1.0f, activeDensity01);
@@ -1780,12 +1780,12 @@ namespace pw8::plugin
         }
     }
 
-    std::size_t PatchworkEightProcessor::getArpNumSteps() const noexcept
+    std::size_t MurmurProcessor::getArpNumSteps() const noexcept
     {
         return static_cast<std::size_t>(std::max(1, loadI(arpParamPointers_[6])));
     }
 
-    void PatchworkEightProcessor::setArpNumSteps(int steps) noexcept
+    void MurmurProcessor::setArpNumSteps(int steps) noexcept
     {
         const int clamped = juce::jlimit(1, static_cast<int>(sequencer::kMaxArpSteps), steps);
         const auto oldCount = currentPatch_.arpeggiator.numSteps;
@@ -1825,7 +1825,7 @@ namespace pw8::plugin
         setPatchDirty(true);
     }
 
-    void PatchworkEightProcessor::applyEuclideanArpPattern(int pulses) noexcept
+    void MurmurProcessor::applyEuclideanArpPattern(int pulses) noexcept
     {
         const auto numSteps = getArpNumSteps();
         currentPatch_.arpeggiator.numSteps = numSteps;
@@ -1862,7 +1862,7 @@ namespace pw8::plugin
         }
     }
 
-    bool PatchworkEightProcessor::getHostIsPlaying() const noexcept
+    bool MurmurProcessor::getHostIsPlaying() const noexcept
     {
         if (auto* playHead = getPlayHead())
         {
@@ -1872,7 +1872,7 @@ namespace pw8::plugin
         return false;
     }
 
-    void PatchworkEightProcessor::syncAllParametersFromPatch()
+    void MurmurProcessor::syncAllParametersFromPatch()
     {
         auto setParam = [this](const juce::String& id, float value) {
             if (auto* param = apvts.getParameter(id))
@@ -2068,7 +2068,7 @@ namespace pw8::plugin
             setParam(juce::String(kArpIdPrefix) + kArpFieldSpecs[i].idSuffix, arpValues[i]);
     }
 
-    void PatchworkEightProcessor::syncPatchFromAllParameters()
+    void MurmurProcessor::syncPatchFromAllParameters()
     {
         for (std::size_t i = 0; i < kMacroParameterIds.size(); ++i)
             currentPatch_.macros[i].value = loadF(macroParamPointers_[i]);
@@ -2259,13 +2259,13 @@ namespace pw8::plugin
         }
     }
 
-    void PatchworkEightProcessor::triggerPeaksUtilitySlot(std::size_t slotIndex) noexcept
+    void MurmurProcessor::triggerPeaksUtilitySlot(std::size_t slotIndex) noexcept
     {
         if (auto* engine = activeEngine_.load(std::memory_order_acquire))
             engine->triggerPeaksUtilitySlot(slotIndex);
     }
 
-    std::array<float, 2> PatchworkEightProcessor::getPeaksUtilityLevels() const noexcept
+    std::array<float, 2> MurmurProcessor::getPeaksUtilityLevels() const noexcept
     {
         if (const auto* engine = activeEngine_.load(std::memory_order_acquire))
         {
@@ -2275,7 +2275,7 @@ namespace pw8::plugin
         return {0.0f, 0.0f};
     }
 
-    void PatchworkEightProcessor::publishEngine(std::unique_ptr<render::Engine> newEngine)
+    void MurmurProcessor::publishEngine(std::unique_ptr<render::Engine> newEngine)
     {
         // Double-buffer so the previously-active Engine (which the audio thread may have
         // just finished reading) stays alive until the NEXT swap, rather than being
@@ -2298,5 +2298,5 @@ namespace pw8::plugin
 // Standard JUCE plugin entry point.
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new pw8::plugin::PatchworkEightProcessor();
+    return new pw8::plugin::MurmurProcessor();
 }

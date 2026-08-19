@@ -9,7 +9,7 @@
 
 | Asset / renderer | Location | Technique | Data source |
 |------------------|----------|-----------|-------------|
-| **WavetableStackView** | `plugin/src/ui/components/WavetableStackView.{h,cpp}` | Pseudo-3D depth mesh (painter's algorithm, glow strokes) | `PatchworkEightProcessor::getActiveWavetableTable()` — real table frames + warp |
+| **WavetableStackView** | `plugin/src/ui/components/WavetableStackView.{h,cpp}` | Pseudo-3D depth mesh (painter's algorithm, glow strokes) | `MurmurProcessor::getActiveWavetableTable()` — real table frames + warp |
 | **Granular grain windows** | `WavetableStackView::paint()` / `setGranularOverlay(true)` | Warm semi-transparent rects over mesh | APVTS `WavetablePos`, `GrainSizeMs` |
 | **WireframeProjection** | `plugin/src/ui/components/wireframe/WireframeProjection.h` | Shared `paintDepthMesh`, `paintFlatWaveform`, `paintBarLandscape` | Callable sample fn |
 | **Engine wireframes** | `EngineWireframeViews.{h,cpp}` | Classic/FM/Additive/Phase/Resonator/Noise previews | `OscPreviewSampler` — procedural, not audio tap |

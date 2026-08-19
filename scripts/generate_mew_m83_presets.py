@@ -149,7 +149,7 @@ def load_factory_module():
 def load_existing_names():
     used = set()
     presets_root = REPO_ROOT / "content" / "presets"
-    for pw8 in presets_root.rglob("*.pw8"):
+    for pw8 in sorted(presets_root.rglob("*.pw8")) + sorted(presets_root.rglob("*.murmur")):
         # Allow reusing display names when replacing our own 51-60 factory slots.
         parts = pw8.parts
         if "factory" in parts:
@@ -535,7 +535,7 @@ def main():
         for offset, display_name in enumerate(names):
             slot = START_INDEX + offset
             # Remove any prior file occupying this slot (including stale duplicates).
-            for stale in out_dir.glob(f"{slot:02d}-*.pw8"):
+            for stale in sorted(out_dir.glob(f"{slot:02d}-*.pw8")) + sorted(out_dir.glob(f"{slot:02d}-*.murmur")):
                 stale.unlink()
 
             name_key = display_name.upper()
@@ -547,7 +547,7 @@ def main():
             seed_rng = random.Random(hash(("mew-m83", cat_key, slot)) & 0xFFFFFFFF)
             patch = build_mew_m83_patch(cat_key, cat_label, slot, display_name, seed_rng, gen_fn)
             slug = display_name.lower().replace(" ", "-")
-            fname = f"{slot:02d}-{slug}.pw8"
+            fname = f"{slot:02d}-{slug}.murmur"
             path = out_dir / fname
             path.write_text(json.dumps(patch, indent=2) + "\n")
             generated_paths.append(str(path.relative_to(REPO_ROOT)))

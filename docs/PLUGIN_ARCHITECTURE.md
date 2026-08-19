@@ -37,8 +37,8 @@ the repo or CI yet -- see "What's still missing") was run directly against both
 built artifacts:
 
 ```bash
-pluginval --strictness-level 5 --validate "Patchwork Eight.vst3"
-pluginval --strictness-level 5 --validate "Patchwork Eight.component"  # AU must be
+pluginval --strictness-level 5 --validate "MURMUR.vst3"
+pluginval --strictness-level 5 --validate "MURMUR.component"  # AU must be
     # copied into ~/Library/Audio/Plug-Ins/Components/ first -- macOS's AudioComponent
     # registry, not a direct file load, is how AU discovery works; pluginval fails
     # with "No types found" against an AU bundle path that isn't registered, which is
@@ -70,12 +70,12 @@ formats are all produced from one `juce_add_plugin()` call in
 The plugin's `getStateInformation()`/`setStateInformation()` serialize the native
 `.pw8` logical patch (via `patch::savePatchToJson`/`loadPatchFromJson`) directly --
 there is exactly one patch format, not a divergent host-specific one. See
-`PatchworkEightProcessor::getStateInformation/setStateInformation`.
+`MurmurProcessor::getStateInformation/setStateInformation`.
 
 ### Threading
 
 `processBlock()` never loads a patch, parses JSON, or allocates. Patch changes
-(`PatchworkEightProcessor::loadPatch()`, and `prepareToPlay()` on sample-rate
+(`MurmurProcessor::loadPatch()`, and `prepareToPlay()` on sample-rate
 change) build a fresh `pw8::render::Engine` off the audio thread and publish it via
 a single atomic pointer swap (`publishEngine()`, `std::atomic<Engine*> activeEngine_`,
 double-buffered `std::unique_ptr<Engine>` storage so the previous instance survives
@@ -122,7 +122,7 @@ fields per operator, +32 total) -- the last of the 6 previously-silent
 operator engines to gain real automatable parameters. All 8 `EngineType`s
 now have real automatable parameters.
 `plugin/src/state/PluginState.h`/`.cpp` builds a real
-`juce::AudioProcessorValueTreeState` (`PatchworkEightProcessor::apvts`) with:
+`juce::AudioProcessorValueTreeState` (`MurmurProcessor::apvts`) with:
 
 | Group | Count | Fields |
 |---|---|---|
@@ -244,7 +244,7 @@ and a real geometry bug caught and fixed while building it: see
 
 **IMPLEMENTED** as `ui::AlgorithmGraphView`, PLAY mode's centerpiece -- a
 rendering of exactly the same structure `AlgorithmGraphCompiler` already
-produces and `pw8-graph inspect` already prints in text form, with the
+produces and `murmur-graph inspect` already prints in text form, with the
 8 nodes at fixed positions on a circle (not a draggable modular patcher --
 the master spec's "no visible patch-cable spaghetti" constraint, satisfied
 architecturally rather than just cosmetically) and edges rendered as curved,
@@ -300,7 +300,7 @@ audio-tap-plus-render-loop shape:
    just reading `MipLevel::samples` and drawing a line; unlike the two live views
    above, this needs no realtime audio-thread involvement at all, since the table
    data already lives in memory once loaded (`Engine::loadPatch()`). This is the
-   natural place to *see* what `pw8-wavetable-builder` produced (mip level,
+   natural place to *see* what `murmur-wavetable-builder` produced (mip level,
    harmonic content, frame morph) without leaving the plugin. Still benefits from
    the same `juce::OpenGLContext` acceleration if drawn inside the same
    GPU-backed editor, but doesn't require it functionally the way the live views do

@@ -118,7 +118,7 @@ does not override graph SYNC. Full rationale: [docs/adr/wt-sync-precedence.md](a
 
 ## Graph Inspector
 
-`pw8-graph inspect <preset.pw8>` (`tools/graph_inspector/`) prints a compiled
+`murmur-graph inspect <preset.pw8>` (`tools/graph_inspector/`) prints a compiled
 algorithm's execution order and both edge groups in a readable form, e.g.:
 
 ```

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Generates a synthesized single-cycle-per-frame WAV source for
-pw8-wavetable-builder, and (for convenience) invokes the builder to produce a real
+murmur-wavetable-builder, and (for convenience) invokes the builder to produce a real
 factory wavetable table.
 
 Produces content/wavetables/basic_harmonic_source.wav: 4 frames of 2048 samples,
@@ -10,7 +10,7 @@ has real content to band-limit.
 
 Run from the repo root:
     python3 scripts/generate_test_wavetable_source.py
-    ./build/dev/tools/pw8-wavetable-builder \\
+    ./build/dev/tools/murmur-wavetable-builder \\
         --input content/wavetables/basic_harmonic_source.wav \\
         --output content/wavetables/basic_harmonic.json \\
         --frames 4 --samples-per-frame 2048 --mip-levels 10

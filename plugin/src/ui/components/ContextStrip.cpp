@@ -42,7 +42,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    ContextStrip::ContextStrip(PatchworkEightProcessor& processor) : processor_(processor) {}
+    ContextStrip::ContextStrip(MurmurProcessor& processor) : processor_(processor) {}
 
     void ContextStrip::setScope(FilterPanelScope scope, int engineIndex)
     {

@@ -46,12 +46,12 @@ namespace pw8::plugin
         juce::String detail;
     };
 
-    class PatchworkEightProcessor : public juce::AudioProcessor,
+    class MurmurProcessor : public juce::AudioProcessor,
                                      private juce::AudioProcessorValueTreeState::Listener
     {
     public:
-        PatchworkEightProcessor();
-        ~PatchworkEightProcessor() override;
+        MurmurProcessor();
+        ~MurmurProcessor() override;
 
         void prepareToPlay(double sampleRate, int samplesPerBlock) override;
         void releaseResources() override;
@@ -537,7 +537,7 @@ namespace pw8::plugin
         std::unique_ptr<StandaloneMcpBridge> standaloneMcpBridge_;
 #endif
 
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PatchworkEightProcessor)
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MurmurProcessor)
     };
 
 } // namespace pw8::plugin

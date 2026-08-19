@@ -29,7 +29,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    GlobalPanel::GlobalPanel(PatchworkEightProcessor& processor)
+    GlobalPanel::GlobalPanel(MurmurProcessor& processor)
         : processor_(processor), apvts_(processor.apvts), chainFlow_(apvts_)
     {
         addAndMakeVisible(panel_);

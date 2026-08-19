@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Migrate Spatial factory presets: add per-path morph paramOverrides with easing from global curve.
 
-Spot-check: python scripts/migrate_spatial_morph_easing.py --dry-run content/presets/factory/Interstellar/Spatial/002-void-cathedral.pw8
+Spot-check: python scripts/migrate_spatial_morph_easing.py --dry-run content/presets/factory/Interstellar/Spatial/002-void-cathedral.murmur
 Apply all:     python scripts/migrate_spatial_morph_easing.py
 """
 from __future__ import annotations
@@ -82,7 +82,7 @@ def main() -> None:
     if args.paths:
         files = [Path(p) if Path(p).is_absolute() else REPO_ROOT / p for p in args.paths]
     else:
-        files = sorted(SPATIAL_DIR.glob("*.pw8"))
+        files = sorted(SPATIAL_DIR.glob("*.pw8")) + sorted(SPATIAL_DIR.glob("*.murmur"))
 
     updated = 0
     for path in files:

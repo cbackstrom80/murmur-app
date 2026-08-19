@@ -2,7 +2,7 @@
 
 #include <juce_core/juce_core.h>
 
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "pw8/core/Types.hpp"
 
 namespace pw8::plugin::ui
@@ -15,7 +15,7 @@ namespace pw8::plugin::ui
     };
 
     [[nodiscard]] inline PerformanceMetricsSnapshot readPerformanceMetrics(
-        const PatchworkEightProcessor& processor) noexcept
+        const MurmurProcessor& processor) noexcept
     {
         PerformanceMetricsSnapshot snapshot;
         snapshot.cpuPercent = processor.getCpuLoadPercent();
@@ -96,7 +96,7 @@ namespace pw8::plugin::ui
         return juce::jlimit(0.0f, 100.0f, load * 100.0f);
     }
 
-    [[nodiscard]] inline float estimateFxLoadPercent(const PatchworkEightProcessor& processor) noexcept
+    [[nodiscard]] inline float estimateFxLoadPercent(const MurmurProcessor& processor) noexcept
     {
         return estimateFxLoadPercent(processor.apvts);
     }

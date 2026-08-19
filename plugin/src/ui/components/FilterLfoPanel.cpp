@@ -65,7 +65,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    FilterLfoPanel::FilterLfoPanel(PatchworkEightProcessor& processor, ModAssignmentController& assignmentController)
+    FilterLfoPanel::FilterLfoPanel(MurmurProcessor& processor, ModAssignmentController& assignmentController)
         : processor_(processor),
           assignmentController_(assignmentController),
           filterWireframe_(processor.apvts),

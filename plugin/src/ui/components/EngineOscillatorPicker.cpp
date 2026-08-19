@@ -97,7 +97,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    EngineOscillatorPicker::EngineOscillatorPicker(PatchworkEightProcessor& processor, int engineIndex)
+    EngineOscillatorPicker::EngineOscillatorPicker(MurmurProcessor& processor, int engineIndex)
         : processor_(processor), engineIndex_(engineIndex), contextThumb_(processor, engineIndex)
     {
         addChildComponent(contextThumb_);

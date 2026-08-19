@@ -1,4 +1,4 @@
-// pw8-fuzz-render -- generates random-but-schema-valid patches, renders each one,
+// murmur-fuzz-render -- generates random-but-schema-valid patches, renders each one,
 // and asserts: no crash, no NaN/Inf, bounded output, reasonable runtime.
 //
 // "Valid" here means every value is within its documented range and the algorithm
@@ -12,7 +12,7 @@
 // max-resonance filter settings), exercising the finite-output clamps in
 // Voice::renderSample() and StateVariableFilter, not just the algorithm graph's.
 //
-//   pw8-fuzz-render --count 10000 --seed 1
+//   murmur-fuzz-render --count 10000 --seed 1
 
 #include <algorithm>
 #include <chrono>
@@ -52,7 +52,7 @@ namespace
             else if (arg == "--stop-on-first-failure") out.stopOnFirstFailure = true;
             else if (arg == "--help")
             {
-                std::printf("Usage: pw8-fuzz-render [--count N] [--seed N] [--duration S] "
+                std::printf("Usage: murmur-fuzz-render [--count N] [--seed N] [--duration S] "
                             "[--sample-rate N] [--verbose] [--stop-on-first-failure]\n");
                 return false;
             }
@@ -397,7 +397,7 @@ int main(int argc, char** argv)
 
     const double wallSeconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - wallStart).count();
 
-    std::printf("pw8-fuzz-render: %lld patches, seed=%llu\n", args.count, static_cast<unsigned long long>(args.seed));
+    std::printf("murmur-fuzz-render: %lld patches, seed=%llu\n", args.count, static_cast<unsigned long long>(args.seed));
     std::printf("  failures:        %lld\n", failures);
     std::printf("  render not ok:   %lld\n", notOkCount);
     std::printf("  NaN/Inf:         %lld\n", nanOrInfCount);

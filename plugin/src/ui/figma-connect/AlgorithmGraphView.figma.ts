@@ -7,7 +7,7 @@ export default {
   id: 'algorithm-graph-view',
   imports: [
     '#include "AlgorithmGraphView.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 AlgorithmGraphView graphView_(processor_);

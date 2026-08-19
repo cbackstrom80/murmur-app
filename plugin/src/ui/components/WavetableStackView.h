@@ -5,7 +5,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "content/WavetableIndex.h"
 
 // A real perspective wireframe mesh of the currently-selected node's loaded
@@ -30,7 +30,7 @@
 // scans between two frames, so the mesh changes exactly the way the audio
 // does, not just decoratively.
 //
-// Needs no audio-thread tap at all: PatchworkEightProcessor::getActiveWavetableTable()
+// Needs no audio-thread tap at all: MurmurProcessor::getActiveWavetableTable()
 // reads table data that's already sitting in memory once loadPatch() has run (see
 // that accessor's own doc comment for why it's safe to read from the UI/message
 // thread through the same atomic Engine pointer processBlock() uses). This is
@@ -49,7 +49,7 @@ namespace pw8::plugin::ui
     class WavetableStackView : public juce::Component, private juce::Timer
     {
     public:
-        explicit WavetableStackView(PatchworkEightProcessor& processor);
+        explicit WavetableStackView(MurmurProcessor& processor);
         ~WavetableStackView() override;
 
         void paint(juce::Graphics& g) override;
@@ -81,7 +81,7 @@ namespace pw8::plugin::ui
         void goToSibling(int delta);
         [[nodiscard]] juce::String currentWavetablePath() const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         content::WavetableIndex wavetableIndex_;
         int selectedNode_ = 0;
         juce::Label tableNameLabel_;

@@ -9,7 +9,7 @@
 
 namespace pw8::plugin::ui
 {
-    DesignEnvelopeSegmentsPanel::DesignEnvelopeSegmentsPanel(PatchworkEightProcessor& processor)
+    DesignEnvelopeSegmentsPanel::DesignEnvelopeSegmentsPanel(MurmurProcessor& processor)
         : processor_(processor)
     {
         titleLabel_.setText("ENVELOPE SEGMENTS", juce::dontSendNotification);

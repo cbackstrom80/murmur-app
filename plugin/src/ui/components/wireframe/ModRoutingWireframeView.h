@@ -3,7 +3,7 @@
 #include "EnvelopeCurveMath.h"
 #include "LfoPreviewSampler.h"
 #include "WireframeCanvas.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui::wireframe
 {
@@ -11,7 +11,7 @@ namespace pw8::plugin::ui::wireframe
     class ModRoutingWireframeView : public WireframeCanvas, private juce::Timer
     {
     public:
-        ModRoutingWireframeView(PatchworkEightProcessor& processor, juce::AudioProcessorValueTreeState& apvts);
+        ModRoutingWireframeView(MurmurProcessor& processor, juce::AudioProcessorValueTreeState& apvts);
         ~ModRoutingWireframeView() override;
 
         void paint(juce::Graphics& g) override;
@@ -19,7 +19,7 @@ namespace pw8::plugin::ui::wireframe
     private:
         void timerCallback() override;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         juce::AudioProcessorValueTreeState& apvts_;
         lfo::LfoWaveform lfoWaveform_ = lfo::LfoWaveform::Sine;
         float lfoRateHz_ = 2.0f;

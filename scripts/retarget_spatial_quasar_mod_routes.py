@@ -48,7 +48,7 @@ def retarget_route(route: dict) -> bool:
 def main() -> None:
     updated = 0
     routes_changed = 0
-    for path in sorted(SPATIAL_DIR.glob("*.pw8")):
+    for path in sorted(SPATIAL_DIR.glob("*.pw8")) + sorted(SPATIAL_DIR.glob("*.murmur")):
         doc = json.loads(path.read_text(encoding="utf-8"))
         layer = doc.get("layerA", {})
         routes = layer.get("modRoutes", [])

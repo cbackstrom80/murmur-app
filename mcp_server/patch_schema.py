@@ -9,7 +9,7 @@ know about, mirrored from the real C++ source of truth rather than guessed:
 
 Deliberately no C++ build dependency (no pybind11 requirement) -- this module
 is plain Python data plus plain-Python patch construction/editing, so the MCP
-server only needs `pw8-render` already built (tools/) to do anything beyond
+server only needs `murmur-render` already built (tools/) to do anything beyond
 introspection. See docs/MCP_AND_NL_PATCH_GENERATION.md Part A for why this
 targets the JSON schema directly rather than bindings/python's still-PARTIAL
 Operator wrapper.

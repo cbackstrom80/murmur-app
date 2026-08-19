@@ -3,7 +3,7 @@
 **IMPLEMENTED.** `pw8::render::render()` (`pw8/render/Renderer.hpp`,
 `engine/src/render/Renderer.cpp`) renders a `Patch` against a `MidiSequence`
 entirely natively -- no JUCE plugin hosting, no DAW, no DawDreamer. This is a core
-feature, not a test harness bolted on afterward: it's what `pw8-render`, the Python
+feature, not a test harness bolted on afterward: it's what `murmur-render`, the Python
 bindings' `render()`/`Engine.render()`, and (eventually) headless factory-content
 generation all go through.
 
@@ -70,7 +70,7 @@ itself.
 `durationSeconds`, `leftRightBalance` (RMS-energy-based, -1..+1). Computed by a
 single pass over the rendered buffer in `Renderer.cpp`'s `computeMetrics()`.
 
-`pw8-render --receipt <path.json>` writes a render receipt with real values (engine
+`murmur-render --receipt <path.json>` writes a render receipt with real values (engine
 version, patch schema version, patch/MIDI paths, sample rate, bpm, seed, duration,
 and the full metrics block) -- see `tools/render/main.cpp`. This is intentionally
 *not* the full Patchwork "PieceJudge" QA system, just the native-render-level QA the
@@ -79,7 +79,7 @@ master spec calls out.
 ## CLI
 
 ```
-pw8-render --patch content/presets/dark-bass.pw8 \
+murmur-render --patch content/presets/dark-bass.murmur \
             --midi content/test_midi/bass-line.mid \
             --bpm 105 --sample-rate 48000 \
             --output /tmp/dark-bass.wav [--receipt /tmp/dark-bass.receipt.json] \

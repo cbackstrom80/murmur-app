@@ -7,7 +7,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "../GlowKnob.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -15,7 +15,7 @@ namespace pw8::plugin::ui
     class QuasarPrimaryKnobRow : public juce::Component
     {
     public:
-        QuasarPrimaryKnobRow(PatchworkEightProcessor& processor, juce::AudioProcessorValueTreeState& apvts);
+        QuasarPrimaryKnobRow(MurmurProcessor& processor, juce::AudioProcessorValueTreeState& apvts);
 
         void rebuild(std::size_t globalFxSlotIndex);
 
@@ -24,7 +24,7 @@ namespace pw8::plugin::ui
     private:
         [[nodiscard]] std::size_t masterLocalIndex(std::size_t globalFxSlotIndex) const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         juce::AudioProcessorValueTreeState& apvts_;
         std::vector<std::unique_ptr<GlowKnob>> knobs_;
     };

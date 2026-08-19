@@ -7,7 +7,7 @@
 
 #include "GlowKnob.h"
 #include "ObsidianEnvelopeVisualizer.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -15,7 +15,7 @@ namespace pw8::plugin::ui
     class IpadPlayMasterStrip : public juce::Component, private juce::Timer
     {
     public:
-        explicit IpadPlayMasterStrip(PatchworkEightProcessor& processor);
+        explicit IpadPlayMasterStrip(MurmurProcessor& processor);
 
         void paint(juce::Graphics& g) override;
         void resized() override;
@@ -23,7 +23,7 @@ namespace pw8::plugin::ui
     private:
         void timerCallback() override;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         ObsidianEnvelopeVisualizer visualizer_;
         std::unique_ptr<GlowKnob> attackKnob_;
         std::unique_ptr<GlowKnob> decayKnob_;

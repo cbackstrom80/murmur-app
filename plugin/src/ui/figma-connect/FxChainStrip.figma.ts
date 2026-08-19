@@ -7,7 +7,7 @@ export default {
   id: 'fx-chain-strip',
   imports: [
     '#include "FxChainStrip.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 FxChainStrip fxChain_(processor_);

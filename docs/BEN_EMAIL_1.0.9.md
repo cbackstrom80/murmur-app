@@ -7,7 +7,7 @@ Hi Ben,
 
 Quick drop from **Curtis** — **MURMUR v1.0.9** is on GitHub with a bunch of performance UI you asked for (routing you can read at a glance, fewer panel hops, MP11SE-friendly controls).
 
-**Download:** [MURMUR v1.0.9 release](https://github.com/cbackstrom80/patchwork-eight/releases/tag/v1.0.9)  
+**Download:** [MURMUR v1.0.9 release](https://github.com/cbackstrom80/murmur-app/releases/tag/v1.0.9)  
 Grab **`MURMUR-1.0.9-macOS-arm64.pkg`** (or the `.dmg` if you prefer — same installer inside).
 
 ---
@@ -74,7 +74,7 @@ Full zone setup: **`KAWAI_MP11SE.md`** in installed docs (knobs → brightness/f
 However is easiest:
 
 - **Reply to this email** — rough notes welcome
-- **GitHub Issues:** https://github.com/cbackstrom80/patchwork-eight/issues
+- **GitHub Issues:** https://github.com/cbackstrom80/murmur-app/issues
 
 Especially curious: Mod Matrix readability live, concentric filter feel from the wheel + knobs, and whether compact mode works for your rig.
 

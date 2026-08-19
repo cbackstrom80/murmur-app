@@ -7,7 +7,7 @@ export default {
   id: 'wavetable-lab-panel',
   imports: [
     '#include "WavetableLabPanel.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 WavetableLabPanel wavetableLab_(processor_);

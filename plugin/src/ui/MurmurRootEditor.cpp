@@ -23,7 +23,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    MurmurRootEditor::MurmurRootEditor(PatchworkEightProcessor& processor)
+    MurmurRootEditor::MurmurRootEditor(MurmurProcessor& processor)
         : juce::AudioProcessorEditor(&processor),
           patchBrowserBar_(processor),
           murmurChromeBar_(processor),

@@ -9,7 +9,7 @@
 #include "FilterLfoPanel.h"
 #include "FxChainStrip.h"
 #include "ModAssignmentController.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "ui/ScopeVuMeter.h"
 
 namespace pw8::plugin::ui
@@ -18,7 +18,7 @@ namespace pw8::plugin::ui
     class DashboardStrip : public juce::Component, private juce::Timer
     {
     public:
-        DashboardStrip(PatchworkEightProcessor& processor, ModAssignmentController& modAssignmentController);
+        DashboardStrip(MurmurProcessor& processor, ModAssignmentController& modAssignmentController);
 
         void paint(juce::Graphics& g) override;
         void resized() override;
@@ -32,7 +32,7 @@ namespace pw8::plugin::ui
                               const scope::VuBallistics& vu) const;
         void updateMeterLayout();
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         FxChainStrip fxChainStrip_;
         FilterLfoPanel filterLfoPanel_;
 

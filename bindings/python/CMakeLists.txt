@@ -14,16 +14,16 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(pybind11)
 
-pybind11_add_module(patchwork_eight MODULE PyBindings.cpp)
-target_link_libraries(patchwork_eight PRIVATE pw8::core)
-target_compile_features(patchwork_eight PRIVATE cxx_std_20)
-pw8_set_warnings(patchwork_eight)
+pybind11_add_module(murmur MODULE PyBindings.cpp)
+target_link_libraries(murmur PRIVATE pw8::core)
+target_compile_features(murmur PRIVATE cxx_std_20)
+pw8_set_warnings(murmur)
 
 # The .so is placed directly under build/python/ (not nested in a same-named
-# subdirectory) so `import patchwork_eight` resolves straight to the extension module
+# subdirectory) so `import murmur` resolves straight to the extension module
 # rather than to an accidental namespace package. A proper pip-installable package
 # layout (setup.py / pyproject.toml, __init__.py re-export, wheel building) is
 # PLANNED -- see docs/PYTHON_API.md.
-set_target_properties(patchwork_eight PROPERTIES
+set_target_properties(murmur PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/python"
 )

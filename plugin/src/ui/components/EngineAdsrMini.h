@@ -6,7 +6,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "wireframe/EnvelopeCurveMath.h"
 
 namespace pw8::plugin::ui
@@ -15,7 +15,7 @@ namespace pw8::plugin::ui
     class EngineAdsrMini : public juce::Component, private juce::Timer
     {
     public:
-        EngineAdsrMini(PatchworkEightProcessor& processor, int engineIndex);
+        EngineAdsrMini(MurmurProcessor& processor, int engineIndex);
 
         void paint(juce::Graphics& g) override;
         void resized() override;
@@ -39,7 +39,7 @@ namespace pw8::plugin::ui
         void paintPreview(juce::Graphics& g, juce::Rectangle<float> bounds);
         void paintTicks(juce::Graphics& g, juce::Rectangle<int> bounds);
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         const int engineIndex_;
         wireframe::EnvelopePreviewParams params_{};
         TickKind activeTick_ = TickKind::None;

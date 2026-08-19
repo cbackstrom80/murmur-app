@@ -10,7 +10,7 @@
 | Subsystem | Result | Notes |
 |-----------|--------|-------|
 | **1. Quasar Phase 3** | **PASS** | `BinauralSpaceProcessor` in `EffectChain` (`EffectType::BinauralSpace`). Mod destinations enum 21–30 (`QuasarQsr1Distance` … `QuasarCntrLevel`) wired in `ModMatrixExecutor::applyMasterBus` and applied in `Engine.cpp`. PLAY Advanced FX binds APVTS via `FxChainStrip::refreshQuasarUi` (Output Mode, Crossfeed, CNTR, Q2 Dist, Room, Delay Fdbk). DSP: headphone/speaker ITD scale + crossfeed, delay freeze at feedback ≥ 0.99. |
-| **2. Morph KOIN** | **PASS** | `applyMorphKoin` on patch load + `morphPosition` APVTS change (`PatchworkEightProcessor::applyMorphFromPosition`). `PatchFocusPanel` + `ModRoutingUi` show morph knob when `uiFocus kind:morph` and ≥2 keyframes. **20** Spatial presets contain `morphKoin` (001–020). **75** total Interstellar Spatial `.pw8` files. |
+| **2. Morph KOIN** | **PASS** | `applyMorphKoin` on patch load + `morphPosition` APVTS change (`MurmurProcessor::applyMorphFromPosition`). `PatchFocusPanel` + `ModRoutingUi` show morph knob when `uiFocus kind:morph` and ≥2 keyframes. **20** Spatial presets contain `morphKoin` (001–020). **75** total Interstellar Spatial `.pw8` files. |
 | **3. Sidechain MVP** | **PASS** | AU-only: `#if JucePlugin_Build_AU` sidechain bus + `SidechainFollower` → `engine->setSidechainLevel`. `ModSource::Sidechain` in executor. PLAY badge via `formatSidechainStatus` in `PatchFocusPanel`. VST3/Standalone compile path zeros sidechain. |
 | **4. Feature KOINS** | **PASS** | 1–3 feature macros via `kMinFeatureKoinCount`/`kMaxFeatureKoinCount`; `inferPatchFocusLayout` + route validation (`macroHasActiveRoute`, `ensureMinimumFeatureKnobs`). Dissemination via `macroDissemination` + `disseminationDepth` in engine + `ensureMinimumMacroKoinRoutes`. Standard param knobs with APVTS validation. |
 | **5. Master mod matrix** | **PASS** | `ModScope::Global` routes hit `applyMasterBus` (master FX mix/reverb + Quasar offsets). Voice-scoped master routes ignored per tests. |
@@ -31,14 +31,14 @@ No `TODO`, `FIXME`, or `stub` markers in:
 
 - `engine/include/pw8/effects/` (BinauralSpace, EffectChain)
 - `engine/include/pw8/modulation/` (ModMatrixExecutor, MorphKoinExecutor)
-- `plugin/src/processor/PatchworkEightProcessor.*`
+- `plugin/src/processor/MurmurProcessor.*`
 - `plugin/src/ui/components/{FxChainStrip,PatchFocusPanel,ModRoutingUi}.*`
 
 ## Release artifacts
 
 | Item | Status |
 |------|--------|
-| GitHub release `v1.1.0` | **Exists** — [releases/tag/v1.1.0](https://github.com/cbackstrom80/patchwork-eight/releases/tag/v1.1.0) |
+| GitHub release `v1.1.0` | **Exists** — [releases/tag/v1.1.0](https://github.com/cbackstrom80/murmur-app/releases/tag/v1.1.0) |
 | `MURMUR-1.1.0-macOS-arm64.pkg` | Attached |
 | `MURMUR-1.1.0-macOS-arm64.dmg` | Attached |
 | `version.json` | Not attached (optional; pkg/plist carry version) |

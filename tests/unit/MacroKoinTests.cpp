@@ -71,7 +71,7 @@ TEST_CASE("ensureMinimumMacroKoinRoutes adds Macro1 filter routes to Init", "[pa
 
 TEST_CASE("CATHEDRAL NEBULA macro1 modulates a held voice", "[patch][macro][factory][koin]")
 {
-    auto patch = loadPresetFromRepo("content/presets/factory/Interstellar/001-cathedral-nebula.pw8");
+    auto patch = loadPresetFromRepo("content/presets/factory/Interstellar/001-cathedral-nebula.murmur");
     REQUIRE(patchHasMacroRoute(patch, 0));
     REQUIRE_FALSE(patch.uiFocus.knobs.empty());
     REQUIRE(patch.voiceSettings.macroDissemination);
@@ -138,7 +138,7 @@ TEST_CASE("Factory presets expose at least one uiFocus macro KOIN", "[patch][ser
     std::size_t checked = 0;
     for (const auto& entry : std::filesystem::recursive_directory_iterator(factoryRoot))
     {
-        if (entry.path().extension() != ".pw8")
+        if (entry.path().extension() != ".murmur")
             continue;
 
         std::ifstream in(entry.path());

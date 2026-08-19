@@ -2,7 +2,7 @@
 """Generates the 50-table factory wavetable library under content/wavetables/.
 
 For each table: synthesizes its source WAV (content/wavetables/sources/), then
-invokes pw8-wavetable-builder to produce the real mip-mapped JSON table
+invokes murmur-wavetable-builder to produce the real mip-mapped JSON table
 (content/wavetables/<name>.json). Also (re)writes content/wavetables/MANIFEST.md,
 a discoverability index of all 50 tables' names/categories/mood tags/frame counts.
 
@@ -10,7 +10,7 @@ Every table uses the same dimensions as the existing basic_harmonic.json example
 (2048 samples/frame, 10 mip levels) -- only frame count varies per table (1-16),
 matching each table's role (a single static texture vs. a long evolving morph).
 
-Requires pw8-wavetable-builder already built: `cmake --build --preset dev`.
+Requires murmur-wavetable-builder already built: `cmake --build --preset dev`.
 
 Run from the repo root:
     python3 scripts/generate_wavetable_library.py
@@ -35,8 +35,8 @@ from _wavetable_synth import (  # noqa: E402
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent
 WAVETABLES_DIR = REPO_ROOT / "content" / "wavetables"
 SOURCES_DIR = WAVETABLES_DIR / "sources"
-BUILDER = REPO_ROOT / "build" / "dev" / "tools" / "pw8-wavetable-builder"
-RENDERER = REPO_ROOT / "build" / "dev" / "tools" / "pw8-render"
+BUILDER = REPO_ROOT / "build" / "dev" / "tools" / "murmur-wavetable-builder"
+RENDERER = REPO_ROOT / "build" / "dev" / "tools" / "murmur-render"
 SINGLE_NOTE_MIDI = REPO_ROOT / "content" / "test_midi" / "single-note.mid"
 
 SAMPLES_PER_FRAME = 2048
@@ -324,7 +324,7 @@ ALL_MANIFEST = MANIFEST + GRAN_MANIFEST
 
 def generate() -> list[dict]:
     if not BUILDER.exists():
-        sys.exit(f"pw8-wavetable-builder not found at {BUILDER} -- build it first:\n"
+        sys.exit(f"murmur-wavetable-builder not found at {BUILDER} -- build it first:\n"
                   f"  cmake --build --preset dev")
 
     SOURCES_DIR.mkdir(parents=True, exist_ok=True)
@@ -344,7 +344,7 @@ def generate() -> list[dict]:
             capture_output=True, text=True,
         )
         if proc.returncode != 0:
-            sys.exit(f"pw8-wavetable-builder failed for {name}:\n{proc.stderr}")
+            sys.exit(f"murmur-wavetable-builder failed for {name}:\n{proc.stderr}")
 
         size = output_path.stat().st_size
         print(f"  {name:32s} {category:15s} {frame_count:2d} frames  {size / 1024:8.1f} KB")
@@ -360,7 +360,7 @@ def write_manifest_doc(results: list[dict]) -> None:
     lines = [
         "# content/wavetables/",
         "",
-        "Factory wavetable data, built with `pw8-wavetable-builder`"
+        "Factory wavetable data, built with `murmur-wavetable-builder`"
         " (see `tools/wavetable_builder/`) via `scripts/generate_wavetable_library.py`.",
         "",
         f"{len(MANIFEST)} classic tables + {len(GRAN_MANIFEST)} granular-engine tables,"
@@ -430,7 +430,7 @@ def _wav_peak(path: pathlib.Path) -> float:
 
 def verify(results: list[dict]) -> None:
     if not RENDERER.exists():
-        sys.exit(f"pw8-render not found at {RENDERER} -- build it first:\n  cmake --build --preset dev")
+        sys.exit(f"murmur-render not found at {RENDERER} -- build it first:\n  cmake --build --preset dev")
     if not SINGLE_NOTE_MIDI.exists():
         sys.exit(f"{SINGLE_NOTE_MIDI} not found -- run scripts/generate_test_midi.py first")
 
@@ -440,7 +440,7 @@ def verify(results: list[dict]) -> None:
         for r in results:
             wavetable_id = str((WAVETABLES_DIR / f"{r['name']}.json").resolve())
             patch = _minimal_wavetable_patch(wavetable_id)
-            patch_path = tmp_path / f"{r['name']}.pw8"
+            patch_path = tmp_path / f"{r['name']}.murmur"
             patch_path.write_text(json.dumps(patch))
             out_wav = tmp_path / f"{r['name']}.wav"
 

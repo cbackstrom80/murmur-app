@@ -108,10 +108,10 @@ Velocity->FilterCutoff scaling, multiplicative composition of multiple routes to
 same operator, inactive-route skipping, macro-index resolution, reading any of the
 8 LFOs/envelopes by index, LAYER/GLOBAL scope reading the shared LFO tick instead of
 the per-voice one, and envelope sources ignoring declared scope.
-`content/presets/dark-bass.pw8` (Env1/Velocity -> FilterCutoff),
-`content/presets/soft-pad.pw8` (Lfo1 -> FilterCutoff),
-`content/presets/wide-saw.pw8` (Velocity -> FilterCutoff), and
-`content/presets/wt-morph.pw8` (Lfo1 -> OperatorWavetablePosition) all ship real routes as
+`content/presets/dark-bass.murmur` (Env1/Velocity -> FilterCutoff),
+`content/presets/soft-pad.murmur` (Lfo1 -> FilterCutoff),
+`content/presets/wide-saw.murmur` (Velocity -> FilterCutoff), and
+`content/presets/wt-morph.murmur` (Lfo1 -> OperatorWavetablePosition) all ship real routes as
 working examples.
 
 **Not yet implemented:** meta-modulation (modulating a route's own depth) is

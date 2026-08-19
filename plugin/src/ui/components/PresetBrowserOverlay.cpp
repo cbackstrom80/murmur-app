@@ -79,7 +79,7 @@ namespace pw8::plugin::ui
         };
     } // namespace
 
-    PresetBrowserOverlay::PresetBrowserOverlay(PatchworkEightProcessor& processor, content::PresetIndex& presetIndex,
+    PresetBrowserOverlay::PresetBrowserOverlay(MurmurProcessor& processor, content::PresetIndex& presetIndex,
                                                content::FavoritesStore& favoritesStore,
                                                content::PresetRatingsStore& ratingsStore)
         : processor_(processor), presetIndex_(presetIndex), favoritesStore_(favoritesStore), ratingsStore_(ratingsStore)
@@ -557,8 +557,10 @@ namespace pw8::plugin::ui
                            .getChildFile("user");
         userDir.createDirectory();
 
+        // New exports always get the current .murmur extension, regardless of the source
+        // file's own extension (which may still be legacy .pw8) -- see docs/REBRAND_MURMUR.md.
         const auto safeName = entry.name.trim().replaceCharacter('/', '-');
-        auto dest = userDir.getNonexistentChildFile(safeName, ".pw8");
+        auto dest = userDir.getNonexistentChildFile(safeName, ".murmur");
         if (!source.copyFileTo(dest))
             return;
 

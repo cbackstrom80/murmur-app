@@ -8,7 +8,7 @@
 
 #include "../theme/FigmaKnobTokens.h"
 #include "ModAssignmentController.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -34,11 +34,11 @@ namespace pw8::plugin::ui
         void mouseUp(const juce::MouseEvent& event) override;
         void mouseDoubleClick(const juce::MouseEvent& event) override;
 
-        void enableOuterModulationTarget(PatchworkEightProcessor& processor, modulation::ModDestination destination,
+        void enableOuterModulationTarget(MurmurProcessor& processor, modulation::ModDestination destination,
                                          std::uint8_t targetIndex = 0);
-        void enableMiddleModulationTarget(PatchworkEightProcessor& processor, modulation::ModDestination destination,
+        void enableMiddleModulationTarget(MurmurProcessor& processor, modulation::ModDestination destination,
                                           std::uint8_t targetIndex = 0);
-        void enableInnerModulationTarget(PatchworkEightProcessor& processor, modulation::ModDestination destination,
+        void enableInnerModulationTarget(MurmurProcessor& processor, modulation::ModDestination destination,
                                          std::uint8_t targetIndex = 0);
         void setModAssignmentController(ModAssignmentController* controller);
 
@@ -93,7 +93,7 @@ namespace pw8::plugin::ui
         std::function<juce::String(float)> innerValueToText_;
 
         ModAssignmentController* modAssignment_ = nullptr;
-        PatchworkEightProcessor* modProcessor_ = nullptr;
+        MurmurProcessor* modProcessor_ = nullptr;
         ModRingState outerMod_;
         ModRingState middleMod_;
         ModRingState innerMod_;

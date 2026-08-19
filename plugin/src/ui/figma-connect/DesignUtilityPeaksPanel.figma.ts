@@ -8,7 +8,7 @@ export default {
   id: 'mi-design-utility-peaks',
   imports: [
     '#include "DesignUtilityPeaksPanel.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 DesignUtilityPeaksPanel utilityPeaks_(processor_);

@@ -28,7 +28,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    EngineWaveformSelector::EngineWaveformSelector(PatchworkEightProcessor& processor, int engineIndex)
+    EngineWaveformSelector::EngineWaveformSelector(MurmurProcessor& processor, int engineIndex)
         : processor_(processor), engineIndex_(engineIndex)
     {
         startTimerHz(30);

@@ -1,6 +1,6 @@
 # Classic Synth Preset Naming Guide
 
-Actionable reference for Patchwork Eight factory content: what vintage archetypes to capture, how to name them safely, and how tags map to the browser. Implementation lives in `scripts/generate_factory_presets.py`.
+Actionable reference for MURMUR factory content: what vintage archetypes to capture, how to name them safely, and how tags map to the browser. Implementation lives in `scripts/generate_factory_presets.py`.
 
 **Rule:** Display names and primary tags must **never** use trademarked hardware names (Juno, Prophet, DX7, Minimoog, Jupiter, OB-X, CS-80, 303, etc.). Use synthesis vocabulary and era/mood tags instead.
 

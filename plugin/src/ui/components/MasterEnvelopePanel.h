@@ -9,7 +9,7 @@
 #include "../visualizer/PreviewSurface.h"
 #include "../visualizer/VisualizerGpu.h"
 #include "GlowKnob.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "pw8/envelope/SegmentEnvelope.hpp"
 #include "pw8/modulation/MorphEasing.hpp"
 #include "wireframe/EnvelopePathBuilder.h"
@@ -20,7 +20,7 @@ namespace pw8::plugin::ui
     class MasterEnvelopePanel : public juce::Component, private juce::Timer
     {
     public:
-        explicit MasterEnvelopePanel(PatchworkEightProcessor& processor);
+        explicit MasterEnvelopePanel(MurmurProcessor& processor);
 
         /// Figma `master-envelope-section` (`82:83`) — compact embed above morph timeline.
         void setCompactSectionMode(bool compact);
@@ -39,7 +39,7 @@ namespace pw8::plugin::ui
         void cycleSelectedSegmentShape();
         void paintEnvelopeCurve(juce::Graphics& g, juce::Rectangle<float> plot) const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         std::unique_ptr<murmur8::MurmurVisualizerComponent> visualizer_;
         std::unique_ptr<GlowKnob> attackKnob_;
         std::unique_ptr<GlowKnob> decayKnob_;

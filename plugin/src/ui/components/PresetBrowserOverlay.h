@@ -9,7 +9,7 @@
 #include "content/PresetRatingsStore.h"
 #include "content/PresetIndex.h"
 #include "MetadataFacetRow.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "pw8/patch/Patch.hpp"
 
 namespace pw8::plugin::ui
@@ -20,7 +20,7 @@ namespace pw8::plugin::ui
                                  private juce::KeyListener
     {
     public:
-        PresetBrowserOverlay(PatchworkEightProcessor& processor, content::PresetIndex& presetIndex,
+        PresetBrowserOverlay(MurmurProcessor& processor, content::PresetIndex& presetIndex,
                              content::FavoritesStore& favoritesStore,
                              content::PresetRatingsStore& ratingsStore);
 
@@ -102,7 +102,7 @@ namespace pw8::plugin::ui
         [[nodiscard]] int ratingStarAt(juce::Point<int> pos, int row) const;
         [[nodiscard]] bool heartCellAt(juce::Point<int> pos) const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         content::PresetIndex& presetIndex_;
         content::FavoritesStore& favoritesStore_;
         content::PresetRatingsStore& ratingsStore_;

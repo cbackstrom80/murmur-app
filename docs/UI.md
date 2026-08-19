@@ -55,7 +55,7 @@ with a thin indicator + glow arc, not skeuomorphic chrome).
   Waveform/Level/Ratio knobs.
 - `components/ModSourceChip.{h,cpp}` / `components/ModSourceStrip.{h,cpp}` --
   the drag-to-modulate source palette and connections list (UI GATE 3).
-- `components/MacroStrip.{h,cpp}` -- the 8 macros, Patchwork Eight's actual
+- `components/MacroStrip.{h,cpp}` -- the 8 macros, MURMUR's actual
   performance surface.
 - `components/FilterLfoPanel.{h,cpp}` -- Filter 1 + LFO 1's main controls,
   compact. The full 8-LFO/8-envelope bank and Filter 2 are DESIGN-mode
@@ -83,13 +83,13 @@ with a thin indicator + glow arc, not skeuomorphic chrome).
 
 PLAY mode's centerpiece, and the component that actually differentiates this
 synth visually: a read-only rendering of Layer A's live 8-node algorithm graph
--- the same structure `AlgorithmGraphCompiler` compiles and `pw8-graph
+-- the same structure `AlgorithmGraphCompiler` compiles and `murmur-graph
 inspect` already prints in text form.
 
 Deliberately **not** a draggable modular patcher: the master spec is explicit
 this skin must never look like visible patch-cable spaghetti. The fix is
 architectural, not just cosmetic -- the 8 nodes sit at fixed positions on a
-circle (topology is schema data edited in DESIGN mode/`pw8-graph`, not a
+circle (topology is schema data edited in DESIGN mode/`murmur-graph`, not a
 PLAY-mode drag target), so what's on screen is always a clean, readable
 diagram of *this patch's specific graph*. Edges render as curved (bowed away
 from center, so overlapping edges between non-adjacent nodes stay visually
@@ -212,7 +212,7 @@ all in one pass:
   (`GlowKnob::enableModulationTarget`, a `juce::DragAndDropTarget` opt-in --
   not every knob accepts modulation, so this stays explicit rather than
   implicit on every `GlowKnob`). Dropping a chip calls
-  `PatchworkEightProcessor::setOrReplaceModRouteLive()`; right-clicking a
+  `MurmurProcessor::setOrReplaceModRouteLive()`; right-clicking a
   modulated knob calls `removeModRouteLive()`. Both are message-thread APIs
   that publish into the live `Engine` via a double-buffered atomic-pointer
   handoff (`publishModRoutesLive()`/`pendingModRoutes_`, the same "prepare
@@ -288,9 +288,9 @@ what's actually cheap vs. a real project -- full breakdown in
   in was hand-editing a `.pw8`'s `wavetableId` field, so picking the Wavetable
   engine on any node without one already baked into the loaded patch was a
   guaranteed dead end. Opens a native file chooser filtered to `*.json` (an
-  already-built `pw8-wavetable-builder` table, not a raw `.wav` -- see
+  already-built `murmur-wavetable-builder` table, not a raw `.wav` -- see
   `docs/PATCH_FORMAT.md`'s "Wavetable Resource Resolution"), then calls the new
-  `PatchworkEightProcessor::setOperatorWavetableFile()`, which sets
+  `MurmurProcessor::setOperatorWavetableFile()`, which sets
   `wavetableId` and reloads the patch (the only way to get a newly-picked file
   into the live `Engine`, since wavetable loading only happens inside
   `Engine::loadPatch()`). Build-verified end-to-end against the real

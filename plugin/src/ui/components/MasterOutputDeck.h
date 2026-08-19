@@ -6,7 +6,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "GlowKnob.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "ui/ScopeVuMeter.h"
 
 namespace pw8::plugin::ui
@@ -15,7 +15,7 @@ namespace pw8::plugin::ui
     class MasterOutputDeck : public juce::Component, private juce::Timer
     {
     public:
-        explicit MasterOutputDeck(PatchworkEightProcessor& processor);
+        explicit MasterOutputDeck(MurmurProcessor& processor);
         ~MasterOutputDeck() override;
 
         void paint(juce::Graphics& g) override;
@@ -31,7 +31,7 @@ namespace pw8::plugin::ui
         void refreshModePills();
         void setDynamicsMode(int modeIndex);
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         std::unique_ptr<GlowKnob> masterKnob_;
         std::array<juce::TextButton, 4> modePills_{};
         juce::TextButton enableButton_{"STREAMS"};

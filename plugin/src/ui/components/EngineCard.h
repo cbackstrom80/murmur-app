@@ -11,7 +11,7 @@
 #include "EngineOscillatorPicker.h"
 #include "ConcentricGlowKnob.h"
 #include "ModAssignmentController.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "ui/ScopeVuMeter.h"
 
 namespace pw8::plugin::ui
@@ -20,7 +20,7 @@ namespace pw8::plugin::ui
     class EngineCard : public juce::Component, private juce::Timer
     {
     public:
-        EngineCard(PatchworkEightProcessor& processor, ModAssignmentController& assignmentController, int engineIndex);
+        EngineCard(MurmurProcessor& processor, ModAssignmentController& assignmentController, int engineIndex);
         ~EngineCard() override;
 
         void paint(juce::Graphics& g) override;
@@ -49,7 +49,7 @@ namespace pw8::plugin::ui
         void paintLevelRow(juce::Graphics& g, juce::Rectangle<int> rowBounds);
         void paintPlayBoardKnobStubs(juce::Graphics& g) const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         ModAssignmentController& assignmentController_;
         const int engineIndex_;
 

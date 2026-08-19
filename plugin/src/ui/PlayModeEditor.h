@@ -38,7 +38,7 @@
 #include "components/WavetableLabPanel.h"
 #include "components/VstBottomBar.h"
 #include "content/PresetIndex.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "theme/ObsidianLookAndFeel.h"
 
 namespace pw8::plugin::ui
@@ -46,7 +46,7 @@ namespace pw8::plugin::ui
     class PlayModeEditor : public juce::Component, public juce::DragAndDropContainer
     {
     public:
-        PlayModeEditor(PatchworkEightProcessor& processor, SharedEditorChrome& chrome);
+        PlayModeEditor(MurmurProcessor& processor, SharedEditorChrome& chrome);
         ~PlayModeEditor() override;
 
         void paint(juce::Graphics& g) override;
@@ -122,7 +122,7 @@ namespace pw8::plugin::ui
 
         ModAssignmentController modAssignmentController_;
         ObsidianLookAndFeel lookAndFeel_;
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         SharedEditorChrome& chrome_;
 
         EngineNodeStrip nodeSelectorRow_;

@@ -12,7 +12,7 @@
 #include "MorphTimelineStrip.h"
 #include "SectionPanel.h"
 #include "../PlayModeLayout.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "wireframe/LfoWireframeView.h"
 
 namespace pw8::plugin::ui
@@ -21,7 +21,7 @@ namespace pw8::plugin::ui
     class MasterMotionLabPanel : public juce::Component, private juce::Timer
     {
     public:
-        explicit MasterMotionLabPanel(PatchworkEightProcessor& processor);
+        explicit MasterMotionLabPanel(MurmurProcessor& processor);
         ~MasterMotionLabPanel() override;
 
         std::function<void()> onClosed;
@@ -51,14 +51,14 @@ namespace pw8::plugin::ui
             juce::Colour accent;
             std::size_t lfoIndex = 0;
 
-            LfoColumn(PatchworkEightProcessor& processor, std::size_t lfoIndex, const char* title, juce::Colour accent);
+            LfoColumn(MurmurProcessor& processor, std::size_t lfoIndex, const char* title, juce::Colour accent);
             void layoutColumn();
         };
 
         void timerCallback() override;
         void highlightSyncButtons(LfoColumn& column);
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         juce::TextButton backButton_{"← PLAY BOARD"};
         juce::TextButton closeButton_{"×"};
         juce::Label titleLabel_;

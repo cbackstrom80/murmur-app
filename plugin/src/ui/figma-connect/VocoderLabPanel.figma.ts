@@ -7,7 +7,7 @@ export default {
   id: 'vocoder-lab-panel',
   imports: [
     '#include "VocoderLabPanel.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 VocoderLabPanel vocoderLab_(processor_);

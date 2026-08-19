@@ -10,7 +10,7 @@
 #include "ModAssignmentController.h"
 #include "ModSourcePalette.h"
 #include "SectionPanel.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "wireframe/ModRoutingWireframeView.h"
 
 namespace pw8::plugin::ui
@@ -18,7 +18,7 @@ namespace pw8::plugin::ui
     class ModSourceStrip : public juce::Component, private juce::Timer
     {
     public:
-        ModSourceStrip(PatchworkEightProcessor& processor, ModAssignmentController& assignmentController);
+        ModSourceStrip(MurmurProcessor& processor, ModAssignmentController& assignmentController);
 
         ~ModSourceStrip() override;
 
@@ -61,7 +61,7 @@ namespace pw8::plugin::ui
         [[nodiscard]] std::vector<ConnectionRowLayout> layoutConnectionRows() const;
         [[nodiscard]] juce::Rectangle<int> connectionsAreaBounds() const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         ModAssignmentController& assignmentController_;
         SectionPanel panel_{"Route Editor"};
         wireframe::ModRoutingWireframeView routingWireframe_;

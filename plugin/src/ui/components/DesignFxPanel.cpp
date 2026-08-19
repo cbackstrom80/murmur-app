@@ -209,7 +209,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    DesignFxPanel::DesignFxPanel(PatchworkEightProcessor& processor,
+    DesignFxPanel::DesignFxPanel(MurmurProcessor& processor,
                                  ModAssignmentController& modAssignmentController)
         : processor_(processor),
           cardBrowser_(processor.apvts),

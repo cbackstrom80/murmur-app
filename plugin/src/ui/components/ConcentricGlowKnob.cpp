@@ -100,7 +100,7 @@ namespace pw8::plugin::ui
         innerSlider_.setColour(juce::Slider::rotarySliderFillColourId, colour);
     }
 
-    void ConcentricGlowKnob::enableInnerModulationTarget(PatchworkEightProcessor& processor,
+    void ConcentricGlowKnob::enableInnerModulationTarget(MurmurProcessor& processor,
                                                          modulation::ModDestination destination,
                                                          std::uint8_t targetIndex)
     {
@@ -111,7 +111,7 @@ namespace pw8::plugin::ui
         timerCallback();
     }
 
-    void ConcentricGlowKnob::enableOuterModulationTarget(PatchworkEightProcessor& processor,
+    void ConcentricGlowKnob::enableOuterModulationTarget(MurmurProcessor& processor,
                                                          modulation::ModDestination destination,
                                                          std::uint8_t targetIndex)
     {

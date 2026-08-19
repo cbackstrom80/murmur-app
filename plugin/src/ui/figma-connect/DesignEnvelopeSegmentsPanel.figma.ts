@@ -9,7 +9,7 @@ export default {
   imports: [
     '#include "DesignEnvelopeSegmentsPanel.h"',
     '#include "ObsidianEnvelopeVisualizer.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 DesignEnvelopeSegmentsPanel envSegments_(processor_, envIndex);

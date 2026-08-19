@@ -2,7 +2,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -10,14 +10,14 @@ namespace pw8::plugin::ui
     class QuasarTelemetryBar : public juce::Component
     {
     public:
-        explicit QuasarTelemetryBar(PatchworkEightProcessor& processor);
+        explicit QuasarTelemetryBar(MurmurProcessor& processor);
 
         void tick();
         void paint(juce::Graphics& g) override;
         void resized() override;
 
     private:
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         juce::Label cpuLabel_;
         juce::Label latencyLabel_;
         juce::Label grainsLabel_;

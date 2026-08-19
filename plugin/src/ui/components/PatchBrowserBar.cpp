@@ -93,7 +93,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    PatchBrowserBar::PatchBrowserBar(PatchworkEightProcessor& processor)
+    PatchBrowserBar::PatchBrowserBar(MurmurProcessor& processor)
         : processor_(processor),
           spectrumScope_(processor)
     {
@@ -552,7 +552,9 @@ namespace pw8::plugin::ui
 
     void PatchBrowserBar::loadPatchFromFile()
     {
-        fileChooser_ = std::make_unique<juce::FileChooser>("Load a patch...", juce::File(), "*.pw8");
+        // Accept both the legacy .pw8 extension and the current .murmur extension --
+        // see docs/REBRAND_MURMUR.md.
+        fileChooser_ = std::make_unique<juce::FileChooser>("Load a patch...", juce::File(), "*.pw8;*.murmur");
         const auto flags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
         fileChooser_->launchAsync(flags, [this](const juce::FileChooser& chooser) {
             const auto file = chooser.getResult();

@@ -48,7 +48,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    EngineOscContextThumb::EngineOscContextThumb(PatchworkEightProcessor& processor, int engineIndex)
+    EngineOscContextThumb::EngineOscContextThumb(MurmurProcessor& processor, int engineIndex)
         : processor_(processor), engineIndex_(engineIndex)
     {
         setInterceptsMouseClicks(false, false);

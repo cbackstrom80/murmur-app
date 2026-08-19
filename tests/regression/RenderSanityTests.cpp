@@ -464,12 +464,12 @@ TEST_CASE("Renderer: factory Love Bites vocoder preset renders finite audio", "[
     namespace fs = std::filesystem;
 #ifdef PW8_REPO_ROOT
     const fs::path presetPath =
-        fs::path(PW8_REPO_ROOT) / "content/presets/factory/Sidechain/05-def-leppard-love-bites-vocoder.pw8";
+        fs::path(PW8_REPO_ROOT) / "content/presets/factory/Sidechain/05-def-leppard-love-bites-vocoder.murmur";
 #else
-    const fs::path presetPath = fs::current_path() / "content/presets/factory/Sidechain/05-def-leppard-love-bites-vocoder.pw8";
+    const fs::path presetPath = fs::current_path() / "content/presets/factory/Sidechain/05-def-leppard-love-bites-vocoder.murmur";
 #endif
     if (!fs::is_regular_file(presetPath))
-        SKIP("Missing Sidechain/05-def-leppard-love-bites-vocoder.pw8");
+        SKIP("Missing Sidechain/05-def-leppard-love-bites-vocoder.murmur");
 
     std::ifstream in(presetPath);
     std::ostringstream json;

@@ -7,7 +7,7 @@
 
 #include "../PlayModeLayout.h"
 #include "ArpLauncherChip.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -15,7 +15,7 @@ namespace pw8::plugin::ui
     class VstTopBar : public juce::Component
     {
     public:
-        explicit VstTopBar(PatchworkEightProcessor& processor);
+        explicit VstTopBar(MurmurProcessor& processor);
 
         void paint(juce::Graphics& g) override;
         void resized() override;

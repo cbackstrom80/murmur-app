@@ -71,7 +71,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    VocoderLabPanel::VocoderLabPanel(PatchworkEightProcessor& processor)
+    VocoderLabPanel::VocoderLabPanel(MurmurProcessor& processor)
         : processor_(processor), apvts_(processor.apvts), enableButton_("BYPASS OFF")
     {
         addAndMakeVisible(backButton_);

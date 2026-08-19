@@ -8,7 +8,7 @@ export default {
   id: 'mi-design-morph-editor',
   imports: [
     '#include "DesignMorphEditorPanel.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 DesignMorphEditorPanel morphPanel_(processor_);

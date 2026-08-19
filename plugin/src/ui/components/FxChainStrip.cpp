@@ -61,7 +61,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    FxChainStrip::FxChainStrip(PatchworkEightProcessor& processor)
+    FxChainStrip::FxChainStrip(MurmurProcessor& processor)
         : processor_(processor), apvts_(processor.apvts), chainFlow_(apvts_), wireframe_(apvts_)
     {
         addAndMakeVisible(panel_);

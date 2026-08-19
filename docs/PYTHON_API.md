@@ -6,9 +6,9 @@ master spec. Built via pybind11, off by default
 
 ```python
 import sys; sys.path.insert(0, "build/python")  # see BUILD.md for the real install story
-import patchwork_eight as pw8
+import murmur as pw8
 
-patch = pw8.Patch.load("content/presets/dark-bass.pw8")
+patch = pw8.Patch.load("content/presets/dark-bass.murmur")
 patch.layer_a.operator(0).engine = "wavetable"
 patch.layer_a.operator(0).classic_waveform = "square"   # only meaningful while engine == "classic"
 patch.name = "My Dark Bass Variant"
@@ -47,11 +47,11 @@ engine.note_off(60)
 
 ## Module-level constants
 
-`patchwork_eight.__engine_version__` (str), `patchwork_eight.__patch_schema_version__` (int).
+`murmur.__engine_version__` (str), `murmur.__patch_schema_version__` (int).
 
 ## Build output layout
 
-The extension is built directly as `build/python/patchwork_eight.cpython-<ver>-<platform>.so`
-(not nested inside a same-named subdirectory) so `sys.path.insert(0, "build/python"); import patchwork_eight`
+The extension is built directly as `build/python/murmur.cpython-<ver>-<platform>.so`
+(not nested inside a same-named subdirectory) so `sys.path.insert(0, "build/python"); import murmur`
 resolves straight to the compiled module rather than an accidental Python namespace
 package shadowing it -- see `bindings/python/CMakeLists.txt`.

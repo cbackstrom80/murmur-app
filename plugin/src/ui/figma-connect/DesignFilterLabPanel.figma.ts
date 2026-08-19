@@ -10,7 +10,7 @@ export default {
     '#include "DesignFilterLabPanel.h"',
     '#include "FilterLfoPanel.h"',
     '#include "wireframe/FilterRoutingWireframeView.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 DesignFilterLabPanel filterLab_(processor_, assignmentController_);

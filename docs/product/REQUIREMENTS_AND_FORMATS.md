@@ -80,7 +80,7 @@ Ben MVP releases are **ad-hoc signed**. For distribution without Gatekeeper prom
 
 ## Updates
 
-1. Download latest `.pkg` from [Releases](https://github.com/cbackstrom80/patchwork-eight/releases).
+1. Download latest `.pkg` from [Releases](https://github.com/cbackstrom80/murmur-app/releases).
 2. Run installer (overwrites AU + refreshes presets).
 3. Restart your DAW.
 

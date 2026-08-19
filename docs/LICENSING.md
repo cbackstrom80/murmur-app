@@ -1,6 +1,6 @@
 # Licensing
 
-Patchwork Eight is developed on the assumption that it **may become a commercial,
+MURMUR is developed on the assumption that it **may become a commercial,
 closed-source product.** Every dependency decision is made with that constraint in
 front of it.
 

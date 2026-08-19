@@ -94,10 +94,10 @@ namespace
     [[nodiscard]] std::vector<std::string> defaultPresetPaths()
     {
         std::vector<std::string> paths {
-            "content/presets/init-saw.pw8",
-            "content/presets/fm-bell.pw8",
-            "content/presets/wt-morph.pw8",
-            "content/presets/arp-pluck.pw8",
+            "content/presets/init-saw.murmur",
+            "content/presets/fm-bell.murmur",
+            "content/presets/wt-morph.murmur",
+            "content/presets/arp-pluck.murmur",
         };
 
         const fs::path factoryRoot = repoRoot() / "content/presets/factory";
@@ -114,7 +114,7 @@ namespace
             std::vector<fs::path> files;
             for (const auto& entry : fs::directory_iterator(categoryDir))
             {
-                if (entry.path().extension() != ".pw8")
+                if (entry.path().extension() != ".murmur")
                     continue;
                 const auto filename = entry.path().filename().string();
                 if (std::strcmp(category, "Warp") == 0 || isGoldenFactorySlot(filename))

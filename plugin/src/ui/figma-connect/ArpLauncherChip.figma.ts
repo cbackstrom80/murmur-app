@@ -7,7 +7,7 @@ export default {
   id: 'arp-launcher-chip',
   imports: [
     '#include "ArpLauncherChip.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 ArpLauncherChip arpChip_(processor_);

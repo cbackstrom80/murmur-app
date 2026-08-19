@@ -7,7 +7,7 @@ namespace pw8::plugin::ui
         [[nodiscard]] juce::File designFxUiPrefsFile()
         {
             return juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
-                .getChildFile("Patchwork Eight")
+                .getChildFile("MURMUR")
                 .getChildFile("design-fx-ui.json");
         }
     } // namespace

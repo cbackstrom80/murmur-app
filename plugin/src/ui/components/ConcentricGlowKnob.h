@@ -7,7 +7,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "ModAssignmentController.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "../theme/DualKnobLookAndFeel.h"
 #include "../theme/FigmaKnobTokens.h"
 
@@ -31,9 +31,9 @@ namespace pw8::plugin::ui
         void resized() override;
         void paintOverChildren(juce::Graphics& g) override;
 
-        void enableInnerModulationTarget(PatchworkEightProcessor& processor,
+        void enableInnerModulationTarget(MurmurProcessor& processor,
                                          modulation::ModDestination destination, std::uint8_t targetIndex = 0);
-        void enableOuterModulationTarget(PatchworkEightProcessor& processor,
+        void enableOuterModulationTarget(MurmurProcessor& processor,
                                          modulation::ModDestination destination, std::uint8_t targetIndex = 0);
 
         void setModAssignmentController(ModAssignmentController* controller);
@@ -104,7 +104,7 @@ namespace pw8::plugin::ui
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> outerAttachment_;
 
         ModAssignmentController* modAssignment_ = nullptr;
-        PatchworkEightProcessor* modProcessor_ = nullptr;
+        MurmurProcessor* modProcessor_ = nullptr;
         ModRingState innerMod_;
         ModRingState outerMod_;
         juce::String innerParamId_;

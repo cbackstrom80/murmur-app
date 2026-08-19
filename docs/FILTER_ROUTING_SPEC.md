@@ -60,7 +60,7 @@ When F1 disabled, F2 uses absolute `filter2.cutoffHz` with key track.
 | `filter2.cutoffOffsetSemitones` | `filter2CutoffOffsetSemis` | semis | Relative to F1 modulated cutoff |
 | `filter2.drive` | `filter2Drive` | 0..1 | Character filter drive |
 
-Live sync: `Engine::setFilterRoutingLive()` in `PatchworkEightProcessor`.
+Live sync: `Engine::setFilterRoutingLive()` in `MurmurProcessor`.
 
 ---
 

@@ -6,7 +6,7 @@
 
 #include "ModAssignmentController.h"
 #include "ModSourceStrip.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -14,7 +14,7 @@ namespace pw8::plugin::ui
     class ModLauncherPanel : public juce::Component, private juce::Timer
     {
     public:
-        ModLauncherPanel(PatchworkEightProcessor& processor, ModAssignmentController& assignmentController);
+        ModLauncherPanel(MurmurProcessor& processor, ModAssignmentController& assignmentController);
 
         ~ModLauncherPanel() override;
 
@@ -29,7 +29,7 @@ namespace pw8::plugin::ui
     private:
         void timerCallback() override;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         juce::Label titleLabel_;
         juce::Label summaryLabel_;
         juce::TextButton openButton_{"Expand"};

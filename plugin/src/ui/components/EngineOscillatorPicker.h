@@ -5,7 +5,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "pw8/algorithm/AlgorithmTypes.hpp"
 #include "pw8/oscillator/ResonatorOscillator.hpp"
 #include "EngineOscContextThumb.h"
@@ -17,7 +17,7 @@ namespace pw8::plugin::ui
     class EngineOscillatorPicker : public juce::Component, private juce::Timer
     {
     public:
-        EngineOscillatorPicker(PatchworkEightProcessor& processor, int engineIndex);
+        EngineOscillatorPicker(MurmurProcessor& processor, int engineIndex);
 
         void setPlayBoardCompactMode(bool compact);
         void setDesignModeV2Layout(bool designMode);
@@ -71,7 +71,7 @@ namespace pw8::plugin::ui
         void paintPlayBoardStub(juce::Graphics& g);
         void syncContextThumb();
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         bool playBoardCompactMode_ = false;
         bool designModeV2Layout_ = false;
         const int engineIndex_;

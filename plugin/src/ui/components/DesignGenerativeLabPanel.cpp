@@ -9,7 +9,7 @@
 
 namespace pw8::plugin::ui
 {
-    DesignGenerativeLabPanel::DesignGenerativeLabPanel(PatchworkEightProcessor& processor) : processor_(processor)
+    DesignGenerativeLabPanel::DesignGenerativeLabPanel(MurmurProcessor& processor) : processor_(processor)
     {
         titleLabel_.setText("GENERATIVE LAB", juce::dontSendNotification);
         titleLabel_.setFont(fonts::label(14.0f));

@@ -6,7 +6,7 @@
 
 namespace pw8::plugin::ui
 {
-    FilterPanelScopeView::FilterPanelScopeView(PatchworkEightProcessor& processor)
+    FilterPanelScopeView::FilterPanelScopeView(MurmurProcessor& processor)
         : processor_(processor), oscilloscope_(processor), spectrum_(processor)
     {
         addChildComponent(oscilloscope_);

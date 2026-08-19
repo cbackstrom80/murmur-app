@@ -1,4 +1,4 @@
-// pw8-info -- prints engine build/version information.
+// murmur-info -- prints engine build/version information.
 
 #include <iostream>
 
@@ -9,7 +9,7 @@ int main()
 {
     using namespace pw8;
 
-    std::cout << "Patchwork Eight -- pw8-info\n";
+    std::cout << "MURMUR -- murmur-info\n";
     std::cout << "----------------------------------------\n";
     std::cout << "Engine version:          " << core::EngineVersion::string() << "\n";
     std::cout << "Patch schema version:    " << core::kPatchSchemaVersion << "\n";

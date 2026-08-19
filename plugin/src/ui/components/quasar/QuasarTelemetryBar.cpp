@@ -6,7 +6,7 @@
 
 namespace pw8::plugin::ui
 {
-    QuasarTelemetryBar::QuasarTelemetryBar(PatchworkEightProcessor& processor) : processor_(processor)
+    QuasarTelemetryBar::QuasarTelemetryBar(MurmurProcessor& processor) : processor_(processor)
     {
         for (auto* label : {&cpuLabel_, &latencyLabel_, &grainsLabel_})
         {

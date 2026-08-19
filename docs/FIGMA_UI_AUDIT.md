@@ -680,7 +680,7 @@ Figma vertical budget at 1280×720 (from metadata):
 |------|--------|----------|
 | `WavetableLabPanel` wired + CMake | **DONE** | `PlayModeEditor.h:138`, `PlayModeEditor.cpp:90-91`, `plugin/CMakeLists.txt:115` |
 | ARP Swing APVTS (`kNumArpFields=9`) | **DONE** | `PluginState.h:81`, `PluginState.cpp:178-188` field 8 = Swing |
-| `cycleArpStepRatchet` processor + click | **DONE** | `PatchworkEightProcessor.cpp:1207`, `ArpStepStrip.cpp:85` |
+| `cycleArpStepRatchet` processor + click | **DONE** | `MurmurProcessor.cpp:1207`, `ArpStepStrip.cpp:85` |
 | Build verification | **PASS** | `cmake --build build --target pw8_plugin` exit 0 (2026-08-17 batch 5: SAT stubs, insert pre/post, play-board polish) |
 
 ---

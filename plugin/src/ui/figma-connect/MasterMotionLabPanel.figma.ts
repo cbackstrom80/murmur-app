@@ -10,7 +10,7 @@ export default {
     '#include "MasterMotionLabPanel.h"',
     '#include "MasterEnvelopePanel.h"',
     '#include "MorphTimelineStrip.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 MasterMotionLabPanel motionLab_(processor_);

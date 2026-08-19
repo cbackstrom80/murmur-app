@@ -7,7 +7,7 @@
 
 #include "../ScopeVuMeter.h"
 #include "../visualizer/MurmurVisualizerComponent.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -15,7 +15,7 @@ namespace pw8::plugin::ui
     class OscilloscopeView : public juce::Component, private juce::Timer
     {
     public:
-        explicit OscilloscopeView(PatchworkEightProcessor& processor);
+        explicit OscilloscopeView(MurmurProcessor& processor);
 
         ~OscilloscopeView() override;
 
@@ -51,7 +51,7 @@ namespace pw8::plugin::ui
             Vector,
         };
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         bool desktopPlayMode_ = false;
         bool ipadPlayLayout_ = false;
         bool compactLayout_ = false;

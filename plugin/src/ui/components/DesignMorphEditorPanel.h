@@ -7,7 +7,7 @@
 
 #include "GlowKnob.h"
 #include "MorphTimelineStrip.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -15,7 +15,7 @@ namespace pw8::plugin::ui
     class DesignMorphEditorPanel : public juce::Component
     {
     public:
-        explicit DesignMorphEditorPanel(PatchworkEightProcessor& processor);
+        explicit DesignMorphEditorPanel(MurmurProcessor& processor);
         ~DesignMorphEditorPanel() override;
 
         std::function<void()> onClosed;
@@ -45,7 +45,7 @@ namespace pw8::plugin::ui
         void cycleSelectedKeyframeColor();
         juce::Rectangle<int> colorSwatchBounds(std::size_t swatchIndex) const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         juce::TextButton backButton_{"← ENGINE"};
         juce::Label titleLabel_;
         juce::Label subtitleLabel_;

@@ -114,7 +114,7 @@ namespace pw8::plugin::ui
         }
     };
 
-    MasterQuasarPanel::MasterQuasarPanel(PatchworkEightProcessor& processor)
+    MasterQuasarPanel::MasterQuasarPanel(MurmurProcessor& processor)
         : processor_(processor),
           apvts_(processor.apvts),
           chainHeader_(processor, apvts_),

@@ -7,7 +7,7 @@
 
 namespace pw8::plugin::ui
 {
-    AmpEnvelopePanel::AmpEnvelopePanel(PatchworkEightProcessor& processor)
+    AmpEnvelopePanel::AmpEnvelopePanel(MurmurProcessor& processor)
         : visualizer_(processor.apvts, 0)
     {
         auto& apvts = processor.apvts;

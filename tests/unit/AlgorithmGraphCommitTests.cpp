@@ -4,7 +4,7 @@
 #include "pw8/algorithm/AlgorithmGraphCompiler.hpp"
 #include "pw8/patch/Patch.hpp"
 
-// Mirrors PatchworkEightProcessor::commitAlgorithmGraph — valid edits swap,
+// Mirrors MurmurProcessor::commitAlgorithmGraph — valid edits swap,
 // invalid edits leave the patch unchanged, and APVTS-backed fields sync before reload.
 
 using namespace pw8;

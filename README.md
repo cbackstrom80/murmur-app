@@ -1,11 +1,11 @@
-# Patchwork Eight
+# MURMUR
 
 An AI-native, dual-layer, 8-engine algorithmic software synthesizer. This is a new,
 standalone repository -- it does not depend on, embed, or modify the existing
 Patchwork AI repository (see [docs/PATCHWORK_INTEGRATION.md](docs/PATCHWORK_INTEGRATION.md)
 for how they're meant to connect).
 
-`patchwork-eight` / **PATCHWORK EIGHT** are working/codename names, chosen to be
+`murmur-app` / **PATCHWORK EIGHT** are working/codename names, chosen to be
 easy to rename later.
 
 ## What this is, right now
@@ -39,7 +39,7 @@ for the full phase-by-phase breakdown against the product spec.
 | JUCE VST3/AU/Standalone plugin, 762 parameters live-automatable via `AudioProcessorValueTreeState`, real PLAY-mode UI (the OBSIDIAN skin) | **PARTIAL, build-verified** (AU passes `auval`, both AU and VST3 pass `pluginval` at max strictness against the real custom editor; DESIGN/LAB modes and other skins PLANNED, see docs/UI.md; off by default) |
 | MCP server (18 tools: patch introspection/construction/editing/rendering for Claude Desktop/Code and similar clients) | **PROTOTYPE** (`mcp_server/`, see its README; separate from the plugin, not built by CMake) |
 | Google Benchmark suite | **IMPLEMENTED** (oscillators, algorithm graph, voice, full-patch render, at 44.1/48/96 kHz x 1/8/16/32 voices) |
-| Fuzz-render harness (`pw8-fuzz-render`) | **IMPLEMENTED** (verified across 5 batches, 15,000 random valid patches total, 0 failures) |
+| Fuzz-render harness (`murmur-fuzz-render`) | **IMPLEMENTED** (verified across 5 batches, 15,000 random valid patches total, 0 failures) |
 | Filter 2 (character), bitcrush/wavefold/ensemble/flanger/phaser/diffusion delay, MSEG, dual-layer mixing, algorithm morph, unison DSP | **PLANNED** |
 
 ## Architecture
@@ -50,7 +50,7 @@ for the full phase-by-phase breakdown against the product spec.
          +----------------+----------------+
          |                |                |
          v                v                v
-     pw8_plugin      patchwork_eight    pw8-render / pw8-info / pw8-graph / ...
+     pw8_plugin         murmur         murmur-render / murmur-info / murmur-graph / ...
   (JUCE, build-       (pybind11)        (native CLI tools)
     verified)
 ```
@@ -75,14 +75,14 @@ render + fuzz sample. Scope: [docs/MVP.md](docs/MVP.md).
 ## Running the renderer
 
 ```bash
-./build/dev/tools/pw8-render \
-    --patch content/presets/dark-bass.pw8 \
+./build/dev/tools/murmur-render \
+    --patch content/presets/dark-bass.murmur \
     --midi content/test_midi/bass-line.mid \
     --sample-rate 48000 --bpm 105 \
     --output /tmp/dark-bass.wav --receipt /tmp/dark-bass.receipt.json
 
-./build/dev/tools/pw8-graph inspect content/presets/fm-bell.pw8
-./build/dev/tools/pw8-info
+./build/dev/tools/murmur-graph inspect content/presets/fm-bell.murmur
+./build/dev/tools/murmur-info
 ```
 
 `content/presets/` has three tiers: ~28 root-level engineering/showcase
@@ -102,15 +102,15 @@ build yourself:
 
 ```bash
 ./scripts/package_macos.sh          # builds Release VST3/AU/Standalone + packages them
-open dist/PatchworkEight-*-macOS.pkg                                    # GUI, asks for your admin password
+open dist/Murmur-*-macOS.pkg                                    # GUI, asks for your admin password
 # or:
-sudo installer -pkg dist/PatchworkEight-*-macOS.pkg -target /           # CLI
+sudo installer -pkg dist/Murmur-*-macOS.pkg -target /           # CLI
 ```
 
 Installs to the same system-wide locations every commercial plugin
 installer uses -- `/Library/Audio/Plug-Ins/VST3`, `/Library/Audio/Plug-Ins/
 Components`, `/Applications` -- plus the 250-patch factory bank under
-`/Library/Application Support/Patchwork Eight/Presets/factory` (there's no
+`/Library/Application Support/MURMUR/Presets/factory` (there's no
 in-app preset browser yet, just PLAY mode's "Load..." file picker -- browse
 there). **Ad-hoc code-signed, not notarized** (no Apple Developer ID in
 this environment) -- fine for running a build you just made yourself, but

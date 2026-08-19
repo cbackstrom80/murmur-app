@@ -14,7 +14,7 @@
 #include "LabLauncherChip.h"
 #include "MetadataFacetRow.h"
 #include "SectionPanel.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "wireframe/FxChainFlowView.h"
 #include "wireframe/FxWireframeView.h"
 
@@ -28,7 +28,7 @@ namespace pw8::plugin::ui
     class FxChainStrip : public juce::Component, private juce::Timer
     {
     public:
-        explicit FxChainStrip(PatchworkEightProcessor& processor);
+        explicit FxChainStrip(MurmurProcessor& processor);
         ~FxChainStrip() override;
 
         void resized() override;
@@ -99,7 +99,7 @@ namespace pw8::plugin::ui
         std::unique_ptr<LabLauncherChip> vocoderLabChip_;
         std::unique_ptr<LabLauncherChip> quasarLabChip_;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         juce::AudioProcessorValueTreeState& apvts_;
         SectionPanel panel_{"FX Chain — All 10 Algorithms Live"};
         juce::Label helpLabel_;

@@ -7,7 +7,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "../GlowRingButton.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -15,7 +15,7 @@ namespace pw8::plugin::ui
     class QuasarChainHeader : public juce::Component
     {
     public:
-        QuasarChainHeader(PatchworkEightProcessor& processor, juce::AudioProcessorValueTreeState& apvts);
+        QuasarChainHeader(MurmurProcessor& processor, juce::AudioProcessorValueTreeState& apvts);
 
         std::function<void(std::size_t)> onSlotSelected;
 
@@ -31,7 +31,7 @@ namespace pw8::plugin::ui
         void selectSlot(std::size_t globalFxSlotIndex);
         void toggleBypass();
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         juce::AudioProcessorValueTreeState& apvts_;
         std::size_t slotIndex_ = 5;
 

@@ -8,7 +8,7 @@ Hi Ben,
 
 **MURMUR v1.1.0** is ready — this is the big spatial release. Quasar binaural master FX (built for headphones), live morph between patch keyframes, AU sidechain as a mod source, and a full bank of Interstellar Spatial pads.
 
-**Download:** [MURMUR v1.1.0 release](https://github.com/cbackstrom80/patchwork-eight/releases/tag/v1.1.0)  
+**Download:** [MURMUR v1.1.0 release](https://github.com/cbackstrom80/murmur-app/releases/tag/v1.1.0)  
 Grab **`MURMUR-1.1.0-macOS-arm64.pkg`** (or the `.dmg` if you prefer drag-and-drop).
 
 ---

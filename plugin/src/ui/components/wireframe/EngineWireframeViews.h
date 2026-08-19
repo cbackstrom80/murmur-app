@@ -3,14 +3,14 @@
 #include "WireframeCanvas.h"
 #include "pw8/oscillator/ResonatorOscillator.hpp"
 #include "OscPreviewSampler.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui::wireframe
 {
     class ClassicWireframeView : public WireframeCanvas, private juce::Timer
     {
     public:
-        explicit ClassicWireframeView(PatchworkEightProcessor& processor);
+        explicit ClassicWireframeView(MurmurProcessor& processor);
         ~ClassicWireframeView() override;
 
         void showNode(int nodeIndex);
@@ -20,7 +20,7 @@ namespace pw8::plugin::ui::wireframe
         void timerCallback() override;
         void refresh();
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         int nodeIndex_ = 0;
         std::array<std::array<float, kPreviewPoints>, 4> shapeRows_{};
         int activeShape_ = 0;
@@ -29,7 +29,7 @@ namespace pw8::plugin::ui::wireframe
     class FmWireframeView : public WireframeCanvas, private juce::Timer
     {
     public:
-        explicit FmWireframeView(PatchworkEightProcessor& processor);
+        explicit FmWireframeView(MurmurProcessor& processor);
         ~FmWireframeView() override;
 
         void showNode(int nodeIndex);
@@ -39,7 +39,7 @@ namespace pw8::plugin::ui::wireframe
         void timerCallback() override;
         void refresh();
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         int nodeIndex_ = 0;
         std::array<float, kPreviewPoints> carrier_{};
         std::array<float, kPreviewPoints> mod_{};
@@ -48,7 +48,7 @@ namespace pw8::plugin::ui::wireframe
     class AdditiveWireframeView : public WireframeCanvas, private juce::Timer
     {
     public:
-        explicit AdditiveWireframeView(PatchworkEightProcessor& processor);
+        explicit AdditiveWireframeView(MurmurProcessor& processor);
         ~AdditiveWireframeView() override;
 
         void showNode(int nodeIndex);
@@ -58,7 +58,7 @@ namespace pw8::plugin::ui::wireframe
         void timerCallback() override;
         void refresh();
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         int nodeIndex_ = 0;
         std::array<float, kMaxPreviewPartials> heights_{};
         int partialCount_ = 0;
@@ -67,7 +67,7 @@ namespace pw8::plugin::ui::wireframe
     class PhaseShapeWireframeView : public WireframeCanvas, private juce::Timer
     {
     public:
-        explicit PhaseShapeWireframeView(PatchworkEightProcessor& processor);
+        explicit PhaseShapeWireframeView(MurmurProcessor& processor);
         ~PhaseShapeWireframeView() override;
 
         void showNode(int nodeIndex);
@@ -77,7 +77,7 @@ namespace pw8::plugin::ui::wireframe
         void timerCallback() override;
         void refresh();
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         int nodeIndex_ = 0;
         std::array<float, kPreviewPoints> output_{};
         std::array<float, kPreviewPoints> warp_{};
@@ -86,7 +86,7 @@ namespace pw8::plugin::ui::wireframe
     class ResonatorWireframeView : public WireframeCanvas, private juce::Timer
     {
     public:
-        explicit ResonatorWireframeView(PatchworkEightProcessor& processor);
+        explicit ResonatorWireframeView(MurmurProcessor& processor);
         ~ResonatorWireframeView() override;
 
         void showNode(int nodeIndex);
@@ -96,7 +96,7 @@ namespace pw8::plugin::ui::wireframe
         void timerCallback() override;
         void refresh();
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         int nodeIndex_ = 0;
         std::array<float, oscillator::ResonatorOscillator::kMaxModes> heights_{};
         int modeCount_ = 0;
@@ -105,7 +105,7 @@ namespace pw8::plugin::ui::wireframe
     class NoiseWireframeView : public WireframeCanvas, private juce::Timer
     {
     public:
-        explicit NoiseWireframeView(PatchworkEightProcessor& processor);
+        explicit NoiseWireframeView(MurmurProcessor& processor);
         ~NoiseWireframeView() override;
 
         void showNode(int nodeIndex);
@@ -115,7 +115,7 @@ namespace pw8::plugin::ui::wireframe
         void timerCallback() override;
         void refresh();
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         int nodeIndex_ = 0;
         std::array<float, kNoisePoints> samples_{};
     };

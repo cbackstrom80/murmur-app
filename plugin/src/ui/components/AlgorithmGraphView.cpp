@@ -68,7 +68,7 @@ namespace pw8::plugin::ui
         return "?";
     }
 
-    AlgorithmGraphView::AlgorithmGraphView(PatchworkEightProcessor& processor) : processor_(processor)
+    AlgorithmGraphView::AlgorithmGraphView(MurmurProcessor& processor) : processor_(processor)
     {
         startTimerHz(24);
         setInterceptsMouseClicks(true, false);

@@ -1,6 +1,6 @@
 # content/wavetables/
 
-Factory wavetable data, built with `pw8-wavetable-builder` (see `tools/wavetable_builder/`) via `scripts/generate_wavetable_library.py`.
+Factory wavetable data, built with `murmur-wavetable-builder` (see `tools/wavetable_builder/`) via `scripts/generate_wavetable_library.py`.
 
 50 classic tables + 10 granular-engine tables, all at 2048 samples/frame, 10 mip levels (only frame count varies per table). Source WAVs (used to regenerate the JSON tables if the builder ever changes) live under `sources/`.
 

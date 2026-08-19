@@ -5,7 +5,7 @@
 // OBSIDIAN -- the one launch skin (docs/UI.md), chosen deliberately as the safest
 // path to "genuinely premium" (dark glass/hardware territory already proven by
 // u-he/Arturia/Serum's own dark mode) rather than the boldest option, so the very
-// first real Patchwork Eight screen reads as finished rather than experimental.
+// first real MURMUR screen reads as finished rather than experimental.
 // Every color used anywhere in plugin/src/ui/ comes from this file -- no component
 // hand-rolls its own juce::Colour literal, so the whole skin can be re-tuned (or a
 // second skin added later) by editing one place.

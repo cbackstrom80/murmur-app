@@ -22,7 +22,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    BasicPerformanceSidebar::BasicPerformanceSidebar(PatchworkEightProcessor& processor) : processor_(processor)
+    BasicPerformanceSidebar::BasicPerformanceSidebar(MurmurProcessor& processor) : processor_(processor)
     {
         portamentoKnob_ =
             std::make_unique<GlowKnob>(processor_.apvts, kPortamentoId, "GLIDE",

@@ -108,7 +108,9 @@ namespace pw8::plugin::content
             if (!root.isDirectory())
                 continue;
 
-            for (const auto& file : root.findChildFiles(juce::File::findFiles, true, "*.pw8"))
+            // Accept both the legacy .pw8 extension (real user files on disk never break)
+            // and the current .murmur extension (all new saves) -- see docs/REBRAND_MURMUR.md.
+            for (const auto& file : root.findChildFiles(juce::File::findFiles, true, "*.pw8;*.murmur"))
             {
                 if (seenPaths.contains(file.getFullPathName()))
                     continue;

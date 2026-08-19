@@ -14,7 +14,7 @@ namespace pw8::plugin::ui
         static constexpr const char* kModeLabels[] = {"ENV", "VACT", "FOLL", "COMP"};
     }
 
-    MasterOutputDeck::MasterOutputDeck(PatchworkEightProcessor& processor) : processor_(processor)
+    MasterOutputDeck::MasterOutputDeck(MurmurProcessor& processor) : processor_(processor)
     {
         masterKnob_ = std::make_unique<GlowKnob>(processor_.apvts, kMasterGainId, "MASTER", nullptr, palette::kAccent);
         masterKnob_->setHeaderCompactMode(true);

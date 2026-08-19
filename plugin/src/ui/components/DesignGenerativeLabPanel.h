@@ -9,7 +9,7 @@
 #include "GlowKnob.h"
 #include "GlowRingButton.h"
 #include "SectionPanel.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -17,7 +17,7 @@ namespace pw8::plugin::ui
     class DesignGenerativeLabPanel : public juce::Component, private juce::Timer
     {
     public:
-        explicit DesignGenerativeLabPanel(PatchworkEightProcessor& processor);
+        explicit DesignGenerativeLabPanel(MurmurProcessor& processor);
         ~DesignGenerativeLabPanel() override;
 
         std::function<void()> onClosed;
@@ -39,7 +39,7 @@ namespace pw8::plugin::ui
         void paintClockHero(juce::Graphics& g, juce::Rectangle<int> bounds) const;
         void paintRoutingDiagram(juce::Graphics& g, juce::Rectangle<int> bounds) const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         bool embeddedInDesignMode_ = false;
 
         juce::TextButton backButton_{"← DESIGN"};

@@ -18,7 +18,7 @@ namespace pw8::plugin::ui
         constexpr float kWireframeColumnRatio = 0.42f;
     } // namespace
 
-    ModSourceStrip::ModSourceStrip(PatchworkEightProcessor& processor, ModAssignmentController& assignmentController)
+    ModSourceStrip::ModSourceStrip(MurmurProcessor& processor, ModAssignmentController& assignmentController)
         : processor_(processor),
           assignmentController_(assignmentController),
           routingWireframe_(processor, processor.apvts),

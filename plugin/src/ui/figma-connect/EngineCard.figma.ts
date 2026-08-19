@@ -7,7 +7,7 @@ export default {
   id: 'engine-card',
   imports: [
     '#include "EngineCard.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 EngineCard engineCard_(processor_, engineIndex);

@@ -151,7 +151,7 @@ namespace pw8::plugin::ui
         DesignMorphEditorPanel& owner_;
     };
 
-    DesignMorphEditorPanel::DesignMorphEditorPanel(PatchworkEightProcessor& processor)
+    DesignMorphEditorPanel::DesignMorphEditorPanel(MurmurProcessor& processor)
         : processor_(processor), timeline_(processor),
           morphPositionKnob_(std::make_unique<GlowKnob>(processor.apvts, kMorphPositionId, "MORPH POS",
                                                         [](float v) { return juce::String(v, 2); }))

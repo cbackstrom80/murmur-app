@@ -30,7 +30,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    MasterEnvelopePanel::MasterEnvelopePanel(PatchworkEightProcessor& processor)
+    MasterEnvelopePanel::MasterEnvelopePanel(MurmurProcessor& processor)
         : processor_(processor)
     {
         if (murmur8::visualizerGpuEnabled())

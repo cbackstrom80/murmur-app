@@ -24,7 +24,7 @@ MURMUR already has **real product differentiation** in the engine (typed 8-node 
 | **8-node typed algorithm graph** compiled and executed per voice | FM stacks, parallel carriers, feedback bells, ring mod — as *topology*, not per-osc warp params | **Serum:** fixed osc→filter flow, wt warps per osc. **Phase Plant:** vertical lanes, explicitly *not* a node graph. **Zebra 3:** 4-lane wireless grid, not a free typed graph. **Operator:** 4-op FM, no general graph |
 | **8 engine types per node** (Classic, WT, FM, Phase, Additive, Noise, Granular, Resonator) | One instrument, many synthesis paradigms in one voice | Serum: 5 source types but no FM graph. Phase Plant: generators + Snapins. Kilohearts: effect/modular lanes, not 8-slot algorithm |
 | **`.pw8` JSON patches** with `uiFocus`, macros, metadata, mod routes | Preset *tells the UI what to show*; diffable, agent-generatable | Binary blobs or opaque presets; performance macros exist elsewhere but rarely drive a dedicated PLAY surface |
-| **Deterministic headless render** (`pw8-render`) | AI / Patchforge pipeline — none of the three benchmark synths target this | Host-only real-time instruments |
+| **Deterministic headless render** (`murmur-render`) | AI / Patchforge pipeline — none of the three benchmark synths target this | Host-only real-time instruments |
 
 ### Experience differentiators (already in product docs + code)
 
@@ -188,7 +188,7 @@ This uses existing code; it is re-wiring and layout, not new DSP.
 - ✅ DESIGN Graph tab: live `AlgorithmGraphView` preview wired above edge list (`AlgorithmGraphEditor`)
 - ✅ Preset description first sentence under preset name in `PatchBrowserBar`
 - ✅ Engine icon paths wired into `NodeSelectorRow` pills (text fallback retained)
-**Quick wins:** Preset description first sentence under preset name in bar; unify "MURMUR" vs stale "Patchwork Eight" in any remaining docs  
+**Quick wins:** Preset description first sentence under preset name in bar; unify "MURMUR" vs stale "MURMUR" in any remaining docs  
 **Deep cut:** None — research week  
 **Logic prototype:** Screenshot Basic view with annotation overlay for Ben
 

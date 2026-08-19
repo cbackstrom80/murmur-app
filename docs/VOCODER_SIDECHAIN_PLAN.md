@@ -35,7 +35,7 @@ Logic Vocal BUS ──send──► Sidechain bus ──AU picker──► MURMU
 | `EffectType::Vocoder` (12) | `engine/include/pw8/effects/EffectTypes.hpp` |
 | 8–16 band vocoder DSP | `engine/include/pw8/effects/Vocoder.hpp` |
 | Sidechain per-sample into FX chain | `Engine::process(..., sidechainL, sidechainR)` |
-| AU sidechain → engine | `PatchworkEightProcessor::processBlock` |
+| AU sidechain → engine | `MurmurProcessor::processBlock` |
 | PLAY FX UI | TYPE chip **VOCODER**, knobs: Bands, Formant, Sibilance, SC Gain + Mix |
 | Tests | `EffectsTests.cpp` — sidechain gates carrier, mix=0 dry pass |
 

@@ -17,7 +17,7 @@ namespace pw8::plugin::ui
         static constexpr int kNavTabWidths[] = {51, 62, 49, 69, 69};
     } // namespace
 
-    DesignModeHeaderBar::DesignModeHeaderBar(PatchworkEightProcessor& processor)
+    DesignModeHeaderBar::DesignModeHeaderBar(MurmurProcessor& processor)
         : processor_(processor)
     {
         presetNameLabel_.setFont(fonts::label(9.0f));

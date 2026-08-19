@@ -48,7 +48,7 @@ This is the single biggest gap between "verified" and "shippable":
   shipped as its own separate, independently-verified PR and merged into
   `main` one at a time (with real conflict resolution across the shared
   files each PR touched additively: `OperatorNode.hpp`, `PluginState.h/.cpp`,
-  `PatchworkEightProcessor.cpp`, `OperatorEditorPanel.h/.cpp`). All 8 of the
+  `MurmurProcessor.cpp`, `OperatorEditorPanel.h/.cpp`). All 8 of the
   headline "8-engine algorithmic synthesizer" engines now actually exist on
   `main`.
 - **A real patch browser** -- see `docs/PATCH_BROWSER.md`. Promoted here
@@ -95,7 +95,7 @@ In order of audible/usable impact per unit of engineering effort:
 - **GPU-accelerated visuals / spectrum/scope** (Phase 17, `docs/
   GPU_ACCELERATION_RESEARCH.md`) -- explicitly deferred correctly; nothing to
   accelerate until there's a live audio-thread tap, which doesn't exist yet.
-- **Soak testing / perf optimization** (Phase 20) -- `pw8-fuzz-render` covers
+- **Soak testing / perf optimization** (Phase 20) -- `murmur-fuzz-render` covers
   correctness breadth (5,000 patches, 0 failures) but not long-duration
   stability (memory growth, denormal handling under hours of playback). Worth
   a dedicated soak-test tool once P0's DAW testing surfaces whether this is

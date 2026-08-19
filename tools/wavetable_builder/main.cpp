@@ -1,4 +1,4 @@
-// pw8-wavetable-builder -- imports a mono 16-bit PCM WAV single-cycle-or-multi-cycle
+// murmur-wavetable-builder -- imports a mono 16-bit PCM WAV single-cycle-or-multi-cycle
 // source, splits it into equal-length frames, normalizes each frame, and emits a
 // pw8 wavetable JSON table with real band-limited mip levels.
 //
@@ -11,7 +11,7 @@
 // FFT requirement); `--mip-levels` caps how many are generated (fewer are emitted
 // once the retained harmonic count would drop to zero).
 //
-//   pw8-wavetable-builder --input source.wav --frames 8 --samples-per-frame 2048 \
+//   murmur-wavetable-builder --input source.wav --frames 8 --samples-per-frame 2048 \
 //                          --output content/wavetables/my_table.json [--mip-levels 10]
 
 #include <algorithm>
@@ -163,7 +163,7 @@ int main(int argc, char** argv)
         else if (arg == "--mip-levels") requestedMipLevels = std::stoi(next());
         else if (arg == "--help")
         {
-            std::cout << "Usage: pw8-wavetable-builder --input <in.wav> --output <out.json> "
+            std::cout << "Usage: murmur-wavetable-builder --input <in.wav> --output <out.json> "
                          "[--frames N] [--samples-per-frame N (power of two)] [--mip-levels N]\n";
             return 0;
         }

@@ -30,7 +30,7 @@
       "version": "v2.13.6",
       "source": "https://github.com/pybind/pybind11",
       "fetchMethod": "CMake FetchContent",
-      "usedIn": ["bindings/python (patchwork_eight module)"],
+      "usedIn": ["bindings/python (murmur module)"],
       "commercialClosedSourceCompatible": true,
       "buildDefault": false,
       "buildOption": "PW8_BUILD_PYTHON_BINDINGS"

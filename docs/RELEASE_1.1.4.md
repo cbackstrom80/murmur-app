@@ -43,7 +43,7 @@ Cumulative release **1.1.1 → 1.1.4** on branch `cursor/favorites-unison-stack-
 
 ## Install
 
-Download **`MURMUR-1.1.4-macOS-arm64.pkg`** from [GitHub Releases](https://github.com/cbackstrom80/patchwork-eight/releases/tag/v1.1.4).
+Download **`MURMUR-1.1.4-macOS-arm64.pkg`** from [GitHub Releases](https://github.com/cbackstrom80/murmur-app/releases/tag/v1.1.4).
 
 Optional: **`MURMUR-1.1.4-macOS-arm64.dmg`**
 

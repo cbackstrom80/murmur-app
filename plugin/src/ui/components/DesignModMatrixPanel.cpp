@@ -79,7 +79,7 @@ namespace pw8::plugin::ui
         }};
     } // namespace
 
-    DesignModMatrixPanel::DesignModMatrixPanel(PatchworkEightProcessor& processor,
+    DesignModMatrixPanel::DesignModMatrixPanel(MurmurProcessor& processor,
                                                ModAssignmentController& assignmentController)
         : processor_(processor), assignmentController_(assignmentController)
     {

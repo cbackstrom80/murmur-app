@@ -45,7 +45,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    CircularSpectrumScope::CircularSpectrumScope(PatchworkEightProcessor& processor) : processor_(processor)
+    CircularSpectrumScope::CircularSpectrumScope(MurmurProcessor& processor) : processor_(processor)
     {
         rebuildWindow();
         startTimerHz(45);

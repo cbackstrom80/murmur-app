@@ -2,7 +2,7 @@
 
 namespace pw8::plugin::ui
 {
-    OscWireframeHost::OscWireframeHost(PatchworkEightProcessor& processor)
+    OscWireframeHost::OscWireframeHost(MurmurProcessor& processor)
         : processor_(processor),
           wavetableView_(processor),
           classicView_(processor),

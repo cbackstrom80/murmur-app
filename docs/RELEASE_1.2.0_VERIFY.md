@@ -38,8 +38,8 @@
 
 | Release | Assets |
 |---------|--------|
-| [v1.2.0](https://github.com/cbackstrom80/patchwork-eight/releases/tag/v1.2.0) | `.pkg`, `.dmg`, `version.json` |
-| [quasar-v1.0.0](https://github.com/cbackstrom80/patchwork-eight/releases/tag/quasar-v1.0.0) | `.pkg`, `.dmg`, `quasar-version.json` |
+| [v1.2.0](https://github.com/cbackstrom80/murmur-app/releases/tag/v1.2.0) | `.pkg`, `.dmg`, `version.json` |
+| [quasar-v1.0.0](https://github.com/cbackstrom80/murmur-app/releases/tag/quasar-v1.0.0) | `.pkg`, `.dmg`, `quasar-version.json` |
 
 ## Post-release (v1.2.1 backlog)
 

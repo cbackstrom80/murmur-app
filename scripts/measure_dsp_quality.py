@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""THD+N / aliasing smoke measurement for Patchwork Eight offline renders.
+"""THD+N / aliasing smoke measurement for MURMUR offline renders.
 
-Usage (from repo root, after building pw8-render):
-  python3 scripts/measure_dsp_quality.py --patch content/presets/init-saw.pw8
-  python3 scripts/measure_dsp_quality.py --patch content/presets/fm-bell.pw8 --tone-hz 440
+Usage (from repo root, after building murmur-render):
+  python3 scripts/measure_dsp_quality.py --patch content/presets/init-saw.murmur
+  python3 scripts/measure_dsp_quality.py --patch content/presets/fm-bell.murmur --tone-hz 440
 
-Renders a short deterministic clip through pw8-render, loads the WAV, and reports:
+Renders a short deterministic clip through murmur-render, loads the WAV, and reports:
   - RMS level
   - crude THD estimate (energy in harmonics 2-10 vs fundamental)
   - energy above Nyquist/2 as a simple aliasing proxy
@@ -23,7 +23,7 @@ import wave
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_RENDER = REPO_ROOT / "build/dev/tools/pw8-render"
+DEFAULT_RENDER = REPO_ROOT / "build/dev/tools/murmur-render"
 DEFAULT_MIDI = REPO_ROOT / "content/test_midi/single_c4.mid"
 
 

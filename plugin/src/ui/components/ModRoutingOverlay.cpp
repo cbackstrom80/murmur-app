@@ -26,7 +26,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    ModRoutingOverlay::ModRoutingOverlay(PatchworkEightProcessor& processor,
+    ModRoutingOverlay::ModRoutingOverlay(MurmurProcessor& processor,
                                          ModAssignmentController& assignmentController)
         : modSourceStrip_(processor, assignmentController)
     {

@@ -109,7 +109,7 @@ namespace pw8::plugin::ui
         DesignFilterLabPanel& owner_;
     };
 
-    DesignFilterLabPanel::DesignFilterLabPanel(PatchworkEightProcessor& processor,
+    DesignFilterLabPanel::DesignFilterLabPanel(MurmurProcessor& processor,
                                                  ModAssignmentController& assignmentController)
         : processor_(processor),
           assignmentController_(assignmentController),

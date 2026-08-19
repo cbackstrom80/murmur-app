@@ -10,7 +10,7 @@
 #include "GlowKnob.h"
 #include "SectionPanel.h"
 #include "../PlayModeLayout.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "wireframe/LfoWireframeView.h"
 
 namespace pw8::plugin::ui
@@ -19,7 +19,7 @@ namespace pw8::plugin::ui
     class DualLfoLabPanel : public juce::Component
     {
     public:
-        explicit DualLfoLabPanel(PatchworkEightProcessor& processor);
+        explicit DualLfoLabPanel(MurmurProcessor& processor);
         ~DualLfoLabPanel() override;
 
         std::function<void()> onClosed;
@@ -48,8 +48,8 @@ namespace pw8::plugin::ui
             std::array<juce::TextButton, 7> syncButtons{};
             std::size_t lfoIndex = 0;
 
-            LfoColumn(PatchworkEightProcessor& processor, std::size_t lfoIndex, const char* title, juce::Colour accent);
-            void rebind(PatchworkEightProcessor& processor, std::size_t newIndex, const char* title, juce::Colour accent);
+            LfoColumn(MurmurProcessor& processor, std::size_t lfoIndex, const char* title, juce::Colour accent);
+            void rebind(MurmurProcessor& processor, std::size_t newIndex, const char* title, juce::Colour accent);
             void layoutColumn();
         };
 
@@ -60,7 +60,7 @@ namespace pw8::plugin::ui
         void highlightSyncButtons(LfoColumn& column);
         void layoutColumns();
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         juce::TextButton backButton_{"← PLAY BOARD"};
         juce::Label badgeLabel_;
         juce::Label titleLabel_;

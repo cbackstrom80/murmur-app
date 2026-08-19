@@ -11,7 +11,7 @@
 #include "MorphTimelineStrip.h"
 #include "SectionPanel.h"
 #include "../theme/ObsidianPalette.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -19,7 +19,7 @@ namespace pw8::plugin::ui
     class PatchFocusPanel : public juce::Component, private juce::Timer
     {
     public:
-        explicit PatchFocusPanel(PatchworkEightProcessor& processor);
+        explicit PatchFocusPanel(MurmurProcessor& processor);
 
         ~PatchFocusPanel() override;
 
@@ -57,7 +57,7 @@ namespace pw8::plugin::ui
         void syncMacroKnobsFromApvts();
         [[nodiscard]] bool showPerformanceRoutingUi() const noexcept;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         SectionPanel panel_{"Performance Controls", palette::kAccentWarm, true};
         juce::Label introLabel_;
         juce::Label subtitleLabel_;

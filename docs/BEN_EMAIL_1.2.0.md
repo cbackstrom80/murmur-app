@@ -9,8 +9,8 @@ Hi Ben,
 Two releases today — a **major MURMUR update** and a **new standalone QUASAR plugin** for binaural spatial.
 
 **Downloads:**
-- [MURMUR v1.2.0](https://github.com/cbackstrom80/patchwork-eight/releases/tag/v1.2.0) — **`MURMUR-1.2.0-macOS-arm64.pkg`**
-- [QUASAR v1.0.0](https://github.com/cbackstrom80/patchwork-eight/releases/tag/quasar-v1.0.0) — **`QUASAR-1.0.0-macOS-arm64.pkg`**
+- [MURMUR v1.2.0](https://github.com/cbackstrom80/murmur-app/releases/tag/v1.2.0) — **`MURMUR-1.2.0-macOS-arm64.pkg`**
+- [QUASAR v1.0.0](https://github.com/cbackstrom80/murmur-app/releases/tag/quasar-v1.0.0) — **`QUASAR-1.0.0-macOS-arm64.pkg`**
 
 Install **both** for the full Interstellar Spatial experience.
 

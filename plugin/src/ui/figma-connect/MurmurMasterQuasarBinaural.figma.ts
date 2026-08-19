@@ -8,7 +8,7 @@ export default {
   id: 'murmur-master-quasar-binaural',
   imports: [
     '#include "MasterQuasarPanel.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 MasterQuasarPanel quasarPanel_(processor_);

@@ -6,7 +6,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "pw8/modulation/ModMatrixTypes.hpp"
 #include "../PlayModeLayout.h"
 
@@ -17,7 +17,7 @@ namespace pw8::plugin::ui
     class VstBottomBar : public juce::Component, private juce::Timer
     {
     public:
-        explicit VstBottomBar(PatchworkEightProcessor& processor);
+        explicit VstBottomBar(MurmurProcessor& processor);
         ~VstBottomBar() override;
 
         void paint(juce::Graphics& g) override;
@@ -62,7 +62,7 @@ namespace pw8::plugin::ui
         [[nodiscard]] bool modSourceActive(modulation::ModSource source) const;
         [[nodiscard]] std::optional<layout::IpadFooterPill> footerPillAt(juce::Point<int> point) const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         juce::Label statusLabel_;
         juce::Label voicesLabel_;
         std::unique_ptr<LabLauncherChip> vocoderChip_;

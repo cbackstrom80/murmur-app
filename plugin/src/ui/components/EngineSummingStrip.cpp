@@ -54,7 +54,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    EngineSummingStrip::EngineSummingStrip(PatchworkEightProcessor& processor) : processor_(processor)
+    EngineSummingStrip::EngineSummingStrip(MurmurProcessor& processor) : processor_(processor)
     {
         addAndMakeVisible(panel_);
 

@@ -1,7 +1,7 @@
 # GPU Acceleration Research (CUDA / GPU Audio)
 
 Researched at the user's request. This is a **decision record, not an implementation
-plan** -- Patchwork Eight remains CPU-only in this pass, deliberately, for reasons
+plan** -- MURMUR remains CPU-only in this pass, deliberately, for reasons
 explained below. Sources:
 [attackmagazine.com/features/long-read/gpu-audio-is-powering-plugins-with-your-graphics-card](https://www.attackmagazine.com/features/long-read/gpu-audio-is-powering-plugins-with-your-graphics-card-is-it-time-to-finally-say-goodbye-to-latency/),
 [musicradar.com/news/gpu-audio-vst-plugins](https://www.musicradar.com/news/gpu-audio-vst-plugins),
@@ -40,10 +40,10 @@ NVIDIA VRWorks Audio and AMD TrueAudio Next are the older, adjacent lineage: bot
 use GPU ray-tracing hardware/APIs (OptiX / Radeon Rays) to simulate real-time sound
 *propagation* through a 3D scene (reflection, occlusion, material absorption) for
 game/VR audio -- physically-based acoustic rendering, not synthesis, but directly
-relevant to Patchwork Eight's PLANNED Resonator/Spectral engine (physical modeling)
+relevant to MURMUR's PLANNED Resonator/Spectral engine (physical modeling)
 and reverb (Phase 10/11).
 
-## Relevance to Patchwork Eight's architecture
+## Relevance to MURMUR's architecture
 
 The subsystems that would benefit most from this style of acceleration if pursued
 are exactly the ones already flagged in this repo as needing a "vectorized... not

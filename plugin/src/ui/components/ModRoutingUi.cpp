@@ -435,7 +435,7 @@ namespace pw8::plugin::ui
         }
     }
 
-    void assignModRoute(PatchworkEightProcessor& processor, modulation::ModSource source,
+    void assignModRoute(MurmurProcessor& processor, modulation::ModSource source,
                         modulation::ModDestination destination, std::uint8_t targetIndex)
     {
         float amount = defaultModAmountFor(destination);
@@ -450,20 +450,20 @@ namespace pw8::plugin::ui
         assignModRoute(processor, source, destination, targetIndex, amount);
     }
 
-    void assignModRoute(PatchworkEightProcessor& processor, modulation::ModSource source,
+    void assignModRoute(MurmurProcessor& processor, modulation::ModSource source,
                         modulation::ModDestination destination, std::uint8_t targetIndex, float amount)
     {
         processor.setOrReplaceModRouteLive(source, destination, targetIndex, amount);
     }
 
-    void updateModRouteAmount(PatchworkEightProcessor& processor, const modulation::ModRoute& route, float amount)
+    void updateModRouteAmount(MurmurProcessor& processor, const modulation::ModRoute& route, float amount)
     {
         const auto range = modAmountRangeFor(route.destination);
         const float clamped = juce::jlimit(range.min, range.max, amount);
         processor.setOrReplaceModRouteLive(route.source, route.destination, route.targetIndex, clamped, route.scope);
     }
 
-    void updateModRouteCurve(PatchworkEightProcessor& processor, const modulation::ModRoute& route,
+    void updateModRouteCurve(MurmurProcessor& processor, const modulation::ModRoute& route,
                              modulation::ModCurve curve)
     {
         processor.setModRouteCurveLive(route.source, route.destination, route.targetIndex, curve);

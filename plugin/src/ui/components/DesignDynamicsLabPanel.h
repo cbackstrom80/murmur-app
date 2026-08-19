@@ -9,7 +9,7 @@
 #include "GlowKnob.h"
 #include "GlowRingButton.h"
 #include "SectionPanel.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -17,7 +17,7 @@ namespace pw8::plugin::ui
     class DesignDynamicsLabPanel : public juce::Component, private juce::Timer
     {
     public:
-        explicit DesignDynamicsLabPanel(PatchworkEightProcessor& processor);
+        explicit DesignDynamicsLabPanel(MurmurProcessor& processor);
         ~DesignDynamicsLabPanel() override;
 
         std::function<void()> onClosed;
@@ -42,7 +42,7 @@ namespace pw8::plugin::ui
         void refreshModePills();
         void setDynamicsMode(int modeIndex);
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         bool embeddedInDesignMode_ = false;
 
         juce::TextButton backButton_{"← DESIGN"};

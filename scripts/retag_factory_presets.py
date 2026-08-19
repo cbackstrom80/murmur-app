@@ -276,7 +276,7 @@ def main() -> int:
     skipped = 0
     samples: list[tuple[str, list[str], list[str]]] = []
 
-    for path in sorted(FACTORY_ROOT.rglob("*.pw8")):
+    for path in sorted(FACTORY_ROOT.rglob("*.pw8")) + sorted(FACTORY_ROOT.rglob("*.murmur")):
         data = json.loads(path.read_text(encoding="utf-8"))
         meta = data.get("metadata") or {}
         if not _needs_retag(meta):

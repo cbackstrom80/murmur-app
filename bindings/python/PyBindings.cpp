@@ -1,8 +1,8 @@
 // pybind11 bindings for pw8_core.
 //
-//   import patchwork_eight as pw8
+//   import murmur as pw8
 //
-//   patch = pw8.Patch.load("content/presets/dark-bass.pw8")
+//   patch = pw8.Patch.load("content/presets/dark-bass.murmur")
 //   patch.layer_a.operator(0).engine = "wavetable"
 //
 //   engine = pw8.Engine(sample_rate=48000)
@@ -135,9 +135,9 @@ namespace
 
 } // namespace
 
-PYBIND11_MODULE(patchwork_eight, m)
+PYBIND11_MODULE(murmur, m)
 {
-    m.doc() = "Patchwork Eight -- pw8_core Python bindings (PARTIAL, see docs/PYTHON_API.md)";
+    m.doc() = "MURMUR -- pw8_core Python bindings (PARTIAL, see docs/PYTHON_API.md)";
     m.attr("__engine_version__") = std::string(core::EngineVersion::string());
     m.attr("__patch_schema_version__") = core::kPatchSchemaVersion;
 

@@ -5,7 +5,7 @@
 -- procedurally built from the same per-engine parameter ranges used
 throughout this project's own showcase/demo content, so every patch is a
 real, playable combination rather than a random-noise stress test (that's
-what pw8-fuzz-render is for). Each category has its own operator-engine
+what murmur-fuzz-render is for). Each category has its own operator-engine
 "recipe" pool (e.g. Basses lean Classic/FM/Wavetable/Resonator with fast
 envelopes and a lowpass filter; Ambient leans Resonator/Granular/NoiseChaos
 with multi-second envelopes and a large reverb tail; Sequences additionally
@@ -118,7 +118,7 @@ def build_patch(name, description, category, moods, tags, seed, operators, ampEn
         "metadata": {
             "id": f"pw8-factory-{category}-{seed}",
             "name": name,
-            "author": "Patchwork Eight Engineering",
+            "author": "MURMUR Engineering",
             "description": description,
             "category": category,
             "moods": moods,
@@ -491,7 +491,8 @@ def fix_all_presets(root=None):
     """Batch-apply standards to every .pw8 under content/presets/."""
     root = pathlib.Path(root or REPO_ROOT / "content" / "presets")
     fixed = 0
-    for pw8 in sorted(root.rglob("*.pw8")):
+    # Applies to existing presets on disk, either extension -- see docs/REBRAND_MURMUR.md.
+    for pw8 in sorted(root.rglob("*.pw8")) + sorted(root.rglob("*.murmur")):
         data = json.loads(pw8.read_text())
         normalize_preset_standards(data)
         pw8.write_text(json.dumps(data, indent=2) + "\n")
@@ -612,7 +613,7 @@ def load_reserved_display_names():
     """Showcase/user preset names reserved so factory generation does not collide."""
     reserved = set()
     presets_root = REPO_ROOT / "content" / "presets"
-    for pw8 in presets_root.glob("*.pw8"):
+    for pw8 in sorted(presets_root.glob("*.pw8")) + sorted(presets_root.glob("*.murmur")):
         try:
             meta = json.loads(pw8.read_text()).get("metadata", {})
             name = meta.get("name", "").strip()
@@ -984,7 +985,7 @@ def main():
     for cat_key, (cat_label, gen_fn) in CATEGORIES.items():
         out_dir = f"{OUT_ROOT}/{cat_label}"
         os.makedirs(out_dir, exist_ok=True)
-        for stale in pathlib.Path(out_dir).glob("*.pw8"):
+        for stale in sorted(pathlib.Path(out_dir).glob("*.pw8")) + sorted(pathlib.Path(out_dir).glob("*.murmur")):
             stale.unlink()
         used_names = set()
         for i in range(COUNT_PER_CATEGORY):
@@ -1019,7 +1020,7 @@ def main():
                 arpeggiator=arpeggiator,
             )
             patch["metadata"]["genres"] = _derive_factory_genres(cat_key, patch_tags, full_name, desc)
-            fname = f"{i+1:02d}-{name.lower().replace(' ', '-')}.pw8"
+            fname = f"{i+1:02d}-{name.lower().replace(' ', '-')}.murmur"
             path = f"{out_dir}/{fname}"
             with open(path, "w") as f:
                 json.dump(patch, f, indent=2)

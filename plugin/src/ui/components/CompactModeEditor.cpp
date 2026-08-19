@@ -9,7 +9,7 @@
 
 namespace pw8::plugin::ui
 {
-    CompactModeEditor::CompactModeEditor(PatchworkEightProcessor& processor)
+    CompactModeEditor::CompactModeEditor(MurmurProcessor& processor)
         : processor_(processor),
           scopeView_(processor),
           focusPanel_(processor)

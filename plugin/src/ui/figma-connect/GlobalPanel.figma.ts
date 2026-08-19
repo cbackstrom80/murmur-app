@@ -7,7 +7,7 @@ export default {
   id: 'global-panel',
   imports: [
     '#include "GlobalPanel.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 GlobalPanel globalPanel_(processor_);

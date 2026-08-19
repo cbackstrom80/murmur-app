@@ -6,7 +6,7 @@
 #include "pw8/oscillator/WavetableOscillator.hpp"
 
 // Multi-mip wavetable content: one full-bandwidth mip plus progressively
-// harmonic-truncated mips, generated offline by pw8-wavetable-builder (see
+// harmonic-truncated mips, generated offline by murmur-wavetable-builder (see
 // tools/wavetable_builder). This is the runtime data model -- pure data, no JSON
 // dependency, safe to include from realtime-adjacent headers (op::OperatorState
 // holds a pointer to one of these). Loading a table from disk is a separate,

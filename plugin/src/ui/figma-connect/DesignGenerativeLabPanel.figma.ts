@@ -8,7 +8,7 @@ export default {
   id: 'mi-design-generative-lab',
   imports: [
     '#include "DesignGenerativeLabPanel.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 DesignGenerativeLabPanel generativeLab_(processor_);

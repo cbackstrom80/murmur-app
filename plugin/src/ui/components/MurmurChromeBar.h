@@ -10,7 +10,7 @@
 #include "GlowKnob.h"
 #include "content/FavoritesStore.h"
 #include "content/PresetIndex.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -18,7 +18,7 @@ namespace pw8::plugin::ui
     class MurmurChromeBar : public juce::Component, private juce::Timer
     {
     public:
-        explicit MurmurChromeBar(PatchworkEightProcessor& processor);
+        explicit MurmurChromeBar(MurmurProcessor& processor);
         ~MurmurChromeBar() override;
 
         void paint(juce::Graphics& g) override;
@@ -83,7 +83,7 @@ namespace pw8::plugin::ui
             return layout::chromeBarNavStartX();
         }
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         content::PresetIndex* presetIndex_ = nullptr;
         content::FavoritesStore* favoritesStore_ = nullptr;
         content::PresetMetadataFilter browseFilter_;

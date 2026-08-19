@@ -7,5 +7,5 @@ JUCE's built-in audio/MIDI device selector) is produced automatically by
 
 This directory is reserved for standalone-specific extensions once they're needed
 (a custom device-selection UI, a headless/CLI standalone mode distinct from
-`pw8-render`, session/autosave behavior that doesn't apply to VST3/AU hosting).
+`murmur-render`, session/autosave behavior that doesn't apply to VST3/AU hosting).
 Currently empty. See `docs/PLUGIN_ARCHITECTURE.md`.

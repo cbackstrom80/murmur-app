@@ -1,6 +1,6 @@
 # DAW Host Matrix
 
-Manual validation checklist for Patchwork Eight as a VST3/AU instrument across
+Manual validation checklist for MURMUR as a VST3/AU instrument across
 common macOS hosts. Run after plugin packaging changes, JUCE upgrades, or
 preset/content path work.
 
@@ -27,10 +27,10 @@ Notes:
 
 | Artifact | Expected location |
 |----------|-------------------|
-| VST3 | `/Library/Audio/Plug-Ins/VST3/Patchwork Eight.vst3` |
-| AU | `/Library/Audio/Plug-Ins/Components/Patchwork Eight.component` |
-| Wavetables | `/Library/Application Support/Patchwork Eight/Wavetables/` |
-| Factory presets | `/Library/Application Support/Patchwork Eight/Presets/` |
+| VST3 | `/Library/Audio/Plug-Ins/VST3/MURMUR.vst3` |
+| AU | `/Library/Audio/Plug-Ins/Components/MURMUR.component` |
+| Wavetables | `/Library/Application Support/MURMUR/Wavetables/` |
+| Factory presets | `/Library/Application Support/MURMUR/Presets/` |
 
 Rescan plugins in each DAW after install. Confirm `PW8_CONTENT_ROOT` is **not**
 set unless deliberately testing dev-tree content.
@@ -107,4 +107,4 @@ Document here if observed during testing:
 - Layer modes other than **SingleA** and **STACK** are still clamped at load (Split, Morph, etc.)
 - Unison supports **Full** spread mode only (`voices` + detune/spread/blend); Operator/Stereo/Hyper/Harmonic modes deferred
 - MCP in-app chat deferred (external MCP server only)
-- Favorites persist to `~/Library/Application Support/Patchwork Eight/favorites.json`
+- Favorites persist to `~/Library/Application Support/MURMUR/favorites.json`

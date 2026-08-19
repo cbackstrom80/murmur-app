@@ -83,9 +83,9 @@ Logic on Mac uses AU. Download a `--full` maintainer build for VST3 (Ableton, et
 
 800+ APVTS parameters including macros, filter, operators, FX. Mod routes are patch data (saved in `.pw8`), not individual automation IDs.
 
-**Is MURMUR the same as Patchwork Eight?**
+**Is MURMUR the same as MURMUR?**
 
-MURMUR is the **product name** for the shipping instrument. The engine and repo use the internal name Patchwork Eight (`pw8::`).
+MURMUR is the **product name** for the shipping instrument. The engine and repo use the internal name MURMUR (`pw8::`).
 
 ---
 
@@ -93,7 +93,7 @@ MURMUR is the **product name** for the shipping instrument. The engine and repo 
 
 **How do I update?**
 
-[GitHub Releases](https://github.com/cbackstrom80/patchwork-eight/releases) → download latest `.pkg` → run → restart DAW.
+[GitHub Releases](https://github.com/cbackstrom80/murmur-app/releases) → download latest `.pkg` → run → restart DAW.
 
 **Where is full documentation?**
 

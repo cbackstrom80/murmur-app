@@ -15,7 +15,7 @@ COUNT = 20
 
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    sources = sorted(SPATIAL.glob("*.pw8"))[:COUNT]
+    sources = sorted(sorted(SPATIAL.glob("*.pw8")) + sorted(SPATIAL.glob("*.murmur")))[:COUNT]
     for i, src in enumerate(sources, start=1):
         doc = json.loads(src.read_text(encoding="utf-8"))
         meta = doc.setdefault("metadata", {})
@@ -29,7 +29,7 @@ def main() -> None:
             f"In-MURMUR master spatial showcase #{i:02d} — inline Quasar on M3. "
             + meta.get("description", "")[:120]
         )
-        out_name = f"{i:03d}-{src.stem.split('-', 1)[-1]}.pw8"
+        out_name = f"{i:03d}-{src.stem.split('-', 1)[-1]}.murmur"
         (OUT / out_name).write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
     readme = OUT / "README.md"
     readme.write_text(

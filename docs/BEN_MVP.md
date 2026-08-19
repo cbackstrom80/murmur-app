@@ -17,7 +17,7 @@ First installable release for **Ben** on **Apple Silicon Mac + Logic Pro + Kawai
 
 ## Install
 
-1. Download `MURMUR-1.5.0-macOS-arm64-full.dmg` from [GitHub Releases](https://github.com/cbackstrom80/patchwork-eight/releases).
+1. Download `MURMUR-1.5.0-macOS-arm64-full.dmg` from [GitHub Releases](https://github.com/cbackstrom80/murmur-app/releases).
 2. Open the DMG → double-click **`Install MURMUR.pkg`** (no admin password).
 3. **Quit Logic** completely, reopen.
 4. **Logic → Settings → Plug-in Manager → Reset & Rescan Selection**.

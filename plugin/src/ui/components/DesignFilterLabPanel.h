@@ -11,7 +11,7 @@
 #include "GlowRingButton.h"
 #include "ModAssignmentController.h"
 #include "SectionPanel.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "wireframe/FilterRoutingWireframeView.h"
 
 namespace pw8::plugin::ui
@@ -20,7 +20,7 @@ namespace pw8::plugin::ui
     class DesignFilterLabPanel : public juce::Component, private juce::Timer
     {
     public:
-        DesignFilterLabPanel(PatchworkEightProcessor& processor, ModAssignmentController& assignmentController);
+        DesignFilterLabPanel(MurmurProcessor& processor, ModAssignmentController& assignmentController);
         ~DesignFilterLabPanel() override;
 
         std::function<void()> onClosed;
@@ -48,7 +48,7 @@ namespace pw8::plugin::ui
         void refreshModePills();
         void rebuildModRouteList();
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         ModAssignmentController& assignmentController_;
         bool embeddedInDesignMode_ = false;
 

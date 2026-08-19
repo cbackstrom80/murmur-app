@@ -12,7 +12,7 @@
 #include "ModAssignmentController.h"
 #include "SectionPanel.h"
 #include "wireframe/OscWireframeHost.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 // The operator detail view for whichever algorithm-graph node is currently
 // selected (AlgorithmGraphView::onNodeSelected) -- UI GATE 3, built directly off
@@ -99,7 +99,7 @@ namespace pw8::plugin::ui
     class OperatorEditorPanel : public juce::Component, public juce::TooltipClient, private juce::Timer
     {
     public:
-        explicit OperatorEditorPanel(PatchworkEightProcessor& processor,
+        explicit OperatorEditorPanel(MurmurProcessor& processor,
                                    ModAssignmentController& assignmentController);
         ~OperatorEditorPanel() override;
 
@@ -147,7 +147,7 @@ namespace pw8::plugin::ui
 
         void timerCallback() override;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         ModAssignmentController& assignmentController_;
         SectionPanel panel_{"Operator"};
         int selectedNode_ = 0;

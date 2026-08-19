@@ -26,7 +26,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    TopologyGraphOverlay::TopologyGraphOverlay(PatchworkEightProcessor& processor) : processor_(processor)
+    TopologyGraphOverlay::TopologyGraphOverlay(MurmurProcessor& processor) : processor_(processor)
     {
         graphView_ = std::make_unique<AlgorithmGraphView>(processor_);
         graphView_->onNodeSelected = [this](int node) {

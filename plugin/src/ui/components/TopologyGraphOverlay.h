@@ -7,7 +7,7 @@
 
 #include "AlgorithmGraphView.h"
 #include "SectionPanel.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -15,7 +15,7 @@ namespace pw8::plugin::ui
     class TopologyGraphOverlay : public juce::Component
     {
     public:
-        explicit TopologyGraphOverlay(PatchworkEightProcessor& processor);
+        explicit TopologyGraphOverlay(MurmurProcessor& processor);
 
         void showOverlay(int selectedNode);
         void dismiss();
@@ -30,7 +30,7 @@ namespace pw8::plugin::ui
         void paint(juce::Graphics& g) override;
         void mouseDown(const juce::MouseEvent& event) override;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         juce::Label badgeLabel_;
         juce::Label titleLabel_;
         SectionPanel panel_{"LIVE TOPOLOGY"};

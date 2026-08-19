@@ -42,7 +42,16 @@ def main():
     print("\n== build a laser lead patch ==")
     patch_id, patch = patch_builder.create_patch(
         "MCP Laser Test", "Smoke-test patch built by mcp_server/smoke_test.py")
-    check("create_patch returned an id", patch_id.endswith(".pw8"))
+    check("create_patch returned an id", patch_id.endswith(".murmur"))
+
+    # Rebrand regression: a caller that explicitly passes a legacy .pw8-suffixed
+    # patch_id must still round-trip correctly (dual-extension guarantee) -- see
+    # docs/REBRAND_MURMUR.md.
+    legacy_id = "smoke-test-legacy-scratch.pw8"
+    patch_builder.write_scratch(legacy_id, patch_builder.default_patch("Legacy Scratch Test"))
+    legacy_loaded = patch_builder.load_scratch(legacy_id)
+    check("legacy .pw8 scratch patch_id round-trips", legacy_loaded["metadata"]["name"] == "Legacy Scratch Test")
+    patch_builder.scratch_path(legacy_id).unlink()
 
     # FM/PM carrier: high modulator ratio + high index for a harsh, metallic
     # edge; short punchy envelope; a fast-sweeping filter cutoff mod route
@@ -163,7 +172,7 @@ def main():
     try:
         result = render_mod.render_preview(patch_id, notes=[57], hold_seconds=0.8)
     except render_mod.RendererMissing as e:
-        print(f"[SKIP] pw8-render not built: {e}")
+        print(f"[SKIP] murmur-render not built: {e}")
         return
     check(f"render ok: {result}", result["ok"])
     check("no NaN/Inf", not result["containsNaNOrInf"])
@@ -174,7 +183,7 @@ def main():
 
     print("\n== save_patch (to a throwaway path, then clean up) ==")
     from patch_builder import REPO_ROOT
-    dest = "content/presets/_mcp_smoke_test_tmp.pw8"
+    dest = "content/presets/_mcp_smoke_test_tmp.murmur"
     saved = (REPO_ROOT / dest)
     if saved.exists():
         saved.unlink()

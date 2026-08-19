@@ -8,7 +8,7 @@ export default {
   id: 'mi-play-focus-morph-hub',
   imports: [
     '#include "PatchFocusPanel.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 PatchFocusPanel focusPanel_(processor_);

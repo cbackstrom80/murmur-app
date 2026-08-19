@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "patchwork-eight": {
+    "murmur": {
       "command": "python3",
       "args": ["${workspaceFolder}/mcp_server/server.py"],
       "cwd": "${workspaceFolder}"

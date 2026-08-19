@@ -83,7 +83,7 @@ def slot_from_name(name: str) -> int:
 def main() -> None:
     updated = 0
     skipped = 0
-    for path in sorted(SPATIAL.glob("*.pw8")):
+    for path in sorted(SPATIAL.glob("*.pw8")) + sorted(SPATIAL.glob("*.murmur")):
         patch = json.loads(path.read_text())
         slot = slot_from_name(path.stem)
         patch["morphKoin"] = morph_for_slot(slot)

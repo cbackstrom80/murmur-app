@@ -6,7 +6,7 @@
 
 namespace pw8::plugin::ui
 {
-    MacroStrip::MacroStrip(PatchworkEightProcessor& processor) : processor_(processor)
+    MacroStrip::MacroStrip(MurmurProcessor& processor) : processor_(processor)
     {
         addAndMakeVisible(panel_);
         for (std::size_t i = 0; i < knobs_.size(); ++i)

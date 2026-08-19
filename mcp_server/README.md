@@ -1,8 +1,8 @@
-# Patchwork Eight MCP Server
+# MURMUR MCP Server
 
 **PROTOTYPE.** First real implementation of Part A from
 [docs/MCP_AND_NL_PATCH_GENERATION.md](../docs/MCP_AND_NL_PATCH_GENERATION.md)
--- an [MCP](https://modelcontextprotocol.io) server exposing Patchwork Eight
+-- an [MCP](https://modelcontextprotocol.io) server exposing MURMUR
 patch introspection, construction, editing, and rendering as tools to any
 MCP-capable client (Claude Desktop, Claude Code, etc.). Part B of that doc
 (the in-app "make me a laser sound" chat box) is unrelated, unstarted, and
@@ -11,14 +11,14 @@ depends on real product decisions this prototype doesn't need.
 Operates directly on the `.pw8` JSON schema
 ([docs/PATCH_FORMAT.md](../docs/PATCH_FORMAT.md)) rather than
 `bindings/python`'s still-PARTIAL `Operator` wrapper -- no C++ build
-dependency beyond the already-built `pw8-render` CLI (used for
+dependency beyond the already-built `murmur-render` CLI (used for
 `render_preview`/`validate_patch` only; every other tool is pure Python).
 
 ## Setup
 
 ```bash
 pip install -r mcp_server/requirements.txt
-cmake --build --preset dev   # builds tools/pw8-render, needed for render_preview/validate_patch
+cmake --build --preset dev   # builds tools/murmur-render, needed for render_preview/validate_patch
 ```
 
 ## Try it
@@ -34,7 +34,7 @@ change here.
 
 ## Connect a real MCP client
 
-**Cursor (this repo):** `.mcp.json` at the repo root registers the `patchwork-eight`
+**Cursor (this repo):** `.mcp.json` at the repo root registers the `murmur-app`
 server for the workspace. Reload MCP after edits.
 
 Claude Desktop (`~/Library/Application Support/Claude/claude_desktop_config.json`
@@ -43,16 +43,16 @@ on macOS) or Claude Code:
 ```json
 {
   "mcpServers": {
-    "patchwork-eight": {
+    "murmur-app": {
       "command": "python3",
-      "args": ["/absolute/path/to/patchwork-eight/mcp_server/server.py"],
-      "cwd": "/absolute/path/to/patchwork-eight"
+      "args": ["/absolute/path/to/murmur-app/mcp_server/server.py"],
+      "cwd": "/absolute/path/to/murmur-app"
     }
   }
 }
 ```
 
-Restart the client, then ask it something like *"list the Patchwork Eight
+Restart the client, then ask it something like *"list the MURMUR
 engines"* or *"build me a laser sound using the FM/PM engine"* -- it should
 discover and call the tools below on its own.
 
@@ -66,7 +66,7 @@ Agent flow:
 1. Launch Standalone.
 2. Connect MCP (Cursor uses repo `.mcp.json`).
 3. `create_patch` → edit tools → `load_into_standalone` to hear it live.
-4. Optional: `render_preview` / `validate_patch` via offline `pw8-render`.
+4. Optional: `render_preview` / `validate_patch` via offline `murmur-render`.
 5. `save_patch` when ready.
 
 VST3/AU do **not** expose the bridge (Standalone-only).
@@ -85,7 +85,7 @@ returned by `create_patch` -- nothing here touches `content/presets/` until
 `set_morph_koin`, `add_morph_keyframe`, `remove_morph_keyframe`,
 `list_scratch_patches`, `save_patch`, `delete_scratch_patch`.
 
-Rendering: `render_preview` (real audio through `pw8-render`, returns
+Rendering: `render_preview` (real audio through `murmur-render`, returns
 peak/rms/NaN-Inf metrics + the rendered WAV's path -- open it directly to
 listen, audio isn't streamed back through the tool call in this pass),
 `validate_patch` (low/mid/high-note pass/fail check, the same bar the
@@ -105,7 +105,7 @@ Live Standalone (requires `MURMUR.app` running): `standalone_status`,
   `smoke_test.py`) without an MCP transport in the loop.
 - `content.py` -- read-only `content/presets/` + `content/wavetables/`
   browsing.
-- `render.py` -- shells out to `pw8-render --receipt` and parses the
+- `render.py` -- shells out to `murmur-render --receipt` and parses the
   resulting JSON (peak/rms/NaN-Inf) -- the same real DSP path, not a
   synthetic check.
 - `standalone_bridge.py` -- HTTP client for the MURMUR Standalone localhost
@@ -137,5 +137,5 @@ in it that can't have it.
 - `bindings/python`'s `Operator` wrapper isn't used at all here on purpose
   (see the top of this file) -- worth revisiting once that wrapper's
   coverage catches up to the full schema, if a live in-process `Engine`
-  (rather than shelling out to `pw8-render` per call) turns out to matter
+  (rather than shelling out to `murmur-render` per call) turns out to matter
   for latency.

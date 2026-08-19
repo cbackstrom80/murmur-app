@@ -8,7 +8,7 @@
 
 #include "../GlowKnob.h"
 #include "../SectionPanel.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -16,7 +16,7 @@ namespace pw8::plugin::ui
     class QuasarEngineCard : public juce::Component
     {
     public:
-        QuasarEngineCard(PatchworkEightProcessor& processor, juce::AudioProcessorValueTreeState& apvts);
+        QuasarEngineCard(MurmurProcessor& processor, juce::AudioProcessorValueTreeState& apvts);
 
         void bindSlot(std::size_t globalFxSlotIndex);
         void tick();
@@ -35,7 +35,7 @@ namespace pw8::plugin::ui
         void refreshPills();
         void updateCorrelationFromScope();
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         juce::AudioProcessorValueTreeState& apvts_;
         std::size_t slotIndex_ = 5;
         SectionPanel panel_{"BINAURAL ENGINE", juce::Colour(0xff00c8ff)};

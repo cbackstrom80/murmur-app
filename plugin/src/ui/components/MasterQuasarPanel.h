@@ -7,7 +7,7 @@
 
 #include "../PlayModeLayout.h"
 #include "GlowKnob.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "quasar/QuasarBinauralFieldView.h"
 #include "quasar/QuasarChainHeader.h"
 #include "quasar/QuasarEngineCard.h"
@@ -22,7 +22,7 @@ namespace pw8::plugin::ui
     class MasterQuasarPanel : public juce::Component, private juce::Timer
     {
     public:
-        explicit MasterQuasarPanel(PatchworkEightProcessor& processor);
+        explicit MasterQuasarPanel(MurmurProcessor& processor);
         ~MasterQuasarPanel() override;
 
         std::function<void()> onClosed;
@@ -45,7 +45,7 @@ namespace pw8::plugin::ui
         [[nodiscard]] juce::File resolveCompanionQuasarFile() const;
         void importCompanionQuasar();
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         juce::AudioProcessorValueTreeState& apvts_;
         std::size_t slotIndex_ = 5;
         bool embeddedInDesignMode_ = false;

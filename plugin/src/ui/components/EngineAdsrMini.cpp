@@ -27,7 +27,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    EngineAdsrMini::EngineAdsrMini(PatchworkEightProcessor& processor, int engineIndex)
+    EngineAdsrMini::EngineAdsrMini(MurmurProcessor& processor, int engineIndex)
         : processor_(processor), engineIndex_(engineIndex)
     {
         startTimerHz(12);

@@ -9,7 +9,7 @@
 #include "GlowKnob.h"
 #include "HeaderSpectrumScope.h"
 #include "ScopeModeToggle.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "state/PluginState.h"
 
 namespace pw8::plugin::ui
@@ -17,7 +17,7 @@ namespace pw8::plugin::ui
     class PatchBrowserBar : public juce::Component, private juce::Timer
     {
     public:
-        explicit PatchBrowserBar(PatchworkEightProcessor& processor);
+        explicit PatchBrowserBar(MurmurProcessor& processor);
         ~PatchBrowserBar() override;
 
         void paint(juce::Graphics& g) override;
@@ -51,7 +51,7 @@ namespace pw8::plugin::ui
         void stepPreset(int direction);
         void paintDesktopPlayModeChrome(juce::Graphics& g, juce::Rectangle<float> bounds);
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         content::PresetIndex presetIndex_;
         juce::Label patchNameLabel_;
         juce::Label patchHintLabel_;

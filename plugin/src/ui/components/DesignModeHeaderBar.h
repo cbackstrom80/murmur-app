@@ -9,7 +9,7 @@
 #include "GlowKnob.h"
 #include "content/FavoritesStore.h"
 #include "content/PresetIndex.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -17,7 +17,7 @@ namespace pw8::plugin::ui
     class DesignModeHeaderBar : public juce::Component, private juce::Timer
     {
     public:
-        explicit DesignModeHeaderBar(PatchworkEightProcessor& processor);
+        explicit DesignModeHeaderBar(MurmurProcessor& processor);
         ~DesignModeHeaderBar() override;
 
         void paint(juce::Graphics& g) override;
@@ -36,7 +36,7 @@ namespace pw8::plugin::ui
         void stepPreset(int direction);
         [[nodiscard]] int navTabIndexAt(juce::Point<int> pos) const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         content::PresetIndex presetIndex_;
         content::FavoritesStore* favoritesStore_ = nullptr;
         layout::EditorMode editorMode_ = layout::EditorMode::Design;

@@ -7,7 +7,7 @@
 
 #include "GlowKnob.h"
 #include "SectionPanel.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "ObsidianEnvelopeVisualizer.h"
 
 namespace pw8::plugin::ui
@@ -15,7 +15,7 @@ namespace pw8::plugin::ui
     class AmpEnvelopePanel : public juce::Component
     {
     public:
-        explicit AmpEnvelopePanel(PatchworkEightProcessor& processor);
+        explicit AmpEnvelopePanel(MurmurProcessor& processor);
 
         void paint(juce::Graphics& g) override;
         void resized() override;

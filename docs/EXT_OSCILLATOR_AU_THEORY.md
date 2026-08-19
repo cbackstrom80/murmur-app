@@ -27,7 +27,7 @@ Full **EXT** (replace operator 0 audio with sidechain samples) is **not** implem
 
 | Piece | Where |
 |-------|--------|
-| AU sidechain input bus | `PatchworkEightProcessor::makeProcessorBuses()` — `"Sidechain"` stereo input |
+| AU sidechain input bus | `MurmurProcessor::makeProcessorBuses()` — `"Sidechain"` stereo input |
 | Envelope follower | `engine/include/pw8/dsp/SidechainFollower.hpp` |
 | Mod matrix source | `ModSource::Sidechain` → any destination (e.g. Quasar distance) |
 | Engine hook | `Engine::setSidechainLevel()` in master-bus mod sources |
@@ -56,7 +56,7 @@ Full **EXT** (replace operator 0 audio with sidechain samples) is **not** implem
 
 ### Plugin I/O (JUCE)
 
-- `PatchworkEightProcessor` constructor: `BusesProperties().withOutput("Output", stereo, true)` only — **zero input buses**.
+- `MurmurProcessor` constructor: `BusesProperties().withOutput("Output", stereo, true)` only — **zero input buses**.
 - `processBlock()` clears the output buffer, ignores any would-be input, and calls `engine->process(view, midi)`.
 - No overrides of `isBusesLayoutSupported()`, `getBusCount()`, or sidechain-related APIs.
 

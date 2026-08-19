@@ -8,10 +8,10 @@
 
 #include "GlowKnob.h"
 #include "SectionPanel.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "../theme/ObsidianPalette.h"
 
-// The 8 macros, laid out as a single row -- Patchwork Eight's actual performance
+// The 8 macros, laid out as a single row -- MURMUR's actual performance
 // surface, and the reason macros were the very first thing this project exposed
 // to host automation (docs/PLUGIN_ARCHITECTURE.md "Automation").
 //
@@ -27,7 +27,7 @@ namespace pw8::plugin::ui
     class MacroStrip : public juce::Component, private juce::Timer
     {
     public:
-        explicit MacroStrip(PatchworkEightProcessor& processor);
+        explicit MacroStrip(MurmurProcessor& processor);
         ~MacroStrip() override;
 
         void resized() override;
@@ -35,7 +35,7 @@ namespace pw8::plugin::ui
     private:
         void timerCallback() override;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         SectionPanel panel_{"Macros", palette::kAccentWarm};
         std::array<std::unique_ptr<GlowKnob>, 8> knobs_;
 

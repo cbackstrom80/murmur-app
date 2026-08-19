@@ -173,7 +173,7 @@ Frames is the **spine** of this program — other tracks extend the same “morp
 | **Per-path easing in executor** | `MorphKoinExecutor.hpp` | Segment `localT` → `ease(localT, path.easing)` before lerp |
 | **Response law on overrides** | `MorphKoinExecutor.hpp` | `applyResponse(value, response)` for log vs linear macro feel |
 | **Mod dest `MorphPosition`** | `ModMatrixTypes.hpp`, executor, `Engine.cpp` | Offset/add to `morphKoin.position` with clamp/wrap |
-| **FR.STEP detector** | `PatchworkEightProcessor.cpp` | Compare prev/current morph; fire `onMorphKeyframeCrossed(index)` for UI/MIDI |
+| **FR.STEP detector** | `MurmurProcessor.cpp` | Compare prev/current morph; fire `onMorphKeyframeCrossed(index)` for UI/MIDI |
 | **Morph dissemination** | `Voice.hpp`, `Engine.cpp` | Store `voice.morphPosition` at note-on when flag set |
 | **Expand param override paths** | `MorphKoinExecutor.hpp` | WT position, filter2 drive, master FX mix, Quasar fields (extend existing Quasar overrides) |
 

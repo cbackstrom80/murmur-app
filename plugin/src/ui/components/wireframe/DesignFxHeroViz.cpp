@@ -6,7 +6,7 @@
 #include "../FxEffectPlayParams.h"
 #include "../DesignFxUiState.h"
 #include "WireframeProjection.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "../../visualizer/FxAnimationAtlas.h"
 #include "../../visualizer/PreviewDraw.h"
 #include "../../visualizer/PreviewSurface.h"
@@ -105,7 +105,7 @@ namespace pw8::plugin::ui::wireframe
     }
 
     void DesignFxHeroViz::bindChip(std::size_t chipIndex, const juce::String& paramPrefix,
-                                   PatchworkEightProcessor* processor, int engineSlot)
+                                   MurmurProcessor* processor, int engineSlot)
     {
         chipIndex_ = chipIndex;
         paramPrefix_ = paramPrefix;

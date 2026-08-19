@@ -6,7 +6,7 @@
 
 namespace pw8::plugin::ui
 {
-    DashboardStrip::DashboardStrip(PatchworkEightProcessor& processor, ModAssignmentController& modAssignmentController)
+    DashboardStrip::DashboardStrip(MurmurProcessor& processor, ModAssignmentController& modAssignmentController)
         : processor_(processor), fxChainStrip_(processor), filterLfoPanel_(processor, modAssignmentController)
     {
         fxChainStrip_.setPlayDashboardMode(true);

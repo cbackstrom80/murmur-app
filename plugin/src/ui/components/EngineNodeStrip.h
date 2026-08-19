@@ -4,7 +4,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -15,7 +15,7 @@ namespace pw8::plugin::ui
         std::function<void(int nodeIndex)> onNodeSelected;
         std::function<void()> onGlobalSelected;
 
-        explicit EngineNodeStrip(PatchworkEightProcessor& processor);
+        explicit EngineNodeStrip(MurmurProcessor& processor);
 
         void paint(juce::Graphics& g) override;
         void resized() override;
@@ -33,7 +33,7 @@ namespace pw8::plugin::ui
         [[nodiscard]] juce::Rectangle<int> pillBounds(int nodeIndex) const;
         [[nodiscard]] juce::Rectangle<int> globalPillBounds() const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         int selectedNode_ = 0;
         bool globalScope_ = false;
         bool globalPillVisible_ = true;

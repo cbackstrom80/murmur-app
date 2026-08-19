@@ -1,4 +1,4 @@
-# MVP — Starfighter / Patchwork Eight
+# MVP — MURMUR / MURMUR
 
 What “MVP” means for this repo: **a shippable vertical slice** you can demo, sell
 against (via Patchforge), and regression-gate in one command — not a finished
@@ -38,9 +38,9 @@ scripts/mvp_check.sh
 
 | Tool | Role |
 |---|---|
-| `pw8-render` | Headless WAV + receipt |
-| `pw8-info` / `pw8-graph` | Introspection |
-| `pw8-fuzz-render` | Random-patch QA (CI-friendly `--count`) |
+| `murmur-render` | Headless WAV + receipt |
+| `murmur-info` / `murmur-graph` | Introspection |
+| `murmur-fuzz-render` | Random-patch QA (CI-friendly `--count`) |
 | `mcp_server/` | Agent patch build + render (18 tools) |
 
 ### Plugin (PLAY mode — OBSIDIAN)
@@ -52,7 +52,7 @@ scripts/mvp_check.sh
 | Tabbed pages: PERF / OSC / FILTER / ENV / MOD / FX | ✅ |
 | Engine Sum (GLOBAL → 8 level faders + layer/master gain) | ✅ |
 | FX chain flow + swap + wireframes | ✅ |
-| Starfighter branding (header ship) | ✅ |
+| MURMUR branding (header ship) | ✅ |
 | VST3 + AU (auval / pluginval in CI) | ✅ |
 | Standalone | ✅ build; may need `chown` if a root-owned `.app` exists |
 
@@ -67,7 +67,7 @@ scripts/mvp_check.sh
 ### Commerce (Patchforge — separate repo)
 
 Running storefront at `../patchforge` (Vite/React): catalog, previews, cart,
-Patchforge+ pricing. **Real Starfighter catalog** via `scripts/patchforge_ingest.py`
+Patchforge+ pricing. **Real MURMUR catalog** via `scripts/patchforge_ingest.py`
 → `public/catalog.generated.json` + engine-rendered WAV previews (see
 `docs/PATCHFORGE_INGEST.md`). Storefront IA: `/plus`, `/starfighter`, `/patches`
 (see `docs/MARKETING_AND_SUBSCRIPTION.md` + Patchforge `docs/IA.md`).
@@ -93,7 +93,7 @@ Patchforge+ pricing. **Real Starfighter catalog** via `scripts/patchforge_ingest
 3. **FX tab**: swap insert slots, toggle bypass, pick effect types.
 4. **Patch browser**: search `bass`, load preset, prev/next with filter active.
 5. **MCP** (optional): `python3 mcp_server/smoke_test.py` — builds + renders laser patch.
-6. **Patchforge** (optional): run ingest (`docs/PATCHFORGE_INGEST.md`), then `npm run dev` — audition real Starfighter previews at `:5173`.
+6. **Patchforge** (optional): run ingest (`docs/PATCHFORGE_INGEST.md`), then `npm run dev` — audition real MURMUR previews at `:5173`.
 
 ---
 
@@ -105,8 +105,8 @@ Patchforge+ pricing. **Real Starfighter catalog** via `scripts/patchforge_ingest
 2. `cmake --preset plugin` + `pw8_plugin` shared library build
 3. `python3 scripts/validate_content_refs.py`
 4. `python3 mcp_server/smoke_test.py`
-5. `pw8-render` smoke on a factory preset
-6. `pw8-fuzz-render --count 200` (fast QA sample)
+5. `murmur-render` smoke on a factory preset
+6. `murmur-fuzz-render --count 200` (fast QA sample)
 
 Exit non-zero on any failure.
 
@@ -117,13 +117,13 @@ Exit non-zero on any failure.
 | Issue | Fix |
 |---|---|
 | Standalone link: `can't write output file` | Old `.app` owned by root: `sudo chown -R "$(whoami)" build/plugin` |
-| Wavetables missing in installed plugin | Run `scripts/package_macos.sh` or copy `content/wavetables` to `/Library/Application Support/Patchwork Eight/Wavetables` |
-| MCP render fails | Build `dev` preset first so `build/dev/tools/pw8-render` exists |
+| Wavetables missing in installed plugin | Run `scripts/package_macos.sh` or copy `content/wavetables` to `/Library/Application Support/MURMUR/Wavetables` |
+| MCP render fails | Build `dev` preset first so `build/dev/tools/murmur-render` exists |
 
 ---
 
 ## MVP narrative (one sentence)
 
-**Starfighter** is an eight-engine graph synth with a PLAY cockpit UI, headless
+**MURMUR** is an eight-engine graph synth with a PLAY cockpit UI, headless
 render QA, and an agent toolchain — **Patchforge** is the scored marketplace
 layer on top.

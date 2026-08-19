@@ -8,7 +8,7 @@
 
 namespace pw8::plugin::ui
 {
-    EngineGridPanel::EngineGridPanel(PatchworkEightProcessor& processor, ModAssignmentController& assignmentController)
+    EngineGridPanel::EngineGridPanel(MurmurProcessor& processor, ModAssignmentController& assignmentController)
         : processor_(processor), assignmentController_(assignmentController)
     {
         headerLabel_.setText("ACTIVE PLAY ENGINES", juce::dontSendNotification);

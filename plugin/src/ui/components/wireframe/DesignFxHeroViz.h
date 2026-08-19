@@ -15,7 +15,7 @@ namespace pw8::plugin::ui
 
 namespace pw8::plugin
 {
-    class PatchworkEightProcessor;
+    class MurmurProcessor;
 }
 
 namespace pw8::plugin::ui::wireframe
@@ -27,7 +27,7 @@ namespace pw8::plugin::ui::wireframe
         explicit DesignFxHeroViz(juce::AudioProcessorValueTreeState& apvts);
         ~DesignFxHeroViz() override;
 
-        void bindChip(std::size_t chipIndex, const juce::String& paramPrefix, PatchworkEightProcessor* processor,
+        void bindChip(std::size_t chipIndex, const juce::String& paramPrefix, MurmurProcessor* processor,
                       int engineSlot);
         void setDesignFxUiState(pw8::plugin::ui::DesignFxUiState* uiState);
 
@@ -74,7 +74,7 @@ namespace pw8::plugin::ui::wireframe
 
         juce::AudioProcessorValueTreeState& apvts_;
         pw8::plugin::ui::DesignFxUiState* uiState_ = nullptr;
-        PatchworkEightProcessor* processor_ = nullptr;
+        MurmurProcessor* processor_ = nullptr;
         std::size_t chipIndex_ = 1;
         juce::String paramPrefix_;
         int engineSlot_ = -1;

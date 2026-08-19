@@ -5,7 +5,7 @@ generate_wavetable_library.py (the 50-table factory library).
 Every recipe function here returns exactly one frame's samples as a plain
 list[float], sized `samples_per_frame`. The one invariant every recipe MUST
 preserve: each frame has to be an exactly periodic waveform over its own
-length, because pw8-wavetable-builder treats a frame as one full FFT cycle
+length, because murmur-wavetable-builder treats a frame as one full FFT cycle
 (bin k IS harmonic k) and the runtime oscillator loops each frame directly.
 Concretely, that means:
   - Any harmonic/partial content must sit at an INTEGER multiple of the
@@ -44,7 +44,7 @@ def write_wav(path, samples: list[float], sample_rate: int = 48000) -> None:
 
 def write_wavetable_source(path, frames: list[list[float]], sample_rate: int = 48000) -> None:
     """Flattens `frames` (one wavetable's worth) and writes them as a single
-    source WAV, the layout pw8-wavetable-builder expects (--frames N reads N
+    source WAV, the layout murmur-wavetable-builder expects (--frames N reads N
     consecutive --samples-per-frame chunks)."""
     all_samples: list[float] = []
     for frame in frames:

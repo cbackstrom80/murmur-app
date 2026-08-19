@@ -10,7 +10,7 @@ export default {
   imports: [
     '#include "MasterEnvelopePanel.h"',
     '#include "ObsidianEnvelopeVisualizer.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 MasterEnvelopePanel masterEnvelopePanel_(processor_);

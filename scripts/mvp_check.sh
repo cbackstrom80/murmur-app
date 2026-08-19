@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scripts/mvp_check.sh — one-shot MVP regression gate for Patchwork Eight.
+# scripts/mvp_check.sh — one-shot MVP regression gate for MURMUR.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -40,13 +40,13 @@ step "MCP server smoke test"
 python3 mcp_server/smoke_test.py
 pass "MCP smoke OK"
 
-RENDER_BIN="build/dev/tools/pw8-render"
-[[ -x "$RENDER_BIN" ]] || fail "pw8-render not found at $RENDER_BIN"
+RENDER_BIN="build/dev/tools/murmur-render"
+[[ -x "$RENDER_BIN" ]] || fail "murmur-render not found at $RENDER_BIN"
 
 step "Headless render smoke (aurora-showcase)"
-PRESET="content/presets/aurora-showcase.pw8"
+PRESET="content/presets/aurora-showcase.murmur"
 MIDI="content/test_midi/aurora-showcase-chords.mid"
-[[ -f "$PRESET" ]] || PRESET="content/presets/fm-bell.pw8"
+[[ -f "$PRESET" ]] || PRESET="content/presets/fm-bell.murmur"
 [[ -f "$MIDI" ]] || MIDI="content/test_midi/single-note.mid"
 OUT_WAV="$(mktemp /tmp/pw8-mvp-XXXXXX.wav)"
 OUT_JSON="$(mktemp /tmp/pw8-mvp-XXXXXX.json)"
@@ -64,12 +64,12 @@ if peak is not None and float(peak) < 1e-6:
 print(f"peak={peak}")
 PY
 rm -f "$OUT_WAV" "$OUT_JSON"
-pass "pw8-render OK"
+pass "murmur-render OK"
 
 if [[ "$SKIP_FUZZ" != "1" ]]; then
   step "Fuzz render sample (${FUZZ_COUNT} patches, seed=${FUZZ_SEED})"
-  FUZZ_BIN="build/dev/tools/pw8-fuzz-render"
-  [[ -x "$FUZZ_BIN" ]] || fail "pw8-fuzz-render not found"
+  FUZZ_BIN="build/dev/tools/murmur-fuzz-render"
+  [[ -x "$FUZZ_BIN" ]] || fail "murmur-fuzz-render not found"
   "$FUZZ_BIN" --count "$FUZZ_COUNT" --seed "$FUZZ_SEED"
   pass "Fuzz render OK"
 else

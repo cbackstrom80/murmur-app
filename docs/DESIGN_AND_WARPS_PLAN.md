@@ -74,7 +74,7 @@ flowchart LR
 Introduce a **root editor** that owns mode state and delegates to child editors:
 
 ```
-PatchworkEightProcessor::createEditor()
+MurmurProcessor::createEditor()
   └── MurmurRootEditor (new)
         ├── Mode toggle: PLAY | DESIGN  (chrome, persistent)
         ├── PatchBrowserBar (shared)
@@ -87,7 +87,7 @@ PatchworkEightProcessor::createEditor()
 |---|---|---|
 | Host automation (762 APVTS params) | Both modes | Same `AudioProcessorValueTreeState`; DESIGN does not bypass APVTS for automatable fields |
 | Structural patch edits (graph edges, mod routes, wavetableId, FX slot type) | DESIGN primary; PLAY read-only except live mod routes | Matches [PLUGIN_ARCHITECTURE.md](PLUGIN_ARCHITECTURE.md): mod routes stay outside automation |
-| Audio thread safety | `PatchworkEightProcessor` | Structural commits → `loadPatch()` + atomic engine swap; mod routes → `setModRoutesLive()` / `publishModRoutesLive()` |
+| Audio thread safety | `MurmurProcessor` | Structural commits → `loadPatch()` + atomic engine swap; mod routes → `setModRoutesLive()` / `publishModRoutesLive()` |
 | Mode persistence | Optional v1: session-only; v1.1: store in plugin state blob | Avoid blocking MVP on host chunk format debate |
 
 #### Processor / editor split
@@ -104,7 +104,7 @@ PatchworkEightProcessor::createEditor()
 **New processor surface (MVP):**
 
 ```cpp
-// PatchworkEightProcessor.h — message thread only
+// MurmurProcessor.h — message thread only
 struct GraphEditResult { bool ok; algorithm::CompileStatus status; juce::String detail; };
 
 GraphEditResult tryCompileAlgorithm(const algorithm::AlgorithmGraphDefinition& def) const;
@@ -223,7 +223,7 @@ Extend `ModRoutingOverlay` / `ModSourceStrip` patterns into a **non-modal** DESI
 | `plugin/src/ui/components/ModMatrixDesignPanel.{h,cpp}` | **New** — full matrix body |
 | `plugin/src/ui/components/ModRoutingUi.cpp` | Extend labels/defaults for new warp destinations |
 | `plugin/src/ui/components/ModSourcePalette.cpp` | Reference for chip specs — DESIGN uses full set |
-| `plugin/src/processor/PatchworkEightProcessor.cpp` | `commitModMatrix()` |
+| `plugin/src/processor/MurmurProcessor.cpp` | `commitModMatrix()` |
 | `engine/include/pw8/modulation/ModMatrixTypes.hpp` | New destinations when warps land (§3) |
 
 ---
@@ -246,7 +246,7 @@ PLAY’s `FxChainStrip` already selects slot, shows mix, and exposes PLAY-level 
 
 | Phase | Integration | Tooling |
 |---|---|---|
-| **MVP** | Assign + preview only (existing `WavetableStackView`, Load/browse) | User runs `pw8-wavetable-builder` externally |
+| **MVP** | Assign + preview only (existing `WavetableStackView`, Load/browse) | User runs `murmur-wavetable-builder` externally |
 | **v1** | “Open in Builder…” button → shell exec or doc link; re-load JSON on return | `tools/wavetable_builder/main.cpp` |
 | **v1** | Live **warp preview** on stack mesh (apply same warp fn as DSP to displayed samples) | Shared `WavetableWarp.hpp` |
 | **Full** | Embedded single-frame editor (draw / import WAV segment) | New `WavetableFrameEditor` component OR fork builder logic into static lib |
@@ -273,7 +273,7 @@ PLAY’s `FxChainStrip` already selects slot, shows mix, and exposes PLAY-level 
 
 | Path | Change |
 |---|---|
-| `plugin/src/processor/PatchworkEightProcessor.{h,cpp}` | `createEditor()` → root; `commitAlgorithmGraph`, `commitModMatrix`, `tryCompileAlgorithm` |
+| `plugin/src/processor/MurmurProcessor.{h,cpp}` | `createEditor()` → root; `commitAlgorithmGraph`, `commitModMatrix`, `tryCompileAlgorithm` |
 | `plugin/src/ui/PlayModeEditor.{h,cpp}` | Extract shared `PatchBrowserBar` ownership to root OR duplicate minimally |
 | `plugin/src/ui/components/AlgorithmGraphView.{h,cpp}` | Optional: `setDefinition()` for DESIGN preview |
 | `plugin/src/ui/components/OperatorEditorPanel.{h,cpp}` | Shared between modes; DESIGN enables all engine pills |
@@ -553,7 +553,7 @@ Concrete tasks to start **Monday** — assignable per engineer.
 
 | # | Task | Path / notes |
 |---|---|---|
-| 1 | Create `MurmurRootEditor` with PLAY/DESIGN segmented control; wire `createEditor()` | `plugin/src/ui/MurmurRootEditor.*`, `PatchworkEightProcessor.cpp` |
+| 1 | Create `MurmurRootEditor` with PLAY/DESIGN segmented control; wire `createEditor()` | `plugin/src/ui/MurmurRootEditor.*`, `MurmurProcessor.cpp` |
 | 2 | Stub `DesignModeEditor` with tab strip: Graph / Matrix / FX / Wavetable | `plugin/src/ui/DesignModeEditor.*` |
 | 3 | Extract `PhaseShapeOscillator::warpPhase` → `PhaseWarpCommon.hpp` | `engine/include/pw8/oscillator/` |
 | 4 | Implement `WavetableWarp.hpp` — bend + asym only | Unit test skeleton in `tests/dsp/WavetableWarpTests.cpp` |
@@ -608,7 +608,7 @@ Concrete tasks to start **Monday** — assignable per engineer.
 | FX detail | `DesignFxDetailPanel.*`, `PluginState.h` (`kEffectSlotFieldSpecs`) |
 | Warps DSP | `WavetableWarp.hpp`, `WavetableOscillator.hpp`, `PhaseShapeOscillator.hpp` |
 | Warps UI | `WavetableWarpPanel.*`, `OperatorEditorPanel.*`, `WavetableStackView.*` |
-| Processor commits | `PatchworkEightProcessor.*`, `Engine::loadPatch`, `setModRoutesLive` |
+| Processor commits | `MurmurProcessor.*`, `Engine::loadPatch`, `setModRoutesLive` |
 
 ---
 

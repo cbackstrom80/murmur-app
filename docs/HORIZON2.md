@@ -18,9 +18,9 @@
 | Priority | Item | Where |
 |----------|------|--------|
 | 1 | **Quasar Phase 3** — dedicated mod destinations, headphone/speaker mode, delay freeze, crossfeed/elevation HRIR-lite, expanded QUASAR FX knobs | `BinauralSpace.hpp`, `ModMatrixTypes.hpp`, `FxChainStrip`, `PluginState` |
-| 2 | **Morph KOIN executor** — `morphPosition` APVTS, 2–4 keyframe lerp, PLAY morph knob | `MorphKoinExecutor.hpp`, `PatchFocusPanel`, `PatchworkEightProcessor` |
+| 2 | **Morph KOIN executor** — `morphPosition` APVTS, 2–4 keyframe lerp, PLAY morph knob | `MorphKoinExecutor.hpp`, `PatchFocusPanel`, `MurmurProcessor` |
 | 3 | **20 Spatial morph presets** — INTIMATE ↔ VOID morphKoin + dissemination | `content/presets/factory/Interstellar/Spatial/001–020` |
-| 4 | **Sidechain follower MVP** — AU input bus, envelope → mod matrix, UI badge | `SidechainFollower.hpp`, `PatchworkEightProcessor`, `EXT_OSCILLATOR_AU_THEORY.md` |
+| 4 | **Sidechain follower MVP** — AU input bus, envelope → mod matrix, UI badge | `SidechainFollower.hpp`, `MurmurProcessor`, `EXT_OSCILLATOR_AU_THEORY.md` |
 | 5 | **MCP** — `set_spread_bundle`, Quasar dest IDs, sidechain source | `mcp_server/` |
 
 ## Shipped in prior pass (Horizon 2)

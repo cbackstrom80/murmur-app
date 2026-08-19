@@ -22,7 +22,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    QuasarChainHeader::QuasarChainHeader(PatchworkEightProcessor& processor,
+    QuasarChainHeader::QuasarChainHeader(MurmurProcessor& processor,
                                          juce::AudioProcessorValueTreeState& apvts)
         : processor_(processor), apvts_(apvts), bypassButton_("BYPASS OFF")
     {

@@ -20,7 +20,7 @@ namespace pw8::plugin::ui
         constexpr int kCaptionHeight = 18;
     } // namespace
 
-    WavetableStackView::WavetableStackView(PatchworkEightProcessor& processor) : processor_(processor)
+    WavetableStackView::WavetableStackView(MurmurProcessor& processor) : processor_(processor)
     {
         wavetableIndex_.rescan();
         loadButton_.setVisible(false); // Custom import is secondary; factory ← → nav is primary.
@@ -176,7 +176,7 @@ namespace pw8::plugin::ui
     void WavetableStackView::loadWavetableFromFile()
     {
         fileChooser_ = std::make_unique<juce::FileChooser>(
-            "Load a wavetable JSON (pw8-wavetable-builder output)...", juce::File(), "*.json");
+            "Load a wavetable JSON (murmur-wavetable-builder output)...", juce::File(), "*.json");
         const auto flags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
 
         // SafePointer, not a raw `this` capture: if the editor closes while this

@@ -357,14 +357,15 @@ def main():
     f = load_factory()
     ist = load_interstellar()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    for stale in OUT_DIR.glob("*.pw8"):
+    # Clean up stale output from previous runs, either extension -- see docs/REBRAND_MURMUR.md.
+    for stale in sorted(OUT_DIR.glob("*.pw8")) + sorted(OUT_DIR.glob("*.murmur")):
         stale.unlink()
 
     manifest_entries = []
     for slot, (display_name, archetype, variant) in enumerate(PRESET_CATALOG, start=1):
         seed_rng = random.Random(hash((BATCH_TAG, slot, display_name)) & 0xFFFFFFFF)
         patch = build_dissemination_patch(f, ist, slot, display_name, archetype, variant, seed_rng)
-        fname = f"{slot:03d}-{slugify(display_name)}.pw8"
+        fname = f"{slot:03d}-{slugify(display_name)}.murmur"
         path = OUT_DIR / fname
         path.write_text(json.dumps(patch, indent=2) + "\n")
         manifest_entries.append({

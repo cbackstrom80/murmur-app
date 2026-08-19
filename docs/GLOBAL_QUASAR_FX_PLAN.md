@@ -460,7 +460,7 @@ destinations=[
 
 ### 5.3 Example factory preset JSON
 
-See [`content/presets/factory/Spatial/001-orbit-cathedral.pw8`] (Phase 4) — illustrative excerpt in §5.1 above.
+See [`content/presets/factory/Spatial/001-orbit-cathedral.murmur`] (Phase 4) — illustrative excerpt in §5.1 above.
 
 ---
 
@@ -567,7 +567,7 @@ Spatial params (`qsr1Angle`, etc.) are **never** disseminated — sweeping SPACE
 1. Build AU; load `001-orbit-cathedral` (Phase 4 preset)
 2. Hold chord; automate Macro2 (SPACE) — verify master reverb/spatial move (Phase 1)
 3. Automate `qsr1Angle` via MCP param path (Phase 3)
-4. Export 5 min; scan for clicks (manual + `pw8-render` metrics)
+4. Export 5 min; scan for clicks (manual + `murmur-render` metrics)
 5. CPU meter: Normal tier <15% on M1/M2
 
 ---
@@ -592,7 +592,7 @@ Spatial params (`qsr1Angle`, etc.) are **never** disseminated — sweeping SPACE
 | Area | Files |
 |------|-------|
 | Effect type | `EffectTypes.hpp`, `EffectChain.hpp`, `BinauralSpace.hpp` (new), `RoomEngine.hpp` (new) |
-| APVTS | `PluginState.cpp` (+47 fields → `kNumEffectSlotFields`), `PatchworkEightProcessor.cpp` |
+| APVTS | `PluginState.cpp` (+47 fields → `kNumEffectSlotFields`), `MurmurProcessor.cpp` |
 | Serializer | `PatchSerializer.cpp`, `PATCH_FORMAT.md` |
 | PLAY UI | `FxEffectPlayParams.h`, `FxChainStrip.cpp`, `GlobalPanel` (new), `PlayModeEditor.cpp` |
 | Mod | `ModMatrixTypes.hpp`, `ModMatrixExecutor.hpp`, `Engine.cpp`, `ModRoutingUi.cpp` |

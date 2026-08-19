@@ -22,7 +22,7 @@
 #include "components/VocoderLabPanel.h"
 #include "components/VstBottomBar.h"
 #include "components/WavetableLabPanel.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "theme/ObsidianLookAndFeel.h"
 
 namespace pw8::plugin::ui
@@ -31,7 +31,7 @@ namespace pw8::plugin::ui
     class DesignModeEditor : public juce::Component
     {
     public:
-        DesignModeEditor(PatchworkEightProcessor& processor, SharedEditorChrome& chrome);
+        DesignModeEditor(MurmurProcessor& processor, SharedEditorChrome& chrome);
         ~DesignModeEditor() override;
 
         void paint(juce::Graphics& g) override;

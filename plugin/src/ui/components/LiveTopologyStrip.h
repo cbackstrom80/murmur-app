@@ -5,7 +5,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "pw8/algorithm/AlgorithmTypes.hpp"
 
 namespace pw8::plugin::ui
@@ -14,7 +14,7 @@ namespace pw8::plugin::ui
     class LiveTopologyStrip : public juce::Component, private juce::Timer
     {
     public:
-        explicit LiveTopologyStrip(PatchworkEightProcessor& processor);
+        explicit LiveTopologyStrip(MurmurProcessor& processor);
         ~LiveTopologyStrip() override;
 
         void paint(juce::Graphics& g) override;
@@ -39,7 +39,7 @@ namespace pw8::plugin::ui
         [[nodiscard]] bool edgeTouchesNode(const algorithm::AlgorithmEdge& edge, int nodeIndex,
                                            const algorithm::AlgorithmGraphDefinition& algo) const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         float pulsePhase_ = 0.0f;
         float performancePulse_ = 0.0f;
         int selectedNode_ = 0;

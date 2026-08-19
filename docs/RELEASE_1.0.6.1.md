@@ -19,7 +19,7 @@ Patch release correcting two regressions shipped in **1.0.6** (plugin binary was
 
 ## Install
 
-Download **`MURMUR-1.0.6.1-macOS-arm64.pkg`** (or `.dmg`) from [GitHub Releases](https://github.com/cbackstrom80/patchwork-eight/releases). Double-click the installer, quit Logic, rescan AU if prompted.
+Download **`MURMUR-1.0.6.1-macOS-arm64.pkg`** (or `.dmg`) from [GitHub Releases](https://github.com/cbackstrom80/murmur-app/releases). Double-click the installer, quit Logic, rescan AU if prompted.
 
 ## Unchanged from 1.0.6
 

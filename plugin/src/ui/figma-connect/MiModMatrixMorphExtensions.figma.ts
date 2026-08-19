@@ -9,7 +9,7 @@ export default {
   imports: [
     '#include "DesignModMatrixPanel.h"',
     '#include "ModAssignmentController.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 DesignModMatrixPanel modMatrixPanel_(processor_, assignmentController_);

@@ -31,7 +31,7 @@ namespace pw8::plugin::ui
         }
     }
 
-    EngineNodeStrip::EngineNodeStrip(PatchworkEightProcessor& processor) : processor_(processor) {}
+    EngineNodeStrip::EngineNodeStrip(MurmurProcessor& processor) : processor_(processor) {}
 
     void EngineNodeStrip::setGlobalPillVisible(bool visible)
     {

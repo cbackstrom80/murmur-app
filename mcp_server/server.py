@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Patchwork Eight MCP server -- docs/MCP_AND_NL_PATCH_GENERATION.md Part A.
+"""MURMUR MCP server -- docs/MCP_AND_NL_PATCH_GENERATION.md Part A.
 
 Exposes patch introspection, construction, editing, and rendering as tools
 to any MCP-capable client (Claude Desktop, Claude Code, etc.) over stdio.
@@ -14,7 +14,7 @@ explicit save_patch tool.
 
 Setup:
     pip install mcp
-    cmake --build --preset dev   # pw8-render, needed for render_preview/validate_patch
+    cmake --build --preset dev   # murmur-render, needed for render_preview/validate_patch
 
 Run directly for a smoke test (also see smoke_test.py, which exercises the
 underlying functions directly without the MCP transport):
@@ -24,9 +24,9 @@ Point an MCP client at it, e.g. Claude Desktop's config
 (~/Library/Application Support/Claude/claude_desktop_config.json on macOS):
     {
       "mcpServers": {
-        "patchwork-eight": {
+        "murmur": {
           "command": "python3",
-          "args": ["/absolute/path/to/patchwork-eight/mcp_server/server.py"]
+          "args": ["/absolute/path/to/murmur-app/mcp_server/server.py"]
         }
       }
     }
@@ -49,14 +49,14 @@ from patch_schema import (
     ENGINE_NAMES, MOD_DEST_IDS, MOD_SCOPE_IDS, MOD_SOURCE_IDS,
 )
 
-mcp = FastMCP("patchwork-eight")
+mcp = FastMCP("murmur")
 
 
 # -- Read-only introspection (Phase 1) ---------------------------------------
 
 @mcp.tool()
 def list_engines() -> dict:
-    """Lists all 8 Patchwork Eight synthesis engines, each with its extra
+    """Lists all 8 MURMUR synthesis engines, each with its extra
     parameter fields (name/type/range/default/note). Every operator also has
     the base fields (waveform/ratio/level/pan/etc.) regardless of engine --
     see the 'base_fields' key."""
@@ -107,7 +107,7 @@ def list_presets(
 
 @mcp.tool()
 def read_patch(path: str) -> dict:
-    """Reads one .pw8 file's full JSON, given a repo-relative or absolute path."""
+    """Reads one .murmur (or legacy .pw8) file's full JSON, given a repo-relative or absolute path."""
     return content.read_patch_file(path)
 
 
@@ -265,7 +265,11 @@ def remove_morph_keyframe(patch_id: str, index: int) -> dict:
 def list_scratch_patches() -> list[dict]:
     """Lists patches currently under construction (not yet saved anywhere permanent)."""
     out = []
-    for path in sorted(patch_builder.SCRATCH_DIR.glob("*.pw8")):
+    # New scratch patches are .murmur; accept legacy .pw8 scratch files too -- see
+    # docs/REBRAND_MURMUR.md.
+    scratch_paths = sorted(set(patch_builder.SCRATCH_DIR.glob("*.pw8")) |
+                            set(patch_builder.SCRATCH_DIR.glob("*.murmur")))
+    for path in scratch_paths:
         try:
             patch = patch_builder.load_scratch(path.stem)
         except Exception:
@@ -277,7 +281,7 @@ def list_scratch_patches() -> list[dict]:
 @mcp.tool()
 def save_patch(patch_id: str, dest_path: str, overwrite: bool = False) -> dict:
     """Copies a scratch patch to a permanent, repo-relative path (e.g.
-    'content/presets/my-laser.pw8'). Refuses to overwrite an existing file
+    'content/presets/my-laser.murmur'). Refuses to overwrite an existing file
     unless overwrite=True."""
     src = patch_builder.scratch_path(patch_id)
     if not src.exists():
@@ -304,7 +308,7 @@ def delete_scratch_patch(patch_id: str) -> dict:
 
 @mcp.tool()
 def render_preview(patch_id: str, notes: Optional[list[int]] = None, hold_seconds: float = 1.5) -> dict:
-    """Renders a scratch patch for real (through pw8-render, the same
+    """Renders a scratch patch for real (through murmur-render, the same
     offline renderer every other verification pass in this project uses) --
     a chord of MIDI note numbers (default: middle C, 60) held for
     hold_seconds. Returns peak/rms/NaN-Inf metrics and the rendered WAV's
@@ -347,8 +351,8 @@ def load_into_standalone(patch_id: str) -> dict:
 
 @mcp.tool()
 def load_preset_into_standalone(repo_relative_path: str) -> dict:
-    """Loads a saved .pw8 preset from the repo (e.g. content/presets/factory/Blades/001-serial-sweep.pw8)
-    into the running MURMUR Standalone app."""
+    """Loads a saved preset from the repo (e.g. content/presets/factory/Blades/001-serial-sweep.murmur --
+    or its post-rebrand .murmur equivalent) into the running MURMUR Standalone app."""
     dest = patch_builder.REPO_ROOT / repo_relative_path
     if not dest.is_file():
         raise FileNotFoundError(f"preset not found: {repo_relative_path}")

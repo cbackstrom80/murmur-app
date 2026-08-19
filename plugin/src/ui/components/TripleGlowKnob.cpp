@@ -50,7 +50,7 @@ namespace pw8::plugin::ui
         stopTimer();
     }
 
-    void TripleGlowKnob::enableOuterModulationTarget(PatchworkEightProcessor& processor,
+    void TripleGlowKnob::enableOuterModulationTarget(MurmurProcessor& processor,
                                                      modulation::ModDestination destination,
                                                      std::uint8_t targetIndex)
     {
@@ -61,7 +61,7 @@ namespace pw8::plugin::ui
         timerCallback();
     }
 
-    void TripleGlowKnob::enableMiddleModulationTarget(PatchworkEightProcessor& processor,
+    void TripleGlowKnob::enableMiddleModulationTarget(MurmurProcessor& processor,
                                                       modulation::ModDestination destination,
                                                       std::uint8_t targetIndex)
     {
@@ -72,7 +72,7 @@ namespace pw8::plugin::ui
         timerCallback();
     }
 
-    void TripleGlowKnob::enableInnerModulationTarget(PatchworkEightProcessor& processor,
+    void TripleGlowKnob::enableInnerModulationTarget(MurmurProcessor& processor,
                                                      modulation::ModDestination destination,
                                                      std::uint8_t targetIndex)
     {

@@ -4,7 +4,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "pw8/algorithm/AlgorithmTypes.hpp"
 #include "pw8/oscillator/ResonatorOscillator.hpp"
 #include "wireframe/OscPreviewSampler.h"
@@ -34,7 +34,7 @@ namespace pw8::plugin::ui
     class EngineOscContextThumb : public juce::Component
     {
     public:
-        EngineOscContextThumb(PatchworkEightProcessor& processor, int engineIndex);
+        EngineOscContextThumb(MurmurProcessor& processor, int engineIndex);
 
         void setPreviewData(const EngineOscContextPreviewData& data);
         void setSkipChrome(bool skip);
@@ -56,7 +56,7 @@ namespace pw8::plugin::ui
         void paintResonator(juce::Graphics& g, juce::Rectangle<int> bounds);
         void paintExternal(juce::Graphics& g, juce::Rectangle<int> bounds);
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         const int engineIndex_;
         EngineOscContextPreviewData preview_;
         bool skipChrome_ = false;

@@ -6,7 +6,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "GlowRingButton.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -14,7 +14,7 @@ namespace pw8::plugin::ui
     class ArpLauncherChip : public juce::Component, private juce::Timer
     {
     public:
-        explicit ArpLauncherChip(PatchworkEightProcessor& processor);
+        explicit ArpLauncherChip(MurmurProcessor& processor);
         ~ArpLauncherChip() override;
 
         void paint(juce::Graphics& g) override;
@@ -27,7 +27,7 @@ namespace pw8::plugin::ui
         void timerCallback() override;
         [[nodiscard]] juce::String rateReadout() const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         GlowRingButton enableButton_{"ARP"};
         juce::Label rateLabel_;
         std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> enableAttachment_;

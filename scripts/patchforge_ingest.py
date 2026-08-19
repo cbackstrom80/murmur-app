@@ -2,7 +2,7 @@
 """Render .pw8 patches and publish a Patchforge catalog + preview assets.
 
 Reads a manifest (scripts/patchforge/manifests/*.json), renders each patch
-through pw8-render, computes waveform peaks + quality scores, and writes:
+through murmur-render, computes waveform peaks + quality scores, and writes:
 
   <out>/catalog.generated.json
   <out>/audio/ingest/<pack-slug>/<patch-id>.wav
@@ -31,7 +31,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "mcp_server"))
 from midi_writer import write_chord_midi  # noqa: E402
 
-RENDERER = REPO_ROOT / "build" / "dev" / "tools" / "pw8-render"
+RENDERER = REPO_ROOT / "build" / "dev" / "tools" / "murmur-render"
 
 CATEGORY_TYPE = {
     "bass": "Bass",
@@ -286,7 +286,7 @@ def main() -> int:
     args = parser.parse_args()
 
     if not RENDERER.is_file():
-        print(f"ERROR: pw8-render not found at {RENDERER}\n  Run: cmake --build --preset dev", file=sys.stderr)
+        print(f"ERROR: murmur-render not found at {RENDERER}\n  Run: cmake --build --preset dev", file=sys.stderr)
         return 1
 
     manifest = json.loads(args.manifest.read_text())
@@ -296,7 +296,7 @@ def main() -> int:
     catalog = {
         "version": manifest.get("version", 1),
         "generatedAt": date.today().isoformat(),
-        "engine": "patchwork-eight",
+        "engine": "murmur",
         "renderer": str(RENDERER.relative_to(REPO_ROOT)),
         "packs": [],
     }

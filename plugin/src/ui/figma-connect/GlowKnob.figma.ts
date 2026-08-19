@@ -12,7 +12,7 @@ export default {
   id: 'glow-knob',
   imports: [
     '#include "GlowKnob.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 GlowKnob ${label.toLowerCase()}Knob(apvts_, "param.${label.toLowerCase()}", "${label}");

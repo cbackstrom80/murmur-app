@@ -9,7 +9,7 @@ export default {
   imports: [
     '#include "MasterMotionLabPanel.h"',
     '#include "MorphTimelineStrip.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 MasterMotionLabPanel motionLab_(processor_);

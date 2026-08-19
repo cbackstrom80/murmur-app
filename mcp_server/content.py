@@ -23,11 +23,14 @@ def list_presets(
     genre: str | None = None,
     tag: str | None = None,
 ) -> list[dict]:
-    """Every .pw8 under content/presets/, summarized. Filters combine with AND
-    (same semantics as the plugin PresetMetadataFilter). Context/genre also
-    matches legacy values stored in moods[] (e.g. cinematic)."""
+    """Every .murmur (or legacy .pw8) under content/presets/, summarized. Filters
+    combine with AND (same semantics as the plugin PresetMetadataFilter).
+    Context/genre also matches legacy values stored in moods[] (e.g. cinematic)."""
     out = []
-    for path in sorted(PRESETS_DIR.rglob("*.pw8")):
+    # Accept both the current .murmur extension and legacy .pw8 files still on disk
+    # -- see docs/REBRAND_MURMUR.md.
+    preset_paths = sorted(set(PRESETS_DIR.rglob("*.pw8")) | set(PRESETS_DIR.rglob("*.murmur")))
+    for path in preset_paths:
         try:
             data = json.loads(path.read_text())
         except (json.JSONDecodeError, OSError):

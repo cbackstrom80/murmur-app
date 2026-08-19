@@ -9,7 +9,7 @@ export default {
   imports: [
     '#include "MasterEnvelopePanel.h"',
     '#include "MasterMotionLabPanel.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 // Compact hero slice inside murmur-mi-ui-play-morph-timeline (89:641).

@@ -1,6 +1,6 @@
 # MURMUR 1.2.0 — QUASAR extracted, Spatial preset migration
 
-Major release on branch `cursor/favorites-unison-stack-daw`. **Binaural spatial (QUASAR) is no longer inside MURMUR** — it ships as the standalone [**QUASAR v1.0.0**](https://github.com/cbackstrom80/patchwork-eight/releases/tag/quasar-v1.0.0) effect plugin.
+Major release on branch `cursor/favorites-unison-stack-daw`. **Binaural spatial (QUASAR) is no longer inside MURMUR** — it ships as the standalone [**QUASAR v1.0.0**](https://github.com/cbackstrom80/murmur-app/releases/tag/quasar-v1.0.0) effect plugin.
 
 ## What's new in 1.2.0
 
@@ -35,9 +35,9 @@ Major release on branch `cursor/favorites-unison-stack-daw`. **Binaural spatial 
 
 ## Install
 
-Download **`MURMUR-1.2.0-macOS-arm64.pkg`** from [GitHub Releases](https://github.com/cbackstrom80/patchwork-eight/releases/tag/v1.2.0).
+Download **`MURMUR-1.2.0-macOS-arm64.pkg`** from [GitHub Releases](https://github.com/cbackstrom80/murmur-app/releases/tag/v1.2.0).
 
-For full Spatial scenes, also install [**QUASAR v1.0.0**](https://github.com/cbackstrom80/patchwork-eight/releases/tag/quasar-v1.0.0).
+For full Spatial scenes, also install [**QUASAR v1.0.0**](https://github.com/cbackstrom80/murmur-app/releases/tag/quasar-v1.0.0).
 
 After install: quit Logic → Plug-in Manager → Reset & Rescan → confirm **1.2.0**.
 

@@ -8,9 +8,9 @@
          +----------------+----------------+
          |                |                |
          v                v                v
-     pw8_plugin       patchwork_eight   pw8-render / pw8-info / pw8-graph / ...
-     (JUCE VST3/AU/     (pybind11        (native CLI tools, no host required)
-      Standalone)        Python module)
+     pw8_plugin           murmur      murmur-render / murmur-info / murmur-graph / ...
+     (JUCE VST3/AU/      (pybind11    (native CLI tools, no host required)
+      Standalone)       Python module)
 ```
 
 **`pw8_core`** (`engine/`) is a framework-independent, modern C++20 static library.
@@ -25,11 +25,11 @@ Everything else is a consumer of `pw8_core`:
 - **`pw8_plugin`** (`plugin/`) -- JUCE VST3/AU/Standalone wrapper. STATUS: **PARTIAL,
   build-verified** (AU passes Apple's `auval` in full; off by default,
   `PW8_BUILD_PLUGIN=OFF`; built by a non-blocking macOS CI job).
-- **`patchwork_eight`** (`bindings/python/`) -- pybind11 module. STATUS:
+- **`murmur`** (`bindings/python/`) -- pybind11 module. STATUS:
   **IMPLEMENTED (PARTIAL API surface)**, off by default (`PW8_BUILD_PYTHON_BINDINGS=OFF`
   since it needs Python dev headers), builds and is smoke-tested.
-- **CLI tools** (`tools/`) -- `pw8-render`, `pw8-info`, `pw8-graph`,
-  `pw8-wavetable-builder`. STATUS: **IMPLEMENTED**, on by default, no host required.
+- **CLI tools** (`tools/`) -- `murmur-render`, `murmur-info`, `murmur-graph`,
+  `murmur-wavetable-builder`. STATUS: **IMPLEMENTED**, on by default, no host required.
 
 Future targets (CLAP, Linux, embedded/ARM, render-farm workers) only need new thin
 consumers of `pw8_core` -- the core itself has no platform or host assumptions baked in.
@@ -54,7 +54,7 @@ Three thread roles, by contract rather than by any framework-provided guarantee:
 **State exchange pattern:** prepare new state off the audio thread, then publish it
 with a single atomic pointer swap; the audio thread reads that pointer once per
 block. This is implemented today in the plugin scaffold
-(`plugin/src/processor/PatchworkEightProcessor.cpp`, `publishEngine()` /
+(`plugin/src/processor/MurmurProcessor.cpp`, `publishEngine()` /
 `activeEngine_`) using a double-buffered `std::unique_ptr<Engine>` pair and
 `std::atomic<Engine*>` -- deliberately not a hand-rolled lock-free queue. The native
 offline renderer doesn't need this pattern at all: it is single-threaded by

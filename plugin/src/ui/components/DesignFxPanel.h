@@ -11,7 +11,7 @@
 #include "DesignFxUiState.h"
 #include "FxChainStrip.h"
 #include "ModAssignmentController.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "wireframe/DesignFxHeroViz.h"
 
 namespace pw8::plugin::ui
@@ -27,7 +27,7 @@ namespace pw8::plugin::ui
             Detail,
         };
 
-        DesignFxPanel(PatchworkEightProcessor& processor, ModAssignmentController& modAssignmentController);
+        DesignFxPanel(MurmurProcessor& processor, ModAssignmentController& modAssignmentController);
 
         std::function<void()> onClosed;
         std::function<void(std::size_t fxSlotIndex)> onVocoderLabRequested;
@@ -69,7 +69,7 @@ namespace pw8::plugin::ui
         void syncStubKnobsToApvts();
         void updateToggleButtons();
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         bool embeddedInDesignMode_ = false;
         FxViewMode viewMode_ = FxViewMode::Cards;
 

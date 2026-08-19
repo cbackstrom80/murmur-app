@@ -12,7 +12,7 @@
 
 namespace pw8::plugin::ui
 {
-    VstBottomBar::VstBottomBar(PatchworkEightProcessor& processor) : processor_(processor)
+    VstBottomBar::VstBottomBar(MurmurProcessor& processor) : processor_(processor)
     {
         statusLabel_.setFont(fonts::label(layout::kIpadPlayCaptionSize));
         statusLabel_.setColour(juce::Label::textColourId, palette::kTextDim);

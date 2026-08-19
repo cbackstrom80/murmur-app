@@ -13,7 +13,7 @@
 #include "components/PresetBrowserOverlay.h"
 #include "content/FavoritesStore.h"
 #include "content/PresetRatingsStore.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "theme/ObsidianLookAndFeel.h"
 
 namespace pw8::plugin::ui
@@ -22,7 +22,7 @@ namespace pw8::plugin::ui
     class MurmurRootEditor : public juce::AudioProcessorEditor
     {
     public:
-        explicit MurmurRootEditor(PatchworkEightProcessor& processor);
+        explicit MurmurRootEditor(MurmurProcessor& processor);
         ~MurmurRootEditor() override;
 
         void paint(juce::Graphics& g) override;

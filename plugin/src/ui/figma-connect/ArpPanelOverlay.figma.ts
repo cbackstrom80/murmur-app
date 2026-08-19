@@ -7,7 +7,7 @@ export default {
   id: 'arp-panel-overlay',
   imports: [
     '#include "ArpPanelOverlay.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 ArpPanelOverlay arpPanelOverlay_(processor_);

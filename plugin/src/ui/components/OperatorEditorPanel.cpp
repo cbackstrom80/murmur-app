@@ -61,7 +61,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    OperatorEditorPanel::OperatorEditorPanel(PatchworkEightProcessor& processor,
+    OperatorEditorPanel::OperatorEditorPanel(MurmurProcessor& processor,
                                              ModAssignmentController& assignmentController)
         : processor_(processor), assignmentController_(assignmentController), oscWireframeHost_(processor)
     {

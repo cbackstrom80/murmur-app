@@ -19,7 +19,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    DesignUtilityPeaksPanel::DesignUtilityPeaksPanel(PatchworkEightProcessor& processor) : processor_(processor)
+    DesignUtilityPeaksPanel::DesignUtilityPeaksPanel(MurmurProcessor& processor) : processor_(processor)
     {
         titleLabel_.setText("UTILITY PEAKS", juce::dontSendNotification);
         titleLabel_.setFont(fonts::label(14.0f));

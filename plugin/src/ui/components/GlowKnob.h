@@ -7,7 +7,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "ModAssignmentController.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "../theme/FigmaKnobTokens.h"
 
 // The Figma glow-ring-knob control (frame 21:4): decked rotary + mod rings.
@@ -64,11 +64,11 @@ namespace pw8::plugin::ui
         /// changes made this way (or, in principle, by anything else) and repaint the
         /// ring -- there's no push notification for a patch change yet, and 8Hz on a
         /// FixedVector of at most 64 small POD structs is cheap.
-        void enableModulationTarget(PatchworkEightProcessor& processor, modulation::ModDestination destination,
+        void enableModulationTarget(MurmurProcessor& processor, modulation::ModDestination destination,
                                      std::uint8_t targetIndex = 0);
 
         /// Shows a warm activity ring when this macro fans out to active mod routes.
-        void enableMacroActivityRing(PatchworkEightProcessor& processor, std::size_t macroIndex);
+        void enableMacroActivityRing(MurmurProcessor& processor, std::size_t macroIndex);
 
         void setModAssignmentController(ModAssignmentController* controller);
 
@@ -136,7 +136,7 @@ namespace pw8::plugin::ui
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> attachment_;
 
         ModAssignmentController* modAssignment_ = nullptr;
-        PatchworkEightProcessor* modProcessor_ = nullptr;
+        MurmurProcessor* modProcessor_ = nullptr;
         modulation::ModDestination modDestination_ = modulation::ModDestination::None;
         std::uint8_t modTargetIndex_ = 0;
         modulation::ModSource ringSource_ = modulation::ModSource::None; ///< The route currently shown by ringColour_, so right-click-remove can identify it exactly.

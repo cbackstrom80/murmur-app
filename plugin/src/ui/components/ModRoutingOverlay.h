@@ -6,7 +6,7 @@
 
 #include "ModAssignmentController.h"
 #include "ModSourceStrip.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -14,7 +14,7 @@ namespace pw8::plugin::ui
     class ModRoutingOverlay : public juce::Component
     {
     public:
-        ModRoutingOverlay(PatchworkEightProcessor& processor, ModAssignmentController& assignmentController);
+        ModRoutingOverlay(MurmurProcessor& processor, ModAssignmentController& assignmentController);
 
         std::function<void()> onClosed;
 

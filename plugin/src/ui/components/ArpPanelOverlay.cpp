@@ -143,7 +143,7 @@ namespace pw8::plugin::ui
         };
     } // namespace
 
-    ArpPanelOverlay::ArpPanelOverlay(PatchworkEightProcessor& processor)
+    ArpPanelOverlay::ArpPanelOverlay(MurmurProcessor& processor)
         : processor_(processor),
           apvts_(processor.apvts),
           enableButton_("ARP ON"),

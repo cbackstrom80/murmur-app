@@ -28,7 +28,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    PlayModeEditor::PlayModeEditor(PatchworkEightProcessor& processor, SharedEditorChrome& chrome)
+    PlayModeEditor::PlayModeEditor(MurmurProcessor& processor, SharedEditorChrome& chrome)
         : processor_(processor),
           chrome_(chrome),
           nodeSelectorRow_(processor),

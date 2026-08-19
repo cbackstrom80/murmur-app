@@ -9,7 +9,7 @@
 #include "ConcentricGlowKnob.h"
 #include "GlowRingButton.h"
 #include "SectionPanel.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -17,7 +17,7 @@ namespace pw8::plugin::ui
     class DesignUtilityPeaksPanel : public juce::Component, private juce::Timer
     {
     public:
-        explicit DesignUtilityPeaksPanel(PatchworkEightProcessor& processor);
+        explicit DesignUtilityPeaksPanel(MurmurProcessor& processor);
         ~DesignUtilityPeaksPanel() override;
 
         std::function<void()> onClosed;
@@ -50,7 +50,7 @@ namespace pw8::plugin::ui
         void setSlotMode(std::size_t slotIndex, int modeIndex);
         void refreshModeButtons(std::size_t slotIndex);
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         bool embeddedInDesignMode_ = false;
 
         juce::TextButton backButton_{"← DESIGN"};

@@ -13,7 +13,7 @@
 #include "SectionPanel.h"
 #include "WavetableStackView.h"
 #include "../PlayModeLayout.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -21,7 +21,7 @@ namespace pw8::plugin::ui
     class WavetableLabPanel : public juce::Component, private juce::Timer
     {
     public:
-        explicit WavetableLabPanel(PatchworkEightProcessor& processor, ModAssignmentController& assignmentController);
+        explicit WavetableLabPanel(MurmurProcessor& processor, ModAssignmentController& assignmentController);
         ~WavetableLabPanel() override;
 
         std::function<void()> onClosed;
@@ -60,7 +60,7 @@ namespace pw8::plugin::ui
 
         void paintOverChildren(juce::Graphics& g) override;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         ModAssignmentController& assignmentController_;
         juce::AudioProcessorValueTreeState& apvts_;
         int engineIndex_ = 0;

@@ -99,7 +99,7 @@ Quasar’s **master-bus personality** is: **dry center anchor (CNTR) + moving we
 
 ### What “global master bus output” means for MURMUR
 
-MURMUR (Patchwork Eight engine) renders:
+MURMUR (MURMUR engine) renders:
 
 ```
 voices (Layer A [+ optional Layer B stack])
@@ -121,7 +121,7 @@ Relevant code paths:
 | DESIGN FX UI | `DesignFxDetailPanel` | **Planned** in `DESIGN_AND_WARPS_PLAN.md`; **not present** in current tree (grep: no `DesignFxDetailPanel.*` sources). PLAY uses `FxChainStrip` + `FxEffectPlayParams.h` (4 knobs + mix per type) |
 | Mod matrix scope | Per-voice only (`Voice::renderSample` → `ModMatrixExecutor`) | **No** master-FX destinations in `ModDestination` enum |
 
-**DESIGN vs PLAY FX:** Product docs (`UI_DIFFERENTIATION_BRIEF.md`) still reference spatial FX in DESIGN (`FilterLfoPanel`, `FxChainStrip`, `DesignFxDetailPanel`). Engine-side **master reverb/EQ/chorus params exist in APVTS** (`masterFx0`…`masterFx3` + ~60 fields per slot in `PatchworkEightProcessor.cpp`); PLAY exposes a **subset** (e.g. reverb: Decay, Size, Pre, Diff). Full M7-style reverb surface is automation/Advanced-only today.
+**DESIGN vs PLAY FX:** Product docs (`UI_DIFFERENTIATION_BRIEF.md`) still reference spatial FX in DESIGN (`FilterLfoPanel`, `FxChainStrip`, `DesignFxDetailPanel`). Engine-side **master reverb/EQ/chorus params exist in APVTS** (`masterFx0`…`masterFx3` + ~60 fields per slot in `MurmurProcessor.cpp`); PLAY exposes a **subset** (e.g. reverb: Decay, Size, Pre, Diff). Full M7-style reverb surface is automation/Advanced-only today.
 
 **Quasar analogy on MURMUR master bus today:**
 

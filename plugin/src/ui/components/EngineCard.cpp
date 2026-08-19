@@ -104,7 +104,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    EngineCard::EngineCard(PatchworkEightProcessor& processor, ModAssignmentController& assignmentController,
+    EngineCard::EngineCard(MurmurProcessor& processor, ModAssignmentController& assignmentController,
                            int engineIndex)
         : processor_(processor),
           assignmentController_(assignmentController),

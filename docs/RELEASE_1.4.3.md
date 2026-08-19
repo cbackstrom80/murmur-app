@@ -6,7 +6,7 @@ This is the polished Ben installer: full content bundle, iPad-style PLAY layout,
 
 ## Install (Ben)
 
-1. Download **`MURMUR-1.4.3-macOS-arm64-full.dmg`** from [GitHub Releases](https://github.com/cbackstrom80/patchwork-eight/releases)
+1. Download **`MURMUR-1.4.3-macOS-arm64-full.dmg`** from [GitHub Releases](https://github.com/cbackstrom80/murmur-app/releases)
 2. Open the DMG → read **`1 — READ ME FIRST.txt`**
 3. Double-click **`Install MURMUR.pkg`**
 4. If Gatekeeper blocks it: **right-click → Open → Open**

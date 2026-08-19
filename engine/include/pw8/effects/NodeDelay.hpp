@@ -21,7 +21,7 @@
 // construction and lets a single forward pass over the fixed node array process
 // the whole tree with no recursion and no separate topological sort -- the same
 // "always route from a lower index" trick `AlgorithmGraphCompiler` and
-// `pw8-fuzz-render`'s patch generator already rely on.
+// `murmur-fuzz-render`'s patch generator already rely on.
 namespace pw8::effects
 {
     class NodeDelayProcessor

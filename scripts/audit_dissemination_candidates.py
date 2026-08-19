@@ -108,7 +108,7 @@ def score_preset(data: dict) -> tuple[int, dict]:
 
 def scan_presets(min_score: int = 40) -> list[tuple[int, pathlib.Path, dict]]:
     results = []
-    for pw8 in sorted(PRESETS_ROOT.rglob("*.pw8")):
+    for pw8 in sorted(PRESETS_ROOT.rglob("*.pw8")) + sorted(PRESETS_ROOT.rglob("*.murmur")):
         if "Dissemination" in pw8.parts:
             continue
         try:
@@ -135,9 +135,9 @@ def top_by_category(candidates: list, per_cat: int = 20) -> dict[str, list]:
 
 def format_audit(candidates: list, enabled: list[pathlib.Path] | None = None) -> str:
     by_cat = top_by_category(candidates)
-    already = sum(1 for pw8 in PRESETS_ROOT.rglob("*.pw8")
+    already = sum(1 for pw8 in list(PRESETS_ROOT.rglob("*.pw8")) + list(PRESETS_ROOT.rglob("*.murmur"))
                     if json.loads(pw8.read_text()).get("voiceSettings", {}).get("macroDissemination"))
-    total = sum(1 for _ in PRESETS_ROOT.rglob("*.pw8"))
+    total = sum(1 for _ in list(PRESETS_ROOT.rglob("*.pw8")) + list(PRESETS_ROOT.rglob("*.murmur")))
 
     lines = [
         "# Macro Dissemination Candidate Audit",

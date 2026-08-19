@@ -5,7 +5,7 @@
 
 #include <juce_core/juce_core.h>
 
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "pw8/patch/Patch.hpp"
 
 namespace pw8::plugin::ui
@@ -34,15 +34,15 @@ namespace pw8::plugin::ui
 
     [[nodiscard]] ModAmountRange modAmountRangeFor(modulation::ModDestination destination) noexcept;
 
-    void assignModRoute(PatchworkEightProcessor& processor, modulation::ModSource source,
+    void assignModRoute(MurmurProcessor& processor, modulation::ModSource source,
                         modulation::ModDestination destination, std::uint8_t targetIndex);
 
-    void assignModRoute(PatchworkEightProcessor& processor, modulation::ModSource source,
+    void assignModRoute(MurmurProcessor& processor, modulation::ModSource source,
                         modulation::ModDestination destination, std::uint8_t targetIndex, float amount);
 
-    void updateModRouteAmount(PatchworkEightProcessor& processor, const modulation::ModRoute& route, float amount);
+    void updateModRouteAmount(MurmurProcessor& processor, const modulation::ModRoute& route, float amount);
 
-    void updateModRouteCurve(PatchworkEightProcessor& processor, const modulation::ModRoute& route,
+    void updateModRouteCurve(MurmurProcessor& processor, const modulation::ModRoute& route,
                              modulation::ModCurve curve);
 
     [[nodiscard]] std::optional<ModDestinationParam> modDestinationParam(modulation::ModDestination destination,

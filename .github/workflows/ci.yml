@@ -30,12 +30,12 @@ jobs:
       - name: DSP quality measurement (non-blocking)
         continue-on-error: true
         run: |
-          python3 scripts/measure_dsp_quality.py --patch content/presets/init-saw.pw8 || true
-          python3 scripts/measure_dsp_quality.py --patch content/presets/fm-bell.pw8 || true
+          python3 scripts/measure_dsp_quality.py --patch content/presets/init-saw.murmur || true
+          python3 scripts/measure_dsp_quality.py --patch content/presets/fm-bell.murmur || true
 
       - name: Fuzz render (ubuntu)
         if: matrix.os == 'ubuntu-latest'
-        run: ./build/dev/tools/pw8-fuzz-render --count 500 --seed 42 --duration 0.5
+        run: ./build/dev/tools/murmur-fuzz-render --count 500 --seed 42 --duration 0.5
 
       - name: MVP content + MCP smoke
         run: |
@@ -177,8 +177,8 @@ jobs:
         run: |
           python3 -c "
           import sys; sys.path.insert(0, 'build/python/python')
-          import patchwork_eight as pw8
-          patch = pw8.Patch.load('content/presets/init-saw.pw8')
+          import murmur as pw8
+          patch = pw8.Patch.load('content/presets/init-saw.murmur')
           result = pw8.render(patch, 'content/test_midi/single-note.mid')
           assert result['metrics']['contains_nan_or_inf'] is False
           assert result['metrics']['peak'] > 0.0

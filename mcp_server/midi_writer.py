@@ -2,7 +2,7 @@
 build a one-chord preview note list for render_preview()/validate_patch() in
 server.py. Deliberately hand-rolled rather than adding a `mido` dependency:
 this MCP server should run with nothing beyond `pip install mcp` plus an
-already-built pw8-render, matching this project's general preference for
+already-built murmur-render, matching this project's general preference for
 minimal, obvious dependencies (see e.g. Knob3D's hand-rolled matrix math to
 avoid an uncertain juce::Matrix3D dependency)."""
 from __future__ import annotations

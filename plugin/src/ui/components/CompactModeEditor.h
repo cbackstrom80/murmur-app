@@ -9,7 +9,7 @@
 #include "GlowKnob.h"
 #include "OscilloscopeView.h"
 #include "PatchFocusPanel.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "state/PluginState.h"
 
 namespace pw8::plugin::ui
@@ -19,7 +19,7 @@ namespace pw8::plugin::ui
     class CompactModeEditor : public juce::Component, private juce::Timer
     {
     public:
-        explicit CompactModeEditor(PatchworkEightProcessor& processor);
+        explicit CompactModeEditor(MurmurProcessor& processor);
 
         ~CompactModeEditor() override;
 
@@ -37,7 +37,7 @@ namespace pw8::plugin::ui
         void paintHorizontalMeter(juce::Graphics& g, juce::Rectangle<float> bounds,
                                   const scope::VuBallistics& vu) const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
 
         OscilloscopeView scopeView_;
         PatchFocusPanel focusPanel_;

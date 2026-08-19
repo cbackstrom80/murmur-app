@@ -1,4 +1,4 @@
-"""Renders a scratch patch through the real engine via the pw8-render CLI
+"""Renders a scratch patch through the real engine via the murmur-render CLI
 (tools/render/main.cpp) -- no pybind11/live-Engine dependency, matching
 docs/MCP_AND_NL_PATCH_GENERATION.md Part A's "reuse the CLI tools for
 one-shot renders" design. Same real DSP every other verification pass in
@@ -13,7 +13,7 @@ from pathlib import Path
 from midi_writer import write_chord_midi
 from patch_builder import REPO_ROOT, load_scratch, scratch_path
 
-RENDERER = REPO_ROOT / "build" / "dev" / "tools" / "pw8-render"
+RENDERER = REPO_ROOT / "build" / "dev" / "tools" / "murmur-render"
 RENDER_OUT_DIR = Path(__file__).resolve().parent / "scratch" / "renders"
 RENDER_OUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -26,7 +26,7 @@ def render_preview(patch_id: str, notes: list[int] | None = None, hold_seconds: 
                     velocity: int = 90) -> dict:
     if not RENDERER.exists():
         raise RendererMissing(
-            f"pw8-render not built at {RENDERER} -- run: cmake --build --preset dev"
+            f"murmur-render not built at {RENDERER} -- run: cmake --build --preset dev"
         )
     patch_path = scratch_path(patch_id)
     if not patch_path.exists():

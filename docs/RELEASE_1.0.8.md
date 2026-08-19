@@ -25,7 +25,7 @@ Ships **information architecture pass** (Week 3) and **wireframe panel consisten
 
 ## Install
 
-Download **`MURMUR-1.0.8-macOS-arm64.pkg`** from [GitHub Releases](https://github.com/cbackstrom80/patchwork-eight/releases). Double-click the installer, quit Logic, rescan AU if prompted.
+Download **`MURMUR-1.0.8-macOS-arm64.pkg`** from [GitHub Releases](https://github.com/cbackstrom80/murmur-app/releases). Double-click the installer, quit Logic, rescan AU if prompted.
 
 ## Deferred to Week 5+
 

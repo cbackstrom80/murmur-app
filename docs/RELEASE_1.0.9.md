@@ -40,7 +40,7 @@ Ships the **unified MOD MATRIX screen**, **deluxe matrix row styling**, **dual c
 
 ## Install
 
-Download **`MURMUR-1.0.9-macOS-arm64.pkg`** from [GitHub Releases](https://github.com/cbackstrom80/patchwork-eight/releases/tag/v1.0.9). Double-click the installer, quit Logic, rescan AU if prompted.
+Download **`MURMUR-1.0.9-macOS-arm64.pkg`** from [GitHub Releases](https://github.com/cbackstrom80/murmur-app/releases/tag/v1.0.9). Double-click the installer, quit Logic, rescan AU if prompted.
 
 Optional: **`MURMUR-1.0.9-macOS-arm64.dmg`** — same pkg inside a drag-and-install wrapper.
 

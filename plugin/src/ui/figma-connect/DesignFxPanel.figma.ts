@@ -9,7 +9,7 @@ export default {
   id: 'design-fx-panel',
   imports: [
     '#include "DesignFxPanel.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
     '#include "state/ModAssignmentController.h"',
   ],
   example: figma.code`

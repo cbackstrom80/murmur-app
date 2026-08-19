@@ -33,7 +33,7 @@ individually-discovered `ctest` output was confirmed correct after the bump.)
 
 ## Property / Fuzz Testing
 
-**IMPLEMENTED.** `pw8-fuzz-render` (`tools/fuzz_render/`) generates random-but-
+**IMPLEMENTED.** `murmur-fuzz-render` (`tools/fuzz_render/`) generates random-but-
 schema-valid patches -- every value within its documented range, and the algorithm
 graph constructed so it's *guaranteed* to compile (feed-forward edges only ever
 route from a lower node index to a higher one, which is by construction acyclic;
@@ -65,7 +65,7 @@ FX slots per patch). The master spec's overnight target of 1,000,000+ patches is
 left to whoever runs it -- `--count`/`--seed` are both exposed for exactly that.
 
 ```bash
-./build/dev/tools/pw8-fuzz-render --count 10000 --seed 1
+./build/dev/tools/murmur-fuzz-render --count 10000 --seed 1
 ```
 
 ## Benchmarks
@@ -81,7 +81,7 @@ to ~5.0ms (96kHz, 32 voices), comfortably realtime even unoptimized.
 
 ## What's NOT covered yet
 
-- `pw8-fuzz-render`'s `randomPatch()` does not yet randomize `ArpeggiatorParams`
+- `murmur-fuzz-render`'s `randomPatch()` does not yet randomize `ArpeggiatorParams`
   (mode/rate/steps/latch) the way it already randomizes filter/LFO/mod-route
   parameters -- the seed-5 batch above exercises the arpeggiator only in that it's
   present but disabled by default on random patches. PLANNED follow-up.

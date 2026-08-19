@@ -140,7 +140,7 @@ def main():
 
     for slot, (name, mode, overrides, tip) in enumerate(PRESET_CATALOG, start=1):
         patch = build_streams_patch(f, ist, slot, name, mode, overrides, tip, rng)
-        out_path = OUT_DIR / f"{slot:03d}-{slugify(name)}.pw8"
+        out_path = OUT_DIR / f"{slot:03d}-{slugify(name)}.murmur"
         out_path.write_text(json.dumps(patch, indent=2) + "\n")
         print(f"Wrote {out_path.name}")
 

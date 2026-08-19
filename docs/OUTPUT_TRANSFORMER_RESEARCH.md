@@ -11,7 +11,7 @@
 
 On Shadow Hills hardware the **Trans** control sits in the **output path after dynamics**, not in the detection path. It shapes harmonics, low-end weight, and transient character of the *compressed* signal before makeup gain.
 
-Patchwork Eight's `CompressorProcessor` (`engine/include/pw8/effects/Compressor.hpp`) today is a clean feedforward peak compressor:
+MURMUR's `CompressorProcessor` (`engine/include/pw8/effects/Compressor.hpp`) today is a clean feedforward peak compressor:
 
 - Stereo-linked peak detector → quadratic soft-knee gain computer → attack/release GR smoothing → single combined gain (`GR + makeup`).
 

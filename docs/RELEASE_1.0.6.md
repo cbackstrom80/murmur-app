@@ -24,7 +24,7 @@ Download **`MURMUR-1.0.6-macOS-arm64.pkg`** (or `.dmg`) — double-click, quit L
 ## Manual fix (without waiting for installer)
 
 ```bash
-rsync -a /path/to/patchwork-eight/content/presets/factory/ \
+rsync -a /path/to/murmur-app/content/presets/factory/ \
   "$HOME/Library/Application Support/MURMUR/Presets/factory/"
 ```
 

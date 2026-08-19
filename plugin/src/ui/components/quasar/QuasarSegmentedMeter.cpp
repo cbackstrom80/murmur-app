@@ -6,7 +6,7 @@
 
 namespace pw8::plugin::ui
 {
-    QuasarSegmentedMeter::QuasarSegmentedMeter(PatchworkEightProcessor& processor) : processor_(processor) {}
+    QuasarSegmentedMeter::QuasarSegmentedMeter(MurmurProcessor& processor) : processor_(processor) {}
 
     void QuasarSegmentedMeter::tick()
     {

@@ -56,7 +56,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    MorphTimelineStrip::MorphTimelineStrip(PatchworkEightProcessor& processor)
+    MorphTimelineStrip::MorphTimelineStrip(MurmurProcessor& processor)
         : processor_(processor),
           morphKnob_(std::make_unique<GlowKnob>(processor.apvts, kMorphPositionId, "MORPH POS",
                                                 [](float v) { return juce::String(v, 2); }))

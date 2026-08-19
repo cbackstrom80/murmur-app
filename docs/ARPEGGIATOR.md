@@ -67,7 +67,7 @@ in rendered audio rather than asserted against internal state.
 
 ## Content
 
-`content/presets/arp-pluck.pw8`: bright saw pluck, Filter 1 shaping the tone,
+`content/presets/arp-pluck.murmur`: bright saw pluck, Filter 1 shaping the tone,
 Up mode tempo-synced to 1/16 notes across 2 octaves, latch on, an 8-step pattern
 with a real accent, a ratcheted double-hit, and a deliberate rest -- not a plain
 uniform up-arp.

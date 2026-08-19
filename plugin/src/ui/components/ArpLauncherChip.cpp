@@ -8,7 +8,7 @@
 
 namespace pw8::plugin::ui
 {
-    ArpLauncherChip::ArpLauncherChip(PatchworkEightProcessor& processor)
+    ArpLauncherChip::ArpLauncherChip(MurmurProcessor& processor)
         : processor_(processor)
     {
         enableButton_.setAccentColour(palette::kAccent);

@@ -6,7 +6,7 @@
 
 namespace pw8::plugin::ui
 {
-    DesignModeEditor::DesignModeEditor(PatchworkEightProcessor& processor, SharedEditorChrome& chrome)
+    DesignModeEditor::DesignModeEditor(MurmurProcessor& processor, SharedEditorChrome& chrome)
         : masterEnvelopePanel_(processor),
           engineGridPanel_(processor, modAssignmentController_),
           statusBar_(processor),

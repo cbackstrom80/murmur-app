@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://patchwork-eight.local/figma-layout-spec.schema.json",
+  "$id": "https://murmur.local/figma-layout-spec.schema.json",
   "title": "FigmaLayoutSpec",
   "type": "object",
   "required": ["figmaFileKey", "nodeId", "frameName", "size"],

@@ -2,7 +2,7 @@
 
 **PLAY mode: IMPLEMENTED** (the OBSIDIAN skin -- see [docs/UI.md](../../../docs/UI.md)
 for the full design writeup, architecture, and a real bug caught building it).
-`PatchworkEightProcessor::createEditor()` returns `ui::PlayModeEditor`, a real
+`MurmurProcessor::createEditor()` returns `ui::PlayModeEditor`, a real
 custom `juce::AudioProcessorEditor` -- not `juce::GenericAudioProcessorEditor`
 anymore.
 

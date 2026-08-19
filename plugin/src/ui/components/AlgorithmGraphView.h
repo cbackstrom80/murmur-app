@@ -4,18 +4,18 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "pw8/algorithm/AlgorithmTypes.hpp"
 
 // PLAY mode's centerpiece and the component that actually differentiates this
 // synth visually: a rendering of Layer A's live 8-node algorithm graph -- the
-// same structure AlgorithmGraphCompiler compiles and `pw8-graph inspect`
+// same structure AlgorithmGraphCompiler compiles and `murmur-graph inspect`
 // already prints in text form (docs/PLUGIN_ARCHITECTURE.md "Signature UI: Graph").
 //
 // Deliberately NOT a draggable modular patcher: the master spec is explicit that
 // this skin must never look like visible patch-cable spaghetti. The fix applied
 // here is architectural, not just cosmetic -- the 8 nodes sit at fixed positions
-// on a circle (topology is a schema thing edited in DESIGN mode/`pw8-graph`, not
+// on a circle (topology is a schema thing edited in DESIGN mode/`murmur-graph`, not
 // a PLAY-mode drag target), so what's on screen is always a clean, readable
 // diagram of *this patch's specific graph*, not a general-purpose wire canvas.
 //
@@ -53,7 +53,7 @@ namespace pw8::plugin::ui
     class AlgorithmGraphView : public juce::Component, private juce::Timer
     {
     public:
-        explicit AlgorithmGraphView(PatchworkEightProcessor& processor);
+        explicit AlgorithmGraphView(MurmurProcessor& processor);
         ~AlgorithmGraphView() override;
 
         void paint(juce::Graphics& g) override;
@@ -84,7 +84,7 @@ namespace pw8::plugin::ui
         [[nodiscard]] juce::Rectangle<float> circleArea() const;
         [[nodiscard]] juce::String buildCaption() const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         const algorithm::AlgorithmGraphDefinition* previewGraph_ = nullptr;
         float pulsePhase_ = 0.0f;
         int selectedNode_ = 0; // Matches OperatorEditorPanel's own initial showNode(0).

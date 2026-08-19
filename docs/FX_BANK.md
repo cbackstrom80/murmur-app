@@ -37,7 +37,7 @@ runtime-growable to an arbitrary size; this codebase's realtime-safety rules
 thread) make that a poor fit, so `NodeDelay` uses a fixed `kMaxDelayNodes = 6`
 instead. That's a real capability difference, not hidden here: six nodes is
 enough for a genuinely branching, non-repeating texture (see
-`content/presets/fx-node-tree.pw8`), but not an "infinitely growable" one.
+`content/presets/fx-node-tree.murmur`), but not an "infinitely growable" one.
 
 ### Cocoa Delay (tesselode)
 
@@ -120,7 +120,7 @@ generator produces node depths at 200ms/100ms/50ms, matching the geometric
 series by construction), and sweeps `fractalMorph` continuously from 0 to 1
 across 20,000 samples while asserting every single sample stays finite and
 bounded -- there is no morph position that glitches.
-`content/presets/fx-fractal-morph.pw8` demonstrates it audibly.
+`content/presets/fx-fractal-morph.murmur` demonstrates it audibly.
 
 ## Architecture
 
@@ -377,7 +377,7 @@ compatibility decision GATE 10 itself made when it grew `EffectSlotParams` from
   ceiling, and a master Compressor slot (no makeup gain, so the claim reduces
   to "gain reduction can only lower peak") measurably lowering a loud chord's
   peak.
-- 125 total tests, 895,937 assertions, all passing. `pw8-fuzz-render`'s
+- 125 total tests, 895,937 assertions, all passing. `murmur-fuzz-render`'s
   `randomPatch()` randomizes all 3 insert + 4 master `EffectSlotParams` slots,
   including every one of Reverb's new fields -- 1,000 patches (seed 14, post
   GATE 11), zero failures (198.14s, 5.0 patches/sec -- down slightly from GATE
@@ -390,16 +390,16 @@ compatibility decision GATE 10 itself made when it grew `EffectSlotParams` from
 
 ## Content
 
-Five engineering presets: `content/presets/fx-node-tree.pw8` (NodeDelay, plus a
+Five engineering presets: `content/presets/fx-node-tree.murmur` (NodeDelay, plus a
 subtle layer-insert Chorus in the same patch -- demonstrating both slot types
-together), `content/presets/fx-fractal-morph.pw8` (FractalEcho),
-`content/presets/fx-freq-echo.pw8` (FreqShiftEcho),
-`content/presets/fx-master-chain.pw8` (all 4 GATE 10/11 algorithms arranged as
+together), `content/presets/fx-fractal-morph.murmur` (FractalEcho),
+`content/presets/fx-freq-echo.murmur` (FreqShiftEcho),
+`content/presets/fx-master-chain.murmur` (all 4 GATE 10/11 algorithms arranged as
 a realistic mastering chain across the 4 master slots: Eq -> Reverb ->
 Compressor -> Limiter, its Reverb slot updated in GATE 11 to demonstrate
 extended low-frequency ring, faster high-frequency decay, high diffusion/
 density, and gentle late-tank modulation), and
-`content/presets/gate4-massive-dark-metallic-bass.pw8` (predates the FX bank,
+`content/presets/gate4-massive-dark-metallic-bass.murmur` (predates the FX bank,
 listed here for completeness of the preset count). TapeDelay is exercised by a
 render regression test rather than a dedicated preset.
 
@@ -429,5 +429,5 @@ render regression test rather than a dedicated preset.
   compressing; there's no external sidechain source (e.g. keying a pad's
   compressor off a kick) since effects only ever see the one signal already
   flowing through their slot.
-- **`pw8-fuzz-render` effect randomization** -- see "What's covered by tests"
+- **`murmur-fuzz-render` effect randomization** -- see "What's covered by tests"
   above.

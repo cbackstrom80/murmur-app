@@ -8,14 +8,14 @@
 
 #include "EngineCard.h"
 #include "ModAssignmentController.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
     class EngineGridPanel : public juce::Component, private juce::Timer
     {
     public:
-        explicit EngineGridPanel(PatchworkEightProcessor& processor, ModAssignmentController& assignmentController);
+        explicit EngineGridPanel(MurmurProcessor& processor, ModAssignmentController& assignmentController);
         ~EngineGridPanel() override;
 
         void paint(juce::Graphics& g) override;
@@ -28,7 +28,7 @@ namespace pw8::plugin::ui
     private:
         void timerCallback() override;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         ModAssignmentController& assignmentController_;
         juce::Label headerLabel_;
         juce::Label polyBadgeLabel_;

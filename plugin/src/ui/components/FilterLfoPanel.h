@@ -15,7 +15,7 @@
 #include "FilterPanelScopeView.h"
 #include "SectionPanel.h"
 #include "WireframePanel.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "wireframe/FilterWireframeView.h"
 #include "wireframe/FilterRoutingWireframeView.h"
 #include "wireframe/LfoWireframeView.h"
@@ -33,7 +33,7 @@ namespace pw8::plugin::ui
     class FilterLfoPanel : public juce::Component
     {
     public:
-        explicit FilterLfoPanel(PatchworkEightProcessor& processor, ModAssignmentController& assignmentController);
+        explicit FilterLfoPanel(MurmurProcessor& processor, ModAssignmentController& assignmentController);
 
         void resized() override;
         void paint(juce::Graphics& g) override;
@@ -50,7 +50,7 @@ namespace pw8::plugin::ui
     private:
         void rebuildAttachments();
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         ModAssignmentController& assignmentController_;
         FilterPanelScope scope_ = FilterPanelScope::Global;
         int engineIndex_ = 0;

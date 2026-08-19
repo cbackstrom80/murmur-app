@@ -1,10 +1,10 @@
-# MURMUR (Patchwork Eight) — Product Gap Implementation Plan
+# MURMUR (MURMUR) — Product Gap Implementation Plan
 
 > **Note:** The accelerated implementation plan for **Gap 1 (DESIGN mode)** and **Gap 3 (wavetable warps)** is in [`DESIGN_AND_WARPS_PLAN.md`](DESIGN_AND_WARPS_PLAN.md).
 
 **Status:** PLAN (Aug 2026)  
 **Scope:** Six product gaps blocking competitive parity and sound-design workflow  
-**Repo:** `/Users/cbackstr/repos/patchwork-eight`  
+**Repo:** `/Users/cbackstr/repos/murmur-app`  
 **Audience:** Ben / product + engineering sequencing
 
 Grounded in the current codebase and existing docs (`ROADMAP.md`, `NEXT_STEPS.md`, `UI.md`, `UI_PAGED_LAYOUT.md`, `MOD_MATRIX_PLAN.md`, `MODULATION.md`, `DSP_ENGINE.md`, `COMPETITIVE_ANALYSIS.md`, `VISUALIZATION_UI_GATE5.md`, `PLUGIN_ARCHITECTURE.md`).
@@ -13,7 +13,7 @@ Grounded in the current codebase and existing docs (`ROADMAP.md`, `NEXT_STEPS.md
 
 ## Executive summary
 
-Patchwork Eight’s **DSP foundation is strong** (8 engines, typed algorithm graph, 29-source mod matrix, Filter 1, FX bank, PLAY-mode OBSIDIAN UI). The six gaps below are mostly **authoring UX**, **timbre breadth**, and **competitive sound-source coverage** — not missing core realtime infrastructure.
+MURMUR’s **DSP foundation is strong** (8 engines, typed algorithm graph, 29-source mod matrix, Filter 1, FX bank, PLAY-mode OBSIDIAN UI). The six gaps below are mostly **authoring UX**, **timbre breadth**, and **competitive sound-source coverage** — not missing core realtime infrastructure.
 
 **Recommended north star:** Ship **PLAY-mode depth + Filter 2 + analyzers + expanded mod UX** in Horizon 1 (Ben-ready), then **DESIGN mode MVP + wavetable warps + dual-filter routing** in Horizon 2, then **sampler/hybrid engine + full DESIGN** in Horizon 3.
 
@@ -93,7 +93,7 @@ These deliver user-visible value using existing schema/DSP:
 | **PLAY mode** | **IMPLEMENTED** — `plugin/src/ui/PlayModeEditor.{h,cpp}` with Basic/Advanced/Compact views, tabbed OSC/FILTER/ENV/MOD/FX pages, `NodeSelectorRow`, `PatchFocusPanel` (`uiFocus`), preset browser overlay |
 | **Graph display** | Read-only `AlgorithmGraphView` (legacy circular view) + compact `NodeSelectorRow`; topology editing explicitly out of PLAY scope (`docs/UI.md`) |
 | **Graph data** | `algorithm::AlgorithmGraphDefinition` in patch schema (`engine/include/pw8/algorithm/AlgorithmTypes.hpp`); compiled by `AlgorithmGraphCompiler` |
-| **CLI editing** | `pw8-graph inspect` (`tools/graph_inspector/main.cpp`) — read-only |
+| **CLI editing** | `murmur-graph inspect` (`tools/graph_inspector/main.cpp`) — read-only |
 | **Wavetable UI** | **Preview + assign only** — `WavetableStackView` (3D wireframe), Load/browse in `OperatorEditorPanel`; no sample editing |
 | **Mod matrix UI** | Partial PLAY routing via `ModRoutingOverlay`, `ModSourceStrip`, `ModAssignmentController`; full matrix not editable (`docs/MOD_MATRIX_PLAN.md`) |
 | **Mode switch** | DESIGN/LAB **PLANNED** — `plugin/src/ui/README.md`, `docs/PLUGIN_ARCHITECTURE.md` |
@@ -117,7 +117,7 @@ PLAY mode stays performance-first; DESIGN owns structural edits currently exclud
 | **MVP** | Mode shell + graph edge editor (add/remove edge, pick type, amount) + `loadPatch()` on commit | **L** | Reuse `AlgorithmGraphDefinition` validation; no node dragging required v1 |
 | **MVP+** | Full mod matrix grid/overlay in DESIGN (all sources/destinations, amount, scope) | **M** | Engine ready; mirror `Engine::setModRoutesLive()` batch publish |
 | **MVP+** | FX detail panels per slot (reuse `FxChainStrip` param spec tables from `PluginState.h`) | **M** | Mostly UI wiring |
-| **Full** | Wavetable frame editor + `pw8-wavetable-builder` integration | **XL** | New editor surface; consider embedded mini-builder vs. external tool handoff |
+| **Full** | Wavetable frame editor + `murmur-wavetable-builder` integration | **XL** | New editor surface; consider embedded mini-builder vs. external tool handoff |
 | **Full** | Visual graph layout (non-circular), edge legend, compile preview | **L** | Extend or replace `AlgorithmGraphView` |
 | **Full** | LAB mode (analysis, A/B render, MCP hooks) | **XL** | Separate mode; defer |
 
@@ -125,11 +125,11 @@ PLAY mode stays performance-first; DESIGN owns structural edits currently exclud
 
 | Layer | Paths |
 |---|---|
-| UI shell | New `DesignModeEditor.{h,cpp}`, mode switch in `PatchworkEightProcessor::createEditor()` |
+| UI shell | New `DesignModeEditor.{h,cpp}`, mode switch in `MurmurProcessor::createEditor()` |
 | Graph edit | `AlgorithmGraphView` or new `AlgorithmGraphEditor`, `algorithm/AlgorithmGraphCompiler.hpp`, patch serializer |
 | Mod edit | `ModRoutingOverlay.*`, `ModRoutingUi.*`, `ModMatrixTypes.hpp`, `Engine::setModRoutesLive()` |
 | Wavetable edit | `WavetableStackView.*`, `tools/wavetable_builder/main.cpp`, `WavetableTableLoader.hpp` |
-| Processor | `PatchworkEightProcessor.cpp` — structural patch commits, double-buffer engine swap |
+| Processor | `MurmurProcessor.cpp` — structural patch commits, double-buffer engine swap |
 | Docs | `docs/UI.md`, `docs/UI_PAGED_LAYOUT.md` (don’t conflate paged PLAY with DESIGN) |
 
 ## Dependencies
@@ -213,7 +213,7 @@ PLAY mode stays performance-first; DESIGN owns structural edits currently exclud
 ## Success criteria / acceptance tests
 
 1. A/B render: Filter 2 on vs off measurably increases harmonic energy above 2 kHz at same RMS
-2. Serial dual-filter: LP (Filter 1) → driven ladder (Filter 2) stable at max resonance — no NaN/Inf in 10 s hold (`pw8-fuzz-render` extended)
+2. Serial dual-filter: LP (Filter 1) → driven ladder (Filter 2) stable at max resonance — no NaN/Inf in 10 s hold (`murmur-fuzz-render` extended)
 3. Mod route to Filter 2 cutoff changes timbre on held note (`EngineLiveParamsTests` pattern)
 4. Preset: “character bass” using Filter 2 only (no insert saturation) passes ear check + peak < 1.0
 5. `pluginval` automation suite passes new parameters
@@ -358,7 +358,7 @@ Minimum viable story: *“Play a real sample through the same graph, filters, mo
 1. Load 30 s stereo WAV, play chromatic scale — correct pitch, no clicks at loop point
 2. Sample + Filter 1 modulated cutoff preset renders same quality as synth-only gate4 patch
 3. Memory: 50 MB sample map stays bounded; no realtime allocation on note-on
-4. Deterministic render: same seed + MIDI → identical output (headless `pw8-render`)
+4. Deterministic render: same seed + MIDI → identical output (headless `murmur-render`)
 5. One factory preset category “Hybrid” with 10 patches
 
 ---
@@ -397,7 +397,7 @@ Minimum viable story: *“Play a real sample through the same graph, filters, mo
 | Layer | Paths |
 |---|---|
 | Tap | New `plugin/src/dsp/AudioTapBuffer.{h,cpp}` |
-| Processor | `PatchworkEightProcessor.cpp` — write tap in `processBlock()` |
+| Processor | `MurmurProcessor.cpp` — write tap in `processBlock()` |
 | UI | New `SpectrumAnalyzerView.{h,cpp}`, `OscilloscopeView.{h,cpp}` |
 | Integration | `PlayModeEditor.cpp` FILTER or FX page; `CompactModeEditor` optional |
 | Docs | `VISUALIZATION_UI_GATE5.md`, `GPU_ACCELERATION_RESEARCH.md` (UI-only GPU) |
@@ -467,7 +467,7 @@ PLAY-mode modulation should feel **Phase Plant / Serum-class**:
 |---|---|
 | UI | `ModSourceStrip.*`, `ModSourcePalette.*`, `ModRoutingOverlay.*`, `ModRoutingUi.*`, `GlowKnob.*`, `ConcentricGlowKnob.*` |
 | Controller | `ModAssignmentController.h` |
-| Engine | `Engine::setModRoutesLive()`, `PatchworkEightProcessor::setOrReplaceModRouteLive()` |
+| Engine | `Engine::setModRoutesLive()`, `MurmurProcessor::setOrReplaceModRouteLive()` |
 | PLAY shell | `PlayModeEditor.cpp`, `FilterLfoPanel.*`, `PatchFocusPanel.*` |
 | Tests | `EngineLiveParamsTests.cpp`, extend for amount changes |
 
@@ -549,7 +549,7 @@ Each gap ships with:
 
 - Unit tests (DSP/UI logic)
 - Render regression (audible/measurable change)
-- `pw8-fuzz-render` extension for new randomizable fields
+- `murmur-fuzz-render` extension for new randomizable fields
 - `pluginval` + `auval` re-run
 
 ## Honesty principle (from `NEXT_STEPS.md`)
@@ -562,11 +562,11 @@ If a feature is schema-only (unison, Layer B), **reject or dim UI** until DSP ex
 
 | Gap | Primary touch points |
 |---|---|
-| 1 DESIGN | `plugin/src/ui/DesignModeEditor.*` (new), `AlgorithmGraphView.*`, `PatchworkEightProcessor.*`, `AlgorithmGraphCompiler.hpp` |
+| 1 DESIGN | `plugin/src/ui/DesignModeEditor.*` (new), `AlgorithmGraphView.*`, `MurmurProcessor.*`, `AlgorithmGraphCompiler.hpp` |
 | 2 Filter | `pw8/filter/CharacterFilter.hpp` (new), `Voice.hpp`, `Patch.hpp`, `FilterLfoPanel.*` |
 | 3 Warp | `WavetableOscillator.hpp`, `OperatorPatch`, `OperatorEditorPanel.*`, `WavetableStackView.*` |
 | 4 Sampler | `AlgorithmTypes.hpp`, `SampleOscillator.hpp` (new), `content/samples/`, `OperatorNode.hpp` |
-| 5 Analyzers | `AudioTapBuffer.*` (new), `SpectrumAnalyzerView.*`, `OscilloscopeView.*`, `PatchworkEightProcessor.cpp` |
+| 5 Analyzers | `AudioTapBuffer.*` (new), `SpectrumAnalyzerView.*`, `OscilloscopeView.*`, `MurmurProcessor.cpp` |
 | 6 Mod UX | `ModSourcePalette.*`, `ModSourceStrip.*`, `ModRoutingUi.*`, `GlowKnob.*`, `ModMatrixTypes.hpp` |
 
 ---

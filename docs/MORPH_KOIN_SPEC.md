@@ -192,7 +192,7 @@ Runtime morph applies **after** patch load baseline, **before** or **merged with
 
 ## 6. Example — CATHEDRAL NEBULA-style pad
 
-Illustrative JSON (metadata-first; based on `content/presets/factory/Interstellar/001-cathedral-nebula.pw8` character). Macro routes for BLOOM/SPACE unchanged from factory; morph adds **scene** between tight cathedral and wide nebula wash.
+Illustrative JSON (metadata-first; based on `content/presets/factory/Interstellar/001-cathedral-nebula.murmur` character). Macro routes for BLOOM/SPACE unchanged from factory; morph adds **scene** between tight cathedral and wide nebula wash.
 
 ```jsonc
 {
@@ -296,7 +296,7 @@ Serializer: round-trip `morphKoin` JSON (Horizon 2); executor **TODO Horizon 3**
 | PoliMATHS Spread | `docs/MAKE_NOISE_POLIMATHS_RESEARCH.md` |
 | Macro KOINS | `docs/ASM_MACRO_KOINS_RESEARCH.md` |
 | Patch format | `docs/PATCH_FORMAT.md` |
-| Example factory pad | `content/presets/factory/Interstellar/001-cathedral-nebula.pw8` |
+| Example factory pad | `content/presets/factory/Interstellar/001-cathedral-nebula.murmur` |
 
 ---
 

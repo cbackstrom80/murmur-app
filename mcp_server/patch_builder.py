@@ -78,7 +78,7 @@ def default_patch(name: str, description: str = "") -> dict:
         "metadata": {
             "id": f"pw8-mcp-{int(time.time())}",
             "name": name,
-            "author": "Patchwork Eight MCP server",
+            "author": "MURMUR MCP server",
             "description": description,
             "category": "",
             "moods": [],
@@ -124,8 +124,11 @@ def scratch_path(patch_id: str) -> Path:
     traversal since patch_id can come from an LLM-controlled tool call."""
     if "/" in patch_id or "\\" in patch_id or ".." in patch_id:
         raise ValueError(f"invalid patch_id '{patch_id}' -- must be a bare filename with no path separators")
-    if not patch_id.endswith(".pw8"):
-        patch_id += ".pw8"
+    # New scratch patches always use the current .murmur extension. Legacy .pw8
+    # patch_ids passed in explicitly still resolve correctly (no forced rename of
+    # an already-suffixed id) -- see docs/REBRAND_MURMUR.md.
+    if not patch_id.endswith(".pw8") and not patch_id.endswith(".murmur"):
+        patch_id += ".murmur"
     return SCRATCH_DIR / patch_id
 
 
@@ -145,7 +148,7 @@ def write_scratch(patch_id: str, patch: dict) -> Path:
 def create_patch(name: str, description: str = "") -> tuple[str, dict]:
     patch = default_patch(name, description)
     slug = "".join(c if c.isalnum() else "-" for c in name.lower()).strip("-") or "patch"
-    patch_id = f"{slug}-{int(time.time() * 1000) % 100000}.pw8"
+    patch_id = f"{slug}-{int(time.time() * 1000) % 100000}.murmur"
     write_scratch(patch_id, patch)
     return patch_id, patch
 

@@ -21,8 +21,8 @@ cmake --build --preset dev -j
 ctest --preset dev --output-on-failure
 ```
 
-This builds `pw8_core`, the CLI tools (`pw8-render`, `pw8-info`, `pw8-graph`,
-`pw8-wavetable-builder`, `pw8-fuzz-render`), and the Catch2 test suite. Confirmed
+This builds `pw8_core`, the CLI tools (`murmur-render`, `murmur-info`, `murmur-graph`,
+`murmur-wavetable-builder`, `murmur-fuzz-render`), and the Catch2 test suite. Confirmed
 working: 67 test cases / 811,735 assertions pass, all tools run and were smoke-tested against every
 file in `content/`.
 
@@ -35,7 +35,7 @@ file in `content/`.
 | `asan` | core + tests, Debug, AddressSanitizer | `cmake --build --preset asan && ctest --preset asan` |
 | `ubsan` | core + tests, Debug, UndefinedBehaviorSanitizer | |
 | `benchmarks` | core + Google Benchmark suite | build-verified; run `./build/benchmarks/benchmarks/pw8_benchmarks` |
-| `python` | core + `patchwork_eight` pybind11 module | requires Python dev headers; output at `build/python/python/patchwork_eight.cpython-*.so`; build-verified + smoke-tested |
+| `python` | core + `murmur` pybind11 module | requires Python dev headers; output at `build/python/python/murmur.cpython-*.so`; build-verified + smoke-tested |
 | `plugin` | core + `pw8_plugin` (JUCE) | build-verified: VST3/AU/Standalone all build against JUCE 8.0.6, AU passes `auval` -- see `docs/PLUGIN_ARCHITECTURE.md` for what's still missing (real UI, host-matrix testing) |
 
 Manual (non-preset) configure equivalent:
@@ -61,20 +61,20 @@ cmake --build build -j
 ## Running the CLI tools
 
 ```bash
-./build/dev/tools/pw8-info
+./build/dev/tools/murmur-info
 
-./build/dev/tools/pw8-render \
-    --patch content/presets/dark-bass.pw8 \
+./build/dev/tools/murmur-render \
+    --patch content/presets/dark-bass.murmur \
     --midi content/test_midi/bass-line.mid \
     --sample-rate 48000 --bpm 105 \
     --output /tmp/dark-bass.wav --receipt /tmp/dark-bass.receipt.json
 
-./build/dev/tools/pw8-graph inspect content/presets/fm-bell.pw8
+./build/dev/tools/murmur-graph inspect content/presets/fm-bell.murmur
 
-./build/dev/tools/pw8-wavetable-builder --input source.wav --output content/wavetables/my_table.json \
+./build/dev/tools/murmur-wavetable-builder --input source.wav --output content/wavetables/my_table.json \
     --frames 4 --samples-per-frame 2048 --mip-levels 10  # --samples-per-frame must be a power of two
 
-./build/dev/tools/pw8-fuzz-render --count 10000 --seed 1
+./build/dev/tools/murmur-fuzz-render --count 10000 --seed 1
 ```
 
 ## Benchmarks
@@ -101,7 +101,7 @@ Produces VST3, AU, and Standalone builds under
 Apple's own tool:
 
 ```bash
-cp -R "build/plugin/plugin/pw8_plugin_artefacts/Debug/AU/Patchwork Eight.component" \
+cp -R "build/plugin/plugin/pw8_plugin_artefacts/Debug/AU/MURMUR.component" \
     ~/Library/Audio/Plug-Ins/Components/
 killall -9 AudioComponentRegistrar   # forces auval to see the freshly-copied component
 auval -v aumu Pwe8 Pwei
@@ -117,8 +117,8 @@ cmake --preset python
 cmake --build --preset python -j
 python3 -c "
 import sys; sys.path.insert(0, 'build/python/python')
-import patchwork_eight as pw8
-patch = pw8.Patch.load('content/presets/init-saw.pw8')
+import murmur as pw8
+patch = pw8.Patch.load('content/presets/init-saw.murmur')
 print(pw8.render(patch, 'content/test_midi/single-note.mid')['metrics'])
 "
 ```

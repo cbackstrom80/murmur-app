@@ -2,7 +2,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -10,7 +10,7 @@ namespace pw8::plugin::ui
     class ArpStepStrip : public juce::Component, private juce::Timer
     {
     public:
-        explicit ArpStepStrip(PatchworkEightProcessor& processor);
+        explicit ArpStepStrip(MurmurProcessor& processor);
         ~ArpStepStrip() override;
 
         void paint(juce::Graphics& g) override;
@@ -43,7 +43,7 @@ namespace pw8::plugin::ui
         void paintStepLane(juce::Graphics& g, int localIndex, int globalIndex, juce::Rectangle<int> lane,
                            bool isPlayhead) const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         int laneWidth_ = 0;
         int contentWidth_ = 0;
         int pageStart_ = 0;

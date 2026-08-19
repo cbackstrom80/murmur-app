@@ -18,11 +18,11 @@ Two distinct features got proposed together; they're architecturally very
 different problems and are split out on purpose so neither accidentally
 blocks the other.
 
-## Part A: an MCP server over Patchwork Eight
+## Part A: an MCP server over MURMUR
 
 [Model Context Protocol](https://modelcontextprotocol.io) exposes a set of
 callable "tools" to any MCP-capable client -- Claude Desktop, Claude Code,
-and a growing list of others. A Patchwork Eight MCP server would let any of
+and a growing list of others. A MURMUR MCP server would let any of
 those clients read, build, and audition `.pw8` patches conversationally,
 without a plugin host or DESIGN-mode UI in the loop at all. This is
 low-risk, mostly-engineering, and buildable independent of Part B.
@@ -31,7 +31,7 @@ low-risk, mostly-engineering, and buildable independent of Part B.
 tools: introspection, scratch-patch construction/editing, rendering/
 validation) verified three ways -- direct unit-style calls
 (`smoke_test.py`), a real client session over the actual MCP stdio
-transport, and a real `pw8-render` pass on the resulting patch (no NaN/Inf,
+transport, and a real `murmur-render` pass on the resulting patch (no NaN/Inf,
 audible, passes the same low/mid/high-note validation the factory preset
 bank was checked against). See `mcp_server/README.md` for setup, the tool
 list, and a real gotcha it hit (`from __future__ import annotations`
@@ -46,7 +46,7 @@ already complete enough to build tools directly on top of:
 - **The patch schema** (boundary #3) -- `PatchSerializer`'s `toJson`/
   `fromJson` cover all 8 engine types' fields today (`docs/PATCH_FORMAT.md`),
   not just the subset the Python API wraps.
-- **The CLI** (boundary #1) -- `pw8-render`, `pw8-info`, `pw8-graph` are
+- **The CLI** (boundary #1) -- `murmur-render`, `murmur-info`, `murmur-graph` are
   already scriptable, file-in/file-out, no shared process state.
 
 Concretely: MCP tools should generate/edit raw `.pw8` JSON directly rather
@@ -87,7 +87,7 @@ make LLM-authored patches as safe as human-authored ones.
   (same "no engine pretends to work" honesty this project already applies
   elsewhere).
 - `validate_patch(patch_id)` -- the same finite/bounded check
-  `pw8-fuzz-render` already does, run against one specific patch before
+  `murmur-fuzz-render` already does, run against one specific patch before
   handing it back.
 
 ### Where it would live
@@ -111,7 +111,7 @@ repository, integrates through structured boundaries" philosophy
    client doesn't need filesystem access to hear the result.
 4. Not started: wiring this server into an actual client's default config,
    real usage beyond this repo's own smoke tests, and revisiting whether a
-   live in-process `Engine` (instead of shelling out to `pw8-render` per
+   live in-process `Engine` (instead of shelling out to `murmur-render` per
    call) matters once real usage patterns exist.
 
 ### Standalone live bridge (2026-08-17)
@@ -181,7 +181,7 @@ idea, not a first build.
   `PATCHWORK_INTEGRATION.md`.
 - Which LLM vendor/API, hosting infrastructure, and pricing are all
   deliberately undecided here -- this is scoping, not a build plan.
-- Whether this ships as part of Patchwork Eight itself vs. as a feature of
+- Whether this ships as part of MURMUR itself vs. as a feature of
   the separate "Patchwork" AI product it already has an integration
   boundary with (`PATCHWORK_INTEGRATION.md`'s "standalone repository, not
   coupled" framing) -- worth an explicit call before any real engineering

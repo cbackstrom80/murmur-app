@@ -87,7 +87,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    MurmurChromeBar::MurmurChromeBar(PatchworkEightProcessor& processor) : processor_(processor)
+    MurmurChromeBar::MurmurChromeBar(MurmurProcessor& processor) : processor_(processor)
     {
         presetNameLabel_.setFont(fonts::title(fonts::kPresetNameSize));
         presetNameLabel_.setColour(juce::Label::textColourId, palette::kFigmaTextPrimary);
@@ -758,7 +758,7 @@ namespace pw8::plugin::ui
             return;
 
         const auto path = processor_.getCurrentPresetPath();
-        const bool canOverwrite = PatchworkEightProcessor::isUserPresetPath(path);
+        const bool canOverwrite = MurmurProcessor::isUserPresetPath(path);
 
         juce::PopupMenu menu;
         if (canOverwrite)
@@ -780,24 +780,27 @@ namespace pw8::plugin::ui
 
     void MurmurChromeBar::launchSaveAsCopyDialog()
     {
-        const auto defaultDir = PatchworkEightProcessor::userPresetsDirectory();
+        const auto defaultDir = MurmurProcessor::userPresetsDirectory();
         defaultDir.createDirectory();
 
         const auto& meta = processor_.getCurrentPatch().metadata;
         juce::String suggested = meta.name.empty() ? juce::String("untitled") : juce::String(meta.name);
         suggested = suggested.replaceCharacter(' ', '-').toLowerCase();
-        if (!suggested.endsWithIgnoreCase(".pw8"))
-            suggested += ".pw8";
+        // New saves always default to the current .murmur extension -- see
+        // docs/REBRAND_MURMUR.md. The load-side filter (PatchBrowserBar) still accepts
+        // legacy .pw8 files; this is a save/write path, which only ever writes .murmur.
+        if (!suggested.endsWithIgnoreCase(".murmur"))
+            suggested += ".murmur";
 
         auto chooser = std::make_shared<juce::FileChooser>("Save patch as copy", defaultDir.getChildFile(suggested),
-                                                           "*.pw8");
+                                                           "*.murmur");
         chooser->launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles,
                              [this, chooser](const juce::FileChooser& fc) {
                                  auto file = fc.getResult();
                                  if (file == juce::File{})
                                      return;
-                                 if (!file.hasFileExtension("pw8"))
-                                     file = file.withFileExtension("pw8");
+                                 if (!file.hasFileExtension("murmur"))
+                                     file = file.withFileExtension("murmur");
                                  if (processor_.saveCurrentPatchToFile(file.getFullPathName()))
                                      refreshPresetDisplay();
                              });

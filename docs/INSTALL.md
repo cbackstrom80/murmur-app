@@ -8,7 +8,7 @@ Built for **Apple Silicon (M1/M2/M3/M4)** + **macOS 13+** + **Logic Pro** + **Ka
 
 ## Quick install (recommended — DMG)
 
-1. **Download** from [GitHub Releases](https://github.com/cbackstrom80/patchwork-eight/releases):
+1. **Download** from [GitHub Releases](https://github.com/cbackstrom80/murmur-app/releases):
    - `MURMUR-1.5.0-macOS-arm64-full.dmg`
 
 2. **Open the DMG** and read `1 — READ ME FIRST.txt`.
@@ -79,7 +79,7 @@ If macOS blocks the installer:
 
 ## Updating
 
-1. Download the latest `.dmg` or `.pkg` from [Releases](https://github.com/cbackstrom80/patchwork-eight/releases)
+1. Download the latest `.dmg` or `.pkg` from [Releases](https://github.com/cbackstrom80/murmur-app/releases)
 2. Run the installer (overwrites previous install)
 3. **Quit Logic completely**, reopen, **Reset & Rescan Selection**
 4. Confirm version **1.5.0** in the plug-in (footer or about)

@@ -10,7 +10,7 @@
 
 #include "ModAssignmentController.h"
 #include "ModSourceChip.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "pw8/modulation/ModMatrixTypes.hpp"
 
 namespace pw8::plugin::ui
@@ -19,7 +19,7 @@ namespace pw8::plugin::ui
     class DesignModMatrixPanel : public juce::Component, private juce::Timer
     {
     public:
-        DesignModMatrixPanel(PatchworkEightProcessor& processor, ModAssignmentController& assignmentController);
+        DesignModMatrixPanel(MurmurProcessor& processor, ModAssignmentController& assignmentController);
 
         std::function<void()> onClosed;
 
@@ -85,7 +85,7 @@ namespace pw8::plugin::ui
         void continueDepthDrag(float currentX);
         void endDepthDrag();
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         ModAssignmentController& assignmentController_;
 
         Shell shell_ = Shell::Inline;

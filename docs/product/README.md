@@ -44,8 +44,8 @@ When installed via the Ben MVP `.pkg`, copies of these guides also appear at:
 
 **MURMUR 1.0.1 — Ben MVP**  
 Primary format: **Audio Unit** (Logic Pro, Apple Silicon)  
-Release: [github.com/cbackstrom80/patchwork-eight/releases](https://github.com/cbackstrom80/patchwork-eight/releases)
+Release: [github.com/cbackstrom80/murmur-app/releases](https://github.com/cbackstrom80/murmur-app/releases)
 
 ---
 
-*MURMUR is developed by Patchwork Eight Engineering. Patch format: `.pw8` (JSON).*
+*MURMUR is developed by MURMUR Engineering. Patch format: `.pw8` (JSON).*

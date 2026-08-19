@@ -28,7 +28,7 @@ namespace pw8::plugin::ui
         };
     } // namespace
 
-    QuasarPrimaryKnobRow::QuasarPrimaryKnobRow(PatchworkEightProcessor& processor,
+    QuasarPrimaryKnobRow::QuasarPrimaryKnobRow(MurmurProcessor& processor,
                                                juce::AudioProcessorValueTreeState& apvts)
         : processor_(processor), apvts_(apvts)
     {

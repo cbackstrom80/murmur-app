@@ -50,7 +50,7 @@ namespace
                 continue;
             for (const auto& entry : fs::directory_iterator(dir))
             {
-                if (entry.path().extension() == ".pw8")
+                if (entry.path().extension() == ".murmur")
                     paths.push_back(entry.path());
             }
         }
@@ -88,7 +88,7 @@ TEST_CASE("Interstellar factory presets load under schema v3", "[patch][serializ
     std::size_t count = 0;
     for (const auto& entry : fs::directory_iterator(dir))
     {
-        if (entry.path().extension() != ".pw8")
+        if (entry.path().extension() != ".murmur")
             continue;
         INFO("preset: " << entry.path().filename().string());
         const auto patch = loadPresetFile(entry.path());
@@ -102,9 +102,9 @@ TEST_CASE("Interstellar factory presets load under schema v3", "[patch][serializ
 
 TEST_CASE("warp-bend-demo preset has audible bend on OP0", "[patch][serialization][factory]")
 {
-    const auto path = repoRoot() / "content/presets/factory/Warp/warp-bend-demo.pw8";
+    const auto path = repoRoot() / "content/presets/factory/Warp/warp-bend-demo.murmur";
     if (!fs::is_regular_file(path))
-        SKIP("Missing content/presets/factory/Warp/warp-bend-demo.pw8");
+        SKIP("Missing content/presets/factory/Warp/warp-bend-demo.murmur");
 
     const auto patch = loadPresetFile(path);
     REQUIRE(patch.layerA.operators[0].engine == algorithm::EngineType::Wavetable);
@@ -113,9 +113,9 @@ TEST_CASE("warp-bend-demo preset has audible bend on OP0", "[patch][serializatio
 
 TEST_CASE("feedback-bell factory preset matches template topology", "[patch][serialization][factory]")
 {
-    const auto path = repoRoot() / "content/presets/factory/Templates/feedback-bell.pw8";
+    const auto path = repoRoot() / "content/presets/factory/Templates/feedback-bell.murmur";
     if (!fs::is_regular_file(path))
-        SKIP("Missing content/presets/factory/Templates/feedback-bell.pw8");
+        SKIP("Missing content/presets/factory/Templates/feedback-bell.murmur");
 
     const auto patch = loadPresetFile(path);
     REQUIRE(patch.layerA.algorithm.edges.size() == 3);
@@ -135,9 +135,9 @@ TEST_CASE("feedback-bell factory preset matches template topology", "[patch][ser
 
 TEST_CASE("vocal-ext-vocoder sidechain showcase preset loads", "[patch][serialization][factory][sidechain]")
 {
-    const auto path = repoRoot() / "content/presets/factory/Sidechain/01-vocal-ext-vocoder.pw8";
+    const auto path = repoRoot() / "content/presets/factory/Sidechain/01-vocal-ext-vocoder.murmur";
     if (!fs::is_regular_file(path))
-        SKIP("Missing content/presets/factory/Sidechain/01-vocal-ext-vocoder.pw8");
+        SKIP("Missing content/presets/factory/Sidechain/01-vocal-ext-vocoder.murmur");
 
     const auto patch = loadPresetFile(path);
     REQUIRE(patch.layerA.operators[0].engine == algorithm::EngineType::External);
@@ -156,7 +156,7 @@ TEST_CASE("vocal-ext-vocoder sidechain showcase preset loads", "[patch][serializ
 
 TEST_CASE("Imogen Hide & Seek vocoder preset loads with 16 bands", "[patch][serialization][factory][sidechain]")
 {
-    const auto path = repoRoot() / "content/presets/factory/Sidechain/02-imogen-hide-seek-vocoder.pw8";
+    const auto path = repoRoot() / "content/presets/factory/Sidechain/02-imogen-hide-seek-vocoder.murmur";
     if (!fs::is_regular_file(path))
         SKIP("Missing Sidechain/02-imogen-hide-seek-vocoder.pw8");
 
@@ -168,7 +168,7 @@ TEST_CASE("Imogen Hide & Seek vocoder preset loads with 16 bands", "[patch][seri
 
 TEST_CASE("Def Leppard Love Bites vocoder preset loads rock stack", "[patch][serialization][factory][sidechain]")
 {
-    const auto path = repoRoot() / "content/presets/factory/Sidechain/05-def-leppard-love-bites-vocoder.pw8";
+    const auto path = repoRoot() / "content/presets/factory/Sidechain/05-def-leppard-love-bites-vocoder.murmur";
     if (!fs::is_regular_file(path))
         SKIP("Missing Sidechain/05-def-leppard-love-bites-vocoder.pw8");
 
@@ -182,7 +182,7 @@ TEST_CASE("Def Leppard Love Bites vocoder preset loads rock stack", "[patch][ser
 
 TEST_CASE("Interstellar Spatial preset embeds inline Quasar on master M3", "[patch][serialization][factory][quasar]")
 {
-    const auto path = repoRoot() / "content/presets/factory/Interstellar/Spatial/001-nebula-drift.pw8";
+    const auto path = repoRoot() / "content/presets/factory/Interstellar/Spatial/001-nebula-drift.murmur";
     if (!fs::is_regular_file(path))
         SKIP("Missing Interstellar/Spatial/001-nebula-drift.pw8");
 
@@ -202,7 +202,7 @@ TEST_CASE("Interstellar Spatial preset embeds inline Quasar on master M3", "[pat
 
 TEST_CASE("Interstellar legacy type-11 Quasar master slot loads as BinauralSpace", "[patch][serialization][factory]")
 {
-    const auto path = repoRoot() / "content/presets/factory/Interstellar/001-cathedral-nebula.pw8";
+    const auto path = repoRoot() / "content/presets/factory/Interstellar/001-cathedral-nebula.murmur";
     if (!fs::is_regular_file(path))
         SKIP("Missing Interstellar/001-cathedral-nebula.pw8");
 

@@ -15,7 +15,7 @@ namespace pw8::plugin::ui::wireframe
         }
     } // namespace
 
-    ClassicWireframeView::ClassicWireframeView(PatchworkEightProcessor& processor) : processor_(processor)
+    ClassicWireframeView::ClassicWireframeView(MurmurProcessor& processor) : processor_(processor)
     {
         startTimerHz(8);
     }
@@ -64,7 +64,7 @@ namespace pw8::plugin::ui::wireframe
                        });
     }
 
-    FmWireframeView::FmWireframeView(PatchworkEightProcessor& processor) : processor_(processor) { startTimerHz(8); }
+    FmWireframeView::FmWireframeView(MurmurProcessor& processor) : processor_(processor) { startTimerHz(8); }
 
     FmWireframeView::~FmWireframeView() { stopTimer(); }
 
@@ -116,7 +116,7 @@ namespace pw8::plugin::ui::wireframe
                        [&](float, int p) { return carrier_[static_cast<std::size_t>(p)]; });
     }
 
-    AdditiveWireframeView::AdditiveWireframeView(PatchworkEightProcessor& processor) : processor_(processor)
+    AdditiveWireframeView::AdditiveWireframeView(MurmurProcessor& processor) : processor_(processor)
     {
         startTimerHz(8);
     }
@@ -157,7 +157,7 @@ namespace pw8::plugin::ui::wireframe
                           [&](int i) { return heights_[static_cast<std::size_t>(i)]; });
     }
 
-    PhaseShapeWireframeView::PhaseShapeWireframeView(PatchworkEightProcessor& processor) : processor_(processor)
+    PhaseShapeWireframeView::PhaseShapeWireframeView(MurmurProcessor& processor) : processor_(processor)
     {
         startTimerHz(8);
     }
@@ -214,7 +214,7 @@ namespace pw8::plugin::ui::wireframe
                           });
     }
 
-    ResonatorWireframeView::ResonatorWireframeView(PatchworkEightProcessor& processor) : processor_(processor)
+    ResonatorWireframeView::ResonatorWireframeView(MurmurProcessor& processor) : processor_(processor)
     {
         startTimerHz(8);
     }
@@ -256,7 +256,7 @@ namespace pw8::plugin::ui::wireframe
                           [&](int i) { return heights_[static_cast<std::size_t>(i)]; });
     }
 
-    NoiseWireframeView::NoiseWireframeView(PatchworkEightProcessor& processor) : processor_(processor)
+    NoiseWireframeView::NoiseWireframeView(MurmurProcessor& processor) : processor_(processor)
     {
         startTimerHz(8);
     }

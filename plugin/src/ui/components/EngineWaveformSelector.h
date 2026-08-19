@@ -5,7 +5,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "wireframe/OscPreviewSampler.h"
 
 namespace pw8::plugin::ui
@@ -14,7 +14,7 @@ namespace pw8::plugin::ui
     class EngineWaveformSelector : public juce::Component, private juce::Timer
     {
     public:
-        EngineWaveformSelector(PatchworkEightProcessor& processor, int engineIndex);
+        EngineWaveformSelector(MurmurProcessor& processor, int engineIndex);
 
         void paint(juce::Graphics& g) override;
         void resized() override;
@@ -31,7 +31,7 @@ namespace pw8::plugin::ui
         [[nodiscard]] int cellIndexAt(juce::Point<int> pos) const;
         [[nodiscard]] juce::Rectangle<float> cellBounds(int index) const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         const int engineIndex_;
         int activeWaveform_ = 2;
         float animPhase_ = 0.0f;

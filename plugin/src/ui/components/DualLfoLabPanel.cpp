@@ -79,7 +79,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    DualLfoLabPanel::LfoColumn::LfoColumn(PatchworkEightProcessor& processor, std::size_t lfoIndex, const char* title,
+    DualLfoLabPanel::LfoColumn::LfoColumn(MurmurProcessor& processor, std::size_t lfoIndex, const char* title,
                                           juce::Colour accent)
         : panel(title, accent), wireframe(processor.apvts, lfoIndex), lfoIndex(lfoIndex)
     {
@@ -115,7 +115,7 @@ namespace pw8::plugin::ui
         panel.addAndMakeVisible(routingLegend);
     }
 
-    void DualLfoLabPanel::LfoColumn::rebind(PatchworkEightProcessor& processor, std::size_t newIndex, const char* title,
+    void DualLfoLabPanel::LfoColumn::rebind(MurmurProcessor& processor, std::size_t newIndex, const char* title,
                                             juce::Colour accent)
     {
         lfoIndex = newIndex;
@@ -175,7 +175,7 @@ namespace pw8::plugin::ui
         motion->setBounds(content.removeFromLeft(knobW * 2).removeFromTop(knobH).reduced(4));
     }
 
-    DualLfoLabPanel::DualLfoLabPanel(PatchworkEightProcessor& processor)
+    DualLfoLabPanel::DualLfoLabPanel(MurmurProcessor& processor)
         : processor_(processor),
           lfo1_(processor, 0, "LFO 1", palette::kAccent),
           lfo2_(processor, 1, "LFO 2", palette::kMurmurViolet),

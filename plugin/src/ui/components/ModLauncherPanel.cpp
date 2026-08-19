@@ -8,7 +8,7 @@
 
 namespace pw8::plugin::ui
 {
-    ModLauncherPanel::ModLauncherPanel(PatchworkEightProcessor& processor,
+    ModLauncherPanel::ModLauncherPanel(MurmurProcessor& processor,
                                         ModAssignmentController& assignmentController)
         : processor_(processor), modSourceStrip_(processor, assignmentController)
     {

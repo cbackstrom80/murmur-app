@@ -33,7 +33,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    IpadPlayMasterStrip::IpadPlayMasterStrip(PatchworkEightProcessor& processor)
+    IpadPlayMasterStrip::IpadPlayMasterStrip(MurmurProcessor& processor)
         : processor_(processor), visualizer_(processor.apvts, 0)
     {
         auto& apvts = processor.apvts;

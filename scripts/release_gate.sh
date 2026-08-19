@@ -69,7 +69,7 @@ if [[ -z "$VERSION" ]]; then
     VERSION="$(python3 - <<'PY'
 import re, pathlib
 text = pathlib.Path("CMakeLists.txt").read_text()
-m = re.search(r'project\s*\(\s*patchwork_eight\s*\n\s*VERSION\s+([0-9.]+)', text, re.M)
+m = re.search(r'project\s*\(\s*murmur\s*\n\s*VERSION\s+([0-9.]+)', text, re.M)
 print(m.group(1) if m else "0.0.0")
 PY
 )"

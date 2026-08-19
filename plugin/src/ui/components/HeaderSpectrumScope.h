@@ -7,7 +7,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "../visualizer/MurmurVisualizerComponent.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "ui/ScopeViewMode.h"
 #include "ui/ScopeVuMeter.h"
 
@@ -16,7 +16,7 @@ namespace pw8::plugin::ui
     class HeaderSpectrumScope : public juce::Component, private juce::Timer
     {
     public:
-        explicit HeaderSpectrumScope(PatchworkEightProcessor& processor);
+        explicit HeaderSpectrumScope(MurmurProcessor& processor);
         ~HeaderSpectrumScope() override;
 
         void setViewMode(ScopeViewMode mode);
@@ -44,7 +44,7 @@ namespace pw8::plugin::ui
         void syncGlMode();
         void paintGrid(juce::Graphics& g, juce::Rectangle<float> bounds) const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         ScopeViewMode viewMode_ = ScopeViewMode::Fft;
         juce::dsp::FFT fft_{kFftOrder};
         std::array<float, static_cast<std::size_t>(kFftSize * 2)> fftData_{};

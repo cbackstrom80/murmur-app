@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(patchwork_eight
+project(murmur
     VERSION 1.5.0
-    DESCRIPTION "Patchwork Eight -- AI-native dual-layer 8-engine algorithmic software synthesizer"
+    DESCRIPTION "MURMUR -- AI-native dual-layer 8-engine algorithmic software synthesizer"
     LANGUAGES CXX C)
 # C is only needed for the optional JUCE plugin target (a handful of JUCE's
 # helper/vendored bits are plain C); pw8_core and everything else here is pure C++.
@@ -59,7 +59,7 @@ if(PW8_BUILD_QUASAR_PLUGIN)
     add_subdirectory(quasar_plugin)
 endif()
 
-message(STATUS "patchwork-eight configuration:")
+message(STATUS "murmur configuration:")
 message(STATUS "  PW8_BUILD_TESTS            = ${PW8_BUILD_TESTS}")
 message(STATUS "  PW8_BUILD_TOOLS            = ${PW8_BUILD_TOOLS}")
 message(STATUS "  PW8_BUILD_PYTHON_BINDINGS  = ${PW8_BUILD_PYTHON_BINDINGS}")

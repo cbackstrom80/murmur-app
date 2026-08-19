@@ -6,7 +6,7 @@ Get from **download** to **playing a preset in Logic Pro** in under five minutes
 
 ## 1. Download & install
 
-1. Go to [GitHub Releases](https://github.com/cbackstrom80/patchwork-eight/releases).
+1. Go to [GitHub Releases](https://github.com/cbackstrom80/murmur-app/releases).
 2. Download **`MURMUR-1.0.0-macOS-arm64.pkg`** (or the `.dmg` wrapper).
 3. **Double-click** the `.pkg` and follow the installer.
    - Installs to your **home folder** — no admin password required.

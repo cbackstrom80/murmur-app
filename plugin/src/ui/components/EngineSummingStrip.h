@@ -9,7 +9,7 @@
 
 #include "GlowKnob.h"
 #include "SectionPanel.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 // GLOBAL-scope mixer: visualize and set per-operator Level before the layer bus.
 namespace pw8::plugin::ui
@@ -17,7 +17,7 @@ namespace pw8::plugin::ui
     class EngineSummingStrip : public juce::Component, private juce::Timer
     {
     public:
-        explicit EngineSummingStrip(PatchworkEightProcessor& processor);
+        explicit EngineSummingStrip(MurmurProcessor& processor);
         ~EngineSummingStrip() override;
 
         void setHighlightedEngine(int engineIndex);
@@ -37,7 +37,7 @@ namespace pw8::plugin::ui
 
         void timerCallback() override;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         SectionPanel panel_{"Engine Sum"};
         juce::Label helpLabel_;
         std::unique_ptr<GlowKnob> layerGainKnob_;

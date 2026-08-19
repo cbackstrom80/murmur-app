@@ -1,12 +1,12 @@
 # Prior Art & Design Lineage
 
-This document records where Patchwork Eight's architecture deliberately draws on
+This document records where MURMUR's architecture deliberately draws on
 prior work, per the master spec's requirement that inspiration be explicit and that
 nothing be cloned from a commercial product without attribution and reimplementation.
 
 ## Mutable Instruments `eurorack` (pichenettes/eurorack)
 
-At the user's request, Patchwork Eight's engine-type architecture and several DSP
+At the user's request, MURMUR's engine-type architecture and several DSP
 technique choices were reviewed against
 [pichenettes/eurorack](https://github.com/pichenettes/eurorack), Émilie Gillet's
 open-source Eurorack module firmware (Mutable Instruments). This is Eurorack module
@@ -20,7 +20,7 @@ option open (see [LICENSING.md](LICENSING.md)).
 is the conceptual mapping: which of our architectural decisions were informed by
 which module, and what we did differently or left for a later phase.
 
-| Mutable module | Concept borrowed | Where it shows up in Patchwork Eight |
+| Mutable module | Concept borrowed | Where it shows up in MURMUR |
 |---|---|---|
 | **Plaits** | A single oscillator slot that can become one of several unrelated synthesis algorithms, selected per-slot rather than hard-wired | `algorithm::EngineType` on every `AlgorithmNode` -- any of the 8 nodes in a layer can independently be Classic, Wavetable, FM/PM, Additive, Phase/Shape, Granular, Noise/Chaos, or Resonator. Plaits picks one engine per *voice*; we generalized it to one engine per *node*, composed through the algorithm graph. |
 | **Braids** | A single "macro-oscillator" spanning a wide waveform continuum via one morph parameter | `oscillator::ClassicOscillator`'s `morph` parameter (continuous Sine -> Triangle -> Saw -> Square sweep) in `ClassicOscillatorParams`. |
@@ -62,7 +62,7 @@ because nothing was taken from it beyond concept names.
 | **Spring Reverb** | Corroborates "room/plate/hall/large ambient" as the right category breadth for the PLANNED original FDN reverb (`pw8/effects/`, Phase 11) -- spring reverb specifically is not planned as its own algorithm, but reinforces that reverb *character* variety matters. |
 
 No DSP code, circuit topology, or implementation detail was read or reproduced from
-this repository -- it only confirmed that several already-planned Patchwork Eight
+this repository -- it only confirmed that several already-planned MURMUR
 features (layer/algorithm morph, step sequencing) correspond to
 well-established, generic modular-synthesis building blocks rather than needing
 invention from scratch conceptually.
@@ -82,7 +82,7 @@ STM32 modules, LUT-based control mapping, and gestural UX (live loop recording,
 crossfade geometry) rather than deep menu diving. The digital voice/FX code is
 original CC0 work, not MI-derived.
 
-| Super Synthesis module | Concept borrowed | Where it shows up in Patchwork Eight |
+| Super Synthesis module | Concept borrowed | Where it shows up in MURMUR |
 |---|---|---|
 | **PHRSR** (dual 1–16 step CV recorder) | Live loop-length recording; dual independent sequences; pow()-shaped rate; clock-delay compensation for DAC lag | Arp step strip, Morph timeline, Master Motion Lab — gestural step/motion recording UX (PLANNED / PARTIAL). |
 | **SCANNER** (4-way CV crossfade) | Single 0–5V input → four overlapping triangular 0–5V outputs | Morph hub, filter routing morph, layer morph — multi-target crossfade window geometry (adjacent to `MorphKoinExecutor`, `FilterRouting.hpp`). |
@@ -120,12 +120,12 @@ schematics/BOM only — no firmware. Digital modules share STM32CubeIDE firmware
   general category of module exists," to avoid GPL entanglement in a codebase that
   may ship closed-source. **Peaks is STM32/MIT** and is in scope for conceptual
   reference (see integration plan); it was previously misclassified here.
-- **Panel/UI/hardware design** -- out of scope; Patchwork Eight is software-only.
+- **Panel/UI/hardware design** -- out of scope; MURMUR is software-only.
   Super Synthesis DipTrace panels, Thonkiconn jack placement, and product industrial
   design are explicitly not referenced.
 - **Preset content, product names, or visual identity** -- none referenced.
   Super Synthesis product names (2OPFM, PHRSR, etc.) appear here only as module
-  identifiers for attribution, not as Patchwork Eight branding.
+  identifiers for attribution, not as MURMUR branding.
 
 ## Other influences
 

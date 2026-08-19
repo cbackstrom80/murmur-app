@@ -1,6 +1,6 @@
-// pw8-render -- native offline renderer CLI.
+// murmur-render -- native offline renderer CLI.
 //
-//   pw8-render --patch content/presets/dark-bass.pw8 \
+//   murmur-render --patch content/presets/dark-bass.murmur \
 //              --midi content/test_midi/bass.mid \
 //              --bpm 105 --sample-rate 48000 \
 //              --output /tmp/dark-bass.wav [--receipt /tmp/dark-bass.receipt.json]
@@ -38,11 +38,11 @@ namespace
     void printUsage()
     {
         std::cout <<
-            "pw8-render -- Patchwork Eight native offline renderer\n\n"
+            "murmur-render -- MURMUR native offline renderer\n\n"
             "Usage:\n"
-            "  pw8-render --patch <file.pw8> --midi <file.mid> --output <file.wav> [options]\n\n"
+            "  murmur-render --patch <file.murmur> --midi <file.mid> --output <file.wav> [options]\n\n"
             "Options:\n"
-            "  --patch <path>        Path to a .pw8 patch file (required)\n"
+            "  --patch <path>        Path to a .murmur (or legacy .pw8) patch file (required)\n"
             "  --midi <path>         Path to a Standard MIDI File (required)\n"
             "  --output <path>       Path to write the rendered WAV file (required)\n"
             "  --receipt <path>      Optional path to write a JSON render receipt\n"

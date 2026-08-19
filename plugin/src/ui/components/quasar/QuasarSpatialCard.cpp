@@ -23,7 +23,7 @@ namespace pw8::plugin::ui
         };
     } // namespace
 
-    QuasarSpatialCard::QuasarSpatialCard(PatchworkEightProcessor& processor,
+    QuasarSpatialCard::QuasarSpatialCard(MurmurProcessor& processor,
                                          juce::AudioProcessorValueTreeState& apvts)
         : processor_(processor), apvts_(apvts), panel_("SPATIAL", juce::Colour(0xffe040fb)), hpCompButton_("HP COMP OFF")
     {

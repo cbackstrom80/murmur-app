@@ -9,7 +9,7 @@ export default {
   id: 'murmur-dual-lfo-lab',
   imports: [
     '#include "DualLfoLabPanel.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 DualLfoLabPanel dualLfoLab_(processor_);

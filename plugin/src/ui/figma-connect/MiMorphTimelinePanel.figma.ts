@@ -8,7 +8,7 @@ export default {
   id: 'mi-morph-timeline-panel',
   imports: [
     '#include "MorphTimelineStrip.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 MorphTimelineStrip morphTimeline_(processor_);

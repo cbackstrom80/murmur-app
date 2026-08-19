@@ -112,7 +112,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    EngineDetailOverlay::EngineDetailOverlay(PatchworkEightProcessor& processor,
+    EngineDetailOverlay::EngineDetailOverlay(MurmurProcessor& processor,
                                              ModAssignmentController& modAssignmentController)
         : processor_(processor),
           operatorPanel_(processor, modAssignmentController),

@@ -8,7 +8,7 @@ export default {
   id: 'mi-play-master-dynamics',
   imports: [
     '#include "MasterOutputDeck.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 MasterOutputDeck masterDeck_(processor_);

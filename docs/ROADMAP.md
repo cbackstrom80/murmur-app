@@ -11,7 +11,7 @@ Status as of this repository's initial engineering pass. Legend: **DONE** / **PA
 | 4 | PM/FM/AM/RING typed modulation edges | **DONE** at the graph level (stretch goal achieved); a dedicated Engine Type 3 (FM/PM), a self-contained 2-operator FM voice in one node, is now also **IMPLEMENTED** (see DSP_ENGINE.md) |
 | 5 | Modulation (envelopes, LFO, mod matrix, macros, performance controls) | **IMPLEMENTED** -- 8 envelopes and 8 LFOs per layer (VOICE + LAYER/GLOBAL scope for LFOs), a mod matrix with 29 sources and 5 destinations, and 8 macros, all live-automatable via the plugin. See "GATE 5" below |
 | 6 | Filters (clean multimode, first character filter) | **PARTIAL** -- Filter 1 (TPT state-variable: LP/HP/BP/notch/peak, per-voice, mod-matrix-modulatable cutoff/resonance, key tracking) is **IMPLEMENTED**; Filter 2 (nonlinear character filter) PLANNED |
-| 7 | Unison / stereo (unison, voice drift, pan, width, center gravity) | **PARTIAL** -- data model present (`UnisonSettings`, `centerGravity` on `LayerPatch`); DSP wiring PLANNED. `content/presets/wide-saw.pw8` demonstrates the *effect* today via hand-detuned operators rather than an automated unison engine |
+| 7 | Unison / stereo (unison, voice drift, pan, width, center gravity) | **PARTIAL** -- data model present (`UnisonSettings`, `centerGravity` on `LayerPatch`); DSP wiring PLANNED. `content/presets/wide-saw.murmur` demonstrates the *effect* today via hand-detuned operators rather than an automated unison engine |
 | 8 | Dual layer (Layer A, Layer B, stack, layer morph) | **PARTIAL** -- schema complete (`LayerMode` enum, full `layerB` data), only `SINGLE_A` is actually voiced/rendered |
 | 9 | Algorithm morph (same-topology, different-topology) | **PLANNED** |
 | 10 | Additional engines (additive, phase/shape, noise, resonator, granular) | **DONE** -- NoiseChaos (Engine Type 7), PhaseShape (Engine Type 5), Additive (Engine Type 4), Resonator (Engine Type 8), and Granular (Engine Type 6) all **IMPLEMENTED**: 7 noise variants seeded via `dsp::DeterministicRng`, CZ-style phase distortion + wavefold, a 64-partial coupled-form oscillator bank with tilt/odd-even/stretch, a noise-excited modal filter bank via a new `Biquad::setBandpass()` primitive, and a fixed-capacity grain pool reading the same wavetableId-loaded data the Wavetable engine uses, respectively -- see DSP_ENGINE.md. Each landed as a separate, independently-verified PR. This closes out Phase 10's full engine set; all 8 `EngineType`s now render real audio. (FM/PM, also once part of this phase, ships under Phase 4 above.) |
@@ -24,7 +24,7 @@ Status as of this repository's initial engineering pass. Legend: **DONE** / **PA
 | 17 | UI | **PARTIAL** -- PLAY mode **IMPLEMENTED** (the OBSIDIAN skin, `createEditor()` returns a real custom editor); DESIGN/LAB modes and the other 9 named skins PLANNED. See UI.md |
 | 18 | AI features (Generate, Mutate, Breed, Lock) via Patchwork | **PLANNED** -- metadata hooks (`LockFlags`, `lineage`, deterministic seeding) exist; the AI pipeline itself lives in Patchwork. Also see docs/MCP_AND_NL_PATCH_GENERATION.md: its MCP server (Part A, `mcp_server/`) is **built and smoke-tested**; the natural-language "make me a laser sound" chat box (Part B) is still IDEA, not committed |
 | 19 | Factory bank (512-1024 curated presets) | **PLANNED** -- 7 engineering test patches exist (`content/presets/`), not factory-curated content |
-| 20 | Production hardening (host matrix, pluginval, auval, VST validator, fuzz tests, soak tests, perf optimization) | **PARTIAL** -- `auval` passes in full (see Phase 16); `pw8-fuzz-render` implemented and run (5,000 patches, 0 failures); `pluginval`, host matrix, and soak testing still PLANNED |
+| 20 | Production hardening (host matrix, pluginval, auval, VST validator, fuzz tests, soak tests, perf optimization) | **PARTIAL** -- `auval` passes in full (see Phase 16); `murmur-fuzz-render` implemented and run (5,000 patches, 0 failures); `pluginval`, host matrix, and soak testing still PLANNED |
 
 ## This pass's actual deliverable
 
@@ -70,7 +70,7 @@ merely described:
 - `benchmarks/` -- real Google Benchmark suite (oscillators, algorithm graph, voice,
   full-patch render at the master spec's exact 44.1/48/96 kHz x 1/8/16/32-voice
   matrix), built and run.
-- `tools/fuzz_render/` (`pw8-fuzz-render`) -- implemented and run: 5,000
+- `tools/fuzz_render/` (`murmur-fuzz-render`) -- implemented and run: 5,000
   randomly-generated, schema-valid, compiler-guaranteed-acyclic patches, zero
   failures, zero NaN/Inf.
 - `plugin/` -- actually built against JUCE (bumped 7.0.12 -> 8.0.6 after 7.0.12
@@ -102,7 +102,7 @@ highest-leverage next steps (items 2 and 3 below, prior to this pass):
   matrix routing/composition, plus 4 full-Engine regression tests proving the
   filter/LFO/tempo/mod-matrix chain actually changes rendered audio end to end) --
   56 total, all passing.
-- `pw8-fuzz-render` extended to randomize filter/LFO/mod-route parameters
+- `murmur-fuzz-render` extended to randomize filter/LFO/mod-route parameters
   (deliberately including max resonance and extreme mod amounts); 5,000-patch batch,
   zero failures.
 - Three factory presets updated to use real modulation instead of only
@@ -124,7 +124,7 @@ Closes the one concrete gap the Serum/Zebra research surfaced:
   `viewForFrequency(freq, sampleRate)`, a cheap (<=16-comparison) per-sample-safe
   scan that picks the highest-fidelity mip that won't alias at the current note and
   actual output sample rate.
-- `pw8-wavetable-builder` now generates real mip chains via FFT harmonic truncation
+- `murmur-wavetable-builder` now generates real mip chains via FFT harmonic truncation
   (schema v2: a `mips` array, each with `maxHarmonic` and its own frame data).
 - **Measured proof, not just plausible design**: `tests/unit/WavetableTableTests.cpp`
   synthesizes a harmonically rich table, renders the same high note through both the
@@ -137,11 +137,11 @@ Closes the one concrete gap the Serum/Zebra research surfaced:
   Resource Resolution" for why that's still PARTIAL) rather than always rendering
   silence on the Wavetable engine.
 - A new mod destination, `OperatorWavetablePosition`, and a real factory table +
-  preset (`content/wavetables/basic_harmonic.json`, `content/presets/wt-morph.pw8`)
+  preset (`content/wavetables/basic_harmonic.json`, `content/presets/wt-morph.murmur`)
   prove it audibly: an LFO continuously sweeps the wavetable frame position.
 - 17 new tests (FFT correctness/robustness, mip-selection logic, the aliasing-
   reduction proof, wavetable JSON loader roundtrip/robustness) -- 67 total, all
-  passing. `pw8-fuzz-render` batch (3,000 patches) and a full plugin rebuild +
+  passing. `murmur-fuzz-render` batch (3,000 patches) and a full plugin rebuild +
   `auval` re-validation both confirmed clean after the change.
 
 ## Follow-up pass: Arpeggiator (Phase 12 -> PARTIAL)
@@ -164,11 +164,11 @@ promise:
 - 10 new unit tests plus a render-level regression test that counts actual
   amplitude onsets in rendered audio (1 onset without the arp vs. 16 with it,
   exactly matching an 8 Hz/2s prediction) -- 78 total, all passing.
-- `content/presets/arp-pluck.pw8` -- a non-uniform 8-step pattern (accent, a
+- `content/presets/arp-pluck.murmur` -- a non-uniform 8-step pattern (accent, a
   ratcheted double-hit, a deliberate rest) rather than a plain up-arp, proving the
   per-step modifiers actually compose.
 - Full cross-build verification: all 4 configs (dev/benchmarks/python/plugin)
-  clean, `pw8-fuzz-render` (1,500 patches) zero failures, `auval` re-validated.
+  clean, `murmur-fuzz-render` (1,500 patches) zero failures, `auval` re-validated.
 - See [ARPEGGIATOR.md](ARPEGGIATOR.md) for full design detail and what's still
   PLANNED within Phase 12 (MSEG/mod-sequencer, arp-output MIDI channel handling).
 
@@ -212,14 +212,14 @@ algorithm invented specifically for this project. Full detail in
   `fx-freq-echo.pw8`), one of which (`fx-node-tree.pw8`) also demonstrates a
   layer insert slot and a master slot composing in the same patch.
 - Full cross-build verification: dev/benchmarks/python/plugin all clean,
-  `pw8-fuzz-render` (1,500 patches) zero failures, `auval` re-validated.
+  `murmur-fuzz-render` (1,500 patches) zero failures, `auval` re-validated.
 
 ## Follow-up pass: plugin parameter automation (Phase 16, continued)
 
 Closes the plugin's biggest gap between "builds and passes `auval`" and
 "usable in a real DAW session": nothing was host-automatable before this pass.
 
-- `PatchworkEightProcessor::apvts` (`juce::AudioProcessorValueTreeState`, built
+- `MurmurProcessor::apvts` (`juce::AudioProcessorValueTreeState`, built
   from `plugin::createParameterLayout()`): 8 `AudioParameterFloat`s, one per
   macro, matching the master spec's "8 routable macros" surface.
 - Made it actually *work*, not just publish: `render::Engine::setMacroValue()`
@@ -316,7 +316,7 @@ A later, more detailed product brief for this project introduced an explicit
 sonic acceptance gate before further feature work: build a
 "MASSIVE DARK EVOLVING METALLIC BASS" using only what's *actually implemented*
 today, and if it's mediocre, stop adding features and fix fundamentals
-instead. `content/presets/gate4-massive-dark-metallic-bass.pw8` is that patch,
+instead. `content/presets/gate4-massive-dark-metallic-bass.murmur` is that patch,
 built entirely from real, already-shipped DSP -- no dedicated unison engine
 (not DSP-wired yet, Phase 7) and no dedicated FM/Resonator engine type
 (silent, Phase 10 PLANNED) were needed:
@@ -391,7 +391,7 @@ LFOs, and VOICE+LAYER/GLOBAL mod scope. Full design rationale in
 - 6 new tests (2 ModMatrixExecutor scope tests, 1 LAYER-scope render regression
   test, 2 migration tests, 1 fuzz-tool coverage extension randomizing all 8
   envelopes/LFOs and the full 29-source/3-scope space) -- 107 total, all
-  passing. `pw8-fuzz-render` (1,500+ patches across batches) zero failures.
+  passing. `murmur-fuzz-render` (1,500+ patches across batches) zero failures.
 - All 4 build configs (dev/benchmarks/python/plugin) rebuilt clean; Python
   bindings' minimal envelope API repointed at `envelopes[0]` (unchanged
   behavior, same PARTIAL API-surface scope as before -- exposing all 8
@@ -426,13 +426,13 @@ Full design detail in [FX_BANK.md](FX_BANK.md) "GATE 10"; summary:
   parameters** as a direct consequence (43 fields x 7 FX slots = 301, up from
   161). `auval` confirms 501 published parameters; `pluginval
   --strictness-level 5` re-confirmed SUCCESS on both VST3 and AU.
-- `pw8-fuzz-render`'s `randomPatch()` now randomizes all 7 `EffectSlotParams`
+- `murmur-fuzz-render`'s `randomPatch()` now randomizes all 7 `EffectSlotParams`
   slots for the first time (closing a gap that had persisted across the
   arpeggiator, original FX bank, and GATE 5 passes) -- 1,000 fully-randomized
   patches (seed 13), zero failures.
 - 9 new unit tests + 2 new render-level regression tests -- 118 total, all
   passing.
-- `content/presets/fx-master-chain.pw8` -- all 4 new algorithms arranged
+- `content/presets/fx-master-chain.murmur` -- all 4 new algorithms arranged
   across the master bus's 4 slots the way a real mix would use them
   (Eq -> Reverb -> Compressor -> Limiter).
 
@@ -488,9 +488,9 @@ detail and research citations in [FX_BANK.md](FX_BANK.md) "GATE 11"; summary:
   crest-factor reduction, modulation stability at maximum depth/rate over a
   20-second decay, early/late independence, VLF Cut/Roll Off's targeted-band
   attenuation, and Size/decay decoupling) -- 125 total tests, all passing.
-- `pw8-fuzz-render` -- 1,000 fully-randomized patches (seed 14) now exercising
+- `murmur-fuzz-render` -- 1,000 fully-randomized patches (seed 14) now exercising
   Reverb's full new 15-field shape, zero failures.
-- `content/presets/fx-master-chain.pw8`'s Reverb slot updated to demonstrate
+- `content/presets/fx-master-chain.murmur`'s Reverb slot updated to demonstrate
   the new capability (extended low-frequency ring, faster high-frequency
   decay, high diffusion/density, gentle late-tank modulation).
 
@@ -514,7 +514,7 @@ see [UI.md](UI.md). Summary:
   signal-flow pulse; self-feedback loops and not-yet-implemented engine types
   (dashed ring) both render distinctly. Verified against a real patch with
   edges (`fm-bell.pw8`), not just the edge-less default init patch.
-  `PatchworkEightProcessor` gained a message-thread-only `getCurrentPatch()`
+  `MurmurProcessor` gained a message-thread-only `getCurrentPatch()`
   accessor for this.
 - `MacroStrip`, `FilterLfoPanel`, `FxChainStrip`, `PatchBrowserBar` -- the
   rest of PLAY mode's one screen, all live-wired to real APVTS parameters via
@@ -563,6 +563,31 @@ was paint-only, and GATE 3's mod-route live-editing path deliberately stays
 outside the host-automation surface, same as the mod-route list always has
 been). 126 tests total, all passing (+1 from GATE 3's
 `Engine::setModRoutesLive` coverage).
+
+## GATE 12: Rebrand to MURMUR (repo, file extension, tooling)
+
+Not a DSP/UI pass -- infrastructure/branding work, kept in this file for the same
+reason every other gate is: it's the project's running log of major completed/in-progress
+efforts. Full decisions record, real inventory counts, and step-by-step sequencing in
+[REBRAND_MURMUR.md](REBRAND_MURMUR.md). Status: IN PROGRESS (Steps 1-3 of that doc --
+inventory, extension-handling code, cosmetic/identifier renames -- are done; mass preset
+rename, CLI tool renames, full verification, and the repo rename itself have not
+started).
+
+Summary: the plugin's own bundle identity (`com.patchwork.murmur`, `PRODUCT_NAME
+"MURMUR"`) has been correct since the first real release, `v1.0.0` -- verified via
+`git show v1.0.0:plugin/CMakeLists.txt`, not touched by this gate. What was still
+old-branded, now fixed in Steps 1-3: this repo's own CMake `project()` name
+(`patchwork_eight` -> `murmur`), the `PatchworkEightProcessor` class (-> `MurmurProcessor`,
+150+ dependent files, compiler-verified), the Python binding module
+(`patchwork_eight` -> `murmur`, compiler-verified), and the docs/prose pass. Still
+pending: the repo's own name on GitHub (`patchwork-eight` -> `murmur-app`), the
+`.pw8` patch extension (dual-read code already lands in Step 2; the actual mass rename of
+the 1,158 files themselves is Step 4), the `pw8-` prefix baked into those files'
+`metadata.id` field (same Step 4), and the `pw8-*` CLI tool names (Step 5). The
+internal C++ `pw8::` namespace and `pw8_core`/`pw8_plugin` CMake target names are a
+**deliberate, permanent non-change** (401 files, purely internal, no user-facing value)
+-- documented so a future pass doesn't "finish the job" by accident.
 
 ## Immediate next steps (suggested, not committed)
 

@@ -6,7 +6,7 @@ Fixes the blank/incompatible experience reported on the 1.2.0 GitHub download: t
 
 ## Install (Ben)
 
-1. Download **`MURMUR-1.4.0-macOS-arm64-full.dmg`** from [GitHub Releases](https://github.com/cbackstrom80/patchwork-eight/releases)
+1. Download **`MURMUR-1.4.0-macOS-arm64-full.dmg`** from [GitHub Releases](https://github.com/cbackstrom80/murmur-app/releases)
 2. Open the DMG → double-click **`Install MURMUR.pkg`**
 3. If Gatekeeper blocks it: **right-click → Open → Open**
 4. **Quit Logic completely**, reopen

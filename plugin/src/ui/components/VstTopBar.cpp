@@ -42,7 +42,7 @@ namespace pw8::plugin::ui
         };
     } // namespace
 
-    VstTopBar::VstTopBar(PatchworkEightProcessor& processor)
+    VstTopBar::VstTopBar(MurmurProcessor& processor)
         : arpLauncherChip_(processor)
     {
         compactViewButton_ = std::make_unique<CompactViewIconButton>();

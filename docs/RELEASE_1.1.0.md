@@ -30,7 +30,7 @@ Ships **Global Quasar FX Phase 3 polish**, **runtime Morph KOIN executor**, **AU
 
 ## Install
 
-Download **`MURMUR-1.1.0-macOS-arm64.pkg`** from [GitHub Releases](https://github.com/cbackstrom80/patchwork-eight/releases/tag/v1.1.0). Double-click the installer, quit Logic, rescan AU if prompted.
+Download **`MURMUR-1.1.0-macOS-arm64.pkg`** from [GitHub Releases](https://github.com/cbackstrom80/murmur-app/releases/tag/v1.1.0). Double-click the installer, quit Logic, rescan AU if prompted.
 
 Optional: **`MURMUR-1.1.0-macOS-arm64.dmg`**
 

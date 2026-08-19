@@ -12,7 +12,7 @@
 
 namespace pw8::plugin::ui
 {
-    PatchFocusPanel::PatchFocusPanel(PatchworkEightProcessor& processor) : processor_(processor)
+    PatchFocusPanel::PatchFocusPanel(MurmurProcessor& processor) : processor_(processor)
     {
         addAndMakeVisible(panel_);
         panel_.setInterceptsMouseClicks(false, true);

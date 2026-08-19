@@ -2,7 +2,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "ui/ScopeVuMeter.h"
 
 namespace pw8::plugin::ui
@@ -13,7 +13,7 @@ namespace pw8::plugin::ui
     public:
         static constexpr int kNumSegments = 12;
 
-        explicit QuasarSegmentedMeter(PatchworkEightProcessor& processor);
+        explicit QuasarSegmentedMeter(MurmurProcessor& processor);
 
         void tick();
         void paint(juce::Graphics& g) override;
@@ -22,7 +22,7 @@ namespace pw8::plugin::ui
         void paintColumn(juce::Graphics& g, juce::Rectangle<float> bounds, const char* label,
                          const scope::VuBallistics& vu) const;
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         scope::VuBallistics inVu_;
         scope::VuBallistics outVu_;
     };

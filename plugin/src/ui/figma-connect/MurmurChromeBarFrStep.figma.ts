@@ -8,7 +8,7 @@ export default {
   id: 'mi-chrome-fr-step-badge',
   imports: [
     '#include "MurmurChromeBar.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 MurmurChromeBar chromeBar_(processor_);

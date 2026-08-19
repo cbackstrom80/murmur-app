@@ -52,7 +52,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    HeaderSpectrumScope::HeaderSpectrumScope(PatchworkEightProcessor& processor) : processor_(processor)
+    HeaderSpectrumScope::HeaderSpectrumScope(MurmurProcessor& processor) : processor_(processor)
     {
         rebuildWindow();
         if (murmur8::visualizerGpuEnabled())

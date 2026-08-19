@@ -78,7 +78,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    WavetableLabPanel::WavetableLabPanel(PatchworkEightProcessor& processor,
+    WavetableLabPanel::WavetableLabPanel(MurmurProcessor& processor,
                                          ModAssignmentController& assignmentController)
         : processor_(processor),
           assignmentController_(assignmentController),

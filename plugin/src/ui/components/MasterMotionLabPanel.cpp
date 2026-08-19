@@ -73,7 +73,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    MasterMotionLabPanel::LfoColumn::LfoColumn(PatchworkEightProcessor& processor, std::size_t lfoIndex,
+    MasterMotionLabPanel::LfoColumn::LfoColumn(MurmurProcessor& processor, std::size_t lfoIndex,
                                                  const char* title, juce::Colour accentColour)
         : panel(title, accentColour), wireframe(processor.apvts, lfoIndex), accent(accentColour), lfoIndex(lfoIndex)
     {
@@ -158,7 +158,7 @@ namespace pw8::plugin::ui
                                .reduced(1));
     }
 
-    MasterMotionLabPanel::MasterMotionLabPanel(PatchworkEightProcessor& processor)
+    MasterMotionLabPanel::MasterMotionLabPanel(MurmurProcessor& processor)
         : processor_(processor),
           morphTimeline_(processor),
           envelopePanel_(processor),

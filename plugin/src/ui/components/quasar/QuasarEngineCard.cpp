@@ -19,7 +19,7 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    QuasarEngineCard::QuasarEngineCard(PatchworkEightProcessor& processor,
+    QuasarEngineCard::QuasarEngineCard(MurmurProcessor& processor,
                                        juce::AudioProcessorValueTreeState& apvts)
         : processor_(processor), apvts_(apvts), panel_("BINAURAL ENGINE", juce::Colour(0xff00c8ff))
     {

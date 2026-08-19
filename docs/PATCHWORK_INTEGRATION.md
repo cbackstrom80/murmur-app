@@ -1,27 +1,27 @@
 # Patchwork Integration Boundary
 
-Patchwork Eight is a **standalone repository**, deliberately not coupled to the
+MURMUR is a **standalone repository**, deliberately not coupled to the
 existing Patchwork AI repository. Patchwork consumes this repository as a
 dependency/service/library through one of four boundaries:
 
-1. **CLI** -- `pw8-render`, `pw8-info`, `pw8-graph`, `pw8-wavetable-builder`
+1. **CLI** -- `murmur-render`, `murmur-info`, `murmur-graph`, `murmur-wavetable-builder`
    (`tools/`). Stable, file-in/file-out, no shared process state. This is the
    lowest-integration-risk boundary and works today for any headless render
    pipeline (see [RENDERER.md](RENDERER.md)).
-2. **Python API** -- `patchwork_eight` (`bindings/python/`). See
+2. **Python API** -- `murmur` (`bindings/python/`). See
    [PYTHON_API.md](PYTHON_API.md) for current coverage. This is the natural
    integration point for Patchwork's generation/scoring loop (candidate rendering,
    QA metrics) once it needs in-process rather than subprocess calls.
 3. **Patch schema** -- `.pw8` JSON, versioned (`schemaVersion`), documented in
    [PATCH_FORMAT.md](PATCH_FORMAT.md). Patchwork can read/write this directly
-   without linking any Patchwork Eight code at all, as long as it respects the
+   without linking any MURMUR code at all, as long as it respects the
    schema.
 4. **Sound IR adapter boundary** -- see below. **PLANNED**, not implemented.
 
 ## Sound IR
 
 Patchwork's internal "Sound IR" (its engine-agnostic sound description) and
-Patchwork Eight's native `Patch` are deliberately **not** the same representation --
+MURMUR's native `Patch` are deliberately **not** the same representation --
 forcing them to be identical would compromise the native patch format's own design
 (see PATCH_FORMAT.md's operator/algorithm-graph specificity, which has no reason to
 exist in a general-purpose cross-engine IR).
@@ -49,9 +49,9 @@ compile into. Building the actual IR->Patch compiler is Patchwork-repository wor
 Per the master spec, **AI inference does not run inside this repository's audio
 thread, and doesn't run inside this repository at all in this pass.** Generate/
 Mutate/Breed/directed-mutation belong in Patchwork (background process / Python),
-which talks to Patchwork Eight only through structured patches and the render API.
+which talks to MURMUR only through structured patches and the render API.
 
-What Patchwork Eight *does* provide today to make that pipeline possible later:
+What MURMUR *does* provide today to make that pipeline possible later:
 
 - `LockFlags` on every patch (`lockSources`/`lockAlgorithm`/`lockFilters`/
   `lockModulation`/`lockEffects`/`lockSequence`) -- generation-control metadata the

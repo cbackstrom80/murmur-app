@@ -10,7 +10,7 @@
 #include "../GlowKnob.h"
 #include "../GlowRingButton.h"
 #include "../SectionPanel.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 
 namespace pw8::plugin::ui
 {
@@ -18,7 +18,7 @@ namespace pw8::plugin::ui
     class QuasarSpatialCard : public juce::Component
     {
     public:
-        QuasarSpatialCard(PatchworkEightProcessor& processor, juce::AudioProcessorValueTreeState& apvts);
+        QuasarSpatialCard(MurmurProcessor& processor, juce::AudioProcessorValueTreeState& apvts);
 
         void bindSlot(std::size_t globalFxSlotIndex);
         void refresh();
@@ -33,7 +33,7 @@ namespace pw8::plugin::ui
         void stylePill(juce::TextButton& btn, const juce::String& text);
         void highlightPill(juce::TextButton& btn, bool active);
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         juce::AudioProcessorValueTreeState& apvts_;
         std::size_t slotIndex_ = 5;
         SectionPanel panel_{"SPATIAL", juce::Colour(0xffe040fb)};

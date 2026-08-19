@@ -7,7 +7,7 @@ export default {
   id: 'engine-oscillator-picker',
   imports: [
     '#include "EngineOscillatorPicker.h"',
-    '#include "processor/PatchworkEightProcessor.h"',
+    '#include "processor/MurmurProcessor.h"',
   ],
   example: figma.code`
 EngineOscillatorPicker picker_(processor_, engineIndex);

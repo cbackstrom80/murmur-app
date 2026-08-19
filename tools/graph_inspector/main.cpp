@@ -1,7 +1,7 @@
-// pw8-graph -- developer tool for inspecting a patch's algorithm graph before any
+// murmur-graph -- developer tool for inspecting a patch's algorithm graph before any
 // graphical UI exists.
 //
-//   pw8-graph inspect content/presets/fm-bell.pw8
+//   murmur-graph inspect content/presets/fm-bell.murmur
 
 #include <fstream>
 #include <iostream>
@@ -98,7 +98,7 @@ int main(int argc, char** argv)
 {
     if (argc < 3 || std::string(argv[1]) != "inspect")
     {
-        std::cerr << "Usage: pw8-graph inspect <preset.pw8>\n";
+        std::cerr << "Usage: murmur-graph inspect <preset.murmur>\n";
         return 2;
     }
 

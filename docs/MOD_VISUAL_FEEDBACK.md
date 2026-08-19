@@ -89,7 +89,7 @@ When a macro has ≥1 active outbound route:
 | [`plugin/src/ui/theme/DeckedKnobDraw.h`](../plugin/src/ui/theme/DeckedKnobDraw.h) | Thicker inner value arcs on decked knobs |
 | [`plugin/src/ui/theme/ObsidianLookAndFeel.cpp`](../plugin/src/ui/theme/ObsidianLookAndFeel.cpp) | Thicker value arcs on standard rotaries |
 | [`plugin/src/ui/ModPreview.hpp`](../plugin/src/ui/ModPreview.hpp) | Offset → modulated param value → normalized 0..1 |
-| [`plugin/src/processor/PatchworkEightProcessor.cpp`](../plugin/src/processor/PatchworkEightProcessor.cpp) | `buildModPreviewSources()`, `getHostBpm()` |
+| [`plugin/src/processor/MurmurProcessor.cpp`](../plugin/src/processor/MurmurProcessor.cpp) | `buildModPreviewSources()`, `getHostBpm()` |
 | [`plugin/src/ui/components/GlowKnob.cpp`](../plugin/src/ui/components/GlowKnob.cpp) | Mod ring + ghost pointer overlays |
 | [`plugin/src/ui/components/PatchFocusPanel.cpp`](../plugin/src/ui/components/PatchFocusPanel.cpp) | Ring legend label, featured KOIN wiring |
 | [`plugin/src/ui/components/ModRoutingUi.cpp`](../plugin/src/ui/components/ModRoutingUi.cpp) | `findModDestinationForApvtsParam()` |

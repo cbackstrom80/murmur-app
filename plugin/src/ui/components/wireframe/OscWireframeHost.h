@@ -4,7 +4,7 @@
 
 #include "../WavetableStackView.h"
 #include "EngineWireframeViews.h"
-#include "processor/PatchworkEightProcessor.h"
+#include "processor/MurmurProcessor.h"
 #include "pw8/algorithm/AlgorithmTypes.hpp"
 
 namespace pw8::plugin::ui
@@ -13,7 +13,7 @@ namespace pw8::plugin::ui
     class OscWireframeHost : public juce::Component
     {
     public:
-        explicit OscWireframeHost(PatchworkEightProcessor& processor);
+        explicit OscWireframeHost(MurmurProcessor& processor);
 
         void resized() override;
         void showNode(int nodeIndex);
@@ -25,7 +25,7 @@ namespace pw8::plugin::ui
     private:
         void showViewForEngine(algorithm::EngineType engine);
 
-        PatchworkEightProcessor& processor_;
+        MurmurProcessor& processor_;
         int nodeIndex_ = 0;
         algorithm::EngineType engine_ = algorithm::EngineType::Classic;
 

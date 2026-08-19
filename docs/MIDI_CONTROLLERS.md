@@ -1,6 +1,6 @@
 # MIDI Controllers (Logic Pro + MURMUR)
 
-Quick reference for sound-design performance in Logic Pro with MURMUR / Patchwork Eight.
+Quick reference for sound-design performance in Logic Pro with MURMUR / MURMUR.
 
 ## Standard factory MIDI layout
 

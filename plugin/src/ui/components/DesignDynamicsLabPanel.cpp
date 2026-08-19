@@ -21,7 +21,7 @@ namespace pw8::plugin::ui
         }
     }
 
-    DesignDynamicsLabPanel::DesignDynamicsLabPanel(PatchworkEightProcessor& processor) : processor_(processor)
+    DesignDynamicsLabPanel::DesignDynamicsLabPanel(MurmurProcessor& processor) : processor_(processor)
     {
         titleLabel_.setText("DYNAMICS LAB", juce::dontSendNotification);
         titleLabel_.setFont(fonts::label(14.0f));

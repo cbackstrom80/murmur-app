@@ -980,7 +980,7 @@ def feature_matrix():
     warp_param_keys = ("wtBend", "wtAsymmetry", "wtSyncRatio", "wtSyncAmount", "wtFormantShift")
     warp_mod_dests = {DST_WT_BEND, DST_WT_ASYM, DST_WT_SYNC, DST_WT_FORMANT}
 
-    for pw8 in sorted(OUT_DIR.glob("*.pw8")):
+    for pw8 in sorted(OUT_DIR.glob("*.pw8")) + sorted(OUT_DIR.glob("*.murmur")):
         data = json.loads(pw8.read_text())
         layer_a = data.get("layerA", {})
         active_ops = [op for op in layer_a.get("operators", []) if op.get("level", 0) > 0]
@@ -1037,12 +1037,12 @@ def feature_matrix():
         "stack": has_stack,
         "arp": has_arp,
         "fx": has_fx,
-        "total": len(list(OUT_DIR.glob("*.pw8"))),
+        "total": len(list(OUT_DIR.glob("*.pw8"))) + len(list(OUT_DIR.glob("*.murmur"))),
     }
 
 
 def engine_highlight_for_slot(slot: int) -> str:
-    fname = OUT_DIR / f"{slot:03d}-{slugify(PRESET_CATALOG[slot - 1][0])}.pw8"
+    fname = OUT_DIR / f"{slot:03d}-{slugify(PRESET_CATALOG[slot - 1][0])}.murmur"
     if not fname.exists():
         return "—"
     data = json.loads(fname.read_text())
@@ -1098,14 +1098,14 @@ def write_readme():
     categories_block = "\n".join(category_sections)
     readme = f"""# Interstellar Factory Presets
 
-100 cinematic, research-grounded **Interstellar** patches for MURMUR / Patchwork Eight —
+100 cinematic, research-grounded **Interstellar** patches for MURMUR —
 real astrophysics vocabulary (nebulae, pulsars, CMB, accretion disks), sci-fi film aesthetics
 (Interstellar, Contact, 2001, Arrival), and full engine coverage (8 operators, wavetable warps,
 Filter 2, granular, FM, stack mode).
 
 ## Browse in Logic / your DAW
 
-1. Insert **MURMUR** (Patchwork Eight) on an instrument track.
+1. Insert **MURMUR** on an instrument track.
 2. Open the **Browse** preset overlay (or Load on the preset bar).
 3. Filter category to **interstellar** or search tags `interstellar`, `cinematic`, `cosmic`.
 4. Files ship at `content/presets/factory/Interstellar/` — auto-indexed at plugin load.
@@ -1175,14 +1175,14 @@ Authored by {AUTHOR}. Batch tag: `{BATCH_TAG}`.
 def main():
     f = load_factory()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    for stale in OUT_DIR.glob("*.pw8"):
+    for stale in sorted(OUT_DIR.glob("*.pw8")) + sorted(OUT_DIR.glob("*.murmur")):
         stale.unlink()
 
     manifest_entries = []
     for slot, (display_name, archetype, variant) in enumerate(PRESET_CATALOG, start=1):
         seed_rng = random.Random(hash((BATCH_TAG, slot, display_name)) & 0xFFFFFFFF)
         patch = build_interstellar_patch(f, slot, display_name, archetype, variant, seed_rng)
-        fname = f"{slot:03d}-{slugify(display_name)}.pw8"
+        fname = f"{slot:03d}-{slugify(display_name)}.murmur"
         path = OUT_DIR / fname
         path.write_text(json.dumps(patch, indent=2) + "\n")
         manifest_entries.append({

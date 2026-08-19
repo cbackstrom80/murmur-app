@@ -59,7 +59,7 @@ namespace pw8::plugin::ui::wireframe
         }
     } // namespace
 
-    ModRoutingWireframeView::ModRoutingWireframeView(PatchworkEightProcessor& processor,
+    ModRoutingWireframeView::ModRoutingWireframeView(MurmurProcessor& processor,
                                                       juce::AudioProcessorValueTreeState& apvts)
         : processor_(processor), apvts_(apvts)
     {

@@ -23,8 +23,8 @@ this skin doesn't have and doesn't need elsewhere.
 
 **Needed one small, safe engine/processor addition** to make this possible at all:
 `Engine::getWavetableTable(opIndex)` (new, `engine/include/pw8/render/Engine.hpp`)
-and `PatchworkEightProcessor::getActiveWavetableTable(opIndex)` (new,
-`plugin/src/processor/PatchworkEightProcessor.h`) -- read-only accessors exposing
+and `MurmurProcessor::getActiveWavetableTable(opIndex)` (new,
+`plugin/src/processor/MurmurProcessor.h`) -- read-only accessors exposing
 data that already lives in memory once `loadPatch()` runs, no audio-thread
 involvement. The processor-level accessor reads through the *same* atomic
 `activeEngine_` pointer `processBlock()` reads; see its doc comment for why a

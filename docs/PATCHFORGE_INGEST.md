@@ -15,13 +15,13 @@ Patchforge loads `catalog.generated.json` at build time. If the file is empty or
 
 ## Prerequisites
 
-From the Patchwork Eight repo root:
+From the MURMUR repo root:
 
 ```bash
 cmake --build --preset dev
 ```
 
-This must produce `build/dev/tools/pw8-render`.
+This must produce `build/dev/tools/murmur-render`.
 
 ## Run ingest
 
@@ -37,7 +37,7 @@ python3 scripts/patchforge_ingest.py \
 
 ### MVP manifest
 
-`scripts/patchforge/manifests/mvp.json` defines three Starfighter packs (18 patches total):
+`scripts/patchforge/manifests/mvp.json` defines three MURMUR packs (18 patches total):
 
 - **starfighter-starter-cache** (free)
 - **signal-cinema-vol-1**
@@ -50,7 +50,7 @@ Each patch entry references a repo-relative `.pw8` path and optional preview MID
 In the Patchforge repo:
 
 ```bash
-npm run ingest   # re-render from Patchwork Eight (see package.json)
+npm run ingest   # re-render from MURMUR (see package.json)
 npm run dev      # http://localhost:5173
 ```
 
