@@ -167,7 +167,7 @@ Workflow:
 
 After installing: quit Logic, reopen, Plug-in Manager → Reset & Rescan.
 
-Updates: https://github.com/cbackstrom80/patchwork-eight/releases
+Updates: https://github.com/cbackstrom80/murmur-app/releases
 README_EOF
 
 PKG_SCRIPTS="$STAGE_DIR/pkg-scripts"
@@ -223,7 +223,7 @@ NEXT STEPS
 
 MURMUR Spatial pads: load matching .pw8, then the companion .quasar for full binaural scene.
 
-Updates: https://github.com/cbackstrom80/patchwork-eight/releases
+Updates: https://github.com/cbackstrom80/murmur-app/releases
 CONCLUSION_EOF
 
 cp "$REPO_ROOT/LICENSE" "$RES_DIR/LICENSE.txt"
@@ -270,7 +270,7 @@ cat > "$DIST_DIR/quasar-version.json" << VERSION_EOF
   "install_target": "${TARGET}",
   "pkg": "${PKG_NAME}",
   "min_macos": "13.0",
-  "release_notes_url": "https://github.com/cbackstrom80/patchwork-eight/releases/tag/quasar-v${VERSION}"
+  "release_notes_url": "https://github.com/cbackstrom80/murmur-app/releases/tag/quasar-v${VERSION}"
 }
 VERSION_EOF
 

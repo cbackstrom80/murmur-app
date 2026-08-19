@@ -14,7 +14,7 @@
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
   <channel>
     <title>MURMUR Updates</title>
-    <link>https://github.com/patchwork-eight/patchwork-eight/releases</link>
+    <link>https://github.com/cbackstrom80/murmur-app/releases</link>
     <description>MURMUR Standalone app updates</description>
     <language>en</language>
     <item>
@@ -23,7 +23,7 @@
       <sparkle:shortVersionString>{{VERSION}}</sparkle:shortVersionString>
       <pubDate>{{RFC822_DATE}}</pubDate>
       <enclosure
-        url="https://github.com/patchwork-eight/patchwork-eight/releases/download/v{{VERSION}}/MURMUR-{{VERSION}}-macOS-arm64.pkg"
+        url="https://github.com/cbackstrom80/murmur-app/releases/download/v{{VERSION}}/MURMUR-{{VERSION}}-macOS-arm64.pkg"
         sparkle:edSignature="{{ED_SIGNATURE}}"
         length="{{FILE_SIZE_BYTES}}"
         type="application/octet-stream"/>
