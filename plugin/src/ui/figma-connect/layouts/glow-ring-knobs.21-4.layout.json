@@ -1,0 +1,81 @@
+{
+  "$schema": "./figma-layout-spec.schema.json",
+  "figmaFileKey": "PFt0LG6XmOiZWcSoUXIWIg",
+  "nodeId": "21:4",
+  "frameName": "glow-ring-knobs",
+  "canonicalName": "glow-ring-knobs",
+  "exportedAt": "2026-08-18",
+  "exportSource": "figma-mcp get_metadata",
+  "size": { "width": 1280, "height": 720 },
+  "codeOwners": {
+    "heroKnob": "GlowKnob + DeckedKnobDraw",
+    "dualKnob": "ConcentricGlowKnob",
+    "tripleKnob": "TripleGlowKnob",
+    "chromeMaster": "MurmurChromeBar / GlowKnob headerCompact",
+    "constants": "FigmaKnobTokens.h, DeckedKnobDraw.h"
+  },
+  "variants": [
+    {
+      "name": "hero-dual-ring",
+      "nodeId": "21:74",
+      "container": "knob-radial-frame",
+      "frameSize": { "width": 180, "height": 180 },
+      "rings": [
+        { "name": "outer-track", "nodeId": "21:75", "size": 160, "inset": 10 },
+        { "name": "outer-accent", "nodeId": "21:76", "size": 160, "inset": 10 },
+        { "name": "inner-track", "nodeId": "21:77", "size": 124, "inset": 28 },
+        { "name": "inner-accent", "nodeId": "21:78", "size": 124, "inset": 28 }
+      ],
+      "valueReadout": { "nodeId": "21:79", "size": 80, "inset": 50 },
+      "codeMap": "GlowKnob DeckedKnobSize::Medium|Large @ 180px",
+      "diameterRatios": { "outer": 0.956, "middle": 0.878, "cap": 0.711 }
+    },
+    {
+      "name": "hero-triple-ring",
+      "nodeId": "21:130",
+      "container": "knob-radial-frame",
+      "frameSize": { "width": 180, "height": 180 },
+      "rings": [
+        { "size": 168, "inset": 6 },
+        { "size": 134, "inset": 23 },
+        { "size": 100, "inset": 40 }
+      ],
+      "valueReadout": { "size": 68, "inset": 56 },
+      "codeMap": "TripleGlowKnob @ 180px"
+    },
+    {
+      "name": "chrome-master",
+      "nodeId": "21:33",
+      "size": 28,
+      "codeMap": "kChromeMasterKnobSize, GlowKnob::setHeaderCompactMode",
+      "deckedSize": "Small"
+    },
+    {
+      "name": "compact-macro",
+      "nodeId": "4:1176",
+      "parentFrame": "4:1134",
+      "size": 36,
+      "cellSize": { "width": 84, "height": 52 },
+      "labelHeight": 10,
+      "codeMap": "kCompactMacroKnobSize, DeckedKnobSize::Small"
+    },
+    {
+      "name": "compact-master-out",
+      "nodeId": "4:1226",
+      "parentFrame": "4:1134",
+      "size": 48,
+      "codeMap": "kCompactMasterKnobSize"
+    }
+  ],
+  "scaleLadder": [
+    { "context": "chrome-master", "figmaPx": 28, "constant": "kChromeMasterKnobSize", "decked": "Small" },
+    { "context": "compact-macro", "figmaPx": 36, "constant": "kCompactMacroKnobSize", "decked": "Small" },
+    { "context": "engine-card", "figmaPx": 28, "constant": "kEngineCardKnobDialSize", "decked": "Small" },
+    { "context": "dashboard-filter", "figmaPx": 36, "constant": "kDashboardGlobalFilterKnobSize", "decked": "Small" },
+    { "context": "compact-master", "figmaPx": 48, "constant": "kCompactMasterKnobSize", "decked": "Small" },
+    { "context": "design-fx-detail", "figmaPx": 32, "constant": "kDesignFxPageDetailKnobDialSize", "decked": "Small" },
+    { "context": "vocoder", "figmaPx": 44, "constant": "kDesignVocoderKnobDiameter", "decked": "Medium" },
+    { "context": "desktop-macro-touch", "figmaPx": 92, "constant": "kDesktopPlayModeMacroKnobTouchSize", "decked": "Large" },
+    { "context": "hero-feature", "figmaPx": 180, "constant": "knob-radial-frame", "decked": "Large" }
+  ]
+}

@@ -1,0 +1,5 @@
+<frame id="86:4" name="murmur-basic-view" x="3180" y="0" width="1280" height="720">
+  <frame id="86:5" name="header-bar" x="16" y="16" width="1248" height="60"/>
+  <frame id="86:31" name="main-body" x="16" y="88" width="1248" height="564"/>
+  <frame id="86:225" name="bottom-bar" x="16" y="664" width="1248" height="40"/>
+</frame>

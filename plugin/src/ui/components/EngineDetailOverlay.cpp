@@ -5,6 +5,7 @@
 #include "../theme/ObsidianDraw.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
+#include "../theme/FigmaKnobTokens.h"
 #include "ModRoutingUi.h"
 #include "ModSourceChip.h"
 #include "state/PluginState.h"
@@ -221,12 +222,25 @@ namespace pw8::plugin::ui
             apvts, kUnisonSpreadId, "Spread",
             [](float spread) { return juce::String(juce::roundToInt(spread * 100.0f)) + "%"; }, palette::kAccent);
 
-        for (auto* knob : {levelKnob_.get(), panKnob_.get(), unisonDetuneKnob_.get(), unisonSpreadKnob_.get()})
+        if (levelKnob_ != nullptr)
         {
-            if (knob == nullptr)
-                continue;
-            knob->setDeckedStyle(true, GlowKnob::DeckedKnobSize::Medium);
-            ampColumn_.addAndMakeVisible(*knob);
+            levelKnob_->applyFigmaContext(figma::KnobContext::DesktopMacroStandard);
+            ampColumn_.addAndMakeVisible(*levelKnob_);
+        }
+        if (panKnob_ != nullptr)
+        {
+            panKnob_->applyFigmaContext(figma::KnobContext::DesktopMacroStandard);
+            ampColumn_.addAndMakeVisible(*panKnob_);
+        }
+        if (unisonDetuneKnob_ != nullptr)
+        {
+            unisonDetuneKnob_->applyFigmaContext(figma::KnobContext::DashboardFilter);
+            ampColumn_.addAndMakeVisible(*unisonDetuneKnob_);
+        }
+        if (unisonSpreadKnob_ != nullptr)
+        {
+            unisonSpreadKnob_->applyFigmaContext(figma::KnobContext::DashboardFilter);
+            ampColumn_.addAndMakeVisible(*unisonSpreadKnob_);
         }
     }
 
@@ -494,7 +508,13 @@ namespace pw8::plugin::ui
                 break;
         }
         if (routes.isEmpty())
-            routes.addArray({"LFO1  →  CUTOFF  +40%", "ENV2  →  PITCH  +12%"});
+        {
+            g.setColour(palette::kTextDim);
+            g.setFont(fonts::label(9.0f));
+            g.drawText("No active mod routes", area.removeFromTop(23).reduced(10, 0),
+                       juce::Justification::centredLeft, true);
+            return;
+        }
 
         for (const auto& route : routes)
         {

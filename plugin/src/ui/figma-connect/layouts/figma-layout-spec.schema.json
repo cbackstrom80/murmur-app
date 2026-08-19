@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://patchwork-eight.local/figma-layout-spec.schema.json",
+  "title": "FigmaLayoutSpec",
+  "type": "object",
+  "required": ["figmaFileKey", "nodeId", "frameName", "size"],
+  "additionalProperties": true,
+  "properties": {
+    "$schema": { "type": "string" },
+    "figmaFileKey": { "type": "string", "minLength": 22 },
+    "nodeId": { "type": "string", "pattern": "^\\d+:\\d+$" },
+    "frameName": { "type": "string" },
+    "canonicalName": { "type": "string" },
+    "parentFrame": { "type": "string", "pattern": "^\\d+:\\d+$" },
+    "exportedAt": { "type": "string" },
+    "exportSource": { "type": "string" },
+    "size": {
+      "type": "object",
+      "required": ["width", "height"],
+      "properties": {
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "insets": {
+      "type": "object",
+      "properties": {
+        "top": { "type": "integer" },
+        "right": { "type": "integer" },
+        "bottom": { "type": "integer" },
+        "left": { "type": "integer" }
+      }
+    },
+    "padding": { "type": "integer" },
+    "sectionGap": { "type": "integer" },
+    "codeOwners": { "type": "object", "additionalProperties": { "type": "string" } },
+    "columnLayouts": { "type": "array", "items": { "type": "object" } },
+    "children": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/layoutNode" }
+    },
+    "variants": { "type": "array", "items": { "type": "object" } },
+    "scaleLadder": { "type": "array", "items": { "type": "object" } }
+  },
+  "$defs": {
+    "drift": {
+      "type": "object",
+      "required": ["cpp"],
+      "properties": {
+        "cpp": { "type": "integer" },
+        "reason": { "type": "string" }
+      }
+    },
+    "layoutNode": {
+      "type": "object",
+      "properties": {
+        "nodeId": { "type": "string" },
+        "name": { "type": "string" },
+        "x": { "type": "integer" },
+        "y": { "type": "integer" },
+        "width": { "type": "integer" },
+        "height": { "type": "integer" },
+        "constant": { "type": "string" },
+        "codeMap": { "type": "string" },
+        "drift": { "$ref": "#/$defs/drift" },
+        "note": { "type": "string" },
+        "children": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/layoutNode" }
+        }
+      }
+    }
+  }
+}

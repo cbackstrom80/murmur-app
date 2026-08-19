@@ -37,3 +37,6 @@ dist/
 # Local scratch
 *.wav
 !content/**/*.wav
+
+# Local secrets (Figma tokens, etc.)
+.env.local

@@ -1,0 +1,71 @@
+{
+  "$schema": "./figma-layout-spec.schema.json",
+  "figmaFileKey": "PFt0LG6XmOiZWcSoUXIWIg",
+  "nodeId": "27:6",
+  "frameName": "murmur-preset-browser",
+  "canonicalName": "murmur-preset-browser",
+  "exportedAt": "2026-08-18",
+  "exportSource": "figma-rest fetch",
+  "size": { "width": 1280, "height": 720 },
+  "insets": { "top": 12, "right": 12, "bottom": 12, "left": 12 },
+  "sectionGap": 10,
+  "codeOwners": {
+    "shell": "MurmurRootEditor",
+    "header": "MurmurChromeBar",
+    "workspace": "PresetBrowserOverlay",
+    "footer": "PresetBrowserOverlay::paintStatusBar",
+    "constants": "PlayModeLayout.h"
+  },
+  "children": [
+    {
+      "nodeId": "51:2",
+      "name": "header-bar",
+      "x": 12,
+      "y": 12,
+      "width": 1248,
+      "height": 60,
+      "codeMap": "MurmurChromeBar",
+      "constant": "kChromeBarHeightDesign"
+    },
+    {
+      "nodeId": "27:45",
+      "name": "main-workspace",
+      "x": 12,
+      "y": 82,
+      "width": 1256,
+      "height": 576,
+      "constant": "kPresetBrowserPageMainWorkspaceHeight",
+      "codeMap": "PresetBrowserOverlay",
+      "children": [
+        {
+          "nodeId": "27:46",
+          "name": "left-categories",
+          "width": 240,
+          "constant": "kPresetBrowserLeftColumnWidth"
+        },
+        {
+          "nodeId": "27:119",
+          "name": "center-presets-panel",
+          "width": 696,
+          "constant": "kPresetBrowserCenterColumnWidth"
+        },
+        {
+          "nodeId": "27:206",
+          "name": "right-preset-detail",
+          "width": 300,
+          "constant": "kPresetBrowserRightColumnWidth"
+        }
+      ]
+    },
+    {
+      "nodeId": "27:250",
+      "name": "vst-bottom-bar",
+      "x": 12,
+      "y": 668,
+      "width": 1256,
+      "height": 40,
+      "constant": "kPresetBrowserFooterHeight",
+      "codeMap": "PresetBrowserOverlay::paintStatusBar"
+    }
+  ]
+}

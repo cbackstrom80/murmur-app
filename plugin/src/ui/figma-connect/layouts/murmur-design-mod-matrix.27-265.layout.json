@@ -1,0 +1,72 @@
+{
+  "$schema": "./figma-layout-spec.schema.json",
+  "figmaFileKey": "PFt0LG6XmOiZWcSoUXIWIg",
+  "nodeId": "27:265",
+  "frameName": "murmur-design-mod-matrix",
+  "canonicalName": "murmur-mod-matrix",
+  "exportedAt": "2026-08-18",
+  "exportSource": "figma-mcp get_metadata",
+  "size": { "width": 1280, "height": 720 },
+  "insets": { "top": 12, "right": 12, "bottom": 12, "left": 12 },
+  "sectionGap": 10,
+  "codeOwners": {
+    "shell": "MurmurRootEditor",
+    "header": "MurmurChromeBar",
+    "workspace": "DesignModMatrixPanel",
+    "status": "DesignModMatrixPanel::paintStatusBar",
+    "constants": "PlayModeLayout.h"
+  },
+  "children": [
+    {
+      "nodeId": "50:186",
+      "name": "header-bar",
+      "x": 12,
+      "y": 12,
+      "width": 1248,
+      "height": 60,
+      "codeMap": "MurmurChromeBar"
+    },
+    {
+      "nodeId": "27:304",
+      "name": "matrix-workspace",
+      "x": 12,
+      "y": 82,
+      "width": 1256,
+      "height": 576,
+      "codeMap": "DesignModMatrixPanel",
+      "children": [
+        {
+          "nodeId": "27:306",
+          "name": "matrix-grid-card",
+          "width": 966,
+          "height": 306,
+          "constant": "kDesignModMatrixPageGridCardHeight"
+        },
+        {
+          "nodeId": "27:567",
+          "name": "active-routings-card",
+          "width": 966,
+          "height": 260,
+          "constant": "kDesignModMatrixPageRoutesCardHeight"
+        },
+        {
+          "nodeId": "27:655",
+          "name": "right-assign-panel",
+          "width": 280,
+          "height": 576,
+          "constant": "kDesignModMatrixPageSidebarWidth"
+        }
+      ]
+    },
+    {
+      "nodeId": "27:694",
+      "name": "vst-bottom-bar",
+      "x": 12,
+      "y": 668,
+      "width": 1256,
+      "height": 40,
+      "constant": "kDesignModMatrixPageStatusBarHeight",
+      "codeMap": "DesignModMatrixPanel::paintStatusBar"
+    }
+  ]
+}

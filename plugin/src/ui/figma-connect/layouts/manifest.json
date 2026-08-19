@@ -1,0 +1,185 @@
+{
+  "$schema": "./figma-layout-spec.schema.json",
+  "description": "Committed Figma layout specs validated by scripts/figma_layout.sh check",
+  "figmaFileKey": "PFt0LG6XmOiZWcSoUXIWIg",
+  "layouts": [
+    {
+      "file": "murmur-compact-view.4-1134.layout.json",
+      "nodeId": "4:1134",
+      "frameName": "murmur-compact-view",
+      "canonicalName": "murmur-play-compact",
+      "tier": "required",
+      "codeConnect": ["CompactModeEditor.figma.ts"],
+      "cppConstants": ["PlayModeLayout.h"]
+    },
+    {
+      "file": "glow-ring-knobs.21-4.layout.json",
+      "nodeId": "21:4",
+      "frameName": "glow-ring-knobs",
+      "canonicalName": "glow-ring-knobs",
+      "tier": "required",
+      "codeConnect": ["GlowKnob.figma.ts"],
+      "cppConstants": ["PlayModeLayout.h", "FigmaKnobTokens.h"]
+    },
+    {
+      "file": "murmur-design-fx.35-4.layout.json",
+      "nodeId": "35:4",
+      "frameName": "murmur-design-fx",
+      "canonicalName": "murmur-design-fx",
+      "tier": "required",
+      "codeConnect": ["DesignFxPanel.figma.ts"],
+      "cppConstants": ["PlayModeLayout.h"]
+    },
+    {
+      "file": "murmur-play-view.36-4.layout.json",
+      "nodeId": "36:4",
+      "frameName": "murmur-play-view",
+      "canonicalName": "murmur-desktop-play-mode",
+      "tier": "required",
+      "codeConnect": ["PlayModeEditor.figma.ts"],
+      "cppConstants": ["PlayModeLayout.h"]
+    },
+    {
+      "file": "murmur-design-engine.37-787.layout.json",
+      "nodeId": "37:787",
+      "frameName": "murmur-design-engine",
+      "canonicalName": "murmur-design-engine",
+      "tier": "exported",
+      "codeConnect": ["DesignModeEditor.figma.ts"],
+      "cppConstants": ["PlayModeLayout.h"]
+    },
+    {
+      "file": "murmur-design-mod-matrix.27-265.layout.json",
+      "nodeId": "27:265",
+      "frameName": "murmur-design-mod-matrix",
+      "canonicalName": "murmur-mod-matrix",
+      "tier": "exported",
+      "codeConnect": ["DesignModMatrixPanel.figma.ts"],
+      "cppConstants": ["PlayModeLayout.h"]
+    },
+    {
+      "file": "murmur-basic-view.86-4.layout.json",
+      "nodeId": "86:4",
+      "frameName": "murmur-basic-view",
+      "canonicalName": "murmur-basic-view",
+      "tier": "exported",
+      "codeConnect": ["MurmurBasicView.figma.ts"],
+      "cppConstants": ["PlayModeLayout.h"]
+    },
+    {
+      "file": "master-envelope-panel.82-4.layout.json",
+      "nodeId": "82:4",
+      "frameName": "master-envelope-panel",
+      "canonicalName": "master-envelope-panel",
+      "tier": "exported",
+      "codeConnect": ["MasterEnvelopePanel.figma.ts"],
+      "cppConstants": ["PlayModeLayout.h"]
+    },
+    {
+      "file": "murmur-preset-browser.27-6.layout.json",
+      "nodeId": "27:6",
+      "frameName": "murmur-preset-browser",
+      "canonicalName": "murmur-preset-browser",
+      "tier": "exported",
+      "codeConnect": ["PresetBrowserOverlay.figma.ts"],
+      "cppConstants": ["PlayModeLayout.h"]
+    },
+    {
+      "file": "murmur-engine-deep-editor.28-4.layout.json",
+      "nodeId": "28:4",
+      "frameName": "murmur-engine-deep-editor",
+      "canonicalName": "murmur-engine-deep-editor",
+      "tier": "exported",
+      "codeConnect": ["EngineDetailOverlay.figma.ts"],
+      "cppConstants": ["PlayModeLayout.h"]
+    },
+    {
+      "file": "murmur-dual-lfo-lab.15-247.layout.json",
+      "nodeId": "15:247",
+      "frameName": "murmur-dual-lfo-lab",
+      "canonicalName": "murmur-dual-lfo-lab",
+      "tier": "exported",
+      "codeConnect": ["DualLfoLabPanel.figma.ts"],
+      "cppConstants": ["PlayModeLayout.h"]
+    }
+  ],
+  "registry": [
+    {
+      "canonicalName": "murmur-play-compact",
+      "nodeId": "4:1134",
+      "figmaConnect": "CompactModeEditor.figma.ts",
+      "tier": "required",
+      "status": "exported"
+    },
+    {
+      "canonicalName": "glow-ring-knobs",
+      "nodeId": "21:4",
+      "figmaConnect": "GlowKnob.figma.ts",
+      "tier": "required",
+      "status": "exported"
+    },
+    {
+      "canonicalName": "murmur-desktop-play-mode",
+      "nodeId": "36:4",
+      "figmaConnect": "PlayModeEditor.figma.ts",
+      "tier": "required",
+      "status": "exported"
+    },
+    {
+      "canonicalName": "murmur-design-fx",
+      "nodeId": "35:4",
+      "figmaConnect": "DesignFxPanel.figma.ts",
+      "tier": "required",
+      "status": "exported"
+    },
+    {
+      "canonicalName": "murmur-design-engine",
+      "nodeId": "37:787",
+      "figmaConnect": "DesignModeEditor.figma.ts",
+      "tier": "exported",
+      "status": "exported"
+    },
+    {
+      "canonicalName": "murmur-mod-matrix",
+      "nodeId": "27:265",
+      "figmaConnect": "DesignModMatrixPanel.figma.ts",
+      "tier": "exported",
+      "status": "exported"
+    },
+    {
+      "canonicalName": "murmur-basic-view",
+      "nodeId": "86:4",
+      "figmaConnect": "MurmurBasicView.figma.ts",
+      "tier": "exported",
+      "status": "exported"
+    },
+    {
+      "canonicalName": "master-envelope-panel",
+      "nodeId": "82:4",
+      "figmaConnect": "MasterEnvelopePanel.figma.ts",
+      "tier": "exported",
+      "status": "exported"
+    },
+    {
+      "canonicalName": "murmur-preset-browser",
+      "nodeId": "27:6",
+      "figmaConnect": "PresetBrowserOverlay.figma.ts",
+      "tier": "exported",
+      "status": "exported"
+    },
+    {
+      "canonicalName": "murmur-engine-deep-editor",
+      "nodeId": "28:4",
+      "figmaConnect": "EngineDetailOverlay.figma.ts",
+      "tier": "exported",
+      "status": "exported"
+    },
+    {
+      "canonicalName": "murmur-dual-lfo-lab",
+      "nodeId": "15:247",
+      "figmaConnect": "DualLfoLabPanel.figma.ts",
+      "tier": "exported",
+      "status": "exported"
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "$schema": "./figma-layout-spec.schema.json",
+  "figmaFileKey": "PFt0LG6XmOiZWcSoUXIWIg",
+  "nodeId": "35:4",
+  "frameName": "murmur-design-fx",
+  "canonicalName": "murmur-design-fx",
+  "exportedAt": "2026-08-18",
+  "exportSource": "figma-mcp get_metadata",
+  "size": { "width": 1280, "height": 720 },
+  "insets": { "top": 16, "right": 16, "bottom": 16, "left": 16 },
+  "sectionGap": 12,
+  "codeOwners": {
+    "shell": "MurmurRootEditor",
+    "header": "MurmurChromeBar",
+    "signalChain": "DesignFxSignalChain",
+    "middle": "DesignFxPanel",
+    "routing": "DesignFxPanel::paintRoutingBar",
+    "constants": "PlayModeLayout.h"
+  },
+  "children": [
+    {
+      "nodeId": "50:140",
+      "name": "header-bar",
+      "x": 16,
+      "y": 16,
+      "width": 1248,
+      "height": 60,
+      "codeMap": "MurmurChromeBar",
+      "constant": "kChromeBarHeightDesign"
+    },
+    {
+      "nodeId": "35:50",
+      "name": "fx-signal-chain-container",
+      "x": 16,
+      "y": 88,
+      "width": 1248,
+      "height": 119,
+      "constant": "kDesignFxPageSignalChainSectionHeight",
+      "codeMap": "DesignFxSignalChain",
+      "children": [
+        { "nodeId": "35:51", "name": "label-row", "height": 11, "constant": "kDesignFxPageSignalChainLabelHeight" },
+        { "nodeId": "35:54", "name": "flow-pipeline", "height": 94, "constant": "kDesignFxPageSignalChainPipelineHeight" }
+      ]
+    },
+    {
+      "nodeId": "35:245",
+      "name": "middle-workspace",
+      "x": 16,
+      "y": 219,
+      "width": 1248,
+      "height": 419,
+      "constant": "kDesignFxPageMiddleHeight",
+      "codeMap": "DesignFxPanel",
+      "children": [
+        {
+          "nodeId": "35:246",
+          "name": "selected-fx-detail-panel",
+          "x": 0,
+          "y": 0,
+          "width": 856,
+          "height": 360,
+          "constant": "kDesignFxPageDetailHeight",
+          "note": "Part 2j full-width detail in code; Figma still shows 856+380 split"
+        },
+        {
+          "nodeId": "35:349",
+          "name": "fx-overview-meters-panel",
+          "x": 868,
+          "y": 0,
+          "width": 380,
+          "height": 360,
+          "constant": "kDesignFxPageOverviewHeight",
+          "note": "Removed in code — full-width hero detail (Part 2j)"
+        }
+      ]
+    },
+    {
+      "nodeId": "35:455",
+      "name": "vst-bottom-bar",
+      "x": 16,
+      "y": 650,
+      "width": 1248,
+      "height": 54,
+      "constant": "kDesignFxPageRoutingBarHeight",
+      "codeMap": "DesignFxPanel::paintRoutingBar"
+    }
+  ],
+  "scaleLadder": [
+    { "context": "fx-chip", "figmaPx": 88, "constant": "kDesignFxPageChipWidth" },
+    { "context": "fx-chip", "figmaPx": 82, "constant": "kDesignFxPageChipHeight" },
+    { "context": "detail-knob", "figmaPx": 32, "constant": "kDesignFxPageDetailKnobDialSize" }
+  ]
+}

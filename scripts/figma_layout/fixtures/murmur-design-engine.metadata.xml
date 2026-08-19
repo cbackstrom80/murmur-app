@@ -1,0 +1,1105 @@
+<frame id="37:787" name="murmur-design-engine" x="1860" y="0" width="1280" height="1048">
+  <frame id="39:2" name="header-bar" x="16" y="16" width="1248" height="60">
+    <frame id="50:4" name="branding" x="16" y="11.5" width="220" height="36">
+      <rounded-rectangle id="128:3" name="murmur-whale-logo" x="0" y="0" width="79.19999694824219" height="36" />
+    </frame>
+    <frame id="50:7" name="view-leds" x="252" y="20" width="101" height="19">
+      <frame id="50:8" name="led-compact" x="0" y="0" width="30" height="19">
+        <ellipse id="50:9" name="led" x="12" y="0" width="6" height="6" />
+        <text id="50:10" name="label" x="0" y="10" width="30" height="9" />
+      </frame>
+      <frame id="50:11" name="led-play" x="44" y="0" width="17" height="19">
+        <ellipse id="50:12" name="led" x="5.5" y="0" width="6" height="6" />
+        <text id="50:13" name="label" x="0" y="10" width="17" height="9" />
+      </frame>
+      <frame id="50:14" name="led-design" x="75" y="0" width="26" height="19">
+        <ellipse id="50:15" name="led" x="10" y="0" width="6" height="6" />
+        <text id="50:16" name="label" x="0" y="10" width="26" height="9" />
+      </frame>
+    </frame>
+    <rounded-rectangle id="50:17" name="score-line" x="369" y="17.5" width="1" height="24" />
+    <frame id="50:18" name="section-leds" x="386" y="20.5" width="168" height="18">
+      <frame id="50:19" name="led-engine" x="0" y="0" width="26" height="18">
+        <ellipse id="50:20" name="led" x="10.5" y="0" width="5" height="5" />
+        <text id="50:21" name="label" x="0" y="9" width="26" height="9" />
+      </frame>
+      <frame id="50:22" name="led-arp" x="38" y="0" width="13" height="18">
+        <ellipse id="50:23" name="led" x="4" y="0" width="5" height="5" />
+        <text id="50:24" name="label" x="0" y="9" width="13" height="9" />
+      </frame>
+      <frame id="50:25" name="led-vocoder" x="63" y="0" width="30" height="18">
+        <ellipse id="50:26" name="led" x="12.5" y="0" width="5" height="5" />
+        <text id="50:27" name="label" x="0" y="9" width="30" height="9" />
+      </frame>
+      <frame id="50:28" name="led-fx" x="105" y="0" width="9" height="18">
+        <ellipse id="50:29" name="led" x="2" y="0" width="5" height="5" />
+        <text id="50:30" name="label" x="0" y="9" width="9" height="9" />
+      </frame>
+      <frame id="50:31" name="led-mod-matrix" x="126" y="0" width="42" height="18">
+        <ellipse id="50:32" name="led" x="18.5" y="0" width="5" height="5" />
+        <text id="50:33" name="label" x="0" y="9" width="42" height="9" />
+      </frame>
+    </frame>
+    <frame id="50:34" name="preset-display" x="570" y="17" width="260" height="25">
+      <text id="50:35" name="preset-name" x="158" y="0" width="102" height="13" />
+      <frame id="50:36" name="preset-meta" x="177" y="15" width="83" height="10">
+        <text id="50:37" name="preset-source" x="0" y="0" width="34" height="10" />
+        <frame id="50:38" name="master-indicator" x="42" y="0" width="41" height="10">
+          <ellipse id="50:39" name="master-led" x="0" y="2" width="6" height="6" />
+          <text id="50:40" name="master-label" x="12" y="0" width="29" height="10" />
+        </frame>
+      </frame>
+    </frame>
+  </frame>
+  <frame id="82:4" name="master-envelope-panel" x="16" y="88" width="1248" height="320">
+    <frame id="82:5" name="header" x="16" y="16" width="1216" height="16">
+      <frame id="82:6" name="title" x="0" y="0" width="180" height="16">
+        <ellipse id="82:7" name="accent" x="0" y="4" width="8" height="8" />
+        <text id="82:8" name="MASTER ENVELOPE" x="18" y="0" width="108" height="16" />
+        <text id="82:9" name="AMP SHAPE" x="136" y="3" width="44" height="10" />
+      </frame>
+      <frame id="82:10" name="mode" x="1194" y="1" width="22" height="14">
+        <frame id="82:11" name="toggle-btn" x="0" y="0" width="22" height="14">
+          <text id="82:12" name="ON" x="6" y="2" width="10" height="10" />
+        </frame>
+      </frame>
+    </frame>
+    <frame id="82:13" name="content" x="16" y="44" width="1216" height="260">
+      <frame id="82:14" name="adsr-curve-display" x="0" y="0" width="520" height="260">
+        <text id="82:15" name="CURVE" x="12" y="12" width="24" height="10" />
+        <frame id="82:16" name="plot-area" x="12" y="30" width="496" height="200">
+          <rounded-rectangle id="82:17" name="Rectangle" x="0" y="50" width="496" height="1" />
+          <rounded-rectangle id="82:18" name="Rectangle" x="0" y="100" width="496" height="1" />
+          <rounded-rectangle id="82:19" name="Rectangle" x="0" y="150" width="496" height="1" />
+          <rounded-rectangle id="82:20" name="Rectangle" x="0" y="120" width="496" height="1" />
+          <vector id="82:21" name="adsr-segments" x="0" y="0" width="496" height="200" />
+          <ellipse id="82:22" name="Ellipse" x="56" y="116" width="8" height="8" />
+          <ellipse id="82:23" name="Ellipse" x="156" y="116" width="8" height="8" />
+          <ellipse id="82:24" name="Ellipse" x="356" y="56" width="8" height="8" />
+          <ellipse id="82:25" name="Ellipse" x="356" y="176" width="8" height="8" />
+          <text id="82:26" name="A" x="8" y="8" width="5" height="9" />
+          <text id="82:27" name="D" x="8" y="44" width="5" height="9" />
+          <text id="82:28" name="S" x="8" y="92" width="5" height="9" />
+          <text id="82:29" name="R" x="8" y="140" width="5" height="9" />
+        </frame>
+        <frame id="82:30" name="x-axis" x="12" y="238" width="496" height="9">
+          <text id="82:31" name="0ms" x="0" y="0" width="13" height="9" />
+          <text id="82:32" name="100ms" x="112.75" y="0" width="21" height="9" />
+          <text id="82:33" name="200ms" x="233.5" y="0" width="21" height="9" />
+          <text id="82:34" name="300ms" x="354.25" y="0" width="21" height="9" />
+          <text id="82:35" name="400ms" x="475" y="0" width="21" height="9" />
+        </frame>
+      </frame>
+      <frame id="82:36" name="controls" x="532" y="0" width="684" height="260">
+        <frame id="82:37" name="row-a" x="0" y="0" width="684" height="41">
+          <frame id="82:38" name="a-knob" x="0" y="0" width="72" height="41">
+            <frame id="82:39" name="knob-graphic" x="22" y="0" width="28" height="28" />
+            <text id="82:44" name="A" x="0" y="32" width="72" height="9" />
+          </frame>
+          <frame id="82:45" name="a-readout" x="84" y="8.5" width="600" height="24">
+            <text id="82:46" name="ATTACK" x="0" y="0" width="26" height="9" />
+            <text id="82:47" name="10ms" x="0" y="11" width="24" height="13" />
+          </frame>
+        </frame>
+        <frame id="82:48" name="row-d" x="0" y="51" width="684" height="41">
+          <frame id="82:49" name="d-knob" x="0" y="0" width="72" height="41">
+            <frame id="82:50" name="knob-graphic" x="22" y="0" width="28" height="28" />
+            <text id="82:55" name="D" x="0" y="32" width="72" height="9" />
+          </frame>
+          <frame id="82:56" name="d-readout" x="84" y="8.5" width="600" height="24">
+            <text id="82:57" name="DECAY" x="0" y="0" width="21" height="9" />
+            <text id="82:58" name="120ms" x="0" y="11" width="30" height="13" />
+          </frame>
+        </frame>
+        <frame id="82:59" name="row-s" x="0" y="102" width="684" height="41">
+          <frame id="82:60" name="s-knob" x="0" y="0" width="72" height="41">
+            <frame id="82:61" name="knob-graphic" x="22" y="0" width="28" height="28" />
+            <text id="82:66" name="S" x="0" y="32" width="72" height="9" />
+          </frame>
+          <frame id="82:67" name="s-readout" x="84" y="8.5" width="600" height="24">
+            <text id="82:68" name="SUSTAIN" x="0" y="0" width="30" height="9" />
+            <text id="82:69" name="60%" x="0" y="11" width="18" height="13" />
+          </frame>
+        </frame>
+        <frame id="82:70" name="row-r" x="0" y="153" width="684" height="41">
+          <frame id="82:71" name="r-knob" x="0" y="0" width="72" height="41">
+            <frame id="82:72" name="knob-graphic" x="22" y="0" width="28" height="28" />
+            <text id="82:77" name="R" x="0" y="32" width="72" height="9" />
+          </frame>
+          <frame id="82:78" name="r-readout" x="84" y="8.5" width="600" height="24">
+            <text id="82:79" name="RELEASE" x="0" y="0" width="30" height="9" />
+            <text id="82:80" name="300ms" x="0" y="11" width="30" height="13" />
+          </frame>
+        </frame>
+      </frame>
+    </frame>
+  </frame>
+  <frame id="37:830" name="grid-section" x="16" y="420" width="1248" height="560">
+    <frame id="37:831" name="grid-row-1" x="0" y="0" width="1248" height="270">
+      <frame id="37:832" name="engine-card-1" x="0" y="0" width="303" height="270">
+        <frame id="37:833" name="header-row" x="12" y="12" width="279" height="14">
+          <frame id="37:834" name="left-group" x="0" y="0.5" width="70" height="13">
+            <ellipse id="37:835" name="led" x="0" y="3.5" width="6" height="6" />
+            <text id="37:836" name="ENGINE 01" x="12" y="0" width="58" height="13" />
+          </frame>
+          <frame id="37:837" name="state-controls" x="215" y="0" width="64" height="14">
+            <frame id="37:838" name="toggle-btn" x="0" y="0" width="22" height="14">
+              <text id="37:839" name="ON" x="6" y="2" width="10" height="10" />
+            </frame>
+            <frame id="37:840" name="toggle-btn" x="26" y="0" width="17" height="14">
+              <text id="37:841" name="S" x="6" y="2" width="5" height="10" />
+            </frame>
+            <frame id="37:842" name="toggle-btn" x="47" y="0" width="17" height="14">
+              <text id="37:843" name="M" x="6" y="2" width="5" height="10" />
+            </frame>
+          </frame>
+        </frame>
+        <frame id="37:844" name="type-strip" x="12" y="36" width="279" height="14">
+          <frame id="37:845" name="pill-CLS" x="0" y="0" width="29.22222137451172" height="14">
+            <text id="37:846" name="CLS" x="7.111110687255859" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:847" name="pill-WT" x="31.22222137451172" y="0" width="29.22222137451172" height="14">
+            <text id="37:848" name="WT" x="8.11111068725586" y="3" width="13" height="8" />
+          </frame>
+          <frame id="37:849" name="pill-FM" x="62.44444274902344" y="0" width="29.222219467163086" height="14">
+            <text id="37:850" name="FM" x="9.111109733581543" y="3" width="11" height="8" />
+          </frame>
+          <frame id="37:851" name="pill-ADD" x="93.66666412353516" y="0" width="29.22222137451172" height="14">
+            <text id="37:852" name="ADD" x="6.611110687255859" y="3" width="16" height="8" />
+          </frame>
+          <frame id="37:853" name="pill-PHS" x="124.88888549804688" y="0" width="29.22222328186035" height="14">
+            <text id="37:854" name="PHS" x="7.111111640930176" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:855" name="pill-GRN" x="156.11111450195312" y="0" width="29.22222328186035" height="14">
+            <text id="37:856" name="GRN" x="6.611111640930176" y="3" width="16" height="8" />
+          </frame>
+          <frame id="37:857" name="pill-NSE" x="187.33334350585938" y="0" width="29.22222328186035" height="14">
+            <text id="37:858" name="NSE" x="7.111111640930176" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:859" name="pill-RES" x="218.55557250976562" y="0" width="29.222225189208984" height="14">
+            <text id="37:860" name="RES" x="7.611112594604492" y="3" width="14" height="8" />
+          </frame>
+          <frame id="37:861" name="pill-EXT" x="249.77780151367188" y="0" width="29.222225189208984" height="14">
+            <text id="37:862" name="EXT" x="7.111112594604492" y="3" width="15" height="8" />
+          </frame>
+        </frame>
+        <frame id="47:2" name="sub-picker" x="12" y="60" width="279" height="22">
+          <frame id="47:3" name="sub-sin" x="60" y="4" width="28" height="14">
+            <text id="47:4" name="SIN" x="8" y="3" width="12" height="8" />
+          </frame>
+          <frame id="47:5" name="sub-saw" x="91" y="4" width="32" height="14">
+            <text id="47:6" name="SAW" x="8" y="3" width="16" height="8" />
+          </frame>
+          <frame id="47:7" name="sub-tri" x="126" y="4" width="27" height="14">
+            <text id="47:8" name="TRI" x="8" y="3" width="11" height="8" />
+          </frame>
+          <frame id="47:9" name="sub-sqr" x="156" y="4" width="31" height="14">
+            <text id="47:10" name="SQR" x="8" y="3" width="15" height="8" />
+          </frame>
+          <frame id="47:11" name="sub-pls" x="190" y="4" width="29" height="14">
+            <text id="47:12" name="PLS" x="8" y="3" width="13" height="8" />
+          </frame>
+        </frame>
+        <frame id="37:863" name="context-visualizer-area" x="12" y="92" width="279" height="80">
+          <frame id="37:864" name="sine-visual" x="91.5" y="34" width="96" height="12">
+            <frame id="37:1536" name="audio-waveform" x="0" y="0" width="32" height="12" />
+            <text id="37:866" name="CLASSIC SINE" x="40" y="1" width="56" height="10" />
+          </frame>
+        </frame>
+        <frame id="37:867" name="knobs-and-envelope-row" x="12" y="182" width="279" height="40">
+          <frame id="37:868" name="knob-strip" x="0" y="0" width="203" height="40">
+            <frame id="37:869" name="knob-container" x="0" y="0" width="44" height="40">
+              <frame id="37:870" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:875" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:876" name="knob-container" x="48" y="0" width="44" height="40">
+              <frame id="37:877" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:882" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:883" name="knob-container" x="96" y="0" width="44" height="40">
+              <frame id="37:884" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:889" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:890" name="knob-container" x="144" y="0" width="44" height="40">
+              <frame id="37:891" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:896" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+          </frame>
+          <frame id="37:897" name="envelope-wrapper" x="211" y="6" width="68" height="34">
+            <frame id="37:898" name="adsr-container" x="0" y="0" width="68" height="34">
+              <frame id="37:899" name="adsr-box" x="0" y="0" width="68" height="22">
+                <rounded-rectangle id="37:900" name="A" x="2" y="2" width="10" height="18" />
+                <rounded-rectangle id="37:901" name="D" x="12" y="6" width="19" height="14" />
+                <rounded-rectangle id="37:902" name="S" x="31" y="6" width="19" height="14" />
+                <rounded-rectangle id="37:903" name="R" x="50" y="16" width="16" height="4" />
+              </frame>
+              <frame id="37:904" name="labels" x="0" y="26" width="68" height="8">
+                <text id="37:905" name="A" x="4" y="0" width="6" height="8" />
+                <text id="37:906" name="D" x="22.666667938232422" y="0" width="6" height="8" />
+                <text id="37:907" name="S" x="41.333335876464844" y="0" width="5" height="8" />
+                <text id="37:908" name="R" x="59.000003814697266" y="0" width="5" height="8" />
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+        <frame id="37:909" name="level-row" x="12" y="232" width="279" height="10">
+          <text id="37:910" name="LVL" x="0" y="1" width="13" height="8" />
+          <frame id="37:911" name="fader-track" x="21" y="2" width="226" height="6">
+            <rounded-rectangle id="37:912" name="fader-fill" x="1" y="1" width="144" height="4" />
+          </frame>
+          <text id="37:913" name="80%" x="255" y="0" width="24" height="10" />
+        </frame>
+      </frame>
+      <frame id="37:914" name="engine-card-2" x="315" y="0" width="303" height="270">
+        <frame id="37:915" name="header-row" x="12" y="12" width="279" height="14">
+          <frame id="37:916" name="left-group" x="0" y="0.5" width="71" height="13">
+            <ellipse id="37:917" name="led" x="0" y="3.5" width="6" height="6" />
+            <text id="37:918" name="ENGINE 02" x="12" y="0" width="59" height="13" />
+          </frame>
+          <frame id="37:919" name="state-controls" x="215" y="0" width="64" height="14">
+            <frame id="37:920" name="toggle-btn" x="0" y="0" width="22" height="14">
+              <text id="37:921" name="ON" x="6" y="2" width="10" height="10" />
+            </frame>
+            <frame id="37:922" name="toggle-btn" x="26" y="0" width="17" height="14">
+              <text id="37:923" name="S" x="6" y="2" width="5" height="10" />
+            </frame>
+            <frame id="37:924" name="toggle-btn" x="47" y="0" width="17" height="14">
+              <text id="37:925" name="M" x="6" y="2" width="5" height="10" />
+            </frame>
+          </frame>
+        </frame>
+        <frame id="37:926" name="type-strip" x="12" y="36" width="279" height="14">
+          <frame id="37:927" name="pill-CLS" x="0" y="0" width="29.22222137451172" height="14">
+            <text id="37:928" name="CLS" x="7.111110687255859" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:929" name="pill-WT" x="31.22222137451172" y="0" width="29.22222137451172" height="14">
+            <text id="37:930" name="WT" x="8.11111068725586" y="3" width="13" height="8" />
+          </frame>
+          <frame id="37:931" name="pill-FM" x="62.44444274902344" y="0" width="29.222219467163086" height="14">
+            <text id="37:932" name="FM" x="9.111109733581543" y="3" width="11" height="8" />
+          </frame>
+          <frame id="37:933" name="pill-ADD" x="93.66666412353516" y="0" width="29.22222137451172" height="14">
+            <text id="37:934" name="ADD" x="6.611110687255859" y="3" width="16" height="8" />
+          </frame>
+          <frame id="37:935" name="pill-PHS" x="124.88888549804688" y="0" width="29.22222328186035" height="14">
+            <text id="37:936" name="PHS" x="7.111111640930176" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:937" name="pill-GRN" x="156.11111450195312" y="0" width="29.22222328186035" height="14">
+            <text id="37:938" name="GRN" x="6.611111640930176" y="3" width="16" height="8" />
+          </frame>
+          <frame id="37:939" name="pill-NSE" x="187.33334350585938" y="0" width="29.22222328186035" height="14">
+            <text id="37:940" name="NSE" x="7.111111640930176" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:941" name="pill-RES" x="218.55557250976562" y="0" width="29.222225189208984" height="14">
+            <text id="37:942" name="RES" x="7.611112594604492" y="3" width="14" height="8" />
+          </frame>
+          <frame id="37:943" name="pill-EXT" x="249.77780151367188" y="0" width="29.222225189208984" height="14">
+            <text id="37:944" name="EXT" x="7.111112594604492" y="3" width="15" height="8" />
+          </frame>
+        </frame>
+        <frame id="47:98" name="sub-picker" x="12" y="60" width="279" height="22">
+          <frame id="47:99" name="arrow-left" x="0" y="1.5" width="25" height="19">
+            <text id="47:100" name="◀" x="8" y="4" width="9" height="11" />
+          </frame>
+          <frame id="47:101" name="cycler-label" x="25" y="6" width="229" height="10">
+            <text id="47:102" name="WAVETABLE" x="72" y="1" width="42" height="8" />
+            <text id="47:103" name="042 / 256" x="118" y="0" width="39" height="10" />
+          </frame>
+          <frame id="47:104" name="arrow-right" x="254" y="1.5" width="25" height="19">
+            <text id="47:105" name="▶" x="8" y="4" width="9" height="11" />
+          </frame>
+        </frame>
+        <frame id="37:945" name="context-visualizer-area" x="12" y="92" width="279" height="80">
+          <frame id="37:946" name="wt-visual" x="0" y="32" width="279" height="16">
+            <frame id="37:947" name="bar-track" x="12" y="0" width="255" height="4">
+              <rounded-rectangle id="37:948" name="Rectangle" x="0" y="0" width="120" height="4" />
+            </frame>
+            <frame id="37:949" name="meta-row" x="12" y="8" width="255" height="8">
+              <text id="37:950" name="INDEX POS: 42" x="0" y="0" width="51" height="8" />
+              <text id="37:951" name="&quot;EPIC SAW&quot;" x="215" y="0" width="40" height="8" />
+            </frame>
+          </frame>
+        </frame>
+        <frame id="37:952" name="knobs-and-envelope-row" x="12" y="182" width="279" height="40">
+          <frame id="37:953" name="knob-strip" x="0" y="0" width="203" height="40">
+            <frame id="37:954" name="knob-container" x="0" y="0" width="44" height="40">
+              <frame id="37:955" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:960" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:961" name="knob-container" x="48" y="0" width="44" height="40">
+              <frame id="37:962" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:967" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:968" name="knob-container" x="96" y="0" width="44" height="40">
+              <frame id="37:969" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:974" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:975" name="knob-container" x="144" y="0" width="44" height="40">
+              <frame id="37:976" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:981" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+          </frame>
+          <frame id="37:982" name="envelope-wrapper" x="211" y="6" width="68" height="34">
+            <frame id="37:983" name="adsr-container" x="0" y="0" width="68" height="34">
+              <frame id="37:984" name="adsr-box" x="0" y="0" width="68" height="22">
+                <rounded-rectangle id="37:985" name="A" x="2" y="2" width="10" height="18" />
+                <rounded-rectangle id="37:986" name="D" x="12" y="6" width="19" height="14" />
+                <rounded-rectangle id="37:987" name="S" x="31" y="6" width="19" height="14" />
+                <rounded-rectangle id="37:988" name="R" x="50" y="16" width="16" height="4" />
+              </frame>
+              <frame id="37:989" name="labels" x="0" y="26" width="68" height="8">
+                <text id="37:990" name="A" x="4" y="0" width="6" height="8" />
+                <text id="37:991" name="D" x="22.666667938232422" y="0" width="6" height="8" />
+                <text id="37:992" name="S" x="41.333335876464844" y="0" width="5" height="8" />
+                <text id="37:993" name="R" x="59.000003814697266" y="0" width="5" height="8" />
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+        <frame id="37:994" name="level-row" x="12" y="232" width="279" height="10">
+          <text id="37:995" name="LVL" x="0" y="1" width="13" height="8" />
+          <frame id="37:996" name="fader-track" x="21" y="2" width="226" height="6">
+            <rounded-rectangle id="37:997" name="fader-fill" x="1" y="1" width="117" height="4" />
+          </frame>
+          <text id="37:998" name="65%" x="255" y="0" width="24" height="10" />
+        </frame>
+      </frame>
+      <frame id="37:999" name="engine-card-3" x="630" y="0" width="303" height="270">
+        <frame id="37:1000" name="header-row" x="12" y="12" width="279" height="14">
+          <frame id="37:1001" name="left-group" x="0" y="0.5" width="71" height="13">
+            <ellipse id="37:1002" name="led" x="0" y="3.5" width="6" height="6" />
+            <text id="37:1003" name="ENGINE 03" x="12" y="0" width="59" height="13" />
+          </frame>
+          <frame id="37:1004" name="state-controls" x="215" y="0" width="64" height="14">
+            <frame id="37:1005" name="toggle-btn" x="0" y="0" width="22" height="14">
+              <text id="37:1006" name="ON" x="6" y="2" width="10" height="10" />
+            </frame>
+            <frame id="37:1007" name="toggle-btn" x="26" y="0" width="17" height="14">
+              <text id="37:1008" name="S" x="6" y="2" width="5" height="10" />
+            </frame>
+            <frame id="37:1009" name="toggle-btn" x="47" y="0" width="17" height="14">
+              <text id="37:1010" name="M" x="6" y="2" width="5" height="10" />
+            </frame>
+          </frame>
+        </frame>
+        <frame id="37:1011" name="type-strip" x="12" y="36" width="279" height="14">
+          <frame id="37:1012" name="pill-CLS" x="0" y="0" width="29.22222137451172" height="14">
+            <text id="37:1013" name="CLS" x="7.111110687255859" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:1014" name="pill-WT" x="31.22222137451172" y="0" width="29.22222137451172" height="14">
+            <text id="37:1015" name="WT" x="8.11111068725586" y="3" width="13" height="8" />
+          </frame>
+          <frame id="37:1016" name="pill-FM" x="62.44444274902344" y="0" width="29.222219467163086" height="14">
+            <text id="37:1017" name="FM" x="9.111109733581543" y="3" width="11" height="8" />
+          </frame>
+          <frame id="37:1018" name="pill-ADD" x="93.66666412353516" y="0" width="29.22222137451172" height="14">
+            <text id="37:1019" name="ADD" x="6.611110687255859" y="3" width="16" height="8" />
+          </frame>
+          <frame id="37:1020" name="pill-PHS" x="124.88888549804688" y="0" width="29.22222328186035" height="14">
+            <text id="37:1021" name="PHS" x="7.111111640930176" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:1022" name="pill-GRN" x="156.11111450195312" y="0" width="29.22222328186035" height="14">
+            <text id="37:1023" name="GRN" x="6.611111640930176" y="3" width="16" height="8" />
+          </frame>
+          <frame id="37:1024" name="pill-NSE" x="187.33334350585938" y="0" width="29.22222328186035" height="14">
+            <text id="37:1025" name="NSE" x="7.111111640930176" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:1026" name="pill-RES" x="218.55557250976562" y="0" width="29.222225189208984" height="14">
+            <text id="37:1027" name="RES" x="7.611112594604492" y="3" width="14" height="8" />
+          </frame>
+          <frame id="37:1028" name="pill-EXT" x="249.77780151367188" y="0" width="29.222225189208984" height="14">
+            <text id="37:1029" name="EXT" x="7.111112594604492" y="3" width="15" height="8" />
+          </frame>
+        </frame>
+        <frame id="47:24" name="sub-picker" x="12" y="60" width="279" height="22">
+          <frame id="47:25" name="sub-alg1" x="46.5" y="4" width="34" height="14">
+            <text id="47:26" name="ALG1" x="8" y="3" width="18" height="8" />
+          </frame>
+          <frame id="47:27" name="sub-alg2" x="83.5" y="4" width="35" height="14">
+            <text id="47:28" name="ALG2" x="8" y="3" width="19" height="8" />
+          </frame>
+          <frame id="47:29" name="sub-alg3" x="121.5" y="4" width="35" height="14">
+            <text id="47:30" name="ALG3" x="8" y="3" width="19" height="8" />
+          </frame>
+          <frame id="47:31" name="sub-alg4" x="159.5" y="4" width="35" height="14">
+            <text id="47:32" name="ALG4" x="8" y="3" width="19" height="8" />
+          </frame>
+          <frame id="47:33" name="sub-alg5" x="197.5" y="4" width="35" height="14">
+            <text id="47:34" name="ALG5" x="8" y="3" width="19" height="8" />
+          </frame>
+        </frame>
+        <frame id="37:1030" name="context-visualizer-area" x="12" y="92" width="279" height="80">
+          <frame id="37:1031" name="fm-visual" x="70" y="35" width="139" height="10">
+            <frame id="37:1032" name="op1" x="0" y="0" width="16" height="10">
+              <text id="37:1033" name="OP1" x="2" y="1.5" width="12" height="7" />
+            </frame>
+            <frame id="37:1542" name="arrow-right" x="22" y="1" width="16" height="8" />
+            <frame id="37:1035" name="op2" x="44" y="0" width="16" height="10">
+              <text id="37:1036" name="OP2" x="1.5" y="1.5" width="13" height="7" />
+            </frame>
+            <text id="37:1037" name="ALG: 07 (FEEDBACK)" x="66" y="1" width="73" height="8" />
+          </frame>
+        </frame>
+        <frame id="37:1038" name="knobs-and-envelope-row" x="12" y="182" width="279" height="40">
+          <frame id="37:1039" name="knob-strip" x="0" y="0" width="203" height="40">
+            <frame id="37:1040" name="knob-container" x="0" y="0" width="44" height="40">
+              <frame id="37:1041" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1046" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:1047" name="knob-container" x="48" y="0" width="44" height="40">
+              <frame id="37:1048" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1053" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:1054" name="knob-container" x="96" y="0" width="44" height="40">
+              <frame id="37:1055" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1060" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:1061" name="knob-container" x="144" y="0" width="44" height="40">
+              <frame id="37:1062" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1067" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+          </frame>
+          <frame id="37:1068" name="envelope-wrapper" x="211" y="6" width="68" height="34">
+            <frame id="37:1069" name="adsr-container" x="0" y="0" width="68" height="34">
+              <frame id="37:1070" name="adsr-box" x="0" y="0" width="68" height="22">
+                <rounded-rectangle id="37:1071" name="A" x="2" y="2" width="10" height="18" />
+                <rounded-rectangle id="37:1072" name="D" x="12" y="6" width="19" height="14" />
+                <rounded-rectangle id="37:1073" name="S" x="31" y="6" width="19" height="14" />
+                <rounded-rectangle id="37:1074" name="R" x="50" y="16" width="16" height="4" />
+              </frame>
+              <frame id="37:1075" name="labels" x="0" y="26" width="68" height="8">
+                <text id="37:1076" name="A" x="4" y="0" width="6" height="8" />
+                <text id="37:1077" name="D" x="22.666667938232422" y="0" width="6" height="8" />
+                <text id="37:1078" name="S" x="41.333335876464844" y="0" width="5" height="8" />
+                <text id="37:1079" name="R" x="59.000003814697266" y="0" width="5" height="8" />
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+        <frame id="37:1080" name="level-row" x="12" y="232" width="279" height="10">
+          <text id="37:1081" name="LVL" x="0" y="1" width="13" height="8" />
+          <frame id="37:1082" name="fader-track" x="21" y="2" width="226" height="6">
+            <rounded-rectangle id="37:1083" name="fader-fill" x="1" y="1" width="99" height="4" />
+          </frame>
+          <text id="37:1084" name="55%" x="255" y="0" width="24" height="10" />
+        </frame>
+      </frame>
+      <frame id="37:1085" name="engine-card-4" x="945" y="0" width="303" height="270">
+        <frame id="37:1086" name="header-row" x="12" y="12" width="279" height="14">
+          <frame id="37:1087" name="left-group" x="0" y="0.5" width="72" height="13">
+            <ellipse id="37:1088" name="led" x="0" y="3.5" width="6" height="6" />
+            <text id="37:1089" name="ENGINE 04" x="12" y="0" width="60" height="13" />
+          </frame>
+          <frame id="37:1090" name="state-controls" x="215" y="0" width="64" height="14">
+            <frame id="37:1091" name="toggle-btn" x="0" y="0" width="22" height="14">
+              <text id="37:1092" name="ON" x="6" y="2" width="10" height="10" />
+            </frame>
+            <frame id="37:1093" name="toggle-btn" x="26" y="0" width="17" height="14">
+              <text id="37:1094" name="S" x="6" y="2" width="5" height="10" />
+            </frame>
+            <frame id="37:1095" name="toggle-btn" x="47" y="0" width="17" height="14">
+              <text id="37:1096" name="M" x="6" y="2" width="5" height="10" />
+            </frame>
+          </frame>
+        </frame>
+        <frame id="37:1097" name="type-strip" x="12" y="36" width="279" height="14">
+          <frame id="37:1098" name="pill-CLS" x="0" y="0" width="29.22222137451172" height="14">
+            <text id="37:1099" name="CLS" x="7.111110687255859" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:1100" name="pill-WT" x="31.22222137451172" y="0" width="29.22222137451172" height="14">
+            <text id="37:1101" name="WT" x="8.11111068725586" y="3" width="13" height="8" />
+          </frame>
+          <frame id="37:1102" name="pill-FM" x="62.44444274902344" y="0" width="29.222219467163086" height="14">
+            <text id="37:1103" name="FM" x="9.111109733581543" y="3" width="11" height="8" />
+          </frame>
+          <frame id="37:1104" name="pill-ADD" x="93.66666412353516" y="0" width="29.22222137451172" height="14">
+            <text id="37:1105" name="ADD" x="6.611110687255859" y="3" width="16" height="8" />
+          </frame>
+          <frame id="37:1106" name="pill-PHS" x="124.88888549804688" y="0" width="29.22222328186035" height="14">
+            <text id="37:1107" name="PHS" x="7.111111640930176" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:1108" name="pill-GRN" x="156.11111450195312" y="0" width="29.22222328186035" height="14">
+            <text id="37:1109" name="GRN" x="6.611111640930176" y="3" width="16" height="8" />
+          </frame>
+          <frame id="37:1110" name="pill-NSE" x="187.33334350585938" y="0" width="29.22222328186035" height="14">
+            <text id="37:1111" name="NSE" x="7.111111640930176" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:1112" name="pill-RES" x="218.55557250976562" y="0" width="29.222225189208984" height="14">
+            <text id="37:1113" name="RES" x="7.611112594604492" y="3" width="14" height="8" />
+          </frame>
+          <frame id="37:1114" name="pill-EXT" x="249.77780151367188" y="0" width="29.222225189208984" height="14">
+            <text id="37:1115" name="EXT" x="7.111112594604492" y="3" width="15" height="8" />
+          </frame>
+        </frame>
+        <frame id="47:35" name="sub-picker" x="12" y="60" width="279" height="22">
+          <frame id="47:36" name="sub-harm" x="44.5" y="4" width="38" height="14">
+            <text id="47:37" name="HARM" x="8" y="3" width="22" height="8" />
+          </frame>
+          <frame id="47:38" name="sub-odd" x="85.5" y="4" width="32" height="14">
+            <text id="47:39" name="ODD" x="8" y="3" width="16" height="8" />
+          </frame>
+          <frame id="47:40" name="sub-even" x="120.5" y="4" width="35" height="14">
+            <text id="47:41" name="EVEN" x="8" y="3" width="19" height="8" />
+          </frame>
+          <frame id="47:42" name="sub-pluck" x="158.5" y="4" width="40" height="14">
+            <text id="47:43" name="PLUCK" x="8" y="3" width="24" height="8" />
+          </frame>
+          <frame id="47:44" name="sub-bow" x="201.5" y="4" width="33" height="14">
+            <text id="47:45" name="BOW" x="8" y="3" width="17" height="8" />
+          </frame>
+        </frame>
+        <frame id="37:1116" name="context-visualizer-area" x="12" y="92" width="279" height="80">
+          <frame id="37:1117" name="add-visual" x="109.5" y="30" width="60" height="20">
+            <rounded-rectangle id="37:1118" name="Rectangle" x="0" y="8" width="4" height="12" />
+            <rounded-rectangle id="37:1119" name="Rectangle" x="8" y="2" width="4" height="18" />
+            <rounded-rectangle id="37:1120" name="Rectangle" x="16" y="14" width="4" height="6" />
+            <rounded-rectangle id="37:1121" name="Rectangle" x="24" y="6" width="4" height="14" />
+            <rounded-rectangle id="37:1122" name="Rectangle" x="32" y="16" width="4" height="4" />
+            <rounded-rectangle id="37:1123" name="Rectangle" x="40" y="10" width="4" height="10" />
+            <rounded-rectangle id="37:1124" name="Rectangle" x="48" y="18" width="4" height="2" />
+            <rounded-rectangle id="37:1125" name="Rectangle" x="56" y="12" width="4" height="8" />
+          </frame>
+        </frame>
+        <frame id="37:1126" name="knobs-and-envelope-row" x="12" y="182" width="279" height="40">
+          <frame id="37:1127" name="knob-strip" x="0" y="0" width="203" height="40">
+            <frame id="37:1128" name="knob-container" x="0" y="0" width="44" height="40">
+              <frame id="37:1129" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1134" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:1135" name="knob-container" x="48" y="0" width="44" height="40">
+              <frame id="37:1136" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1141" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:1142" name="knob-container" x="96" y="0" width="44" height="40">
+              <frame id="37:1143" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1148" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:1149" name="knob-container" x="144" y="0" width="44" height="40">
+              <frame id="37:1150" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1155" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+          </frame>
+          <frame id="37:1156" name="envelope-wrapper" x="211" y="6" width="68" height="34">
+            <frame id="37:1157" name="adsr-container" x="0" y="0" width="68" height="34">
+              <frame id="37:1158" name="adsr-box" x="0" y="0" width="68" height="22">
+                <rounded-rectangle id="37:1159" name="A" x="2" y="2" width="10" height="18" />
+                <rounded-rectangle id="37:1160" name="D" x="12" y="6" width="19" height="14" />
+                <rounded-rectangle id="37:1161" name="S" x="31" y="6" width="19" height="14" />
+                <rounded-rectangle id="37:1162" name="R" x="50" y="16" width="16" height="4" />
+              </frame>
+              <frame id="37:1163" name="labels" x="0" y="26" width="68" height="8">
+                <text id="37:1164" name="A" x="4" y="0" width="6" height="8" />
+                <text id="37:1165" name="D" x="22.666667938232422" y="0" width="6" height="8" />
+                <text id="37:1166" name="S" x="41.333335876464844" y="0" width="5" height="8" />
+                <text id="37:1167" name="R" x="59.000003814697266" y="0" width="5" height="8" />
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+        <frame id="37:1168" name="level-row" x="12" y="232" width="279" height="10">
+          <text id="37:1169" name="LVL" x="0" y="1" width="13" height="8" />
+          <frame id="37:1170" name="fader-track" x="21" y="2" width="226" height="6">
+            <rounded-rectangle id="37:1171" name="fader-fill" x="1" y="1" width="126" height="4" />
+          </frame>
+          <text id="37:1172" name="70%" x="255" y="0" width="24" height="10" />
+        </frame>
+      </frame>
+    </frame>
+    <frame id="37:1173" name="grid-row-2" x="0" y="282" width="1248" height="270">
+      <frame id="37:1174" name="engine-card-5" x="0" y="0" width="303" height="270">
+        <frame id="37:1175" name="header-row" x="12" y="12" width="279" height="14">
+          <frame id="37:1176" name="left-group" x="0" y="0.5" width="71" height="13">
+            <ellipse id="37:1177" name="led" x="0" y="3.5" width="6" height="6" />
+            <text id="37:1178" name="ENGINE 05" x="12" y="0" width="59" height="13" />
+          </frame>
+          <frame id="37:1179" name="state-controls" x="215" y="0" width="64" height="14">
+            <frame id="37:1180" name="toggle-btn" x="0" y="0" width="22" height="14">
+              <text id="37:1181" name="ON" x="6" y="2" width="10" height="10" />
+            </frame>
+            <frame id="37:1182" name="toggle-btn" x="26" y="0" width="17" height="14">
+              <text id="37:1183" name="S" x="6" y="2" width="5" height="10" />
+            </frame>
+            <frame id="37:1184" name="toggle-btn" x="47" y="0" width="17" height="14">
+              <text id="37:1185" name="M" x="6" y="2" width="5" height="10" />
+            </frame>
+          </frame>
+        </frame>
+        <frame id="37:1186" name="type-strip" x="12" y="36" width="279" height="14">
+          <frame id="37:1187" name="pill-CLS" x="0" y="0" width="29.22222137451172" height="14">
+            <text id="37:1188" name="CLS" x="7.111110687255859" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:1189" name="pill-WT" x="31.22222137451172" y="0" width="29.22222137451172" height="14">
+            <text id="37:1190" name="WT" x="8.11111068725586" y="3" width="13" height="8" />
+          </frame>
+          <frame id="37:1191" name="pill-FM" x="62.44444274902344" y="0" width="29.222219467163086" height="14">
+            <text id="37:1192" name="FM" x="9.111109733581543" y="3" width="11" height="8" />
+          </frame>
+          <frame id="37:1193" name="pill-ADD" x="93.66666412353516" y="0" width="29.22222137451172" height="14">
+            <text id="37:1194" name="ADD" x="6.611110687255859" y="3" width="16" height="8" />
+          </frame>
+          <frame id="37:1195" name="pill-PHS" x="124.88888549804688" y="0" width="29.22222328186035" height="14">
+            <text id="37:1196" name="PHS" x="7.111111640930176" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:1197" name="pill-GRN" x="156.11111450195312" y="0" width="29.22222328186035" height="14">
+            <text id="37:1198" name="GRN" x="6.611111640930176" y="3" width="16" height="8" />
+          </frame>
+          <frame id="37:1199" name="pill-NSE" x="187.33334350585938" y="0" width="29.22222328186035" height="14">
+            <text id="37:1200" name="NSE" x="7.111111640930176" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:1201" name="pill-RES" x="218.55557250976562" y="0" width="29.222225189208984" height="14">
+            <text id="37:1202" name="RES" x="7.611112594604492" y="3" width="14" height="8" />
+          </frame>
+          <frame id="37:1203" name="pill-EXT" x="249.77780151367188" y="0" width="29.222225189208984" height="14">
+            <text id="37:1204" name="EXT" x="7.111112594604492" y="3" width="15" height="8" />
+          </frame>
+        </frame>
+        <frame id="47:46" name="sub-picker" x="12" y="60" width="279" height="22">
+          <frame id="47:47" name="sub-pd1" x="50.5" y="4" width="29" height="14">
+            <text id="47:48" name="PD1" x="8" y="3" width="13" height="8" />
+          </frame>
+          <frame id="47:49" name="sub-pd2" x="82.5" y="4" width="31" height="14">
+            <text id="47:50" name="PD2" x="8" y="3" width="15" height="8" />
+          </frame>
+          <frame id="47:51" name="sub-pd3" x="116.5" y="4" width="31" height="14">
+            <text id="47:52" name="PD3" x="8" y="3" width="15" height="8" />
+          </frame>
+          <frame id="47:53" name="sub-super" x="150.5" y="4" width="39" height="14">
+            <text id="47:54" name="SUPER" x="8" y="3" width="23" height="8" />
+          </frame>
+          <frame id="47:55" name="sub-sync" x="192.5" y="4" width="36" height="14">
+            <text id="47:56" name="SYNC" x="8" y="3" width="20" height="8" />
+          </frame>
+        </frame>
+        <frame id="37:1205" name="context-visualizer-area" x="12" y="92" width="279" height="80">
+          <frame id="37:1206" name="grn-visual" x="93" y="35" width="93" height="10">
+            <ellipse id="37:1207" name="Ellipse" x="0" y="3" width="4" height="4" />
+            <ellipse id="37:1208" name="Ellipse" x="8" y="2" width="6" height="6" />
+            <ellipse id="37:1209" name="Ellipse" x="18" y="3.5" width="3" height="3" />
+            <ellipse id="37:1210" name="Ellipse" x="25" y="2.5" width="5" height="5" />
+            <ellipse id="37:1211" name="Ellipse" x="34" y="3" width="4" height="4" />
+            <text id="37:1212" name="25ms DENSE" x="42" y="0" width="51" height="10" />
+          </frame>
+        </frame>
+        <frame id="37:1213" name="knobs-and-envelope-row" x="12" y="182" width="279" height="40">
+          <frame id="37:1214" name="knob-strip" x="0" y="0" width="203" height="40">
+            <frame id="37:1215" name="knob-container" x="0" y="0" width="44" height="40">
+              <frame id="37:1216" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1221" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:1222" name="knob-container" x="48" y="0" width="44" height="40">
+              <frame id="37:1223" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1228" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:1229" name="knob-container" x="96" y="0" width="44" height="40">
+              <frame id="37:1230" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1235" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:1236" name="knob-container" x="144" y="0" width="44" height="40">
+              <frame id="37:1237" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1242" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+          </frame>
+          <frame id="37:1243" name="envelope-wrapper" x="211" y="6" width="68" height="34">
+            <frame id="37:1244" name="adsr-container" x="0" y="0" width="68" height="34">
+              <frame id="37:1245" name="adsr-box" x="0" y="0" width="68" height="22">
+                <rounded-rectangle id="37:1246" name="A" x="2" y="2" width="10" height="18" />
+                <rounded-rectangle id="37:1247" name="D" x="12" y="6" width="19" height="14" />
+                <rounded-rectangle id="37:1248" name="S" x="31" y="6" width="19" height="14" />
+                <rounded-rectangle id="37:1249" name="R" x="50" y="16" width="16" height="4" />
+              </frame>
+              <frame id="37:1250" name="labels" x="0" y="26" width="68" height="8">
+                <text id="37:1251" name="A" x="4" y="0" width="6" height="8" />
+                <text id="37:1252" name="D" x="22.666667938232422" y="0" width="6" height="8" />
+                <text id="37:1253" name="S" x="41.333335876464844" y="0" width="5" height="8" />
+                <text id="37:1254" name="R" x="59.000003814697266" y="0" width="5" height="8" />
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+        <frame id="37:1255" name="level-row" x="12" y="232" width="279" height="10">
+          <text id="37:1256" name="LVL" x="0" y="1" width="13" height="8" />
+          <frame id="37:1257" name="fader-track" x="21" y="2" width="226" height="6">
+            <rounded-rectangle id="37:1258" name="fader-fill" x="1" y="1" width="108" height="4" />
+          </frame>
+          <text id="37:1259" name="60%" x="255" y="0" width="24" height="10" />
+        </frame>
+      </frame>
+      <frame id="37:1260" name="engine-card-6" x="315" y="0" width="303" height="270">
+        <frame id="37:1261" name="header-row" x="12" y="12" width="279" height="14">
+          <frame id="37:1262" name="left-group" x="0" y="0.5" width="72" height="13">
+            <ellipse id="37:1263" name="led" x="0" y="3.5" width="6" height="6" />
+            <text id="37:1264" name="ENGINE 06" x="12" y="0" width="60" height="13" />
+          </frame>
+          <frame id="37:1265" name="state-controls" x="215" y="0" width="64" height="14">
+            <frame id="37:1266" name="toggle-btn" x="0" y="0" width="22" height="14">
+              <text id="37:1267" name="ON" x="6" y="2" width="10" height="10" />
+            </frame>
+            <frame id="37:1268" name="toggle-btn" x="26" y="0" width="17" height="14">
+              <text id="37:1269" name="S" x="6" y="2" width="5" height="10" />
+            </frame>
+            <frame id="37:1270" name="toggle-btn" x="47" y="0" width="17" height="14">
+              <text id="37:1271" name="M" x="6" y="2" width="5" height="10" />
+            </frame>
+          </frame>
+        </frame>
+        <frame id="37:1272" name="type-strip" x="12" y="36" width="279" height="14">
+          <frame id="37:1273" name="pill-CLS" x="0" y="0" width="29.22222137451172" height="14">
+            <text id="37:1274" name="CLS" x="7.111110687255859" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:1275" name="pill-WT" x="31.22222137451172" y="0" width="29.22222137451172" height="14">
+            <text id="37:1276" name="WT" x="8.11111068725586" y="3" width="13" height="8" />
+          </frame>
+          <frame id="37:1277" name="pill-FM" x="62.44444274902344" y="0" width="29.222219467163086" height="14">
+            <text id="37:1278" name="FM" x="9.111109733581543" y="3" width="11" height="8" />
+          </frame>
+          <frame id="37:1279" name="pill-ADD" x="93.66666412353516" y="0" width="29.22222137451172" height="14">
+            <text id="37:1280" name="ADD" x="6.611110687255859" y="3" width="16" height="8" />
+          </frame>
+          <frame id="37:1281" name="pill-PHS" x="124.88888549804688" y="0" width="29.22222328186035" height="14">
+            <text id="37:1282" name="PHS" x="7.111111640930176" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:1283" name="pill-GRN" x="156.11111450195312" y="0" width="29.22222328186035" height="14">
+            <text id="37:1284" name="GRN" x="6.611111640930176" y="3" width="16" height="8" />
+          </frame>
+          <frame id="37:1285" name="pill-NSE" x="187.33334350585938" y="0" width="29.22222328186035" height="14">
+            <text id="37:1286" name="NSE" x="7.111111640930176" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:1287" name="pill-RES" x="218.55557250976562" y="0" width="29.222225189208984" height="14">
+            <text id="37:1288" name="RES" x="7.611112594604492" y="3" width="14" height="8" />
+          </frame>
+          <frame id="37:1289" name="pill-EXT" x="249.77780151367188" y="0" width="29.222225189208984" height="14">
+            <text id="37:1290" name="EXT" x="7.111112594604492" y="3" width="15" height="8" />
+          </frame>
+        </frame>
+        <frame id="47:106" name="sub-picker" x="12" y="60" width="279" height="22">
+          <frame id="47:107" name="arrow-left" x="0" y="1.5" width="25" height="19">
+            <text id="47:108" name="◀" x="8" y="4" width="9" height="11" />
+          </frame>
+          <frame id="47:109" name="cycler-label" x="25" y="6" width="229" height="10">
+            <text id="47:110" name="GRAIN SOURCE" x="69.5" y="1" width="53" height="8" />
+            <text id="47:111" name="001 / 32" x="126.5" y="0" width="33" height="10" />
+          </frame>
+          <frame id="47:112" name="arrow-right" x="254" y="1.5" width="25" height="19">
+            <text id="47:113" name="▶" x="8" y="4" width="9" height="11" />
+          </frame>
+        </frame>
+        <frame id="37:1291" name="context-visualizer-area" x="12" y="92" width="279" height="80">
+          <frame id="37:1292" name="res-visual" x="87" y="33" width="105" height="14">
+            <frame id="37:1539" name="audio-waveform" x="0" y="0" width="44" height="14" />
+            <text id="37:1294" name="PEAK: 1.2kHz" x="52" y="2" width="53" height="10" />
+          </frame>
+        </frame>
+        <frame id="37:1295" name="knobs-and-envelope-row" x="12" y="182" width="279" height="40">
+          <frame id="37:1296" name="knob-strip" x="0" y="0" width="203" height="40">
+            <frame id="37:1297" name="knob-container" x="0" y="0" width="44" height="40">
+              <frame id="37:1298" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1303" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:1304" name="knob-container" x="48" y="0" width="44" height="40">
+              <frame id="37:1305" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1310" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:1311" name="knob-container" x="96" y="0" width="44" height="40">
+              <frame id="37:1312" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1317" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:1318" name="knob-container" x="144" y="0" width="44" height="40">
+              <frame id="37:1319" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1324" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+          </frame>
+          <frame id="37:1325" name="envelope-wrapper" x="211" y="6" width="68" height="34">
+            <frame id="37:1326" name="adsr-container" x="0" y="0" width="68" height="34">
+              <frame id="37:1327" name="adsr-box" x="0" y="0" width="68" height="22">
+                <rounded-rectangle id="37:1328" name="A" x="2" y="2" width="10" height="18" />
+                <rounded-rectangle id="37:1329" name="D" x="12" y="6" width="19" height="14" />
+                <rounded-rectangle id="37:1330" name="S" x="31" y="6" width="19" height="14" />
+                <rounded-rectangle id="37:1331" name="R" x="50" y="16" width="16" height="4" />
+              </frame>
+              <frame id="37:1332" name="labels" x="0" y="26" width="68" height="8">
+                <text id="37:1333" name="A" x="4" y="0" width="6" height="8" />
+                <text id="37:1334" name="D" x="22.666667938232422" y="0" width="6" height="8" />
+                <text id="37:1335" name="S" x="41.333335876464844" y="0" width="5" height="8" />
+                <text id="37:1336" name="R" x="59.000003814697266" y="0" width="5" height="8" />
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+        <frame id="37:1337" name="level-row" x="12" y="232" width="279" height="10">
+          <text id="37:1338" name="LVL" x="0" y="1" width="13" height="8" />
+          <frame id="37:1339" name="fader-track" x="21" y="2" width="226" height="6">
+            <rounded-rectangle id="37:1340" name="fader-fill" x="1" y="1" width="90" height="4" />
+          </frame>
+          <text id="37:1341" name="50%" x="255" y="0" width="24" height="10" />
+        </frame>
+      </frame>
+      <frame id="37:1342" name="engine-card-7" x="630" y="0" width="303" height="270">
+        <frame id="37:1343" name="header-row" x="12" y="12" width="279" height="14">
+          <frame id="37:1344" name="left-group" x="0" y="0.5" width="71" height="13">
+            <ellipse id="37:1345" name="led" x="0" y="3.5" width="6" height="6" />
+            <text id="37:1346" name="ENGINE 07" x="12" y="0" width="59" height="13" />
+          </frame>
+          <frame id="37:1347" name="state-controls" x="215" y="0" width="64" height="14">
+            <frame id="37:1348" name="toggle-btn" x="0" y="0" width="22" height="14">
+              <text id="37:1349" name="ON" x="6" y="2" width="10" height="10" />
+            </frame>
+            <frame id="37:1350" name="toggle-btn" x="26" y="0" width="17" height="14">
+              <text id="37:1351" name="S" x="6" y="2" width="5" height="10" />
+            </frame>
+            <frame id="37:1352" name="toggle-btn" x="47" y="0" width="17" height="14">
+              <text id="37:1353" name="M" x="6" y="2" width="5" height="10" />
+            </frame>
+          </frame>
+        </frame>
+        <frame id="37:1354" name="type-strip" x="12" y="36" width="279" height="14">
+          <frame id="37:1355" name="pill-CLS" x="0" y="0" width="29.22222137451172" height="14">
+            <text id="37:1356" name="CLS" x="7.111110687255859" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:1357" name="pill-WT" x="31.22222137451172" y="0" width="29.22222137451172" height="14">
+            <text id="37:1358" name="WT" x="8.11111068725586" y="3" width="13" height="8" />
+          </frame>
+          <frame id="37:1359" name="pill-FM" x="62.44444274902344" y="0" width="29.222219467163086" height="14">
+            <text id="37:1360" name="FM" x="9.111109733581543" y="3" width="11" height="8" />
+          </frame>
+          <frame id="37:1361" name="pill-ADD" x="93.66666412353516" y="0" width="29.22222137451172" height="14">
+            <text id="37:1362" name="ADD" x="6.611110687255859" y="3" width="16" height="8" />
+          </frame>
+          <frame id="37:1363" name="pill-PHS" x="124.88888549804688" y="0" width="29.22222328186035" height="14">
+            <text id="37:1364" name="PHS" x="7.111111640930176" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:1365" name="pill-GRN" x="156.11111450195312" y="0" width="29.22222328186035" height="14">
+            <text id="37:1366" name="GRN" x="6.611111640930176" y="3" width="16" height="8" />
+          </frame>
+          <frame id="37:1367" name="pill-NSE" x="187.33334350585938" y="0" width="29.22222328186035" height="14">
+            <text id="37:1368" name="NSE" x="7.111111640930176" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:1369" name="pill-RES" x="218.55557250976562" y="0" width="29.222225189208984" height="14">
+            <text id="37:1370" name="RES" x="7.611112594604492" y="3" width="14" height="8" />
+          </frame>
+          <frame id="37:1371" name="pill-EXT" x="249.77780151367188" y="0" width="29.222225189208984" height="14">
+            <text id="37:1372" name="EXT" x="7.111112594604492" y="3" width="15" height="8" />
+          </frame>
+        </frame>
+        <frame id="47:68" name="sub-picker" x="12" y="60" width="279" height="22">
+          <frame id="47:69" name="sub-white" x="34.5" y="4" width="39" height="14">
+            <text id="47:70" name="WHITE" x="8" y="3" width="23" height="8" />
+          </frame>
+          <frame id="47:71" name="sub-pink" x="76.5" y="4" width="33" height="14">
+            <text id="47:72" name="PINK" x="8" y="3" width="17" height="8" />
+          </frame>
+          <frame id="47:73" name="sub-brown" x="112.5" y="4" width="43" height="14">
+            <text id="47:74" name="BROWN" x="8" y="3" width="27" height="8" />
+          </frame>
+          <frame id="47:75" name="sub-metal" x="158.5" y="4" width="40" height="14">
+            <text id="47:76" name="METAL" x="8" y="3" width="24" height="8" />
+          </frame>
+          <frame id="47:77" name="sub-digital" x="201.5" y="4" width="43" height="14">
+            <text id="47:78" name="DIGITAL" x="8" y="3" width="27" height="8" />
+          </frame>
+        </frame>
+        <frame id="37:1373" name="context-visualizer-area" x="12" y="92" width="279" height="80">
+          <frame id="37:1374" name="nse-visual" x="91.5" y="34" width="96" height="12">
+            <frame id="37:1533" name="audio-waveform" x="0" y="0" width="32" height="12" />
+            <text id="37:1376" name="PINK SPECTRUM" x="38" y="2" width="58" height="8" />
+          </frame>
+        </frame>
+        <frame id="37:1377" name="knobs-and-envelope-row" x="12" y="182" width="279" height="40">
+          <frame id="37:1378" name="knob-strip" x="0" y="0" width="203" height="40">
+            <frame id="37:1379" name="knob-container" x="0" y="0" width="44" height="40">
+              <frame id="37:1380" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1385" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:1386" name="knob-container" x="48" y="0" width="44" height="40">
+              <frame id="37:1387" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1392" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:1393" name="knob-container" x="96" y="0" width="44" height="40">
+              <frame id="37:1394" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1399" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:1400" name="knob-container" x="144" y="0" width="44" height="40">
+              <frame id="37:1401" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1406" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+          </frame>
+          <frame id="37:1407" name="envelope-wrapper" x="211" y="6" width="68" height="34">
+            <frame id="37:1408" name="adsr-container" x="0" y="0" width="68" height="34">
+              <frame id="37:1409" name="adsr-box" x="0" y="0" width="68" height="22">
+                <rounded-rectangle id="37:1410" name="A" x="2" y="2" width="10" height="18" />
+                <rounded-rectangle id="37:1411" name="D" x="12" y="6" width="19" height="14" />
+                <rounded-rectangle id="37:1412" name="S" x="31" y="6" width="19" height="14" />
+                <rounded-rectangle id="37:1413" name="R" x="50" y="16" width="16" height="4" />
+              </frame>
+              <frame id="37:1414" name="labels" x="0" y="26" width="68" height="8">
+                <text id="37:1415" name="A" x="4" y="0" width="6" height="8" />
+                <text id="37:1416" name="D" x="22.666667938232422" y="0" width="6" height="8" />
+                <text id="37:1417" name="S" x="41.333335876464844" y="0" width="5" height="8" />
+                <text id="37:1418" name="R" x="59.000003814697266" y="0" width="5" height="8" />
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+        <frame id="37:1419" name="level-row" x="12" y="232" width="279" height="10">
+          <text id="37:1420" name="LVL" x="0" y="1" width="13" height="8" />
+          <frame id="37:1421" name="fader-track" x="21" y="2" width="226" height="6">
+            <rounded-rectangle id="37:1422" name="fader-fill" x="1" y="1" width="63" height="4" />
+          </frame>
+          <text id="37:1423" name="35%" x="255" y="0" width="24" height="10" />
+        </frame>
+      </frame>
+      <frame id="37:1424" name="engine-card-8" x="945" y="0" width="303" height="270">
+        <frame id="37:1425" name="header-row" x="12" y="12" width="279" height="14">
+          <frame id="37:1426" name="left-group" x="0" y="0.5" width="72" height="13">
+            <ellipse id="37:1427" name="led" x="0" y="3.5" width="6" height="6" />
+            <text id="37:1428" name="ENGINE 08" x="12" y="0" width="60" height="13" />
+          </frame>
+          <frame id="37:1429" name="state-controls" x="215" y="0" width="64" height="14">
+            <frame id="37:1430" name="toggle-btn" x="0" y="0" width="22" height="14">
+              <text id="37:1431" name="ON" x="6" y="2" width="10" height="10" />
+            </frame>
+            <frame id="37:1432" name="toggle-btn" x="26" y="0" width="17" height="14">
+              <text id="37:1433" name="S" x="6" y="2" width="5" height="10" />
+            </frame>
+            <frame id="37:1434" name="toggle-btn" x="47" y="0" width="17" height="14">
+              <text id="37:1435" name="M" x="6" y="2" width="5" height="10" />
+            </frame>
+          </frame>
+        </frame>
+        <frame id="37:1436" name="type-strip" x="12" y="36" width="279" height="14">
+          <frame id="37:1437" name="pill-CLS" x="0" y="0" width="29.22222137451172" height="14">
+            <text id="37:1438" name="CLS" x="7.111110687255859" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:1439" name="pill-WT" x="31.22222137451172" y="0" width="29.22222137451172" height="14">
+            <text id="37:1440" name="WT" x="8.11111068725586" y="3" width="13" height="8" />
+          </frame>
+          <frame id="37:1441" name="pill-FM" x="62.44444274902344" y="0" width="29.222219467163086" height="14">
+            <text id="37:1442" name="FM" x="9.111109733581543" y="3" width="11" height="8" />
+          </frame>
+          <frame id="37:1443" name="pill-ADD" x="93.66666412353516" y="0" width="29.22222137451172" height="14">
+            <text id="37:1444" name="ADD" x="6.611110687255859" y="3" width="16" height="8" />
+          </frame>
+          <frame id="37:1445" name="pill-PHS" x="124.88888549804688" y="0" width="29.22222328186035" height="14">
+            <text id="37:1446" name="PHS" x="7.111111640930176" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:1447" name="pill-GRN" x="156.11111450195312" y="0" width="29.22222328186035" height="14">
+            <text id="37:1448" name="GRN" x="6.611111640930176" y="3" width="16" height="8" />
+          </frame>
+          <frame id="37:1449" name="pill-NSE" x="187.33334350585938" y="0" width="29.22222328186035" height="14">
+            <text id="37:1450" name="NSE" x="7.111111640930176" y="3" width="15" height="8" />
+          </frame>
+          <frame id="37:1451" name="pill-RES" x="218.55557250976562" y="0" width="29.222225189208984" height="14">
+            <text id="37:1452" name="RES" x="7.611112594604492" y="3" width="14" height="8" />
+          </frame>
+          <frame id="37:1453" name="pill-EXT" x="249.77780151367188" y="0" width="29.222225189208984" height="14">
+            <text id="37:1454" name="EXT" x="7.111112594604492" y="3" width="15" height="8" />
+          </frame>
+        </frame>
+        <frame id="47:79" name="sub-picker" x="12" y="60" width="279" height="22">
+          <frame id="47:80" name="sub-tube" x="41" y="4" width="35" height="14">
+            <text id="47:81" name="TUBE" x="8" y="3" width="19" height="8" />
+          </frame>
+          <frame id="47:82" name="sub-string" x="79" y="4" width="42" height="14">
+            <text id="47:83" name="STRING" x="8" y="3" width="26" height="8" />
+          </frame>
+          <frame id="47:84" name="sub-plate" x="124" y="4" width="38" height="14">
+            <text id="47:85" name="PLATE" x="8" y="3" width="22" height="8" />
+          </frame>
+          <frame id="47:86" name="sub-drum" x="165" y="4" width="38" height="14">
+            <text id="47:87" name="DRUM" x="8" y="3" width="22" height="8" />
+          </frame>
+          <frame id="47:88" name="sub-pipe" x="206" y="4" width="32" height="14">
+            <text id="47:89" name="PIPE" x="8" y="3" width="16" height="8" />
+          </frame>
+        </frame>
+        <frame id="37:1455" name="context-visualizer-area" x="12" y="92" width="279" height="80">
+          <frame id="37:1456" name="ext-visual" x="95" y="36" width="89" height="8">
+            <frame id="37:1457" name="level-meter" x="0" y="1" width="48" height="6">
+              <rounded-rectangle id="37:1458" name="Rectangle" x="0" y="0" width="36" height="6" />
+            </frame>
+            <text id="37:1459" name="L/R INPUT" x="54" y="0" width="35" height="8" />
+          </frame>
+        </frame>
+        <frame id="37:1460" name="knobs-and-envelope-row" x="12" y="182" width="279" height="40">
+          <frame id="37:1461" name="knob-strip" x="0" y="0" width="203" height="40">
+            <frame id="37:1462" name="knob-container" x="0" y="0" width="44" height="40">
+              <frame id="37:1463" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1468" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:1469" name="knob-container" x="48" y="0" width="44" height="40">
+              <frame id="37:1470" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1475" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:1476" name="knob-container" x="96" y="0" width="44" height="40">
+              <frame id="37:1477" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1482" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+            <frame id="37:1483" name="knob-container" x="144" y="0" width="44" height="40">
+              <frame id="37:1484" name="knob-graphic" x="8" y="0" width="28" height="28" />
+              <text id="37:1489" name="knob-label" x="0" y="32" width="44" height="8" />
+            </frame>
+          </frame>
+          <frame id="37:1490" name="envelope-wrapper" x="211" y="6" width="68" height="34">
+            <frame id="37:1491" name="adsr-container" x="0" y="0" width="68" height="34">
+              <frame id="37:1492" name="adsr-box" x="0" y="0" width="68" height="22">
+                <rounded-rectangle id="37:1493" name="A" x="2" y="2" width="10" height="18" />
+                <rounded-rectangle id="37:1494" name="D" x="12" y="6" width="19" height="14" />
+                <rounded-rectangle id="37:1495" name="S" x="31" y="6" width="19" height="14" />
+                <rounded-rectangle id="37:1496" name="R" x="50" y="16" width="16" height="4" />
+              </frame>
+              <frame id="37:1497" name="labels" x="0" y="26" width="68" height="8">
+                <text id="37:1498" name="A" x="4" y="0" width="6" height="8" />
+                <text id="37:1499" name="D" x="22.666667938232422" y="0" width="6" height="8" />
+                <text id="37:1500" name="S" x="41.333335876464844" y="0" width="5" height="8" />
+                <text id="37:1501" name="R" x="59.000003814697266" y="0" width="5" height="8" />
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+        <frame id="37:1502" name="level-row" x="12" y="232" width="279" height="10">
+          <text id="37:1503" name="LVL" x="0" y="1" width="13" height="8" />
+          <frame id="37:1504" name="fader-track" x="21" y="2" width="226" height="6">
+            <rounded-rectangle id="37:1505" name="fader-fill" x="1" y="1" width="135" height="4" />
+          </frame>
+          <text id="37:1506" name="75%" x="255" y="0" width="24" height="10" />
+        </frame>
+      </frame>
+    </frame>
+  </frame>
+  <frame id="37:1507" name="status-bar" x="16" y="992" width="1248" height="40">
+    <frame id="37:1508" name="tech-info" x="16" y="15" width="226" height="10">
+      <frame id="37:1509" name="cpu-meter-box" x="0" y="0" width="89" height="10">
+        <text id="37:1510" name="CPU" x="0" y="0" width="18" height="10" />
+        <frame id="37:1511" name="cpu-bar" x="24" y="3" width="40" height="4">
+          <rounded-rectangle id="37:1512" name="Rectangle" x="0" y="0" width="16" height="4" />
+        </frame>
+        <text id="37:1513" name="40%" x="70" y="0" width="19" height="10" />
+      </frame>
+      <frame id="37:1514" name="voices" x="105" y="0" width="65" height="10">
+        <text id="37:1515" name="VOICES:" x="0" y="0" width="34" height="10" />
+        <text id="37:1516" name="16 / 32" x="38" y="0" width="27" height="10" />
+      </frame>
+      <frame id="37:1517" name="midi" x="186" y="0" width="40" height="10">
+        <ellipse id="37:1518" name="led" x="0" y="2" width="6" height="6" />
+        <text id="37:1519" name="MIDI IN" x="12" y="0" width="28" height="10" />
+      </frame>
+    </frame>
+    <frame id="37:1520" name="mod-sources" x="594.5" y="13" width="212" height="14">
+      <text id="37:1521" name="MOD SOURCES:" x="0" y="2" width="64" height="10" />
+      <frame id="37:1522" name="chip" x="70" y="0" width="30" height="14">
+        <text id="37:1523" name="LFO1" x="6" y="3" width="18" height="8" />
+      </frame>
+      <frame id="37:1524" name="chip" x="106" y="0" width="31" height="14">
+        <text id="37:1525" name="LFO2" x="6" y="3" width="19" height="8" />
+      </frame>
+      <frame id="37:1526" name="chip" x="143" y="0" width="31" height="14">
+        <text id="37:1527" name="ENV1" x="6" y="3" width="19" height="8" />
+      </frame>
+      <frame id="37:1528" name="chip" x="180" y="0" width="32" height="14">
+        <text id="37:1529" name="ENV2" x="6" y="3" width="20" height="8" />
+      </frame>
+    </frame>
+    <frame id="37:1530" name="panic-action" x="1159" y="11" width="73" height="18">
+      <text id="37:1531" name="PANIC RESET" x="10" y="4" width="53" height="10" />
+    </frame>
+  </frame>
+</frame>

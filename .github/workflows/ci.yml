@@ -40,6 +40,16 @@ jobs:
       - name: MVP content + MCP smoke
         run: |
           python3 scripts/validate_content_refs.py
+          scripts/figma_layout.sh check
+          python3 scripts/test_figma_layout.py
+          for spec in plugin/src/ui/figma-connect/layouts/*.layout.json; do
+            base=$(basename "$spec" .layout.json)
+            slug="${base%%.*}"
+            fixture="scripts/figma_layout/fixtures/${slug}.metadata.xml"
+            if [[ -f "$fixture" ]]; then
+              scripts/figma_layout.sh compare "$(basename "$spec")" -i "$fixture" --mode top-level
+            fi
+          done
           python3 mcp_server/smoke_test.py
 
   build-and-test-windows:

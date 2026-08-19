@@ -1,0 +1,7 @@
+<frame id="36:4" name="murmur-play-view" x="500" y="0" width="1280" height="960">
+  <frame id="39:142" name="header-bar" x="20" y="20" width="1248" height="60"/>
+  <frame id="36:35" name="oscilloscope" x="20" y="96" width="1240" height="180"/>
+  <frame id="82:83" name="master-envelope-section" x="20" y="292" width="1240" height="220"/>
+  <frame id="36:155" name="performance-macros-deck" x="20" y="528" width="1240" height="280"/>
+  <frame id="36:226" name="vst-bottom-bar" x="20" y="824" width="1240" height="64"/>
+</frame>

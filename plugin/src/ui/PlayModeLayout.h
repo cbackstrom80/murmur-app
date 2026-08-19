@@ -1,14 +1,20 @@
 #pragma once
 
+#include <algorithm>
+#include <array>
+
 namespace pw8::plugin::ui::layout
 {
     /// Default PLAY editor frame: 16:9 landscape (fits beside a DAW mixer on 1080p/1440p).
     inline constexpr int kDefaultWidth = 1280;
     inline constexpr int kDefaultHeight = 720;
     inline constexpr int kMinWidth = 1120;
+    /// Legacy floor — prefer `minimumRootHeight()` for view-aware sizing.
     inline constexpr int kMinHeight = 630;
-    inline constexpr int kMaxWidth = 1920;
-    inline constexpr int kMaxHeight = 1080;
+    /// Allow expansion on hi-DPI / 4K / ultrawide monitors (no hard 1080p cap).
+    inline constexpr int kMaxWidth = 3840;
+    inline constexpr int kMaxHeight = 2160;
+    /// Suggested aspect for default size only; resize is not locked to this ratio.
     inline constexpr double kAspectRatio = 16.0 / 9.0;
 
     inline constexpr int kOuterMargin = 16;
@@ -53,6 +59,9 @@ namespace pw8::plugin::ui::layout
     inline constexpr int kArpStepWorkspaceWidth = 752;
     inline constexpr int kArpStepColumnGap = 4;
     inline constexpr int kArpStepColumnWidth = 43;
+    inline constexpr int kArpStepColumnWidthCompact = 28;
+    inline constexpr int kArpStepPageSize = 16;
+    inline constexpr int kArpStepToolRowHeight = 24;
     inline constexpr int kArpStepLaneWidth = 32;
     inline constexpr int kArpStepLaneHeight = 130;
     inline constexpr int kArpStepMetaHeight = 39;
@@ -82,33 +91,50 @@ namespace pw8::plugin::ui::layout
     /// Legacy alias — ARP is now full-screen; kept for any stale references.
     inline constexpr int kArpDrawerWidth = kArpSidePanelWidth;
 
-    /// Compact mode — Figma `murmur-play-compact` (4:1134), fixed 320px width, resizable height.
+    /// Compact mode — Figma `murmur-compact-view` (`4:1134`), fixed 320×560 frame.
     inline constexpr int kCompactWidth = 320;
     inline constexpr int kCompactMinHeight = 480;
     inline constexpr int kCompactMaxHeight = 1200;
-    inline constexpr int kCompactDefaultHeight = 565;
+    inline constexpr int kCompactDefaultHeight = 560;
+    /// Figma frame inset: top/left/right = 14, bottom = 30 (asymmetric).
     inline constexpr int kCompactOuterMargin = 14;
+    inline constexpr int kCompactBottomMargin = 30;
+    /// Figma `header-bar` (`50:252`) inside `4:1134` — maps to `MurmurChromeBar` in code.
     inline constexpr int kCompactHeaderHeight = 28;
     inline constexpr int kCompactMissionCardHeight = kCompactHeaderHeight + 38;
     inline constexpr int kCompactScopePanelHeight = 152;
     inline constexpr int kCompactScopeSize = 148;
     inline constexpr int kCompactScopePanelPadding = 12;
-    inline constexpr int kCompactScopeHeaderHeight = 8;
+    inline constexpr int kCompactScopeHeaderHeight = 10;
     inline constexpr int kCompactScopeOscHeight = 110;
     inline constexpr int kCompactScopeHeaderGap = 8;
     inline constexpr int kCompactOutputMeterHeight = 6;
+    inline constexpr int kCompactOutputMeterGap = 4;
     inline constexpr int kCompactFooterSystemHeight = 30;
-    inline constexpr int kCompactModChipHeight = 14;
+    inline constexpr int kCompactModChipHeight = 12;
     inline constexpr int kCompactModChipGap = 4;
+    inline constexpr int kCompactMacroPanelHeight = 158;
     inline constexpr int kCompactMacroPanelPadding = 12;
+    inline constexpr int kCompactMacroHeaderHeight = 10;
+    inline constexpr int kCompactMacroHeaderGap = 10;
     inline constexpr int kCompactMacroKnobSize = 36;
     inline constexpr int kCompactMacroKnobGap = 8;
-    inline constexpr int kCompactMacroRowGap = 8;
-    inline constexpr int kCompactOutputBlockHeight = 72;
+    inline constexpr int kCompactMacroRowGap = 10;
+    inline constexpr int kCompactMacroCellHeight = 52;
+    /// Compact PLAY: two patch-prescribed performance KOINS (+ master volume = three mega knobs).
+    inline constexpr int kCompactPerformanceKoinCount = 2;
+    inline constexpr int kCompactMacroCount = kCompactPerformanceKoinCount;
+    inline constexpr int kCompactMegaKnobDeckHeight = 120;
+    inline constexpr int kCompactMegaKnobSize = 56;
+    inline constexpr int kCompactOutputBlockHeight = 100;
     inline constexpr int kCompactMasterKnobSize = 48;
+    inline constexpr int kCompactMasterKnobBlockWidth = 128;
+    inline constexpr int kCompactStatsBlockWidth = 128;
     inline constexpr int kCompactVolumeHeight = kCompactOutputBlockHeight;
     inline constexpr int kCompactVolumeKnobWidth = kCompactMasterKnobSize;
     inline constexpr int kCompactBlockGap = 12;
+    /// Figma footer chip widths (`4:1247`…`4:1253`): LFO1, ENV, SEQ, RAND.
+    inline constexpr std::array<int, 4> kCompactModChipWidths = {28, 25, 25, 31};
 
     /// Alt Figma 8-engine VST grid (1440×1024 reference scaled to 16:9 PLAY frame).
     inline constexpr int kVstGridMinHeight = 320;
@@ -205,7 +231,10 @@ namespace pw8::plugin::ui::layout
     inline constexpr int kVstBottomBarPaddingX = 16;
 
     /// Figma `murmur-desktop-play-mode` (36:4) — Basic performance screen (distinct from obsidian-play-board 22:2).
+    /// Canonical frame height is 960px (includes inline header in Figma; chrome is external in code).
+    inline constexpr int kDesktopPlayModeFrameHeight = 960;
     inline constexpr int kDesktopPlayModeOuterMargin = 20;
+    inline constexpr int kDesktopPlayModeMasterEnvelopeSectionHeight = 220;
     inline constexpr int kDesktopPlayModeSectionGap = 16;
     inline constexpr int kDesktopPlayModeContentWidth = 1240;
     /// Legacy integrated top-bar (36:5); chrome now lives in unified `MurmurChromeBar` (`39:142`, 44px).
@@ -229,6 +258,11 @@ namespace pw8::plugin::ui::layout
     inline constexpr int kDesktopPlayModeScopeMetadataInsetX = 16;
     inline constexpr int kDesktopPlayModeScopeMetadataInsetY = 12;
     inline constexpr int kDesktopPlayModeScopeWavePaddingX = 48;
+    inline constexpr int kDesktopPlayModeScopeMetadataHeight = 46;
+    inline constexpr int kDesktopPlayModeScopePlotPaddingBottom = 8;
+    inline constexpr int kDesktopPlayModeMasterEnvelopeCompactRowHeight = 27;
+    inline constexpr int kDesktopPlayModeMasterEnvelopeCompactRowGap = 4;
+    inline constexpr int kDesktopPlayModeMasterEnvelopeCompactKnobSize = 40;
     inline constexpr int kDesktopPlayModePerformanceDeckHeight = 280;
     inline constexpr int kDesktopPlayModePerformanceDeckPadding = 24;
     inline constexpr int kDesktopPlayModeMacrosHeaderHeight = 13;
@@ -245,22 +279,97 @@ namespace pw8::plugin::ui::layout
     inline constexpr int kDesktopPlayModePanicButtonWidth = 101;
     inline constexpr int kDesktopPlayModeStageActionGap = 16;
     inline constexpr int kDesktopPlayModeMacroCount = 8;
+    /// Compact master envelope strip in desktop PLAY (between scope and macro deck).
+    inline constexpr int kDesktopPlayModeMasterEnvelopePlayHeight = 168;
+    /// Desktop PLAY content stack: scope + master envelope + macro deck + bottom bar.
+    inline constexpr int kDesktopPlayModePureContentHeight =
+        kDesktopPlayModeOscilloscopeHeight + kDesktopPlayModeSectionGap + kDesktopPlayModeMasterEnvelopePlayHeight
+        + kDesktopPlayModeSectionGap + kDesktopPlayModePerformanceDeckHeight + kDesktopPlayModeSectionGap
+        + kDesktopPlayModeBottomBarHeight;
 
-    /// Figma `ipad-play-view` (4:2472) — Basic PLAY layout adapted for desktop content area.
-    inline constexpr int kIpadPlayUpperDeckHeight = 280;
+    inline constexpr int kChromeSubNavDesktopPlayWidth = 52;
+    inline constexpr int kChromeSubNavPlayBoardWidth = 44;
+
+    /// Figma `ipad-play-view` (4:2472) — alternate PLAY layout (desktop content area).
+    inline constexpr int kIpadPlayUpperDeckHeight = 220;
     inline constexpr int kIpadPlayUpperDeckGap = 12;
-    inline constexpr int kIpadPlayMasterDeckWidth = 280;
-    inline constexpr int kIpadPlayMasterKnobSize = 110;
-    inline constexpr int kIpadPlayMacrosDeckHeight = 201;
+    inline constexpr int kIpadPlayMasterDeckWidth = 400;
+    inline constexpr int kIpadPlayMasterKnobSize = 56;
+    inline constexpr int kIpadPlayMasterStripHeight = 120;
+    inline constexpr int kIpadPlayMasterStripPadding = 12;
+    inline constexpr int kIpadPlayMasterStripHeaderHeight = 16;
+    inline constexpr int kIpadPlayMasterStripCurveWidth = 168;
+    inline constexpr int kIpadPlayMasterStripCurveHeight = 56;
+    inline constexpr int kIpadPlayMasterStripColumnGap = 8;
+    inline constexpr int kIpadPlayMasterStripKnobRowHeight = 72;
+    inline constexpr int kIpadPlayMacrosDeckHeight = 180;
     inline constexpr int kIpadPlayMacroCount = 6;
     inline constexpr int kIpadPlayMacroKnobWidth = 120;
     inline constexpr int kIpadPlayMacroKnobGap = 24;
+    inline constexpr int kIpadPlaySectionGap = 12;
+    inline constexpr float kIpadPlaySectionTitleSize = 12.0f;
+    inline constexpr float kIpadPlayCaptionSize = 10.5f;
+    inline constexpr float kIpadPlayLabelSize = 11.0f;
+    /// Figma `ipad-play-view` footer pill strip (`4:2638`).
+    inline constexpr int kIpadPlayFooterPillHeight = 38;
+    inline constexpr int kIpadPlayFooterPillGap = 4;
+    inline constexpr int kIpadPlayFooterPillStripWidth = 315;
+    inline constexpr int kIpadPlayFooterPillPlayWidth = 60;
+    inline constexpr int kIpadPlayFooterPillDesignWidth = 71;
+    inline constexpr int kIpadPlayFooterPillVocWidth = 56;
+    inline constexpr int kIpadPlayFooterPillArpWidth = 54;
+    inline constexpr int kIpadPlayFooterPillLfoWidth = 52;
+
+    /// Figma `murmur-basic-view` (`86:4`) — envelope hero + performance sidebar.
+    inline constexpr int kMurmurBasicViewOuterMargin = 16;
+    inline constexpr int kMurmurBasicViewMainBodyGap = 12;
+    inline constexpr int kMurmurBasicViewEnvelopePanelWidth = 680;
+    inline constexpr int kMurmurBasicViewPerformanceSidebarWidth = 556;
+    inline constexpr int kMurmurBasicViewBottomBarHeight = 40;
+    inline constexpr int kMurmurBasicViewMacroCount = 4;
+    inline constexpr int kMurmurBasicViewMacroKnobSize = 88;
+    inline constexpr int kMurmurBasicViewPortamentoKnobSize = 56;
+    inline constexpr int kMurmurBasicViewVuMeterHeight = 108;
+    inline constexpr int kMurmurBasicViewSidebarPadding = 16;
+
+    enum class IpadFooterPill
+    {
+        Play = 0,
+        Design,
+        Voc,
+        Arp,
+        Lfo,
+    };
 
     enum class PlayViewMode
     {
+        /// Figma `murmur-desktop-play-mode` (`36:4`): scope + 8-macro deck + bottom bar.
+        Desktop,
+        /// Legacy desktop layout with master envelope strip (pre-36:4 experiment).
         Basic,
+        /// Legacy alias — UI routes to `EditorMode::Design` instead of showing this layout.
         Advanced,
         Compact,
+    };
+
+    [[nodiscard]] inline bool isDesktopPlayLayout(PlayViewMode mode) noexcept
+    {
+        return mode == PlayViewMode::Desktop || mode == PlayViewMode::Basic;
+    }
+
+    [[nodiscard]] inline bool isPureDesktopPlayLayout(PlayViewMode mode) noexcept
+    {
+        return mode == PlayViewMode::Desktop;
+    }
+
+    enum class PlayLabOverlay
+    {
+        None,
+        Vocoder,
+        Quasar,
+        Motion,
+        DualLfo,
+        Wavetable,
     };
 
     enum class EditorMode
@@ -280,22 +389,38 @@ namespace pw8::plugin::ui::layout
         Browse,
         Wavetable,
         DualLfo,
+        Morph,
+        FilterLab,
+        DynamicsLab,
+        GenerativeLab,
+        UtilityPeaks,
+        EnvelopeSegments,
     };
 
-    /// Figma unified header-bar — `50:252` compact / `39:142` play / `39:2` design.
+    /// Figma unified header-bar — `39:158` compact / `39:142` play / `39:2` design.
+    /// Matches Figma `header-bar` (`50:252`) height inside `4:1134`.
     inline constexpr int kChromeBarHeightCompact = 28;
-    inline constexpr int kChromeBarHeightPlay = 60;
+    inline constexpr int kChromeBarHeightPlay = 44;
     inline constexpr int kChromeBarHeightDesign = 60;
+    /// Root frame height for pure `36:4` (chrome external in code).
+    inline constexpr int kDesktopPlayModePureRootHeight =
+        kDesktopPlayModeOuterMargin * 2 + kChromeBarHeightPlay + kDesktopPlayModeSectionGap
+        + kDesktopPlayModePureContentHeight;
     inline constexpr int kChromeBarPaddingX = 16;
     inline constexpr int kChromeBarPaddingY = 10;
     inline constexpr int kChromeBarTopRowPaddingY = 10;
-    inline constexpr int kChromeBarTopRowHeight = 40;
+    inline constexpr int kChromeBarDesignTopRowHeight = 23;
+    inline constexpr int kChromeBarDesignSubNavRowHeight = 22;
+    inline constexpr int kChromeBarDesignSubNavGap = 4;
+    inline constexpr int kChromeBarTopRowHeight = 24;
     inline constexpr int kChromeBarBrandWidth = 220;
     inline constexpr int kChromeBarScoreLineWidth = 1;
     inline constexpr int kChromeBarScoreLineHeight = 24;
     inline constexpr int kChromeBarLedSize = 6;
     inline constexpr int kChromeBarLedGap = 4;
-    inline constexpr int kChromeViewLedGap = 14;
+    inline constexpr int kChromeViewLedGap = 16;
+    /// Gap between view-mode tabs and the following chrome section (divider / sub-nav).
+    inline constexpr int kChromeNavSectionGap = 8;
     inline constexpr int kChromeSectionLedGap = 12;
     inline constexpr int kChromeBarSubNavGap = 6;
     inline constexpr int kChromeBarSubNavHeight = 18;
@@ -305,19 +430,25 @@ namespace pw8::plugin::ui::layout
     inline constexpr int kChromeViewTabPlayWidth = 48;
     inline constexpr int kChromeViewTabDesignWidth = 58;
     inline constexpr int kChromeViewTabGap = 4;
-    inline constexpr int kChromeViewTabCmpWidth = 30;
-    inline constexpr int kChromeViewTabPlyWidth = 17;
-    inline constexpr int kChromeViewTabDsnWidth = 26;
+    /// Legacy Figma estimates — runtime layout measures label widths instead.
+    inline constexpr int kChromeViewTabCmpWidth = 52;
+    inline constexpr int kChromeViewTabPlyWidth = 36;
+    inline constexpr int kChromeViewTabDsnWidth = 48;
     inline constexpr int kChromeViewTabCompactHeight = 7;
     inline constexpr int kChromeViewTabCompactGap = 6;
-    inline constexpr int kChromeSubNavEngineWidth = 26;
-    inline constexpr int kChromeSubNavArpWidth = 13;
-    inline constexpr int kChromeSubNavVocoderWidth = 30;
-    inline constexpr int kChromeSubNavFxWidth = 9;
-    inline constexpr int kChromeSubNavModMatrixWidth = 42;
+    inline constexpr int kChromeSubNavEngineWidth = 44;
+    inline constexpr int kChromeSubNavArpWidth = 28;
+    inline constexpr int kChromeSubNavVocoderWidth = 28;
+    inline constexpr int kChromeSubNavFxWidth = 22;
+    inline constexpr int kChromeSubNavModMatrixWidth = 36;
     inline constexpr int kChromeSubNavBrowseWidth = 58;
     inline constexpr int kChromeSubNavWavetableWidth = 72;
     inline constexpr int kChromeSubNavDualLfoWidth = 62;
+    inline constexpr int kChromeSubNavFilterLabWidth = 44;
+    inline constexpr int kChromeSubNavDynamicsLabWidth = 44;
+    inline constexpr int kChromeSubNavGenerativeLabWidth = 36;
+    inline constexpr int kChromeSubNavUtilityPeaksWidth = 44;
+    inline constexpr int kChromeSubNavEnvelopeSegmentsWidth = 36;
     inline constexpr int kChromePresetChevronWidth = 12;
     inline constexpr int kChromeMasterKnobSize = 28;
     inline constexpr int kChromePresetDisplayWidth = 260;
@@ -334,6 +465,35 @@ namespace pw8::plugin::ui::layout
         return kChromeBarHeightPlay;
     }
 
+    /// Minimum PLAY content height so footer + primary sections stay visible together.
+    [[nodiscard]] inline int minimumPlayContentHeight(PlayViewMode mode) noexcept
+    {
+        switch (mode)
+        {
+            case PlayViewMode::Desktop:
+                return kDesktopPlayModePureContentHeight;
+            case PlayViewMode::Basic:
+                return kDesktopPlayModeOscilloscopeHeight + kDesktopPlayModeSectionGap
+                       + kDesktopPlayModeMasterEnvelopeSectionHeight + kDesktopPlayModeSectionGap
+                       + kDesktopPlayModePerformanceDeckHeight + kDesktopPlayModeSectionGap
+                       + kDesktopPlayModeBottomBarHeight;
+            case PlayViewMode::Advanced:
+                return kTabRowHeight + kSectionGap + kVstBottomBarHeight + kSectionGap + kDashboardStripHeight
+                       + kSectionGap + kVstGridMinHeight;
+            case PlayViewMode::Compact:
+                return kCompactDefaultHeight - kCompactOuterMargin - kCompactBottomMargin;
+        }
+        return kDesktopPlayModePureContentHeight;
+    }
+
+    /// Root editor height that keeps unified chrome + PLAY footer on screen at once.
+    [[nodiscard]] inline int minimumPlayRootHeight(PlayViewMode mode) noexcept
+    {
+        const int insets = kDesktopPlayModeOuterMargin * 2;
+        return insets + chromeBarHeight(EditorMode::Play, mode == PlayViewMode::Compact)
+               + kDesktopPlayModeSectionGap + minimumPlayContentHeight(mode);
+    }
+
     /// Figma `murmur-design-engine` (37:787) — ENGINE sub-page: 8 cards, no FX rack.
     inline constexpr int kDesignModeV2OuterMargin = 16;
     inline constexpr int kDesignModeV2SectionGap = 12;
@@ -345,12 +505,50 @@ namespace pw8::plugin::ui::layout
     inline constexpr int kDesignModeV2PresetSelectorHeight = 32;
     inline constexpr int kDesignModeV2MasterKnobSize = 28;
     inline constexpr int kDesignModeV2GridSectionHeight = 560;
+    inline constexpr int kDesignModeV2MasterEnvelopePanelHeight = 320;
+    inline constexpr int kDesignModeV2MasterEnvelopePadding = 16;
+    inline constexpr int kDesignModeV2MasterEnvelopeHeaderHeight = 16;
+    inline constexpr int kDesignModeV2MasterEnvelopeContentGap = 12;
+    inline constexpr int kDesignModeV2MasterEnvelopeCurveWidth = 520;
+    inline constexpr int kDesignModeV2MasterEnvelopePlotHeight = 200;
+    inline constexpr int kDesignModeV2MasterEnvelopeKnobSize = 28;
+    inline constexpr int kDesignModeV2MasterEnvelopeKnobColumnWidth = 72;
+    inline constexpr int kDesignModeV2MasterEnvelopeControlRowHeight = 41;
+    inline constexpr int kDesignModeV2MasterEnvelopeControlRowGap = 10;
+    inline constexpr int kDesignModeV2StatusBarHeight = 40;
+    /// Figma `murmur-design-engine` (`37:787`) — chrome + master envelope + grid + status.
+    inline constexpr int kDesignEngineHeight =
+        kDesignModeV2OuterMargin * 2 + kChromeBarHeightDesign + kDesignModeV2SectionGap
+        + kDesignModeV2MasterEnvelopePanelHeight + kDesignModeV2SectionGap + kDesignModeV2GridSectionHeight
+        + kDesignModeV2SectionGap + kDesignModeV2StatusBarHeight;
+
+    [[nodiscard]] inline int minimumDesignRootHeight() noexcept
+    {
+        return kDesignEngineHeight;
+    }
+
+    [[nodiscard]] inline int defaultPlayRootHeight(PlayViewMode mode) noexcept
+    {
+        if (mode == PlayViewMode::Compact)
+            return kCompactDefaultHeight;
+        return std::max(kDefaultHeight, minimumPlayRootHeight(mode));
+    }
+
+    /// Clamp user resize to view minimums without forcing a fixed frame height.
+    [[nodiscard]] inline int clampRootHeight(int height, EditorMode editorMode, PlayViewMode playMode,
+                                             bool compactWindow) noexcept
+    {
+        const int minH = compactWindow ? kCompactMinHeight
+                                       : (editorMode == EditorMode::Design ? minimumDesignRootHeight()
+                                                                           : minimumPlayRootHeight(playMode));
+        return std::clamp(height, minH, kMaxHeight);
+    }
+
     inline constexpr int kDesignModeV2GridRowHeight = 270;
     inline constexpr int kDesignModeV2GridRowGap = 12;
     inline constexpr int kDesignModeV2GridColGap = 12;
     inline constexpr int kDesignModeV2EngineCardWidth = 303;
     inline constexpr int kDesignModeV2EngineCardHeight = 270;
-    inline constexpr int kDesignModeV2StatusBarHeight = 40;
     inline constexpr int kDesignModeV2StatusBarPaddingX = 16;
     inline constexpr int kDesignModeV2CardPadding = 12;
     inline constexpr int kDesignModeV2CardRowGap = 10;
@@ -417,7 +615,7 @@ namespace pw8::plugin::ui::layout
     inline constexpr int kDesignModMatrixPageLeftWidth = 966;
     inline constexpr int kDesignModMatrixPageSidebarWidth = 280;
     inline constexpr int kDesignModMatrixPageSidebarGap = 10;
-    inline constexpr int kDesignModMatrixPageGridCardHeight = 304;
+    inline constexpr int kDesignModMatrixPageGridCardHeight = 306;
     inline constexpr int kDesignModMatrixPageRoutesCardHeight = 260;
     inline constexpr int kDesignModMatrixPageCardGap = 10;
     inline constexpr int kDesignModMatrixPageCardPadding = 12;
@@ -474,10 +672,107 @@ namespace pw8::plugin::ui::layout
     inline constexpr int kDesignWavetableFrameStripCount = 8;
     inline constexpr int kDesignWavetableFooterHeight = 40;
 
+    /// Figma `murmur-mi-ui-play-filter-blades` — `blades-section-panel` (`89:131`).
+    inline constexpr int kPlayBladesSectionPadding = 12;
+    inline constexpr int kPlayBladesSectionGap = 8;
+    inline constexpr int kPlayBladesHeaderRowHeight = 14;
+    inline constexpr int kPlayBladesKnobsRowHeight = 68;
+    inline constexpr int kPlayBladesKnobDialSize = 44;
+    inline constexpr int kPlayBladesKnobCount = 7;
+    inline constexpr int kPlayBladesSectionHeight = 104;
+    inline constexpr int kPlayBladesKnobLabelGap = 4;
+
+    /// Figma `murmur-mi-ui-component-blades-routing-diagram` (`89:246`).
+    inline constexpr int kFilterRoutingWireframeStateRowHeight = 44;
+    inline constexpr int kFilterRoutingWireframeStateGap = 6;
+    inline constexpr int kFilterRoutingWireframeLabelWidth = 50;
+
+    /// Figma `morph-timeline-panel` (`89:736`) inside `murmur-mi-ui-play-morph-timeline` (`89:641`).
+    inline constexpr int kMorphTimelinePanelHeight = 136;
+    /// Figma `murmur-master-motion-lab` (`94:4715`) — stacked overlay layout budgets.
+    inline constexpr int kMasterMotionLabEnvelopeHeroHeight = 148;
+    inline constexpr int kMasterMotionLabMorphHeight = 96;
+    inline constexpr int kMasterMotionLabLfoKnobsRowHeight = 84;
+    inline constexpr int kMasterMotionLabLfoSyncRowHeight = 22;
+    inline constexpr int kMasterMotionLabLfoScopeMinHeight = 64;
+    inline constexpr int kMasterMotionLabFooterHeight = 32;
+    inline constexpr int kMasterMotionLabSectionGap = 6;
+    inline constexpr int kMasterMotionLabSegmentStripHeight = 36;
+    inline constexpr int kMasterMotionLabSegmentDotCount = 6;
+    inline constexpr int kMorphTimelinePanelPadding = 12;
+    inline constexpr int kMorphTimelineHeaderWidth = 260;
+    inline constexpr int kMorphTimelineTrackColumnWidth = 772;
+    inline constexpr int kMorphTimelineKnobBlockWidth = 160;
+    inline constexpr int kMorphTimelineStripHeight = 52;
+    inline constexpr int kMorphTimelineGradientTrackHeight = 16;
+    inline constexpr int kMorphTimelineGradientTrackInsetX = 12;
+    inline constexpr int kMorphTimelinePlayheadSize = 16;
+    inline constexpr int kMorphTimelineChipHeight = 17;
+    inline constexpr int kMorphTimelineChipGap = 6;
+    inline constexpr int kMorphTimelineKeyframeTickHeight = 8;
+    inline constexpr int kMorphTimelineMorphKnobDialSize = 64;
+
+    /// Figma `master-envelope-section` (`82:83`) embedded in play-morph-timeline.
+    inline constexpr int kMasterEnvelopeSectionHeight = 220;
+    inline constexpr int kMasterEnvelopeSectionWidth = 1240;
+
+    /// Figma `murmur-mi-ui-design-morph-editor` (`89:953`).
+    inline constexpr int kDesignMorphEditorLeftColumnWidth = 264;
+    inline constexpr int kDesignMorphEditorCenterColumnWidth = 736;
+    inline constexpr int kDesignMorphEditorRightColumnWidth = 280;
+    inline constexpr int kDesignMorphEditorKeyframeCardHeight = 44;
+    inline constexpr int kDesignMorphEditorOverrideRowHeight = 28;
+    inline constexpr int kDesignMorphEditorColorSwatchSize = 14;
+
+    /// Figma `murmur-mi-ui-play-focus-morph-hub` (`94:5038`).
+    inline constexpr int kPlayFocusMorphHubMiniStripHeight = 48;
+
+    /// Figma `murmur-mi-ui-design-filter-lab` (`89:313`).
+    inline constexpr int kDesignFilterLabPageOuterMargin = 16;
+    inline constexpr int kDesignFilterLabPageSectionGap = 12;
+    inline constexpr int kDesignFilterLabLeftColumnWidth = 420;
+    inline constexpr int kDesignFilterLabCenterColumnWidth = 524;
+    inline constexpr int kDesignFilterLabRightColumnWidth = 280;
+    inline constexpr int kDesignFilterLabHeaderHeight = 56;
+    inline constexpr int kDesignFilterLabFooterHeight = 40;
+    inline constexpr int kDesignFilterLabHeroKnobSize = 64;
+    inline constexpr int kDesignFilterLabSecondaryKnobSize = 52;
+    inline constexpr int kDesignFilterLabF2HeroKnobSize = 56;
+    inline constexpr int kDesignFilterLabRoutingHeroHeight = 120;
+    inline constexpr int kDesignFilterLabModRouteRowHeight = 36;
+
+    inline constexpr int kDesignDynamicsLabPageOuterMargin = 16;
+    inline constexpr int kDesignDynamicsLabPageSectionGap = 12;
+    inline constexpr int kDesignDynamicsLabHeaderHeight = 56;
+    inline constexpr int kDesignDynamicsLabFooterHeight = 40;
+    inline constexpr int kDesignDynamicsLabKnobSize = 52;
+    inline constexpr int kDesignDynamicsLabSignalHeight = 72;
+
+    inline constexpr int kDesignGenerativeLabPageOuterMargin = 16;
+    inline constexpr int kDesignGenerativeLabPageSectionGap = 12;
+    inline constexpr int kDesignGenerativeLabHeaderHeight = 56;
+    inline constexpr int kDesignGenerativeLabFooterHeight = 40;
+    inline constexpr int kDesignGenerativeLabKnobSize = 52;
+
+    inline constexpr int kDesignUtilityPeaksPageOuterMargin = 16;
+    inline constexpr int kDesignUtilityPeaksPageSectionGap = 12;
+    inline constexpr int kDesignUtilityPeaksHeaderHeight = 56;
+    inline constexpr int kDesignUtilityPeaksFooterHeight = 32;
+    inline constexpr int kDesignUtilityPeaksKnobSize = 48;
+    inline constexpr int kDesignUtilityPeaksKnobRowHeight = 84;
+    inline constexpr int kDesignUtilityPeaksVizHeight = 56;
+
+    inline constexpr int kDesignEnvelopeSegmentsPageOuterMargin = 16;
+    inline constexpr int kDesignEnvelopeSegmentsHeaderHeight = 56;
+    inline constexpr int kDesignEnvelopeSegmentsFooterHeight = 40;
+    inline constexpr int kDesignEnvelopeSegmentsChainMinHeight = 260;
+    inline constexpr int kPlayFocusMorphHubCardHeight = 18;
+
     /// Figma `murmur-dual-lfo-lab` (15:247).
     inline constexpr int kDesignDualLfoPageOuterMargin = 16;
     inline constexpr int kDesignDualLfoPageSectionGap = 12;
-    inline constexpr int kDesignDualLfoLabHeaderHeight = 48;
+    inline constexpr int kDesignDualLfoLabHeaderHeight = 60;
+    inline constexpr int kDesignDualLfoColumnWidth = 419;
     inline constexpr int kDesignDualLfoColumnGap = 12;
     inline constexpr int kDesignDualLfoScopeHeight = 180;
     inline constexpr int kDesignDualLfoKnobsRowHeight = 64;
@@ -527,7 +822,7 @@ namespace pw8::plugin::ui::layout
     inline constexpr int kPresetExplorerFacetStripHeight =
         kPresetExplorerFacetRowHeight * 3 + kPresetExplorerFacetRowGap * 2;
 
-    /// Legacy full-page preset browser (27:6) — superseded by explorer modal above.
+    /// Figma `murmur-preset-browser` (27:6) — full-page 240/696/300 layout.
     inline constexpr int kPresetBrowserPageOuterMargin = 12;
     inline constexpr int kPresetBrowserPageMainWorkspaceHeight = 576;
     inline constexpr int kPresetBrowserPageColumnGap = 10;
@@ -535,6 +830,7 @@ namespace pw8::plugin::ui::layout
     inline constexpr int kPresetBrowserCenterColumnWidth = 696;
     inline constexpr int kPresetBrowserRightColumnWidth = 300;
     inline constexpr int kPresetBrowserFooterHeight = 40;
+    inline constexpr int kPresetBrowserSearchBarWidth = 400;
     inline constexpr int kPresetBrowserSearchFieldHeight = 25;
     inline constexpr int kPresetBrowserCategoryRowHeight = 25;
     inline constexpr int kPresetBrowserPresetRowHeight = 28;

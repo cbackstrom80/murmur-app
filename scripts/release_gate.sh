@@ -85,6 +85,10 @@ step() { echo ""; echo "▶ $*"; }
 step "Content integrity (wavetable refs)"
 python3 scripts/validate_content_refs.py
 
+step "Figma layout specs vs PlayModeLayout.h"
+scripts/figma_layout.sh check
+python3 scripts/test_figma_layout.py
+
 PRESETS_SRC="content/presets/factory"
 if [[ ! -d "$PRESETS_SRC" ]] || [[ -z "$(find "$PRESETS_SRC" -name '*.pw8' -print -quit 2>/dev/null)" ]]; then
     echo "==> Generating factory presets..."
@@ -102,7 +106,24 @@ if [[ "$INTERSTELLAR_COUNT" -lt 100 ]]; then
     echo "       Run: python3 scripts/generate_interstellar_presets.py" >&2
     exit 1
 fi
-HOOVER_COUNT=$(rg -l '"hoover-bass"' "$PRESETS_SRC/Basses" --glob '*.pw8' 2>/dev/null | wc -l | tr -d ' ')
+HOOVER_COUNT=$(python3 - <<'PY'
+import json, pathlib
+root = pathlib.Path("content/presets/factory/Basses")
+count = 0
+for path in root.glob("*.pw8"):
+    try:
+        data = json.loads(path.read_text())
+    except json.JSONDecodeError:
+        continue
+    meta = data.get("metadata", data)
+    tags = meta.get("tags") or []
+    genres = meta.get("genres") or []
+    hay = " ".join(str(t).lower() for t in (*tags, *genres))
+    if "hoover-bass" in hay:
+        count += 1
+print(count)
+PY
+)
 echo "    Hoover bass:     ${HOOVER_COUNT}"
 if [[ "$HOOVER_COUNT" -lt 28 ]]; then
     echo "ERROR: Hoover bass bank incomplete (need ≥28, have ${HOOVER_COUNT})" >&2

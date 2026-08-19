@@ -1,0 +1,79 @@
+{
+  "$schema": "./figma-layout-spec.schema.json",
+  "figmaFileKey": "PFt0LG6XmOiZWcSoUXIWIg",
+  "nodeId": "36:4",
+  "frameName": "murmur-play-view",
+  "canonicalName": "murmur-desktop-play-mode",
+  "exportedAt": "2026-08-18",
+  "exportSource": "figma-mcp get_metadata",
+  "size": { "width": 1280, "height": 960 },
+  "embedViewport": { "width": 1280, "height": 720 },
+  "insets": { "top": 20, "right": 20, "bottom": 72, "left": 20 },
+  "sectionGap": 16,
+  "codeOwners": {
+    "shell": "MurmurRootEditor",
+    "header": "MurmurChromeBar",
+    "scope": "OscilloscopeView",
+    "envelope": "MasterEnvelopePanel",
+    "macros": "PatchFocusPanel",
+    "footer": "VstBottomBar",
+    "constants": "PlayModeLayout.h"
+  },
+  "children": [
+    {
+      "nodeId": "39:142",
+      "name": "header-bar",
+      "x": 20,
+      "y": 20,
+      "width": 1248,
+      "height": 60,
+      "codeMap": "MurmurChromeBar",
+      "note": "Figma artboard 60px; kChromeBarHeightPlay = 44 in embed chrome"
+    },
+    {
+      "nodeId": "36:35",
+      "name": "oscilloscope",
+      "x": 20,
+      "y": 96,
+      "width": 1240,
+      "height": 180,
+      "constant": "kDesktopPlayModeOscilloscopeHeight",
+      "codeMap": "OscilloscopeView"
+    },
+    {
+      "nodeId": "82:83",
+      "name": "master-envelope-section",
+      "x": 20,
+      "y": 292,
+      "width": 1240,
+      "height": 220,
+      "constant": "kDesktopPlayModeMasterEnvelopeSectionHeight",
+      "codeMap": "MasterEnvelopePanel"
+    },
+    {
+      "nodeId": "36:155",
+      "name": "performance-macros-deck",
+      "x": 20,
+      "y": 528,
+      "width": 1240,
+      "height": 280,
+      "constant": "kDesktopPlayModePerformanceDeckHeight",
+      "codeMap": "PatchFocusPanel",
+      "padding": 24,
+      "children": [
+        { "nodeId": "36:156", "name": "macros-header", "height": 13, "constant": "kDesktopPlayModeMacrosHeaderHeight" },
+        { "nodeId": "36:161", "name": "knobs-row", "height": 148, "constant": "kDesktopPlayModeKnobsRowHeight" }
+      ]
+    },
+    {
+      "nodeId": "36:226",
+      "name": "vst-bottom-bar",
+      "x": 20,
+      "y": 824,
+      "width": 1240,
+      "height": 64,
+      "constant": "kDesktopPlayModeBottomBarHeight",
+      "codeMap": "VstBottomBar"
+    }
+  ]
+}

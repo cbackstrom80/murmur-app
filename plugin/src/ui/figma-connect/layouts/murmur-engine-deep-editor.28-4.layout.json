@@ -1,0 +1,74 @@
+{
+  "$schema": "./figma-layout-spec.schema.json",
+  "figmaFileKey": "PFt0LG6XmOiZWcSoUXIWIg",
+  "nodeId": "28:4",
+  "frameName": "murmur-engine-deep-editor",
+  "canonicalName": "murmur-engine-deep-editor",
+  "exportedAt": "2026-08-18",
+  "exportSource": "figma-rest fetch",
+  "size": { "width": 1440, "height": 1024 },
+  "insets": { "top": 24, "right": 24, "bottom": 24, "left": 24 },
+  "sectionGap": 16,
+  "codeOwners": {
+    "shell": "EngineDetailOverlay",
+    "header": "EngineDetailOverlay::paintTopBar",
+    "body": "EngineDetailOverlay",
+    "footer": "EngineDetailOverlay::paintBottomBar",
+    "constants": "PlayModeLayout.h"
+  },
+  "children": [
+    {
+      "nodeId": "28:5",
+      "name": "vst-top-bar",
+      "x": 24,
+      "y": 24,
+      "width": 1392,
+      "height": 64,
+      "constant": "kEngineDeepEditorHeaderHeight",
+      "codeMap": "EngineDetailOverlay::paintTopBar"
+    },
+    {
+      "nodeId": "28:38",
+      "name": "main-content-row",
+      "x": 24,
+      "y": 104,
+      "width": 1392,
+      "height": 832,
+      "constant": "kEngineDeepEditorMainContentHeight",
+      "codeMap": "EngineDetailOverlay",
+      "children": [
+        {
+          "nodeId": "28:39",
+          "name": "left-oscillator-column",
+          "width": 453,
+          "height": 625,
+          "constant": "kEngineDeepEditorColumnWidth"
+        },
+        {
+          "nodeId": "28:131",
+          "name": "center-filter-column",
+          "width": 453,
+          "height": 638,
+          "constant": "kEngineDeepEditorColumnWidth"
+        },
+        {
+          "nodeId": "28:250",
+          "name": "right-modulation-column",
+          "width": 453,
+          "height": 602,
+          "constant": "kEngineDeepEditorColumnWidth"
+        }
+      ]
+    },
+    {
+      "nodeId": "28:355",
+      "name": "vst-bottom-bar",
+      "x": 24,
+      "y": 952,
+      "width": 1392,
+      "height": 48,
+      "constant": "kEngineDeepEditorBottomBarHeight",
+      "codeMap": "EngineDetailOverlay::paintBottomBar"
+    }
+  ]
+}

@@ -6,30 +6,30 @@
 #include "../theme/ObsidianDraw.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
+#include "pw8/patch/Patch.hpp"
 
 namespace pw8::plugin::ui
 {
     namespace
     {
+        using layout::kChromeBarHeightDesign;
+        using layout::kPresetBrowserActionButtonHeight;
+        using layout::kPresetBrowserCategoryRowHeight;
+        using layout::kPresetBrowserCenterColumnWidth;
+        using layout::kPresetBrowserDetailWaveformHeight;
+        using layout::kPresetBrowserFooterHeight;
+        using layout::kPresetBrowserLeftColumnWidth;
+        using layout::kPresetBrowserLoadButtonHeight;
+        using layout::kPresetBrowserPageColumnGap;
+        using layout::kPresetBrowserPageOuterMargin;
+        using layout::kPresetBrowserPresetRowHeight;
+        using layout::kPresetBrowserRightColumnWidth;
+        using layout::kPresetBrowserSearchBarWidth;
+        using layout::kPresetBrowserSearchFieldHeight;
+        using layout::kPresetBrowserTableHeaderHeight;
         using layout::kPresetExplorerFacetRowGap;
         using layout::kPresetExplorerFacetRowHeight;
-        using layout::kPresetExplorerFacetStripHeight;
         using layout::kPresetExplorerBankPillHeight;
-        using layout::kPresetExplorerBottomBarHeight;
-        using layout::kPresetExplorerCategoryRowHeight;
-        using layout::kPresetExplorerCenterColumnWidth;
-        using layout::kPresetExplorerDetailWaveformHeight;
-        using layout::kPresetExplorerLeftColumnWidth;
-        using layout::kPresetExplorerLoadButtonHeight;
-        using layout::kPresetExplorerModalHeight;
-        using layout::kPresetExplorerModalWidth;
-        using layout::kPresetExplorerPresetRowHeight;
-        using layout::kPresetExplorerRightColumnWidth;
-        using layout::kPresetExplorerSearchBarHeight;
-        using layout::kPresetExplorerSearchBarWidth;
-        using layout::kPresetExplorerSecondaryButtonHeight;
-        using layout::kPresetExplorerTableHeaderHeight;
-        using layout::kPresetExplorerTopBarHeight;
 
         void styleModalButton(juce::TextButton& btn, bool primary)
         {
@@ -37,70 +37,52 @@ namespace pw8::plugin::ui
             btn.setColour(juce::TextButton::textColourOffId, primary ? palette::kBackgroundTop : palette::kTextSecondary);
         }
 
-        [[nodiscard]] juce::Rectangle<int> centeredModalBounds(juce::Rectangle<int> host)
+        [[nodiscard]] juce::Rectangle<int> pageBounds(juce::Rectangle<int> host)
         {
-            const int width = juce::jmin(kPresetExplorerModalWidth, host.getWidth() - 24);
-            const int height = juce::jmin(kPresetExplorerModalHeight, host.getHeight() - 24);
-            return host.withSizeKeepingCentre(width, height);
-        }
-        [[nodiscard]] bool isContextCrossoverMood(const juce::String& mood) noexcept
-        {
-            static const char* kContextTokens[] = {"cinematic", "score", "trailer", "game",      "worship",
-                                                   "sleep",     "demo",  "ambient", "sound-design", nullptr};
-            const auto lower = mood.trim().toLowerCase();
-            for (std::size_t i = 0; kContextTokens[i] != nullptr; ++i)
-            {
-                if (lower == kContextTokens[i])
-                    return true;
-            }
-            return false;
+            return host.reduced(kPresetBrowserPageOuterMargin);
         }
 
-        void collectFacetValue(content::PresetFacet facet, const content::PresetEntry& entry,
-                               juce::StringArray& out)
+        [[nodiscard]] juce::String utf8Symbol(const char* bytes)
         {
-            auto addUnique = [&](const juce::String& value) {
-                const auto trimmed = value.trim();
-                if (trimmed.isNotEmpty() && !out.contains(trimmed, true))
-                    out.add(trimmed);
-            };
-
-            switch (facet)
-            {
-                case content::PresetFacet::Category:
-                    addUnique(entry.category);
-                    break;
-                case content::PresetFacet::Mood:
-                    for (const auto& mood : entry.moods)
-                        addUnique(mood);
-                    break;
-                case content::PresetFacet::Genre:
-                    for (const auto& genre : entry.genres)
-                        addUnique(genre);
-                    for (const auto& mood : entry.moods)
-                    {
-                        if (isContextCrossoverMood(mood))
-                            addUnique(mood);
-                    }
-                    // Tags like interstellar / hoover-bass often carry the demo vocabulary.
-                    for (const auto& tag : entry.tags)
-                    {
-                        const auto lower = tag.trim().toLowerCase();
-                        if (lower.containsChar('-') || lower == "interstellar" || lower.contains("hoover"))
-                            addUnique(tag);
-                    }
-                    break;
-                case content::PresetFacet::Tag:
-                    for (const auto& tag : entry.tags)
-                        addUnique(tag);
-                    break;
-            }
+            return juce::String(juce::CharPointer_UTF8(bytes));
         }
+
+        constexpr int kExplorerHeartColWidth = 24;
+        constexpr int kExplorerRatingColWidth = 72;
+        constexpr int kExplorerStarCellWidth = 14;
+        constexpr int kExplorerNameColWidth = 168;
+        constexpr int kExplorerAuthorColWidth = 108;
+        constexpr int kExplorerDateColWidth = 64;
+
+        struct PresetTableColumns
+        {
+            int heartX = 0;
+            int ratingX = 0;
+            int nameX = 0;
+            int authorX = 0;
+            int dateX = 0;
+
+            static PresetTableColumns forTable(const juce::Rectangle<int>& table)
+            {
+                const int x = table.getX();
+                const int tableW = table.getWidth();
+                PresetTableColumns cols;
+                cols.heartX = x + 4;
+                cols.ratingX = x + 4 + kExplorerHeartColWidth;
+                const int fixedTail = kExplorerRatingColWidth + kExplorerDateColWidth + 12;
+                const int nameAuthorW = juce::jmax(200, tableW - kExplorerHeartColWidth - fixedTail);
+                cols.nameX = cols.ratingX + kExplorerRatingColWidth;
+                cols.authorX = cols.nameX + nameAuthorW * 3 / 5;
+                cols.dateX = cols.authorX + nameAuthorW * 2 / 5;
+                return cols;
+            }
+        };
     } // namespace
 
     PresetBrowserOverlay::PresetBrowserOverlay(PatchworkEightProcessor& processor, content::PresetIndex& presetIndex,
-                                               content::FavoritesStore& favoritesStore)
-        : processor_(processor), presetIndex_(presetIndex), favoritesStore_(favoritesStore)
+                                               content::FavoritesStore& favoritesStore,
+                                               content::PresetRatingsStore& ratingsStore)
+        : processor_(processor), presetIndex_(presetIndex), favoritesStore_(favoritesStore), ratingsStore_(ratingsStore)
     {
         setVisible(false);
 
@@ -112,6 +94,7 @@ namespace pw8::plugin::ui
         searchField_.setFont(fonts::label(9.0f));
         searchField_.setIndents(28, 2);
         searchField_.addListener(this);
+        searchField_.addKeyListener(this);
         addAndMakeVisible(searchField_);
 
         styleModalButton(loadButton_, true);
@@ -123,19 +106,26 @@ namespace pw8::plugin::ui
         addAndMakeVisible(favoriteButton_);
 
         styleModalButton(compareButton_, false);
-        compareButton_.onClick = [] { /* A/B compare — future */ };
+        compareButton_.onClick = [this] { toggleCompare(); };
         addAndMakeVisible(compareButton_);
+
+        styleModalButton(exportButton_, false);
+        exportButton_.onClick = [this] { exportSelected(); };
+        addAndMakeVisible(exportButton_);
 
         auto wireFacetRow = [this](std::unique_ptr<MetadataFacetRow>& row, const juce::String& label) {
             row = std::make_unique<MetadataFacetRow>(label);
-            row->onChange = [this] { rebuildLists(); };
+            row->onChange = [this] { rebuildLists(false); };
             addAndMakeVisible(*row);
         };
         wireFacetRow(moodFacetRow_, "MOOD");
         wireFacetRow(contextFacetRow_, "CONTEXT");
         wireFacetRow(tagFacetRow_, "TAG");
+    }
 
-        startTimerHz(4);
+    content::PresetIndex::EntryPredicate PresetBrowserOverlay::bankEntryPredicate() const
+    {
+        return [this](const content::PresetEntry& entry) { return entryMatchesBank(entry); };
     }
 
     content::PresetMetadataFilter PresetBrowserOverlay::browseFilterWithoutFacet(content::PresetFacet facet) const
@@ -149,23 +139,6 @@ namespace pw8::plugin::ui
             case content::PresetFacet::Tag: filter.tag = {}; break;
         }
         return filter;
-    }
-
-    juce::StringArray PresetBrowserOverlay::uniqueFacetValuesForBank(content::PresetFacet facet) const
-    {
-        // Facet chips show vocabulary for the whole factory bank — not only favorites.
-        auto filter = browseFilterWithoutFacet(facet);
-        filter.favoritesOnly = false;
-
-        juce::StringArray values;
-        for (const auto& entry : presetIndex_.filtered(filter, nullptr))
-        {
-            if (!entryMatchesBank(entry))
-                continue;
-            collectFacetValue(facet, entry, values);
-        }
-        values.sort(true);
-        return values;
     }
 
     content::PresetMetadataFilter PresetBrowserOverlay::browseFilter() const
@@ -189,17 +162,19 @@ namespace pw8::plugin::ui
     {
         presetIndex_.rescan();
         searchField_.setText({}, juce::dontSendNotification);
-        selectedBank_ = PresetBank::Factory;
-        selectedCategoryKey_ = kAllCategoryKey;
+        lastSearchQuery_.clear();
         selectedRow_ = -1;
         presetListScrollY_ = 0;
+        categoryListScrollY_ = 0;
         if (moodFacetRow_ != nullptr)
             moodFacetRow_->setSelectedValue({});
         if (contextFacetRow_ != nullptr)
             contextFacetRow_->setSelectedValue({});
         if (tagFacetRow_ != nullptr)
             tagFacetRow_->setSelectedValue({});
-        rebuildLists();
+        rebuildLists(true);
+        syncSelectionToCurrentPreset();
+        syncActionButtons();
         setVisible(true);
         setInterceptsMouseClicks(true, true);
         toFront(true);
@@ -210,6 +185,7 @@ namespace pw8::plugin::ui
 
     void PresetBrowserOverlay::dismiss()
     {
+        restoreCompareIfNeeded();
         setVisible(false);
         setInterceptsMouseClicks(false, true);
         if (onClosed)
@@ -239,19 +215,28 @@ namespace pw8::plugin::ui
 
         if (moodFacetRow_ != nullptr)
         {
-            moodFacetRow_->setValues(uniqueFacetValuesForBank(content::PresetFacet::Mood));
+            auto filter = browseFilterWithoutFacet(content::PresetFacet::Mood);
+            filter.favoritesOnly = false;
+            moodFacetRow_->setValues(presetIndex_.uniqueFacetValues(content::PresetFacet::Mood, filter, nullptr,
+                                                                    bankEntryPredicate()));
             moodFacetRow_->setSelectedValue(mood);
             moodFacetRow_->setVisible(moodFacetRow_->hasFacetValues());
         }
         if (contextFacetRow_ != nullptr)
         {
-            contextFacetRow_->setValues(uniqueFacetValuesForBank(content::PresetFacet::Genre));
+            auto filter = browseFilterWithoutFacet(content::PresetFacet::Genre);
+            filter.favoritesOnly = false;
+            contextFacetRow_->setValues(presetIndex_.uniqueFacetValues(content::PresetFacet::Genre, filter, nullptr,
+                                                                      bankEntryPredicate()));
             contextFacetRow_->setSelectedValue(context);
             contextFacetRow_->setVisible(contextFacetRow_->hasFacetValues());
         }
         if (tagFacetRow_ != nullptr)
         {
-            tagFacetRow_->setValues(uniqueFacetValuesForBank(content::PresetFacet::Tag));
+            auto filter = browseFilterWithoutFacet(content::PresetFacet::Tag);
+            filter.favoritesOnly = false;
+            tagFacetRow_->setValues(presetIndex_.uniqueFacetValues(content::PresetFacet::Tag, filter, nullptr,
+                                                                  bankEntryPredicate()));
             tagFacetRow_->setSelectedValue(tag);
             tagFacetRow_->setVisible(tagFacetRow_->hasFacetValues());
         }
@@ -277,10 +262,10 @@ namespace pw8::plugin::ui
                 break;
         }
         selectedRow_ = -1;
-        rebuildLists();
+        rebuildLists(false);
     }
 
-    void PresetBrowserOverlay::rebuildLists()
+    void PresetBrowserOverlay::rebuildLists(bool resetPresetScroll)
     {
         rebuildFacetRows();
 
@@ -303,11 +288,11 @@ namespace pw8::plugin::ui
         }
 
         categoryKeys_.add(kAllCategoryKey);
-        categoryLabels_.add("◆ ALL PRESETS");
+        categoryLabels_.add("ALL PRESETS");
         categoryCounts_.add(bankEntries.size());
 
         categoryKeys_.add(kFavoritesCategoryKey);
-        categoryLabels_.add("★ FAVORITES");
+        categoryLabels_.add(utf8Symbol("\xe2\x99\xa5") + " FAVORITES");
         categoryCounts_.add(favoritesCount);
 
         juce::StringArray seenCategories;
@@ -334,7 +319,7 @@ namespace pw8::plugin::ui
                     ++count;
             }
             categoryKeys_.add(cat);
-            categoryLabels_.add("◆ " + cat.toUpperCase());
+            categoryLabels_.add(cat.toUpperCase());
             categoryCounts_.add(count);
         }
 
@@ -350,24 +335,109 @@ namespace pw8::plugin::ui
                 visibleEntries_.add(entry);
         }
 
-        presetListScrollY_ = 0;
+        if (resetPresetScroll)
+            presetListScrollY_ = 0;
         if (selectedRow_ >= visibleEntries_.size())
-            selectedRow_ = visibleEntries_.isEmpty() ? -1 : 0;
-        if (selectedRow_ < 0 && !visibleEntries_.isEmpty())
-            selectedRow_ = 0;
+            selectedRow_ = visibleEntries_.isEmpty() ? -1 : visibleEntries_.size() - 1;
 
         resized();
         repaint();
+        syncActionButtons();
 
         if (onFiltersChanged)
             onFiltersChanged();
+    }
+
+    void PresetBrowserOverlay::syncSelectionToCurrentPreset()
+    {
+        const auto currentPath = processor_.getCurrentPresetPath();
+
+        PresetBank targetBank = selectedBank_;
+        juce::String targetCategory = selectedCategoryKey_;
+
+        if (currentPath.isNotEmpty())
+        {
+            for (const auto& entry : presetIndex_.allEntries())
+            {
+                if (entry.absolutePath != currentPath)
+                    continue;
+
+                const auto path = entry.absolutePath.toLowerCase();
+                if (path.contains("/user/"))
+                    targetBank = PresetBank::User;
+                else if (path.contains("/community/") || path.contains("/comm/"))
+                    targetBank = PresetBank::Community;
+                else
+                    targetBank = PresetBank::Factory;
+
+                const auto category = entry.category.trim();
+                targetCategory = category.isEmpty() ? kAllCategoryKey : category;
+                break;
+            }
+        }
+
+        const bool contextChanged = targetBank != selectedBank_ || targetCategory != selectedCategoryKey_;
+        selectedBank_ = targetBank;
+        selectedCategoryKey_ = targetCategory;
+        if (contextChanged)
+            rebuildLists(false);
+
+        if (currentPath.isEmpty())
+        {
+            if (selectedRow_ < 0 && !visibleEntries_.isEmpty())
+                selectedRow_ = 0;
+            scrollSelectedRowIntoView();
+            return;
+        }
+
+        for (int i = 0; i < visibleEntries_.size(); ++i)
+        {
+            if (visibleEntries_.getReference(i).absolutePath == currentPath)
+            {
+                selectedRow_ = i;
+                scrollSelectedRowIntoView();
+                return;
+            }
+        }
+
+        if (selectedRow_ < 0 && !visibleEntries_.isEmpty())
+            selectedRow_ = 0;
+        scrollSelectedRowIntoView();
+    }
+
+    void PresetBrowserOverlay::scrollSelectedRowIntoView()
+    {
+        if (!juce::isPositiveAndBelow(selectedRow_, visibleEntries_.size()) || presetTableBounds_.isEmpty())
+            return;
+
+        const int rowStride = kPresetBrowserPresetRowHeight + 2;
+        const int rowTop = selectedRow_ * rowStride;
+        const int rowBottom = rowTop + kPresetBrowserPresetRowHeight;
+        if (rowTop < presetListScrollY_)
+            presetListScrollY_ = rowTop;
+        else if (rowBottom > presetListScrollY_ + presetTableBounds_.getHeight())
+            presetListScrollY_ = rowBottom - presetTableBounds_.getHeight();
+
+        const int totalHeight = visibleEntries_.size() * rowStride;
+        const int maxScroll = juce::jmax(0, totalHeight - presetTableBounds_.getHeight());
+        presetListScrollY_ = juce::jlimit(0, maxScroll, presetListScrollY_);
+    }
+
+    void PresetBrowserOverlay::clearSearch()
+    {
+        searchField_.setText({}, juce::dontSendNotification);
+        lastSearchQuery_.clear();
+        selectedRow_ = -1;
+        rebuildLists(true);
+        syncSelectionToCurrentPreset();
+        searchField_.grabKeyboardFocus();
     }
 
     void PresetBrowserOverlay::selectCategory(const juce::String& categoryKey)
     {
         selectedCategoryKey_ = categoryKey;
         selectedRow_ = -1;
-        rebuildLists();
+        rebuildLists(true);
     }
 
     void PresetBrowserOverlay::selectRow(int row)
@@ -375,6 +445,43 @@ namespace pw8::plugin::ui
         if (!juce::isPositiveAndBelow(row, visibleEntries_.size()))
             return;
         selectedRow_ = row;
+        scrollSelectedRowIntoView();
+        syncActionButtons();
+        repaint();
+    }
+
+    void PresetBrowserOverlay::syncActionButtons()
+    {
+        if (!juce::isPositiveAndBelow(selectedRow_, visibleEntries_.size()))
+        {
+            favoriteButton_.setButtonText(utf8Symbol("\xe2\x99\xa5") + " FAVORITE");
+            return;
+        }
+
+        const auto& entry = visibleEntries_.getReference(selectedRow_);
+        const bool favorited = favoritesStore_.isFavorite(entry.absolutePath);
+        favoriteButton_.setButtonText(favorited ? utf8Symbol("\xe2\x99\xa5") + " FAV'D"
+                                              : utf8Symbol("\xe2\x99\xa5") + " FAVORITE");
+    }
+
+    void PresetBrowserOverlay::toggleFavoriteAtRow(int row)
+    {
+        if (!juce::isPositiveAndBelow(row, visibleEntries_.size()))
+            return;
+        favoritesStore_.toggleFavorite(visibleEntries_.getReference(row).absolutePath);
+        rebuildLists(false);
+        syncActionButtons();
+    }
+
+    void PresetBrowserOverlay::setRatingAtRow(int row, int stars)
+    {
+        if (!juce::isPositiveAndBelow(row, visibleEntries_.size()))
+            return;
+
+        const auto& entry = visibleEntries_.getReference(row);
+        const int current = ratingsStore_.ratingForPath(entry.absolutePath);
+        const int next = (stars == current) ? 0 : juce::jlimit(1, 5, stars);
+        ratingsStore_.setRating(entry.absolutePath, next);
         repaint();
     }
 
@@ -385,23 +492,77 @@ namespace pw8::plugin::ui
         selectedBank_ = bank;
         selectedCategoryKey_ = kAllCategoryKey;
         selectedRow_ = -1;
-        rebuildLists();
+        rebuildLists(true);
     }
 
     void PresetBrowserOverlay::loadSelected()
     {
         if (!juce::isPositiveAndBelow(selectedRow_, visibleEntries_.size()))
             return;
+        restoreCompareIfNeeded();
         processor_.loadPatchFromFile(visibleEntries_.getReference(selectedRow_).absolutePath);
         dismiss();
     }
 
     void PresetBrowserOverlay::toggleFavoriteSelected()
     {
+        toggleFavoriteAtRow(selectedRow_);
+    }
+
+    void PresetBrowserOverlay::restoreCompareIfNeeded()
+    {
+        if (!compareActive_ || !compareStashPatch_.has_value())
+            return;
+
+        processor_.loadPatch(*compareStashPatch_);
+        compareActive_ = false;
+        compareStashPatch_.reset();
+        compareButton_.setButtonText("A/B TEST");
+    }
+
+    void PresetBrowserOverlay::toggleCompare()
+    {
         if (!juce::isPositiveAndBelow(selectedRow_, visibleEntries_.size()))
             return;
-        favoritesStore_.toggleFavorite(visibleEntries_.getReference(selectedRow_).absolutePath);
-        rebuildLists();
+
+        if (!compareActive_)
+        {
+            processor_.syncCurrentPatchFromApvts();
+            compareStashPatch_ = processor_.getCurrentPatch();
+            processor_.loadPatchFromFile(visibleEntries_.getReference(selectedRow_).absolutePath);
+            compareActive_ = true;
+            compareButton_.setButtonText("RESTORE A");
+        }
+        else
+        {
+            restoreCompareIfNeeded();
+        }
+
+        repaint();
+    }
+
+    void PresetBrowserOverlay::exportSelected()
+    {
+        if (!juce::isPositiveAndBelow(selectedRow_, visibleEntries_.size()))
+            return;
+
+        const auto& entry = visibleEntries_.getReference(selectedRow_);
+        juce::File source(entry.absolutePath);
+        if (!source.existsAsFile())
+            return;
+
+        auto userDir = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
+                           .getChildFile("MURMUR")
+                           .getChildFile("Presets")
+                           .getChildFile("user");
+        userDir.createDirectory();
+
+        const auto safeName = entry.name.trim().replaceCharacter('/', '-');
+        auto dest = userDir.getNonexistentChildFile(safeName, ".pw8");
+        if (!source.copyFileTo(dest))
+            return;
+
+        juce::SystemClipboard::copyTextToClipboard(dest.getFullPathName());
     }
 
     void PresetBrowserOverlay::stepSelection(int direction)
@@ -414,14 +575,7 @@ namespace pw8::plugin::ui
         else
             selectedRow_ = juce::jlimit(0, visibleEntries_.size() - 1, selectedRow_ + direction);
 
-        const int rowStride = kPresetExplorerPresetRowHeight + 2;
-        const int rowTop = selectedRow_ * rowStride;
-        const int rowBottom = rowTop + kPresetExplorerPresetRowHeight;
-        if (rowTop < presetListScrollY_)
-            presetListScrollY_ = rowTop;
-        else if (rowBottom > presetListScrollY_ + presetTableBounds_.getHeight())
-            presetListScrollY_ = rowBottom - presetTableBounds_.getHeight();
-
+        scrollSelectedRowIntoView();
         repaint();
     }
 
@@ -447,82 +601,31 @@ namespace pw8::plugin::ui
         return "—";
     }
 
-    int PresetBrowserOverlay::ratingForEntry(const content::PresetEntry& entry) const
+    juce::String PresetBrowserOverlay::emptyStateMessage() const
     {
-        if (favoritesStore_.isFavorite(entry.absolutePath))
-            return 5;
-        return 1 + (std::abs(entry.name.hashCode()) % 5);
-    }
-
-    juce::Array<int> PresetBrowserOverlay::activeEnginesForEntry(const content::PresetEntry& entry) const
-    {
-        juce::Array<int> active;
-        if (entry.enginesSummary.containsIgnoreCase("ALL"))
-        {
-            for (int i = 1; i <= 8; ++i)
-                active.add(i);
-            return active;
-        }
-
-        juce::StringArray parts;
-        parts.addTokens(entry.enginesSummary, ",", "");
-        for (const auto& part : parts)
-        {
-            const int engine = part.trim().getIntValue();
-            if (engine >= 1 && engine <= 8)
-                active.addIfNotAlreadyThere(engine);
-        }
-
-        if (active.isEmpty())
-            active.add(1);
-        return active;
-    }
-
-    void PresetBrowserOverlay::paintStarRating(juce::Graphics& g, juce::Rectangle<int> area, int filledStars,
-                                               bool large) const
-    {
-        const int starSize = large ? 10 : 8;
-        const int gap = large ? 2 : 2;
-        auto row = area.withSizeKeepingCentre((starSize + gap) * 5 - gap, starSize);
-
-        for (int i = 0; i < 5; ++i)
-        {
-            auto star = row.removeFromLeft(starSize);
-            row.removeFromLeft(gap);
-            const bool filled = i < filledStars;
-            g.setColour(filled ? palette::kAccent : palette::kTextDim.withAlpha(0.35f));
-            juce::Path starPath;
-            const float cx = star.getCentreX();
-            const float cy = star.getCentreY();
-            const float r = static_cast<float>(starSize) * 0.45f;
-            for (int p = 0; p < 5; ++p)
-            {
-                const float angle = static_cast<float>(p) * juce::MathConstants<float>::twoPi / 5.0f
-                                    - juce::MathConstants<float>::halfPi;
-                const float px = cx + std::cos(angle) * r;
-                const float py = cy + std::sin(angle) * r;
-                if (p == 0)
-                    starPath.startNewSubPath(px, py);
-                else
-                    starPath.lineTo(px, py);
-            }
-            starPath.closeSubPath();
-            g.fillPath(starPath);
-        }
+        if (selectedBank_ == PresetBank::User)
+            return "No user presets yet.\nSave patches to ~/Library/Application Support/MURMUR/Presets/user/";
+        if (selectedBank_ == PresetBank::Community)
+            return "Community bank coming soon.\nFactory presets are under FACTORY.";
+        if (selectedCategoryKey_ == kFavoritesCategoryKey)
+            return "No favorites yet.\nClick " + utf8Symbol("\xe2\x99\xa1") + " on a preset to heart it here.";
+        if (browseFilter().isNarrowed())
+            return "No presets match these filters.\nClear MOOD / CONTEXT / TAG chips or search.";
+        return "No presets in this bank.";
     }
 
     void PresetBrowserOverlay::paint(juce::Graphics& g)
     {
-        g.fillAll(juce::Colours::black.withAlpha(0.72f));
+        g.fillAll(palette::kBackgroundTop);
         paintModalPanel(g);
     }
 
     void PresetBrowserOverlay::paintModalPanel(juce::Graphics& g) const
     {
-        g.setColour(palette::kPanelRaised.darker(0.35f));
-        g.fillRoundedRectangle(modalBounds_.toFloat(), 8.0f);
-        g.setColour(palette::kBorder.withAlpha(0.55f));
-        g.drawRoundedRectangle(modalBounds_.toFloat().reduced(0.5f), 8.0f, 1.0f);
+        g.setColour(palette::kPanelRaised.darker(0.2f));
+        g.fillRect(modalBounds_);
+        g.setColour(palette::kBorder.withAlpha(0.35f));
+        g.drawRect(modalBounds_, 1);
     }
 
     void PresetBrowserOverlay::paintOverChildren(juce::Graphics& g)
@@ -535,6 +638,40 @@ namespace pw8::plugin::ui
         paintBottomBar(g);
     }
 
+    void PresetBrowserOverlay::paintPresetNameCell(juce::Graphics& g, juce::Rectangle<int> bounds,
+                                                   const juce::String& name, bool selected) const
+    {
+        g.setColour(selected ? palette::kTextPrimary : palette::kTextSecondary);
+        g.setFont(fonts::label(selected ? 10.0f : 9.0f));
+        g.drawText(name.toUpperCase(), bounds, juce::Justification::centredLeft, true);
+    }
+
+    void PresetBrowserOverlay::paintHeartCell(juce::Graphics& g, juce::Rectangle<int> bounds, bool favorited,
+                                              bool selected) const
+    {
+        juce::ignoreUnused(selected);
+        g.setFont(fonts::title(11.0f));
+        g.setColour(favorited ? juce::Colour(0xffff5a7a) : palette::kTextDim.withAlpha(0.45f));
+        g.drawText(favorited ? utf8Symbol("\xe2\x99\xa5") : utf8Symbol("\xe2\x99\xa1"), bounds,
+                   juce::Justification::centred, false);
+    }
+
+    void PresetBrowserOverlay::paintPresetRatingStars(juce::Graphics& g, juce::Rectangle<int> bounds, int rating,
+                                                      bool selected) const
+    {
+        juce::ignoreUnused(selected);
+        auto starRow = bounds.withSizeKeepingCentre(kExplorerStarCellWidth * 5, bounds.getHeight());
+        g.setFont(fonts::label(9.0f));
+        for (int star = 1; star <= 5; ++star)
+        {
+            auto cell = starRow.removeFromLeft(kExplorerStarCellWidth);
+            const bool filled = star <= rating;
+            g.setColour(filled ? palette::kAccentWarm : palette::kTextDim.withAlpha(0.35f));
+            g.drawText(filled ? utf8Symbol("\xe2\x98\x85") : utf8Symbol("\xe2\x98\x86"), cell,
+                       juce::Justification::centred, false);
+        }
+    }
+
     void PresetBrowserOverlay::paintTopBar(juce::Graphics& g) const
     {
         g.setColour(palette::kBorder.withAlpha(0.35f));
@@ -543,12 +680,12 @@ namespace pw8::plugin::ui
 
         g.setColour(palette::kTextPrimary);
         g.setFont(fonts::title(11.0f));
-        g.drawText("PRESET EXPLORER", topBarBounds_.reduced(16, 0), juce::Justification::centredLeft, true);
+        g.drawText("PRESET BROWSER", topBarBounds_.reduced(16, 0), juce::Justification::centredLeft, true);
 
-        const int searchX = modalBounds_.getCentreX() - kPresetExplorerSearchBarWidth / 2;
+        const int searchX = modalBounds_.getCentreX() - kPresetBrowserSearchBarWidth / 2;
         const auto searchBounds =
-            juce::Rectangle<int>(searchX, topBarBounds_.getY() + 12, kPresetExplorerSearchBarWidth,
-                                 kPresetExplorerSearchBarHeight);
+            juce::Rectangle<int>(searchX, topBarBounds_.getY() + 16, kPresetBrowserSearchBarWidth,
+                                 kPresetBrowserSearchFieldHeight);
         g.setColour(palette::kBackgroundBottom);
         g.fillRoundedRectangle(searchBounds.toFloat(), 4.0f);
         g.setColour(palette::kBorder.withAlpha(0.45f));
@@ -556,6 +693,13 @@ namespace pw8::plugin::ui
         g.setColour(palette::kTextDim);
         g.setFont(fonts::label(8.0f));
         g.drawText("⌕", searchBounds.withWidth(24), juce::Justification::centred, false);
+
+        if (searchField_.getText().isNotEmpty())
+        {
+            g.setColour(palette::kTextDim);
+            g.drawRoundedRectangle(searchClearBounds_.toFloat(), 3.0f, 1.0f);
+            g.drawText("✕", searchClearBounds_, juce::Justification::centred, false);
+        }
 
         g.setColour(palette::kTextDim);
         g.drawRoundedRectangle(closeButtonBounds_.toFloat(), 4.0f, 1.0f);
@@ -594,9 +738,18 @@ namespace pw8::plugin::ui
                    categoryListBounds_.getWidth(), 10, juce::Justification::centredLeft);
 
         auto rowArea = categoryListBounds_;
+        const int rowStride = kPresetBrowserCategoryRowHeight + 1;
+        const int totalHeight = categoryKeys_.size() * rowStride;
+        const int maxScroll = juce::jmax(0, totalHeight - categoryListBounds_.getHeight());
+        const int listScrollY = juce::jlimit(0, maxScroll, categoryListScrollY_);
+
+        g.saveState();
+        g.reduceClipRegion(categoryListBounds_);
+        rowArea = rowArea.withY(rowArea.getY() - listScrollY);
+
         for (int i = 0; i < categoryKeys_.size(); ++i)
         {
-            auto row = rowArea.removeFromTop(kPresetExplorerCategoryRowHeight);
+            auto row = rowArea.removeFromTop(kPresetBrowserCategoryRowHeight);
             rowArea.removeFromTop(1);
             const bool selected = categoryKeys_[i].equalsIgnoreCase(selectedCategoryKey_);
             if (selected)
@@ -616,6 +769,7 @@ namespace pw8::plugin::ui
             g.setFont(fonts::label(8.0f));
             g.drawText(juce::String(categoryCounts_[i]), badge, juce::Justification::centred, false);
         }
+        g.restoreState();
     }
 
     void PresetBrowserOverlay::paintCenterColumn(juce::Graphics& g) const
@@ -624,21 +778,33 @@ namespace pw8::plugin::ui
         g.drawVerticalLine(centerColumnBounds_.getRight(), static_cast<float>(workspaceBounds_.getY()),
                            static_cast<float>(workspaceBounds_.getBottom()));
 
-        auto header = presetTableBounds_.withHeight(kPresetExplorerTableHeaderHeight);
+        auto header = presetTableBounds_.withHeight(kPresetBrowserTableHeaderHeight);
+        const auto cols = PresetTableColumns::forTable(presetTableBounds_);
         g.setColour(palette::kTextDim);
         g.setFont(fonts::label(8.0f));
-        g.drawText("FAV", header.getX() + 10, header.getY(), 24, 10, juce::Justification::centredLeft);
-        g.drawText("PRESET NAME", header.getX() + 40, header.getY(), 184, 10, juce::Justification::centredLeft);
-        g.drawText("AUTHOR", header.getX() + 236, header.getY(), 110, 10, juce::Justification::centredLeft);
-        g.drawText("RATING", header.getX() + 358, header.getY(), 56, 10, juce::Justification::centredLeft);
-        g.drawText("DATE", header.getX() + 426, header.getY(), 60, 10, juce::Justification::centredLeft);
+        g.drawText(utf8Symbol("\xe2\x99\xa5"), cols.heartX, header.getY(), kExplorerHeartColWidth, 10,
+                   juce::Justification::centred);
+        g.drawText("RATING", cols.ratingX, header.getY(), kExplorerRatingColWidth, 10, juce::Justification::centredLeft);
+        g.drawText("PRESET NAME", cols.nameX, header.getY(), kExplorerNameColWidth, 10,
+                   juce::Justification::centredLeft);
+        g.drawText("AUTHOR", cols.authorX, header.getY(), kExplorerAuthorColWidth, 10,
+                   juce::Justification::centredLeft);
+        g.drawText("DATE", cols.dateX, header.getY(), kExplorerDateColWidth, 10, juce::Justification::centredLeft);
 
         g.setColour(palette::kBorder.withAlpha(0.35f));
         g.drawHorizontalLine(presetTableBounds_.getY(), static_cast<float>(presetTableBounds_.getX()),
                              static_cast<float>(presetTableBounds_.getRight()));
 
+        if (visibleEntries_.isEmpty())
+        {
+            g.setColour(palette::kTextDim);
+            g.setFont(fonts::label(10.0f));
+            g.drawFittedText(emptyStateMessage(), presetTableBounds_.reduced(24), juce::Justification::centred, 4);
+            return;
+        }
+
         auto table = presetTableBounds_;
-        const int rowStride = kPresetExplorerPresetRowHeight + 2;
+        const int rowStride = kPresetBrowserPresetRowHeight + 2;
         const int totalHeight = visibleEntries_.size() * rowStride;
         const int maxScroll = juce::jmax(0, totalHeight - table.getHeight());
         const int listScrollY = juce::jlimit(0, maxScroll, presetListScrollY_);
@@ -649,7 +815,7 @@ namespace pw8::plugin::ui
 
         for (int row = 0; row < visibleEntries_.size(); ++row)
         {
-            auto rowBounds = table.removeFromTop(kPresetExplorerPresetRowHeight);
+            auto rowBounds = table.removeFromTop(kPresetBrowserPresetRowHeight);
             table.removeFromTop(2);
             const bool selected = row == selectedRow_;
             if (selected)
@@ -660,22 +826,25 @@ namespace pw8::plugin::ui
             }
 
             const auto& entry = visibleEntries_.getReference(row);
-            const bool starred = favoritesStore_.isFavorite(entry.absolutePath);
-            g.setColour(starred ? palette::kAccent : palette::kTextDim.withAlpha(0.45f));
-            g.setFont(fonts::title(10.0f));
-            g.drawText(starred ? "★" : "☆", rowBounds.getX() + 10, rowBounds.getY(), 18, rowBounds.getHeight(),
-                       juce::Justification::centred, false);
+            const bool favorited = favoritesStore_.isFavorite(entry.absolutePath);
+            const int rating = ratingsStore_.ratingForPath(entry.absolutePath);
+
+            paintHeartCell(g, juce::Rectangle<int>(cols.heartX, rowBounds.getY(), kExplorerHeartColWidth,
+                                                   rowBounds.getHeight()),
+                           favorited, selected);
+            paintPresetRatingStars(g, juce::Rectangle<int>(cols.ratingX, rowBounds.getY(), kExplorerRatingColWidth,
+                                                           rowBounds.getHeight()),
+                                   rating, selected);
 
             g.setColour(selected ? palette::kTextPrimary : palette::kTextSecondary);
-            g.setFont(fonts::label(9.0f));
-            g.drawText(entry.name.toUpperCase(), rowBounds.getX() + 40, rowBounds.getY(), 184, rowBounds.getHeight(),
-                       juce::Justification::centredLeft, true);
-            g.drawText(formatAuthorForEntry(entry), rowBounds.getX() + 236, rowBounds.getY(), 110,
+            paintPresetNameCell(g, juce::Rectangle<int>(cols.nameX, rowBounds.getY(), kExplorerNameColWidth,
+                                                        rowBounds.getHeight()),
+                                entry.name, selected);
+            g.drawText(formatAuthorForEntry(entry), cols.authorX, rowBounds.getY(), kExplorerAuthorColWidth,
                        rowBounds.getHeight(), juce::Justification::centredLeft, true);
-            paintStarRating(g, rowBounds.withX(rowBounds.getX() + 348).withWidth(56), ratingForEntry(entry), false);
             g.setColour(palette::kTextDim);
-            g.drawText(formatDateForEntry(entry), rowBounds.getX() + 426, rowBounds.getY(), 60, rowBounds.getHeight(),
-                       juce::Justification::centredLeft, true);
+            g.drawText(formatDateForEntry(entry), cols.dateX, rowBounds.getY(), kExplorerDateColWidth,
+                       rowBounds.getHeight(), juce::Justification::centredLeft, true);
         }
         g.restoreState();
     }
@@ -704,50 +873,35 @@ namespace pw8::plugin::ui
         g.setColour(palette::kTextDim);
         g.setFont(fonts::label(8.0f));
         g.drawText("BY " + formatAuthorForEntry(entry), area.removeFromTop(12), juce::Justification::centredLeft, true);
-        area.removeFromTop(12);
 
-        auto waveBox = area.removeFromTop(kPresetExplorerDetailWaveformHeight);
+        const int rating = ratingsStore_.ratingForPath(entry.absolutePath);
+        auto ratingRow = area.removeFromTop(16);
+        paintPresetRatingStars(g, ratingRow.withWidth(kExplorerRatingColWidth), rating, true);
+        g.setColour(palette::kTextDim);
+        g.setFont(fonts::label(8.0f));
+        g.drawText(rating > 0 ? juce::String(rating) + ".0" : "UNRATED", ratingRow.withTrimmedLeft(78),
+                   juce::Justification::centredLeft, true);
+        area.removeFromTop(8);
+
+        auto waveBox = area.removeFromTop(kPresetBrowserDetailWaveformHeight);
         g.setColour(palette::kBackgroundBottom);
         g.fillRoundedRectangle(waveBox.toFloat(), 6.0f);
         g.setColour(palette::kTextDim);
-        g.drawText("WAVEPROFILE", waveBox.reduced(6).removeFromTop(10), juce::Justification::centredLeft, true);
-        auto canvas = waveBox.reduced(6, 18);
-        g.setColour(palette::kBorder.withAlpha(0.35f));
-        g.drawHorizontalLine(canvas.getCentreY(), static_cast<float>(canvas.getX()),
-                             static_cast<float>(canvas.getRight()));
-        juce::Path waveA, waveB;
-        waveA.startNewSubPath(static_cast<float>(canvas.getX()), static_cast<float>(canvas.getCentreY()));
-        waveB.startNewSubPath(static_cast<float>(canvas.getX()), static_cast<float>(canvas.getCentreY()));
-        for (int x = 0; x < canvas.getWidth(); ++x)
-        {
-            const float t = static_cast<float>(x) / static_cast<float>(juce::jmax(1, canvas.getWidth()));
-            waveA.lineTo(static_cast<float>(canvas.getX() + x),
-                         static_cast<float>(canvas.getCentreY()) + std::sin(t * 9.0f) * 16.0f);
-            waveB.lineTo(static_cast<float>(canvas.getX() + x),
-                         static_cast<float>(canvas.getCentreY()) + std::sin(t * 13.0f + 0.6f) * 10.0f);
-        }
-        g.setColour(palette::kAccent.withAlpha(0.85f));
-        g.strokePath(waveA, juce::PathStrokeType(1.3f));
-        g.setColour(palette::kAccentWarm.withAlpha(0.75f));
-        g.strokePath(waveB, juce::PathStrokeType(1.1f));
+        g.setFont(fonts::label(8.0f));
+        g.drawText("PREVIEW", waveBox.reduced(8).removeFromTop(10), juce::Justification::centredLeft, true);
+        g.setFont(fonts::label(9.0f));
+        g.setColour(palette::kTextSecondary);
+        g.drawFittedText("Waveform preview coming soon.\nLoad the preset to hear it.",
+                         waveBox.reduced(8).withTrimmedTop(14), juce::Justification::centred, 3);
 
         area.removeFromTop(12);
         g.setColour(palette::kTextDim);
-        g.drawText("ENGINE ALLOCATION", area.removeFromTop(10), juce::Justification::centredLeft, true);
+        g.drawText("ENGINES", area.removeFromTop(10), juce::Justification::centredLeft, true);
         area.removeFromTop(4);
-        const auto activeEngines = activeEnginesForEntry(entry);
-        auto ledRow = area.removeFromTop(21);
-        const int ledStride = ledRow.getWidth() / 8;
-        for (int engine = 1; engine <= 8; ++engine)
-        {
-            auto slot = ledRow.removeFromLeft(ledStride);
-            const bool active = activeEngines.contains(engine);
-            g.setColour(active ? palette::kAccent : palette::kTextDim.withAlpha(0.25f));
-            g.fillEllipse(slot.getX(), static_cast<float>(slot.getY()), 10.0f, 10.0f);
-            g.setColour(palette::kTextDim);
-            g.setFont(fonts::label(8.0f));
-            g.drawText(juce::String(engine), slot.withTrimmedTop(12), juce::Justification::centred, false);
-        }
+        g.setFont(fonts::label(9.0f));
+        g.setColour(palette::kTextSecondary);
+        g.drawText("Active: " + entry.enginesSummary.toUpperCase(), area.removeFromTop(16),
+                   juce::Justification::centredLeft, true);
 
         area.removeFromTop(12);
         g.setColour(palette::kTextDim);
@@ -840,15 +994,17 @@ namespace pw8::plugin::ui
         g.drawText(countText, bottomBarBounds_.reduced(16, 0), juce::Justification::centredLeft, true);
 
         g.setColour(palette::kTextSecondary);
-        g.drawText("◀ PREV", paginationPrevBounds_, juce::Justification::centred, true);
-        g.drawText("NEXT ▶", paginationNextBounds_, juce::Justification::centred, true);
+        g.drawText("◀ PREV PRESET", paginationPrevBounds_, juce::Justification::centred, true);
+        g.drawText("NEXT PRESET ▶", paginationNextBounds_, juce::Justification::centred, true);
     }
 
     void PresetBrowserOverlay::resized()
     {
-        modalBounds_ = centeredModalBounds(getLocalBounds());
-        topBarBounds_ = modalBounds_.removeFromTop(kPresetExplorerTopBarHeight);
-        bottomBarBounds_ = modalBounds_.removeFromBottom(kPresetExplorerBottomBarHeight);
+        modalBounds_ = pageBounds(getLocalBounds());
+        topBarBounds_ = modalBounds_.removeFromTop(kChromeBarHeightDesign);
+        modalBounds_.removeFromTop(kPresetBrowserPageColumnGap);
+        bottomBarBounds_ = modalBounds_.removeFromBottom(kPresetBrowserFooterHeight);
+        modalBounds_.removeFromBottom(kPresetBrowserPageColumnGap);
 
         int facetStripHeight = 0;
         auto accountFacetRow = [&](const std::unique_ptr<MetadataFacetRow>& row) {
@@ -865,17 +1021,24 @@ namespace pw8::plugin::ui
             facetStripHeight += 12;
 
         facetStripBounds_ = facetStripHeight > 0 ? modalBounds_.removeFromTop(facetStripHeight) : juce::Rectangle<int>();
+        if (facetStripHeight > 0)
+            modalBounds_.removeFromTop(kPresetBrowserPageColumnGap);
         workspaceBounds_ = modalBounds_;
 
-        leftColumnBounds_ = workspaceBounds_.removeFromLeft(kPresetExplorerLeftColumnWidth);
-        centerColumnBounds_ = workspaceBounds_.removeFromLeft(kPresetExplorerCenterColumnWidth);
+        leftColumnBounds_ = workspaceBounds_.removeFromLeft(kPresetBrowserLeftColumnWidth);
+        workspaceBounds_.removeFromLeft(kPresetBrowserPageColumnGap);
+        centerColumnBounds_ = workspaceBounds_.removeFromLeft(kPresetBrowserCenterColumnWidth);
+        workspaceBounds_.removeFromLeft(kPresetBrowserPageColumnGap);
         rightColumnBounds_ = workspaceBounds_;
 
         closeButtonBounds_ = topBarBounds_.removeFromRight(40).withSizeKeepingCentre(24, 24);
 
-        const int searchX = getLocalBounds().getCentreX() - kPresetExplorerSearchBarWidth / 2;
-        searchField_.setBounds(searchX, topBarBounds_.getY() + 12, kPresetExplorerSearchBarWidth,
-                               kPresetExplorerSearchBarHeight);
+        const int searchX = topBarBounds_.getCentreX() - kPresetBrowserSearchBarWidth / 2;
+        searchField_.setBounds(searchX, topBarBounds_.getY() + 16, kPresetBrowserSearchBarWidth,
+                               kPresetBrowserSearchFieldHeight);
+        searchClearBounds_ =
+            juce::Rectangle<int>(searchField_.getRight() - 22, searchField_.getY() + 4, 16, 16);
+        searchIconBounds_ = searchField_.getBounds().removeFromLeft(24);
 
         if (!facetStripBounds_.isEmpty())
         {
@@ -899,17 +1062,19 @@ namespace pw8::plugin::ui
         categoryListBounds_ = leftInner;
 
         auto centerInner = centerColumnBounds_.reduced(12);
-        centerInner.removeFromTop(kPresetExplorerTableHeaderHeight + 8);
+        centerInner.removeFromTop(kPresetBrowserTableHeaderHeight + 8);
         presetTableBounds_ = centerInner;
 
         auto actions = rightColumnBounds_.reduced(12);
         actions.removeFromTop(310);
-        loadButton_.setBounds(actions.removeFromTop(kPresetExplorerLoadButtonHeight));
+        loadButton_.setBounds(actions.removeFromTop(kPresetBrowserLoadButtonHeight));
         actions.removeFromTop(4);
-        auto btnRow = actions.removeFromTop(kPresetExplorerSecondaryButtonHeight);
+        auto btnRow = actions.removeFromTop(kPresetBrowserActionButtonHeight);
         favoriteButton_.setBounds(btnRow.removeFromLeft((btnRow.getWidth() - 6) / 2));
         btnRow.removeFromLeft(6);
         compareButton_.setBounds(btnRow);
+        actions.removeFromTop(4);
+        exportButton_.setBounds(actions.removeFromTop(kPresetBrowserActionButtonHeight));
 
         auto pagination = bottomBarBounds_.removeFromRight(80).reduced(0, 9);
         paginationNextBounds_ = pagination.removeFromRight(36);
@@ -930,8 +1095,10 @@ namespace pw8::plugin::ui
     {
         if (!categoryListBounds_.contains(pos))
             return -1;
-        const int relativeY = pos.y - categoryListBounds_.getY();
-        return relativeY / (kPresetExplorerCategoryRowHeight + 1);
+        const int relativeY = pos.y - categoryListBounds_.getY() + categoryListScrollY_;
+        if (relativeY < 0)
+            return -1;
+        return relativeY / (kPresetBrowserCategoryRowHeight + 1);
     }
 
     int PresetBrowserOverlay::presetRowAt(juce::Point<int> pos) const
@@ -941,7 +1108,7 @@ namespace pw8::plugin::ui
         const int relativeY = pos.y - presetTableBounds_.getY() + presetListScrollY_;
         if (relativeY < 0)
             return -1;
-        return relativeY / (kPresetExplorerPresetRowHeight + 2);
+        return relativeY / (kPresetBrowserPresetRowHeight + 2);
     }
 
     int PresetBrowserOverlay::tagPillAt(juce::Point<int> pos) const
@@ -956,13 +1123,25 @@ namespace pw8::plugin::ui
 
     void PresetBrowserOverlay::mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel)
     {
+        const int delta = juce::roundToInt(wheel.deltaY * 48.0f);
+
+        if (categoryListBounds_.contains(event.getPosition()))
+        {
+            const int rowStride = kPresetBrowserCategoryRowHeight + 1;
+            const int totalHeight = categoryKeys_.size() * rowStride;
+            const int maxScroll = juce::jmax(0, totalHeight - categoryListBounds_.getHeight());
+            categoryListScrollY_ = juce::jlimit(0, maxScroll, categoryListScrollY_ - delta);
+            repaint();
+            return;
+        }
+
         if (!presetTableBounds_.contains(event.getPosition()))
             return;
 
-        const int rowStride = kPresetExplorerPresetRowHeight + 2;
+        const int rowStride = kPresetBrowserPresetRowHeight + 2;
         const int totalHeight = visibleEntries_.size() * rowStride;
         const int maxScroll = juce::jmax(0, totalHeight - presetTableBounds_.getHeight());
-        presetListScrollY_ = juce::jlimit(0, maxScroll, presetListScrollY_ - juce::roundToInt(wheel.deltaY * 48.0f));
+        presetListScrollY_ = juce::jlimit(0, maxScroll, presetListScrollY_ - delta);
         repaint();
     }
 
@@ -977,6 +1156,12 @@ namespace pw8::plugin::ui
         if (closeButtonBounds_.contains(event.getPosition()))
         {
             dismiss();
+            return;
+        }
+
+        if (searchClearBounds_.contains(event.getPosition()))
+        {
+            clearSearch();
             return;
         }
 
@@ -1010,10 +1195,20 @@ namespace pw8::plugin::ui
         if (presetRow >= 0 && presetRow < visibleEntries_.size())
         {
             selectRow(presetRow);
-            const bool starColumn = event.getPosition().x < presetTableBounds_.getX() + 34;
-            if (starColumn)
-                toggleFavoriteSelected();
-            else if (event.getNumberOfClicks() >= 2)
+            if (heartCellAt(event.getPosition()))
+            {
+                toggleFavoriteAtRow(presetRow);
+                return;
+            }
+
+            const int star = ratingStarAt(event.getPosition(), presetRow);
+            if (star > 0)
+            {
+                setRatingAtRow(presetRow, star);
+                return;
+            }
+
+            if (event.getNumberOfClicks() >= 2)
                 loadSelected();
             return;
         }
@@ -1033,6 +1228,33 @@ namespace pw8::plugin::ui
             }
             selectMetadataFacet(hit.facet, hit.value.equalsIgnoreCase(activeValue) ? juce::String() : hit.value);
         }
+    }
+
+    bool PresetBrowserOverlay::keyPressed(const juce::KeyPress& key, juce::Component* originatingComponent)
+    {
+        if (!isVisible())
+            return false;
+
+        if (originatingComponent == &searchField_)
+        {
+            if (key == juce::KeyPress::upKey)
+            {
+                stepSelection(-1);
+                return true;
+            }
+            if (key == juce::KeyPress::downKey)
+            {
+                stepSelection(1);
+                return true;
+            }
+            if (key == juce::KeyPress::escapeKey && searchField_.getText().isNotEmpty())
+            {
+                clearSearch();
+                return true;
+            }
+        }
+
+        return keyPressed(key);
     }
 
     bool PresetBrowserOverlay::keyPressed(const juce::KeyPress& key)
@@ -1064,19 +1286,116 @@ namespace pw8::plugin::ui
             return true;
         }
 
+        if (key == juce::KeyPress::homeKey)
+        {
+            if (!visibleEntries_.isEmpty())
+                selectRow(0);
+            return true;
+        }
+
+        if (key == juce::KeyPress::endKey)
+        {
+            if (!visibleEntries_.isEmpty())
+                selectRow(visibleEntries_.size() - 1);
+            return true;
+        }
+
+        if (key == juce::KeyPress::pageUpKey)
+        {
+            const int pageRows = juce::jmax(1, presetTableBounds_.getHeight() / (kPresetBrowserPresetRowHeight + 2));
+            stepSelection(-pageRows);
+            return true;
+        }
+
+        if (key == juce::KeyPress::pageDownKey)
+        {
+            const int pageRows = juce::jmax(1, presetTableBounds_.getHeight() / (kPresetBrowserPresetRowHeight + 2));
+            stepSelection(pageRows);
+            return true;
+        }
+
+        if (key == juce::KeyPress('f', juce::ModifierKeys::noModifiers, 0))
+        {
+            toggleFavoriteSelected();
+            return true;
+        }
+
+        if (key == juce::KeyPress('/', juce::ModifierKeys::noModifiers, 0)
+            || key == juce::KeyPress('f', juce::ModifierKeys::commandModifier, 0)
+            || key == juce::KeyPress('f', juce::ModifierKeys::ctrlModifier, 0))
+        {
+            searchField_.grabKeyboardFocus();
+            return true;
+        }
+
         return false;
     }
 
-    void PresetBrowserOverlay::textEditorTextChanged(juce::TextEditor&) { rebuildLists(); }
+    void PresetBrowserOverlay::textEditorTextChanged(juce::TextEditor&)
+    {
+        const auto query = searchField_.getText();
+        const bool queryChanged = query != lastSearchQuery_;
+        lastSearchQuery_ = query;
+
+        juce::String keepPath;
+        if (juce::isPositiveAndBelow(selectedRow_, visibleEntries_.size()))
+            keepPath = visibleEntries_.getReference(selectedRow_).absolutePath;
+
+        rebuildLists(queryChanged);
+
+        if (keepPath.isNotEmpty())
+        {
+            for (int i = 0; i < visibleEntries_.size(); ++i)
+            {
+                if (visibleEntries_.getReference(i).absolutePath == keepPath)
+                {
+                    selectedRow_ = i;
+                    scrollSelectedRowIntoView();
+                    repaint();
+                    return;
+                }
+            }
+        }
+
+        syncSelectionToCurrentPreset();
+        repaint();
+    }
 
     void PresetBrowserOverlay::textEditorReturnKeyPressed(juce::TextEditor&) { loadSelected(); }
 
     void PresetBrowserOverlay::textEditorEscapeKeyPressed(juce::TextEditor&) { dismiss(); }
 
-    void PresetBrowserOverlay::timerCallback()
+    bool PresetBrowserOverlay::heartCellAt(juce::Point<int> pos) const
     {
-        if (isVisible())
-            repaint();
+        if (!presetTableBounds_.contains(pos))
+            return false;
+
+        const auto cols = PresetTableColumns::forTable(presetTableBounds_);
+        const int rowStride = kPresetBrowserPresetRowHeight + 2;
+        const int relativeY = pos.y - presetTableBounds_.getY() + presetListScrollY_;
+        if (relativeY < 0)
+            return false;
+        const int rowTop = (relativeY / rowStride) * rowStride;
+        juce::Rectangle<int> heartBounds(cols.heartX, presetTableBounds_.getY() + rowTop - presetListScrollY_,
+                                         kExplorerHeartColWidth, kPresetBrowserPresetRowHeight);
+        return heartBounds.contains(pos);
+    }
+
+    int PresetBrowserOverlay::ratingStarAt(juce::Point<int> pos, int row) const
+    {
+        if (!juce::isPositiveAndBelow(row, visibleEntries_.size()) || !presetTableBounds_.contains(pos))
+            return 0;
+
+        const auto cols = PresetTableColumns::forTable(presetTableBounds_);
+        const int rowStride = kPresetBrowserPresetRowHeight + 2;
+        const int rowTop = presetTableBounds_.getY() + row * rowStride - presetListScrollY_;
+        const juce::Rectangle<int> ratingBounds(cols.ratingX, rowTop, kExplorerRatingColWidth,
+                                                kPresetBrowserPresetRowHeight);
+        if (!ratingBounds.contains(pos))
+            return 0;
+
+        const int localX = pos.x - ratingBounds.getX();
+        return juce::jlimit(1, 5, localX / kExplorerStarCellWidth + 1);
     }
 
 } // namespace pw8::plugin::ui

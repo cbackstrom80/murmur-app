@@ -1,22 +1,28 @@
 #pragma once
 
 #include <functional>
+#include <optional>
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "content/FavoritesStore.h"
+#include "content/PresetRatingsStore.h"
 #include "content/PresetIndex.h"
 #include "MetadataFacetRow.h"
 #include "processor/PatchworkEightProcessor.h"
+#include "pw8/patch/Patch.hpp"
 
 namespace pw8::plugin::ui
 {
     /// Figma `murmur-preset-explorer-overlay` (74:959) — centered modal popup over dimmed host UI.
-    class PresetBrowserOverlay : public juce::Component, private juce::TextEditor::Listener, private juce::Timer
+    class PresetBrowserOverlay : public juce::Component,
+                                 private juce::TextEditor::Listener,
+                                 private juce::KeyListener
     {
     public:
         PresetBrowserOverlay(PatchworkEightProcessor& processor, content::PresetIndex& presetIndex,
-                             content::FavoritesStore& favoritesStore);
+                             content::FavoritesStore& favoritesStore,
+                             content::PresetRatingsStore& ratingsStore);
 
         std::function<void()> onClosed;
         std::function<void()> onFiltersChanged;
@@ -47,9 +53,8 @@ namespace pw8::plugin::ui
         void textEditorTextChanged(juce::TextEditor&) override;
         void textEditorReturnKeyPressed(juce::TextEditor&) override;
         void textEditorEscapeKeyPressed(juce::TextEditor&) override;
-        void timerCallback() override;
 
-        void rebuildLists();
+        void rebuildLists(bool resetPresetScroll);
         void rebuildFacetRows();
         void selectCategory(const juce::String& categoryKey);
         void selectMetadataFacet(content::PresetFacet facet, const juce::String& value);
@@ -57,7 +62,18 @@ namespace pw8::plugin::ui
         void selectBank(PresetBank bank);
         void loadSelected();
         void toggleFavoriteSelected();
+        void toggleFavoriteAtRow(int row);
+        void setRatingAtRow(int row, int stars);
+        void syncActionButtons();
+        void toggleCompare();
+        void restoreCompareIfNeeded();
+        void exportSelected();
         void stepSelection(int direction);
+        void syncSelectionToCurrentPreset();
+        void scrollSelectedRowIntoView();
+        void clearSearch();
+
+        [[nodiscard]] bool keyPressed(const juce::KeyPress& key, juce::Component* originatingComponent) override;
 
         [[nodiscard]] bool entryMatchesBank(const content::PresetEntry& entry) const;
         [[nodiscard]] int categoryRowAt(juce::Point<int> pos) const;
@@ -65,28 +81,37 @@ namespace pw8::plugin::ui
         [[nodiscard]] int bankPillAt(juce::Point<int> pos) const;
         [[nodiscard]] juce::String formatAuthorForEntry(const content::PresetEntry& entry) const;
         [[nodiscard]] juce::String formatDateForEntry(const content::PresetEntry& entry) const;
-        [[nodiscard]] int ratingForEntry(const content::PresetEntry& entry) const;
-        [[nodiscard]] juce::Array<int> activeEnginesForEntry(const content::PresetEntry& entry) const;
         [[nodiscard]] content::PresetMetadataFilter browseFilterWithoutFacet(content::PresetFacet facet) const;
-        [[nodiscard]] juce::StringArray uniqueFacetValuesForBank(content::PresetFacet facet) const;
+        [[nodiscard]] content::PresetIndex::EntryPredicate bankEntryPredicate() const;
         [[nodiscard]] int tagPillAt(juce::Point<int> pos) const;
+        [[nodiscard]] juce::String emptyStateMessage() const;
 
         void paintModalPanel(juce::Graphics& g) const;
         void paintTopBar(juce::Graphics& g) const;
         void paintLeftColumn(juce::Graphics& g) const;
         void paintCenterColumn(juce::Graphics& g) const;
+        void paintPresetNameCell(juce::Graphics& g, juce::Rectangle<int> bounds, const juce::String& name,
+                                 bool selected) const;
         void paintRightColumn(juce::Graphics& g) const;
         void paintBottomBar(juce::Graphics& g) const;
-        void paintStarRating(juce::Graphics& g, juce::Rectangle<int> area, int filledStars, bool large) const;
+
+        void paintPresetRatingStars(juce::Graphics& g, juce::Rectangle<int> bounds, int rating,
+                                    bool selected) const;
+        void paintHeartCell(juce::Graphics& g, juce::Rectangle<int> bounds, bool favorited,
+                            bool selected) const;
+        [[nodiscard]] int ratingStarAt(juce::Point<int> pos, int row) const;
+        [[nodiscard]] bool heartCellAt(juce::Point<int> pos) const;
 
         PatchworkEightProcessor& processor_;
         content::PresetIndex& presetIndex_;
         content::FavoritesStore& favoritesStore_;
+        content::PresetRatingsStore& ratingsStore_;
 
         juce::TextEditor searchField_;
         juce::TextButton loadButton_{"LOAD PRESET"};
         juce::TextButton favoriteButton_{"FAVORITE"};
         juce::TextButton compareButton_{"A/B TEST"};
+        juce::TextButton exportButton_{"EXPORT"};
         std::unique_ptr<MetadataFacetRow> moodFacetRow_;
         std::unique_ptr<MetadataFacetRow> contextFacetRow_;
         std::unique_ptr<MetadataFacetRow> tagFacetRow_;
@@ -99,6 +124,7 @@ namespace pw8::plugin::ui
         PresetBank selectedBank_ = PresetBank::Factory;
         int selectedRow_ = -1;
         int presetListScrollY_ = 0;
+        int categoryListScrollY_ = 0;
 
         struct TagPillHit
         {
@@ -120,9 +146,15 @@ namespace pw8::plugin::ui
         juce::Rectangle<int> bankPillsBounds_;
         juce::Rectangle<int> categoryListBounds_;
         juce::Rectangle<int> presetTableBounds_;
+        juce::String lastSearchQuery_;
+        juce::Rectangle<int> searchClearBounds_;
+        juce::Rectangle<int> searchIconBounds_;
         juce::Rectangle<int> closeButtonBounds_;
         juce::Rectangle<int> paginationPrevBounds_;
         juce::Rectangle<int> paginationNextBounds_;
+
+        bool compareActive_ = false;
+        std::optional<patch::Patch> compareStashPatch_;
     };
 
 } // namespace pw8::plugin::ui

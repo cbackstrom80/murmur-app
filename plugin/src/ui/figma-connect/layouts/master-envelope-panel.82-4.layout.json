@@ -1,0 +1,43 @@
+{
+  "$schema": "./figma-layout-spec.schema.json",
+  "figmaFileKey": "PFt0LG6XmOiZWcSoUXIWIg",
+  "nodeId": "82:4",
+  "frameName": "master-envelope-panel",
+  "canonicalName": "master-envelope-panel",
+  "parentFrame": "37:787",
+  "exportedAt": "2026-08-18",
+  "exportSource": "figma-mcp get_metadata",
+  "size": { "width": 1248, "height": 320 },
+  "padding": 16,
+  "codeOwners": {
+    "component": "MasterEnvelopePanel",
+    "constants": "PlayModeLayout.h"
+  },
+  "children": [
+    {
+      "nodeId": "82:5",
+      "name": "header",
+      "x": 16,
+      "y": 16,
+      "width": 1216,
+      "height": 16,
+      "constant": "kDesignModeV2MasterEnvelopeHeaderHeight"
+    },
+    {
+      "nodeId": "82:13",
+      "name": "content",
+      "x": 16,
+      "y": 44,
+      "width": 1216,
+      "height": 260,
+      "children": [
+        {
+          "nodeId": "82:14",
+          "name": "adsr-curve-display",
+          "width": 520,
+          "constant": "kDesignModeV2MasterEnvelopeCurveWidth"
+        }
+      ]
+    }
+  ]
+}

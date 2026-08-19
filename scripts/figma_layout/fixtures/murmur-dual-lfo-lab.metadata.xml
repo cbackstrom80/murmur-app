@@ -1,0 +1,478 @@
+<frame id="15:247" name="murmur-design-dual-lfo" x="0" y="0" width="1280" height="720">
+  <frame id="51:78" name="header-bar" x="16" y="16" width="1248" height="60">
+    <frame id="51:79" name="branding" x="16" y="8" width="220" height="43">
+      <frame id="128:8" name="murmur-whale-logo" x="0" y="0" width="95" height="43">
+      </frame>
+    </frame>
+    <frame id="51:82" name="view-leds" x="252" y="20" width="101" height="19">
+      <frame id="51:83" name="led-compact" x="0" y="0" width="30" height="19">
+        <frame id="51:84" name="led" x="12" y="0" width="6" height="6">
+        </frame>
+        <frame id="51:85" name="label" x="0" y="10" width="30" height="9">
+        </frame>
+      </frame>
+      <frame id="51:86" name="led-play" x="44" y="0" width="17" height="19">
+        <frame id="51:87" name="led" x="6" y="0" width="6" height="6">
+        </frame>
+        <frame id="51:88" name="label" x="0" y="10" width="17" height="9">
+        </frame>
+      </frame>
+      <frame id="51:89" name="led-design" x="75" y="0" width="26" height="19">
+        <frame id="51:90" name="led" x="10" y="0" width="6" height="6">
+        </frame>
+        <frame id="51:91" name="label" x="0" y="10" width="26" height="9">
+        </frame>
+      </frame>
+    </frame>
+    <frame id="51:92" name="score-line" x="369" y="18" width="1" height="24">
+    </frame>
+    <frame id="51:93" name="section-leds" x="386" y="20" width="168" height="18">
+      <frame id="51:94" name="led-engine" x="0" y="0" width="26" height="18">
+        <frame id="51:95" name="led" x="10" y="0" width="5" height="5">
+        </frame>
+        <frame id="51:96" name="label" x="0" y="9" width="26" height="9">
+        </frame>
+      </frame>
+      <frame id="51:97" name="led-arp" x="38" y="0" width="13" height="18">
+        <frame id="51:98" name="led" x="4" y="0" width="5" height="5">
+        </frame>
+        <frame id="51:99" name="label" x="0" y="9" width="13" height="9">
+        </frame>
+      </frame>
+      <frame id="51:100" name="led-vocoder" x="63" y="0" width="30" height="18">
+        <frame id="51:101" name="led" x="12" y="0" width="5" height="5">
+        </frame>
+        <frame id="51:102" name="label" x="0" y="9" width="30" height="9">
+        </frame>
+      </frame>
+      <frame id="51:103" name="led-fx" x="105" y="0" width="9" height="18">
+        <frame id="51:104" name="led" x="2" y="0" width="5" height="5">
+        </frame>
+        <frame id="51:105" name="label" x="0" y="9" width="9" height="9">
+        </frame>
+      </frame>
+      <frame id="51:106" name="led-mod-matrix" x="126" y="0" width="42" height="18">
+        <frame id="51:107" name="led" x="18" y="0" width="5" height="5">
+        </frame>
+        <frame id="51:108" name="label" x="0" y="9" width="42" height="9">
+        </frame>
+      </frame>
+    </frame>
+    <frame id="51:109" name="preset-display" x="570" y="17" width="260" height="25">
+      <frame id="51:110" name="preset-name" x="158" y="0" width="102" height="13">
+      </frame>
+      <frame id="51:111" name="preset-meta" x="177" y="15" width="83" height="10">
+        <frame id="51:112" name="preset-source" x="0" y="0" width="34" height="10">
+        </frame>
+        <frame id="51:113" name="master-indicator" x="42" y="0" width="41" height="10">
+          <frame id="51:114" name="master-led" x="0" y="2" width="6" height="6">
+          </frame>
+          <frame id="51:115" name="master-label" x="12" y="0" width="29" height="10">
+          </frame>
+        </frame>
+      </frame>
+    </frame>
+  </frame>
+  <frame id="15:265" name="main-workspace" x="16" y="88" width="1248" height="548">
+    <frame id="15:266" name="lfo-column-01" x="0" y="0" width="419" height="548">
+      <frame id="15:267" name="lfo-title-bar" x="16" y="16" width="387" height="15">
+        <frame id="15:268" name="lfo-title-grp" x="0" y="0" width="46" height="15">
+          <frame id="15:269" name="led-active" x="0" y="4" width="6" height="6">
+          </frame>
+          <frame id="15:270" name="LFO 1" x="14" y="0" width="32" height="15">
+          </frame>
+        </frame>
+        <frame id="15:271" name="mod-chip" x="349" y="0" width="38" height="14">
+          <frame id="15:272" name="LFO 1" x="8" y="2" width="22" height="10">
+          </frame>
+        </frame>
+      </frame>
+      <frame id="15:273" name="oscilloscope-container" x="16" y="47" width="387" height="180">
+        <frame id="15:274" name="canvas" x="0" y="0" width="387" height="180">
+          <frame id="15:275" name="Line" x="0" y="90" width="556" height="0">
+          </frame>
+          <frame id="15:276" name="Line" x="139" y="0" width="0" height="180">
+          </frame>
+          <frame id="15:277" name="Line" x="278" y="0" width="0" height="180">
+          </frame>
+          <frame id="15:278" name="Line" x="417" y="0" width="0" height="180">
+          </frame>
+          <frame id="15:279" name="Line" x="0" y="45" width="78" height="45">
+          </frame>
+          <frame id="15:280" name="Line" x="78" y="45" width="95" height="55">
+          </frame>
+          <frame id="15:281" name="Line" x="173" y="100" width="95" height="55">
+          </frame>
+          <frame id="15:282" name="Line" x="268" y="100" width="95" height="55">
+          </frame>
+          <frame id="15:283" name="Line" x="363" y="45" width="95" height="55">
+          </frame>
+          <frame id="15:284" name="Line" x="458" y="45" width="95" height="55">
+          </frame>
+          <frame id="15:285" name="Ellipse" x="230" y="70" width="8" height="8">
+          </frame>
+        </frame>
+      </frame>
+      <frame id="15:286" name="knobs-row" x="16" y="243" width="387" height="64">
+        <frame id="15:287" name="knob-wave" x="0" y="-2" width="76" height="69">
+          <frame id="15:288" name="knob-graphic-wrapper" x="18" y="0" width="40" height="40">
+            <frame id="15:289" name="Ellipse" x="0" y="0" width="40" height="40">
+            </frame>
+            <frame id="15:290" name="Ellipse" x="0" y="0" width="40" height="40">
+            </frame>
+            <frame id="15:291" name="Ellipse" x="7" y="7" width="26" height="26">
+            </frame>
+            <frame id="15:292" name="Ellipse" x="26" y="14" width="3" height="3">
+            </frame>
+          </frame>
+          <frame id="15:293" name="Frame" x="0" y="46" width="76" height="23">
+            <frame id="15:294" name="WAVE" x="0" y="0" width="76" height="10">
+            </frame>
+            <frame id="15:295" name="SINE" x="0" y="12" width="76" height="11">
+            </frame>
+          </frame>
+        </frame>
+        <frame id="15:296" name="knob-mode" x="104" y="-2" width="76" height="69">
+          <frame id="15:297" name="knob-graphic-wrapper" x="18" y="0" width="40" height="40">
+            <frame id="15:298" name="Ellipse" x="0" y="0" width="40" height="40">
+            </frame>
+            <frame id="15:299" name="Ellipse" x="0" y="0" width="40" height="40">
+            </frame>
+            <frame id="15:300" name="Ellipse" x="7" y="7" width="26" height="26">
+            </frame>
+            <frame id="15:301" name="Ellipse" x="26" y="14" width="3" height="3">
+            </frame>
+          </frame>
+          <frame id="15:302" name="Frame" x="0" y="46" width="76" height="23">
+            <frame id="15:303" name="MODE" x="0" y="0" width="76" height="10">
+            </frame>
+            <frame id="15:304" name="FREE (Hz)" x="0" y="12" width="76" height="11">
+            </frame>
+          </frame>
+        </frame>
+        <frame id="15:305" name="knob-rate" x="207" y="-2" width="76" height="69">
+          <frame id="15:306" name="knob-graphic-wrapper" x="18" y="0" width="40" height="40">
+            <frame id="15:307" name="Ellipse" x="0" y="0" width="40" height="40">
+            </frame>
+            <frame id="15:308" name="Ellipse" x="0" y="0" width="40" height="40">
+            </frame>
+            <frame id="15:309" name="Ellipse" x="7" y="7" width="26" height="26">
+            </frame>
+            <frame id="15:310" name="Ellipse" x="26" y="14" width="3" height="3">
+            </frame>
+          </frame>
+          <frame id="15:311" name="Frame" x="0" y="46" width="76" height="23">
+            <frame id="15:312" name="RATE" x="0" y="0" width="76" height="10">
+            </frame>
+            <frame id="15:313" name="4.20 Hz" x="0" y="12" width="76" height="11">
+            </frame>
+          </frame>
+        </frame>
+        <frame id="15:314" name="knob-phase" x="311" y="-2" width="76" height="69">
+          <frame id="15:315" name="knob-graphic-wrapper" x="18" y="0" width="40" height="40">
+            <frame id="15:316" name="Ellipse" x="0" y="0" width="40" height="40">
+            </frame>
+            <frame id="15:317" name="Ellipse" x="0" y="0" width="40" height="40">
+            </frame>
+            <frame id="15:318" name="Ellipse" x="7" y="7" width="26" height="26">
+            </frame>
+            <frame id="15:319" name="Ellipse" x="26" y="14" width="3" height="3">
+            </frame>
+          </frame>
+          <frame id="15:320" name="Frame" x="0" y="46" width="76" height="23">
+            <frame id="15:321" name="PHASE" x="0" y="0" width="76" height="10">
+            </frame>
+            <frame id="15:322" name="90°" x="0" y="12" width="76" height="11">
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+      <frame id="15:323" name="sync-row-wrapper" x="16" y="323" width="387" height="38">
+        <frame id="15:324" name="Sync Division (Tempo Sync Mode)" x="0" y="0" width="151" height="10">
+        </frame>
+        <frame id="15:325" name="sync-division-row" x="0" y="14" width="387" height="24">
+          <frame id="15:326" name="chip-1 bar" x="2" y="2" width="54" height="20">
+            <frame id="15:327" name="1 bar" x="17" y="5" width="19" height="10">
+            </frame>
+          </frame>
+          <frame id="15:328" name="chip-1/2" x="57" y="2" width="54" height="20">
+            <frame id="15:329" name="1/2" x="21" y="5" width="12" height="10">
+            </frame>
+          </frame>
+          <frame id="15:330" name="chip-1/4" x="111" y="2" width="56" height="20">
+            <frame id="15:331" name="1/4" x="21" y="5" width="13" height="10">
+            </frame>
+          </frame>
+          <frame id="15:332" name="chip-1/8" x="168" y="2" width="54" height="20">
+            <frame id="15:333" name="1/8" x="20" y="5" width="13" height="10">
+            </frame>
+          </frame>
+          <frame id="15:334" name="chip-1/16" x="222" y="2" width="54" height="20">
+            <frame id="15:335" name="1/16" x="19" y="5" width="16" height="10">
+            </frame>
+          </frame>
+          <frame id="15:336" name="chip-1/4T" x="277" y="2" width="54" height="20">
+            <frame id="15:337" name="1/4T" x="18" y="5" width="18" height="10">
+            </frame>
+          </frame>
+          <frame id="15:338" name="chip-1/8T" x="331" y="2" width="54" height="20">
+            <frame id="15:339" name="1/8T" x="18" y="5" width="18" height="10">
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+      <frame id="15:340" name="scope-hint-strip" x="16" y="377" width="387" height="22">
+        <frame id="15:341" name="routing-info" x="10" y="6" width="203" height="10">
+          <frame id="15:342" name="ROUTED DESTINATIONS:" x="0" y="0" width="98" height="10">
+          </frame>
+          <frame id="15:343" name="Filter Cutoff, WT Position" x="104" y="0" width="99" height="10">
+          </frame>
+        </frame>
+        <frame id="15:344" name="icons" x="300" y="7" width="77" height="8">
+          <frame id="15:345" name="icon-layer" x="0" y="0" width="35" height="8">
+            <frame id="15:462" name="layout-dashboard" x="0" y="0" width="8" height="8">
+              <frame id="15:463" name="Vector" x="1" y="1" width="6" height="6">
+              </frame>
+            </frame>
+            <frame id="15:347" name="LAYER" x="11" y="0" width="24" height="8">
+            </frame>
+          </frame>
+          <frame id="15:348" name="icon-voice" x="43" y="0" width="34" height="8">
+            <frame id="15:468" name="user-round" x="0" y="0" width="8" height="8">
+              <frame id="15:469" name="Vector" x="1" y="1" width="5" height="6">
+              </frame>
+            </frame>
+            <frame id="15:350" name="VOICE" x="11" y="0" width="23" height="8">
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+    </frame>
+    <frame id="15:351" name="Line" x="624" y="0" width="0" height="100">
+    </frame>
+    <frame id="15:352" name="lfo-column-02" x="829" y="0" width="419" height="548">
+      <frame id="15:353" name="lfo-title-bar" x="16" y="16" width="387" height="15">
+        <frame id="15:354" name="lfo-title-grp" x="0" y="0" width="48" height="15">
+          <frame id="15:355" name="led-active" x="0" y="4" width="6" height="6">
+          </frame>
+          <frame id="15:356" name="LFO 2" x="14" y="0" width="34" height="15">
+          </frame>
+        </frame>
+        <frame id="15:357" name="mod-chip" x="348" y="0" width="39" height="14">
+          <frame id="15:358" name="LFO 2" x="8" y="2" width="23" height="10">
+          </frame>
+        </frame>
+      </frame>
+      <frame id="15:359" name="oscilloscope-container" x="16" y="47" width="387" height="180">
+        <frame id="15:360" name="canvas" x="0" y="0" width="387" height="180">
+          <frame id="15:361" name="Line" x="0" y="90" width="556" height="0">
+          </frame>
+          <frame id="15:362" name="Line" x="139" y="0" width="0" height="180">
+          </frame>
+          <frame id="15:363" name="Line" x="278" y="0" width="0" height="180">
+          </frame>
+          <frame id="15:364" name="Line" x="417" y="0" width="0" height="180">
+          </frame>
+          <frame id="15:365" name="Line" x="0" y="84" width="139" height="56">
+          </frame>
+          <frame id="15:366" name="Line" x="139" y="84" width="0" height="112">
+          </frame>
+          <frame id="15:367" name="Line" x="139" y="84" width="139" height="56">
+          </frame>
+          <frame id="15:368" name="Line" x="278" y="84" width="0" height="112">
+          </frame>
+          <frame id="15:369" name="Line" x="278" y="84" width="139" height="56">
+          </frame>
+          <frame id="15:370" name="Line" x="417" y="84" width="0" height="112">
+          </frame>
+          <frame id="15:371" name="Line" x="417" y="84" width="139" height="56">
+          </frame>
+          <frame id="15:372" name="Ellipse" x="300" y="110" width="8" height="8">
+          </frame>
+        </frame>
+      </frame>
+      <frame id="15:373" name="knobs-row" x="16" y="243" width="387" height="64">
+        <frame id="15:374" name="knob-wave" x="0" y="-2" width="76" height="69">
+          <frame id="15:375" name="knob-graphic-wrapper" x="18" y="0" width="40" height="40">
+            <frame id="15:376" name="Ellipse" x="0" y="0" width="40" height="40">
+            </frame>
+            <frame id="15:377" name="Ellipse" x="0" y="0" width="40" height="40">
+            </frame>
+            <frame id="15:378" name="Ellipse" x="7" y="7" width="26" height="26">
+            </frame>
+            <frame id="15:379" name="Ellipse" x="26" y="14" width="3" height="3">
+            </frame>
+          </frame>
+          <frame id="15:380" name="Frame" x="0" y="46" width="76" height="23">
+            <frame id="15:381" name="WAVE" x="0" y="0" width="76" height="10">
+            </frame>
+            <frame id="15:382" name="SAW" x="0" y="12" width="76" height="11">
+            </frame>
+          </frame>
+        </frame>
+        <frame id="15:383" name="knob-mode" x="104" y="-2" width="76" height="69">
+          <frame id="15:384" name="knob-graphic-wrapper" x="18" y="0" width="40" height="40">
+            <frame id="15:385" name="Ellipse" x="0" y="0" width="40" height="40">
+            </frame>
+            <frame id="15:386" name="Ellipse" x="0" y="0" width="40" height="40">
+            </frame>
+            <frame id="15:387" name="Ellipse" x="7" y="7" width="26" height="26">
+            </frame>
+            <frame id="15:388" name="Ellipse" x="26" y="14" width="3" height="3">
+            </frame>
+          </frame>
+          <frame id="15:389" name="Frame" x="0" y="46" width="76" height="23">
+            <frame id="15:390" name="MODE" x="0" y="0" width="76" height="10">
+            </frame>
+            <frame id="15:391" name="SYNC (BPM)" x="0" y="12" width="76" height="11">
+            </frame>
+          </frame>
+        </frame>
+        <frame id="15:392" name="knob-rate" x="207" y="-2" width="76" height="69">
+          <frame id="15:393" name="knob-graphic-wrapper" x="18" y="0" width="40" height="40">
+            <frame id="15:394" name="Ellipse" x="0" y="0" width="40" height="40">
+            </frame>
+            <frame id="15:395" name="Ellipse" x="0" y="0" width="40" height="40">
+            </frame>
+            <frame id="15:396" name="Ellipse" x="7" y="7" width="26" height="26">
+            </frame>
+            <frame id="15:397" name="Ellipse" x="26" y="14" width="3" height="3">
+            </frame>
+          </frame>
+          <frame id="15:398" name="Frame" x="0" y="46" width="76" height="23">
+            <frame id="15:399" name="RATE" x="0" y="0" width="76" height="10">
+            </frame>
+            <frame id="15:400" name="1/8 Div" x="0" y="12" width="76" height="11">
+            </frame>
+          </frame>
+        </frame>
+        <frame id="15:401" name="knob-phase" x="311" y="-2" width="76" height="69">
+          <frame id="15:402" name="knob-graphic-wrapper" x="18" y="0" width="40" height="40">
+            <frame id="15:403" name="Ellipse" x="0" y="0" width="40" height="40">
+            </frame>
+            <frame id="15:404" name="Ellipse" x="0" y="0" width="40" height="40">
+            </frame>
+            <frame id="15:405" name="Ellipse" x="7" y="7" width="26" height="26">
+            </frame>
+            <frame id="15:406" name="Ellipse" x="26" y="14" width="3" height="3">
+            </frame>
+          </frame>
+          <frame id="15:407" name="Frame" x="0" y="46" width="76" height="23">
+            <frame id="15:408" name="PHASE" x="0" y="0" width="76" height="10">
+            </frame>
+            <frame id="15:409" name="180°" x="0" y="12" width="76" height="11">
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+      <frame id="15:410" name="sync-row-wrapper" x="16" y="323" width="387" height="38">
+        <frame id="15:411" name="Sync Division (Tempo Sync Mode)" x="0" y="0" width="151" height="10">
+        </frame>
+        <frame id="15:412" name="sync-division-row" x="0" y="14" width="387" height="24">
+          <frame id="15:413" name="chip-1 bar" x="2" y="2" width="54" height="20">
+            <frame id="15:414" name="1 bar" x="17" y="5" width="19" height="10">
+            </frame>
+          </frame>
+          <frame id="15:415" name="chip-1/2" x="57" y="2" width="54" height="20">
+            <frame id="15:416" name="1/2" x="21" y="5" width="12" height="10">
+            </frame>
+          </frame>
+          <frame id="15:417" name="chip-1/4" x="111" y="2" width="54" height="20">
+            <frame id="15:418" name="1/4" x="20" y="5" width="13" height="10">
+            </frame>
+          </frame>
+          <frame id="15:419" name="chip-1/8" x="166" y="2" width="56" height="20">
+            <frame id="15:420" name="1/8" x="21" y="5" width="13" height="10">
+            </frame>
+          </frame>
+          <frame id="15:421" name="chip-1/16" x="222" y="2" width="54" height="20">
+            <frame id="15:422" name="1/16" x="19" y="5" width="16" height="10">
+            </frame>
+          </frame>
+          <frame id="15:423" name="chip-1/4T" x="277" y="2" width="54" height="20">
+            <frame id="15:424" name="1/4T" x="18" y="5" width="18" height="10">
+            </frame>
+          </frame>
+          <frame id="15:425" name="chip-1/8T" x="331" y="2" width="54" height="20">
+            <frame id="15:426" name="1/8T" x="18" y="5" width="18" height="10">
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+      <frame id="15:427" name="scope-hint-strip" x="16" y="377" width="387" height="22">
+        <frame id="15:428" name="routing-info" x="10" y="6" width="208" height="10">
+          <frame id="15:429" name="ROUTED DESTINATIONS:" x="0" y="0" width="98" height="10">
+          </frame>
+          <frame id="15:430" name="Pitch Fine, Amp Env Decay" x="104" y="0" width="104" height="10">
+          </frame>
+        </frame>
+        <frame id="15:431" name="icons" x="300" y="7" width="77" height="8">
+          <frame id="15:432" name="icon-layer" x="0" y="0" width="35" height="8">
+            <frame id="15:465" name="layout-dashboard" x="0" y="0" width="8" height="8">
+              <frame id="15:466" name="Vector" x="1" y="1" width="6" height="6">
+              </frame>
+            </frame>
+            <frame id="15:434" name="LAYER" x="11" y="0" width="24" height="8">
+            </frame>
+          </frame>
+          <frame id="15:435" name="icon-voice" x="43" y="0" width="34" height="8">
+            <frame id="15:471" name="user-round" x="0" y="0" width="8" height="8">
+              <frame id="15:472" name="Vector" x="1" y="1" width="5" height="6">
+              </frame>
+            </frame>
+            <frame id="15:437" name="VOICE" x="11" y="0" width="23" height="8">
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+    </frame>
+  </frame>
+  <frame id="15:438" name="vst-bottom-bar" x="16" y="648" width="1248" height="56">
+    <frame id="15:439" name="modulation-source-chips" x="16" y="21" width="472" height="14">
+      <frame id="15:440" name="MOD SOURCE MATRIX QUICK-LINKS:" x="0" y="2" width="146" height="10">
+      </frame>
+      <frame id="15:441" name="mod-chip-LFO1" x="152" y="0" width="34" height="14">
+        <frame id="15:442" name="LFO1" x="8" y="3" width="18" height="8">
+        </frame>
+      </frame>
+      <frame id="15:443" name="mod-chip-LFO2" x="192" y="0" width="35" height="14">
+        <frame id="15:444" name="LFO2" x="8" y="3" width="19" height="8">
+        </frame>
+      </frame>
+      <frame id="15:445" name="mod-chip-LFO3" x="233" y="0" width="35" height="14">
+        <frame id="15:446" name="LFO3" x="8" y="3" width="19" height="8">
+        </frame>
+      </frame>
+      <frame id="15:447" name="mod-chip-LFO4" x="274" y="0" width="35" height="14">
+        <frame id="15:448" name="LFO4" x="8" y="3" width="19" height="8">
+        </frame>
+      </frame>
+      <frame id="15:449" name="mod-chip-LFO5" x="315" y="0" width="35" height="14">
+        <frame id="15:450" name="LFO5" x="8" y="3" width="19" height="8">
+        </frame>
+      </frame>
+      <frame id="15:451" name="mod-chip-LFO6" x="356" y="0" width="35" height="14">
+        <frame id="15:452" name="LFO6" x="8" y="3" width="19" height="8">
+        </frame>
+      </frame>
+      <frame id="15:453" name="mod-chip-LFO7" x="397" y="0" width="34" height="14">
+        <frame id="15:454" name="LFO7" x="8" y="3" width="18" height="8">
+        </frame>
+      </frame>
+      <frame id="15:455" name="mod-chip-LFO8" x="437" y="0" width="35" height="14">
+        <frame id="15:456" name="LFO8" x="8" y="3" width="19" height="8">
+        </frame>
+      </frame>
+    </frame>
+    <frame id="15:457" name="Scope (Voice vs Layer) is set per route in the Mod Matrix, not here." x="672" y="23" width="261" height="10">
+    </frame>
+    <frame id="15:458" name="open-mod-matrix-btn" x="1116" y="17" width="116" height="22">
+      <frame id="15:459" name="OPEN MOD MATRIX" x="12" y="6" width="78" height="10">
+      </frame>
+      <frame id="15:474" name="arrow-up-right-from-square" x="96" y="7" width="8" height="8">
+        <frame id="15:475" name="Vector" x="1" y="1" width="6" height="6">
+        </frame>
+      </frame>
+    </frame>
+  </frame>
+</frame>

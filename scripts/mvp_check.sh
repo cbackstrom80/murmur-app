@@ -31,6 +31,11 @@ step "Validate wavetable references in presets"
 python3 scripts/validate_content_refs.py
 pass "Content refs OK"
 
+step "Validate Figma layout specs vs PlayModeLayout.h"
+scripts/figma_layout.sh check
+python3 scripts/test_figma_layout.py
+pass "Figma layout specs OK"
+
 step "MCP server smoke test"
 python3 mcp_server/smoke_test.py
 pass "MCP smoke OK"

@@ -1,0 +1,10 @@
+<frame id="4:1134" name="murmur-compact-view" x="0" y="0" width="320" height="560">
+  <frame id="50:252" name="header-bar" x="14" y="14" width="296" height="28"/>
+  <frame id="4:1146" name="scope-panel" x="14" y="54" width="292" height="152">
+    <frame id="4:1147" name="scope-header" x="26" y="66" width="268" height="10"/>
+    <frame id="4:1152" name="oscilloscope" x="26" y="84" width="268" height="110"/>
+  </frame>
+  <frame id="4:1172" name="performance-macros" x="14" y="218" width="292" height="158"/>
+  <frame id="4:1224" name="output-control-block" x="14" y="388" width="292" height="100"/>
+  <frame id="4:1245" name="footer-system" x="14" y="500" width="292" height="30"/>
+</frame>

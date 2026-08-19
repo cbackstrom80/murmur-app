@@ -1,0 +1,65 @@
+{
+  "$schema": "./figma-layout-spec.schema.json",
+  "figmaFileKey": "PFt0LG6XmOiZWcSoUXIWIg",
+  "nodeId": "86:4",
+  "frameName": "murmur-basic-view",
+  "canonicalName": "murmur-basic-view",
+  "exportedAt": "2026-08-18",
+  "exportSource": "figma-mcp get_metadata",
+  "size": { "width": 1280, "height": 720 },
+  "insets": { "top": 16, "right": 16, "bottom": 16, "left": 16 },
+  "sectionGap": 12,
+  "codeOwners": {
+    "shell": "MurmurRootEditor",
+    "header": "MurmurChromeBar",
+    "body": "PlayModeEditor",
+    "envelope": "MasterEnvelopePanel",
+    "sidebar": "PatchFocusPanel",
+    "footer": "VstBottomBar",
+    "constants": "PlayModeLayout.h"
+  },
+  "children": [
+    {
+      "nodeId": "86:5",
+      "name": "header-bar",
+      "x": 16,
+      "y": 16,
+      "width": 1248,
+      "height": 60,
+      "codeMap": "MurmurChromeBar"
+    },
+    {
+      "nodeId": "86:31",
+      "name": "main-body",
+      "x": 16,
+      "y": 88,
+      "width": 1248,
+      "height": 564,
+      "codeMap": "PlayModeEditor",
+      "children": [
+        {
+          "nodeId": "86:32",
+          "name": "envelope-shaping-panel",
+          "width": 680,
+          "constant": "kMurmurBasicViewEnvelopePanelWidth"
+        },
+        {
+          "nodeId": "86:107",
+          "name": "performance-sidebar",
+          "width": 556,
+          "constant": "kMurmurBasicViewPerformanceSidebarWidth"
+        }
+      ]
+    },
+    {
+      "nodeId": "86:225",
+      "name": "bottom-bar",
+      "x": 16,
+      "y": 664,
+      "width": 1248,
+      "height": 40,
+      "constant": "kMurmurBasicViewBottomBarHeight",
+      "codeMap": "VstBottomBar"
+    }
+  ]
+}

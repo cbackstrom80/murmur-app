@@ -1,0 +1,764 @@
+<frame id="28:4" name="[ARCHIVE] murmur-engine-deep-editor" x="0" y="0" width="1440" height="1024">
+  <frame id="28:5" name="vst-top-bar" x="24" y="24" width="1392" height="64">
+    <frame id="28:6" name="brand-wrapper" x="16" y="13" width="120" height="38">
+      <frame id="28:7" name="brand-logo" x="0" y="7" width="24" height="24">
+        <frame id="28:8" name="atom" x="4" y="4" width="16" height="16">
+          <frame id="28:9" name="Vector" x="0" y="0" width="16" height="16">
+          </frame>
+        </frame>
+      </frame>
+      <frame id="28:10" name="brand-title" x="36" y="0" width="84" height="38">
+        <frame id="128:46" name="murmur-whale-logo" x="0" y="0" width="84" height="38">
+        </frame>
+      </frame>
+    </frame>
+    <frame id="28:13" name="engine-tabs-bar" x="456" y="18" width="462" height="28">
+      <frame id="28:14" name="tab-0" x="0" y="0" width="53" height="28">
+        <frame id="28:15" name="ENG 1" x="12" y="8" width="29" height="12">
+        </frame>
+      </frame>
+      <frame id="28:16" name="tab-1" x="57" y="0" width="54" height="28">
+        <frame id="28:17" name="ENG 2" x="12" y="8" width="30" height="12">
+        </frame>
+      </frame>
+      <frame id="28:18" name="tab-2" x="115" y="0" width="54" height="28">
+        <frame id="28:19" name="ENG 3" x="12" y="8" width="30" height="12">
+        </frame>
+      </frame>
+      <frame id="28:20" name="tab-3" x="173" y="0" width="55" height="28">
+        <frame id="28:21" name="ENG 4" x="12" y="8" width="31" height="12">
+        </frame>
+      </frame>
+      <frame id="28:22" name="tab-4" x="232" y="0" width="54" height="28">
+        <frame id="28:23" name="ENG 5" x="12" y="8" width="30" height="12">
+        </frame>
+      </frame>
+      <frame id="28:24" name="tab-5" x="290" y="0" width="55" height="28">
+        <frame id="28:25" name="ENG 6" x="12" y="8" width="31" height="12">
+        </frame>
+      </frame>
+      <frame id="28:26" name="tab-6" x="349" y="0" width="54" height="28">
+        <frame id="28:27" name="ENG 7" x="12" y="8" width="30" height="12">
+        </frame>
+      </frame>
+      <frame id="28:28" name="tab-7" x="407" y="0" width="55" height="28">
+        <frame id="28:29" name="ENG 8" x="12" y="8" width="31" height="12">
+        </frame>
+      </frame>
+    </frame>
+    <frame id="28:30" name="master-outputs" x="1237" y="22" width="139" height="19">
+      <frame id="28:31" name="engine-state-controls" x="0" y="0" width="139" height="19">
+        <frame id="28:32" name="power-switch" x="0" y="0" width="34" height="19">
+          <frame id="28:33" name="ON" x="10" y="4" width="14" height="11">
+          </frame>
+        </frame>
+        <frame id="28:34" name="solo-btn" x="40" y="0" width="46" height="19">
+          <frame id="28:35" name="SOLO" x="10" y="4" width="26" height="11">
+          </frame>
+        </frame>
+        <frame id="28:36" name="mute-btn" x="92" y="0" width="47" height="19">
+          <frame id="28:37" name="MUTE" x="10" y="4" width="27" height="11">
+          </frame>
+        </frame>
+      </frame>
+    </frame>
+  </frame>
+  <frame id="28:38" name="main-content-row" x="24" y="104" width="1392" height="832">
+    <frame id="28:39" name="left-oscillator-column" x="0" y="0" width="453" height="625">
+      <frame id="28:40" name="section-heading" x="16" y="16" width="421" height="35">
+        <frame id="28:41" name="OSCILLATOR SECTION" x="0" y="0" width="90" height="10">
+        </frame>
+        <frame id="28:42" name="ANALOG / WAVEFORM OSCILLATOR" x="0" y="12" width="217" height="15">
+        </frame>
+      </frame>
+      <frame id="28:43" name="waveform-display" x="16" y="67" width="421" height="200">
+        <frame id="28:44" name="viz-header" x="12" y="12" width="397" height="10">
+          <frame id="28:45" name="WAVEFORM ACTIVE: OSCILLATOR 1 SINE-FOLD" x="0" y="0" width="189" height="10">
+          </frame>
+          <frame id="28:46" name="MONOPHONIC" x="339" y="0" width="58" height="10">
+          </frame>
+        </frame>
+        <frame id="28:47" name="waveform-canvas" x="12" y="22" width="397" height="166">
+          <frame id="28:48" name="grids" x="0" y="0" width="397" height="166">
+            <frame id="28:49" name="Line" x="0" y="10" width="397" height="0">
+            </frame>
+            <frame id="28:50" name="Line" x="0" y="83" width="397" height="0">
+            </frame>
+            <frame id="28:51" name="Line" x="0" y="156" width="397" height="0">
+            </frame>
+          </frame>
+          <frame id="28:52" name="Line" x="10" y="68" width="42" height="42">
+          </frame>
+          <frame id="28:53" name="Line" x="52" y="68" width="64" height="64">
+          </frame>
+          <frame id="28:54" name="Line" x="115" y="67" width="64" height="64">
+          </frame>
+          <frame id="28:55" name="Line" x="178" y="68" width="64" height="64">
+          </frame>
+          <frame id="28:56" name="Line" x="241" y="67" width="64" height="64">
+          </frame>
+          <frame id="28:57" name="Line" x="304" y="68" width="42" height="42">
+          </frame>
+        </frame>
+      </frame>
+      <frame id="28:58" name="waveform-selector-grid" x="16" y="283" width="421" height="116">
+        <frame id="28:59" name="WAVEFORM TYPE SELECTOR" x="0" y="0" width="116" height="10">
+        </frame>
+        <frame id="28:60" name="Frame" x="0" y="16" width="421" height="100">
+          <frame id="28:61" name="item-SINE" x="0" y="0" width="36" height="42">
+            <frame id="28:411" name="audio-waveform" x="8" y="8" width="20" height="12">
+              <frame id="28:412" name="Vector" x="2" y="1" width="17" height="10">
+              </frame>
+            </frame>
+            <frame id="28:63" name="SINE" x="8" y="24" width="19" height="10">
+            </frame>
+          </frame>
+          <frame id="28:64" name="item-SAW" x="0" y="0" width="36" height="42">
+            <frame id="28:405" name="audio-waveform" x="8" y="8" width="20" height="12">
+              <frame id="28:406" name="Vector" x="2" y="1" width="17" height="10">
+              </frame>
+            </frame>
+            <frame id="28:66" name="SAW" x="8" y="24" width="20" height="10">
+            </frame>
+          </frame>
+          <frame id="28:67" name="item-SQUARE" x="0" y="0" width="51" height="42">
+            <frame id="28:408" name="audio-waveform" x="16" y="8" width="20" height="12">
+              <frame id="28:409" name="Vector" x="2" y="1" width="17" height="10">
+              </frame>
+            </frame>
+            <frame id="28:69" name="SQUARE" x="8" y="24" width="35" height="10">
+            </frame>
+          </frame>
+          <frame id="28:70" name="item-TRIANGLE" x="0" y="0" width="58" height="42">
+            <frame id="28:381" name="waves" x="19" y="8" width="20" height="12">
+              <frame id="28:382" name="Vector" x="2" y="2" width="17" height="7">
+              </frame>
+            </frame>
+            <frame id="28:72" name="TRIANGLE" x="8" y="24" width="42" height="10">
+            </frame>
+          </frame>
+          <frame id="28:73" name="item-NOISE" x="0" y="0" width="41" height="42">
+            <frame id="28:375" name="audio-waveform" x="10" y="8" width="20" height="12">
+              <frame id="28:376" name="Vector" x="2" y="1" width="17" height="10">
+              </frame>
+            </frame>
+            <frame id="28:75" name="NOISE" x="8" y="24" width="25" height="10">
+            </frame>
+          </frame>
+          <frame id="28:76" name="item-WAVETABLE" x="0" y="0" width="67" height="42">
+            <frame id="28:378" name="audio-waveform" x="24" y="8" width="20" height="12">
+              <frame id="28:379" name="Vector" x="2" y="1" width="17" height="10">
+              </frame>
+            </frame>
+            <frame id="28:78" name="WAVETABLE" x="8" y="24" width="51" height="10">
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+      <frame id="28:79" name="osc-modifiers-row" x="16" y="415" width="421" height="63">
+        <frame id="28:80" name="sub-osc-card" x="0" y="4" width="301" height="56">
+          <frame id="28:81" name="SUB-OSCILLATOR" x="10" y="10" width="72" height="10">
+          </frame>
+          <frame id="28:82" name="sub-switches" x="10" y="28" width="281" height="18">
+            <frame id="28:83" name="mini-switch" x="0" y="0" width="44" height="18">
+              <frame id="28:84" name="-1 OCT" x="8" y="4" width="28" height="10">
+              </frame>
+            </frame>
+            <frame id="28:85" name="mini-switch" x="48" y="0" width="45" height="18">
+              <frame id="28:86" name="-2 OCT" x="8" y="4" width="29" height="10">
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+        <frame id="28:87" name="knob-phase" x="313" y="0" width="48" height="63">
+          <frame id="28:88" name="knob-graphic-wrapper" x="6" y="0" width="36" height="36">
+            <frame id="28:89" name="knob-track" x="0" y="0" width="36" height="36">
+            </frame>
+            <frame id="28:90" name="knob-value-arc" x="0" y="0" width="36" height="36">
+            </frame>
+            <frame id="28:91" name="knob-center-cap" x="6" y="6" width="23" height="23">
+            </frame>
+            <frame id="28:92" name="knob-indicator" x="24" y="12" width="3" height="3">
+            </frame>
+          </frame>
+          <frame id="28:93" name="labels" x="0" y="42" width="48" height="21">
+            <frame id="28:94" name="value" x="0" y="0" width="48" height="11">
+            </frame>
+            <frame id="28:95" name="label" x="0" y="13" width="48" height="8">
+            </frame>
+          </frame>
+        </frame>
+        <frame id="28:96" name="knob-pwm" x="373" y="0" width="48" height="63">
+          <frame id="28:97" name="knob-graphic-wrapper" x="6" y="0" width="36" height="36">
+            <frame id="28:98" name="knob-track" x="0" y="0" width="36" height="36">
+            </frame>
+            <frame id="28:99" name="knob-value-arc" x="0" y="0" width="36" height="36">
+            </frame>
+            <frame id="28:100" name="knob-center-cap" x="6" y="6" width="23" height="23">
+            </frame>
+            <frame id="28:101" name="knob-indicator" x="24" y="12" width="3" height="3">
+            </frame>
+          </frame>
+          <frame id="28:102" name="labels" x="0" y="42" width="48" height="21">
+            <frame id="28:103" name="value" x="0" y="0" width="48" height="11">
+            </frame>
+            <frame id="28:104" name="label" x="0" y="13" width="48" height="8">
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+      <frame id="28:105" name="pitch-card" x="16" y="494" width="421" height="115">
+        <frame id="28:106" name="TUNING &amp; PITCH MATRIX" x="12" y="12" width="99" height="10">
+        </frame>
+        <frame id="28:107" name="knobs-row" x="12" y="34" width="397" height="69">
+          <frame id="28:108" name="knob-coarse" x="0" y="0" width="54" height="69">
+            <frame id="28:109" name="knob-graphic-wrapper" x="6" y="0" width="42" height="42">
+              <frame id="28:110" name="knob-track" x="0" y="0" width="42" height="42">
+              </frame>
+              <frame id="28:111" name="knob-value-arc" x="0" y="0" width="42" height="42">
+              </frame>
+              <frame id="28:112" name="knob-center-cap" x="8" y="8" width="27" height="27">
+              </frame>
+              <frame id="28:113" name="knob-indicator" x="28" y="14" width="3" height="3">
+              </frame>
+            </frame>
+            <frame id="28:114" name="labels" x="0" y="48" width="54" height="21">
+              <frame id="28:115" name="value" x="0" y="0" width="54" height="11">
+              </frame>
+              <frame id="28:116" name="label" x="0" y="13" width="54" height="8">
+              </frame>
+            </frame>
+          </frame>
+          <frame id="28:117" name="knob-fine" x="161" y="0" width="54" height="69">
+            <frame id="28:118" name="knob-graphic-wrapper" x="6" y="0" width="42" height="42">
+              <frame id="28:119" name="knob-track" x="0" y="0" width="42" height="42">
+              </frame>
+              <frame id="28:120" name="knob-value-arc" x="0" y="0" width="42" height="42">
+              </frame>
+              <frame id="28:121" name="knob-center-cap" x="8" y="8" width="27" height="27">
+              </frame>
+              <frame id="28:122" name="knob-indicator" x="28" y="14" width="3" height="3">
+              </frame>
+            </frame>
+            <frame id="28:123" name="labels" x="0" y="48" width="54" height="21">
+              <frame id="28:124" name="value" x="0" y="0" width="54" height="11">
+              </frame>
+              <frame id="28:125" name="label" x="0" y="13" width="54" height="8">
+              </frame>
+            </frame>
+          </frame>
+          <frame id="28:126" name="pitch-toggles" x="321" y="14" width="76" height="42">
+            <frame id="28:127" name="mini-switch" x="0" y="0" width="76" height="18">
+              <frame id="28:128" name="KEYTRACK ON" x="8" y="4" width="60" height="10">
+              </frame>
+            </frame>
+            <frame id="28:129" name="mini-switch" x="0" y="24" width="58" height="18">
+              <frame id="28:130" name="PITCH LFO" x="8" y="4" width="42" height="10">
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+    </frame>
+    <frame id="28:131" name="center-filter-column" x="469" y="0" width="453" height="638">
+      <frame id="28:132" name="section-heading" x="16" y="16" width="421" height="35">
+        <frame id="28:133" name="FILTER SECTION" x="0" y="0" width="65" height="10">
+        </frame>
+        <frame id="28:134" name="SURFACE &amp; RESONANT FILTER" x="0" y="12" width="181" height="15">
+        </frame>
+      </frame>
+      <frame id="28:135" name="filter-response-display" x="16" y="67" width="421" height="200">
+        <frame id="28:136" name="viz-header" x="12" y="12" width="397" height="10">
+          <frame id="28:137" name="CUTOFF: 1.24 kHz / RES: 60%" x="0" y="0" width="116" height="10">
+          </frame>
+          <frame id="28:138" name="LP24 MODE" x="350" y="0" width="47" height="10">
+          </frame>
+        </frame>
+        <frame id="28:139" name="filter-response-canvas" x="12" y="22" width="397" height="166">
+          <frame id="28:140" name="grids" x="0" y="0" width="397" height="166">
+            <frame id="28:141" name="Line" x="0" y="10" width="397" height="0">
+            </frame>
+            <frame id="28:142" name="Line" x="0" y="156" width="397" height="0">
+            </frame>
+          </frame>
+          <frame id="28:143" name="Line" x="10" y="40" width="160" height="0">
+          </frame>
+          <frame id="28:144" name="Line" x="170" y="40" width="54" height="25">
+          </frame>
+          <frame id="28:145" name="Line" x="224" y="65" width="60" height="104">
+          </frame>
+        </frame>
+      </frame>
+      <frame id="28:146" name="filter-types" x="16" y="283" width="421" height="18">
+        <frame id="28:147" name="type-LP12" x="0" y="0" width="36" height="18">
+          <frame id="28:148" name="LP12" x="8" y="4" width="20" height="10">
+          </frame>
+        </frame>
+        <frame id="28:149" name="type-LP24" x="40" y="0" width="37" height="18">
+          <frame id="28:150" name="LP24" x="8" y="4" width="21" height="10">
+          </frame>
+        </frame>
+        <frame id="28:151" name="type-HP12" x="81" y="0" width="37" height="18">
+          <frame id="28:152" name="HP12" x="8" y="4" width="21" height="10">
+          </frame>
+        </frame>
+        <frame id="28:153" name="type-HP24" x="122" y="0" width="38" height="18">
+          <frame id="28:154" name="HP24" x="8" y="4" width="22" height="10">
+          </frame>
+        </frame>
+        <frame id="28:155" name="type-BP" x="164" y="0" width="27" height="18">
+          <frame id="28:156" name="BP" x="8" y="4" width="11" height="10">
+          </frame>
+        </frame>
+        <frame id="28:157" name="type-BR" x="195" y="0" width="27" height="18">
+          <frame id="28:158" name="BR" x="8" y="4" width="11" height="10">
+          </frame>
+        </frame>
+        <frame id="28:159" name="type-COMB" x="226" y="0" width="42" height="18">
+          <frame id="28:160" name="COMB" x="8" y="4" width="26" height="10">
+          </frame>
+        </frame>
+        <frame id="28:161" name="type-FORMANT" x="272" y="0" width="58" height="18">
+          <frame id="28:162" name="FORMANT" x="8" y="4" width="42" height="10">
+          </frame>
+        </frame>
+      </frame>
+      <frame id="28:163" name="filter-controls" x="16" y="317" width="421" height="63">
+        <frame id="28:164" name="knob-cutoff" x="0" y="0" width="48" height="63">
+          <frame id="28:165" name="knob-graphic-wrapper" x="6" y="0" width="36" height="36">
+            <frame id="28:166" name="knob-track" x="0" y="0" width="36" height="36">
+            </frame>
+            <frame id="28:167" name="knob-value-arc" x="0" y="0" width="36" height="36">
+            </frame>
+            <frame id="28:168" name="knob-center-cap" x="6" y="6" width="23" height="23">
+            </frame>
+            <frame id="28:169" name="knob-indicator" x="24" y="12" width="3" height="3">
+            </frame>
+          </frame>
+          <frame id="28:170" name="labels" x="0" y="42" width="48" height="21">
+            <frame id="28:171" name="value" x="0" y="0" width="48" height="11">
+            </frame>
+            <frame id="28:172" name="label" x="0" y="13" width="48" height="8">
+            </frame>
+          </frame>
+        </frame>
+        <frame id="28:173" name="knob-resonance" x="124" y="0" width="48" height="63">
+          <frame id="28:174" name="knob-graphic-wrapper" x="6" y="0" width="36" height="36">
+            <frame id="28:175" name="knob-track" x="0" y="0" width="36" height="36">
+            </frame>
+            <frame id="28:176" name="knob-value-arc" x="0" y="0" width="36" height="36">
+            </frame>
+            <frame id="28:177" name="knob-center-cap" x="6" y="6" width="23" height="23">
+            </frame>
+            <frame id="28:178" name="knob-indicator" x="24" y="12" width="3" height="3">
+            </frame>
+          </frame>
+          <frame id="28:179" name="labels" x="0" y="42" width="48" height="21">
+            <frame id="28:180" name="value" x="0" y="0" width="48" height="11">
+            </frame>
+            <frame id="28:181" name="label" x="0" y="13" width="48" height="8">
+            </frame>
+          </frame>
+        </frame>
+        <frame id="28:182" name="knob-drive" x="249" y="0" width="48" height="63">
+          <frame id="28:183" name="knob-graphic-wrapper" x="6" y="0" width="36" height="36">
+            <frame id="28:184" name="knob-track" x="0" y="0" width="36" height="36">
+            </frame>
+            <frame id="28:185" name="knob-value-arc" x="0" y="0" width="36" height="36">
+            </frame>
+            <frame id="28:186" name="knob-center-cap" x="6" y="6" width="23" height="23">
+            </frame>
+            <frame id="28:187" name="knob-indicator" x="24" y="12" width="3" height="3">
+            </frame>
+          </frame>
+          <frame id="28:188" name="labels" x="0" y="42" width="48" height="21">
+            <frame id="28:189" name="value" x="0" y="0" width="48" height="11">
+            </frame>
+            <frame id="28:190" name="label" x="0" y="13" width="48" height="8">
+            </frame>
+          </frame>
+        </frame>
+        <frame id="28:191" name="knob-key track" x="373" y="0" width="48" height="63">
+          <frame id="28:192" name="knob-graphic-wrapper" x="6" y="0" width="36" height="36">
+            <frame id="28:193" name="knob-track" x="0" y="0" width="36" height="36">
+            </frame>
+            <frame id="28:194" name="knob-value-arc" x="0" y="0" width="36" height="36">
+            </frame>
+            <frame id="28:195" name="knob-center-cap" x="6" y="6" width="23" height="23">
+            </frame>
+            <frame id="28:196" name="knob-indicator" x="24" y="12" width="3" height="3">
+            </frame>
+          </frame>
+          <frame id="28:197" name="labels" x="0" y="42" width="48" height="21">
+            <frame id="28:198" name="value" x="0" y="0" width="48" height="11">
+            </frame>
+            <frame id="28:199" name="label" x="0" y="13" width="48" height="8">
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+      <frame id="28:200" name="section-heading" x="16" y="396" width="421" height="35">
+        <frame id="28:201" name="ENVELOPE CONTROLS" x="0" y="0" width="91" height="10">
+        </frame>
+        <frame id="28:202" name="ADSR AMP ENVELOPE" x="0" y="12" width="133" height="15">
+        </frame>
+      </frame>
+      <frame id="28:203" name="envelope-viz" x="16" y="447" width="421" height="100">
+        <frame id="28:204" name="env-canvas" x="12" y="12" width="397" height="76">
+          <frame id="28:205" name="Line" x="10" y="37" width="17" height="29">
+          </frame>
+          <frame id="28:206" name="Line" x="27" y="36" width="40" height="23">
+          </frame>
+          <frame id="28:207" name="Line" x="67" y="59" width="120" height="0">
+          </frame>
+          <frame id="28:208" name="Line" x="187" y="59" width="39" height="22">
+          </frame>
+          <frame id="28:209" name="Ellipse" x="24" y="33" width="6" height="6">
+          </frame>
+          <frame id="28:210" name="Ellipse" x="64" y="56" width="6" height="6">
+          </frame>
+          <frame id="28:211" name="Ellipse" x="184" y="56" width="6" height="6">
+          </frame>
+          <frame id="28:212" name="Ellipse" x="223" y="76" width="6" height="6">
+          </frame>
+        </frame>
+      </frame>
+      <frame id="28:213" name="env-controls" x="16" y="563" width="421" height="59">
+        <frame id="28:214" name="knob-attack" x="0" y="0" width="44" height="59">
+          <frame id="28:215" name="knob-graphic-wrapper" x="6" y="0" width="32" height="32">
+            <frame id="28:216" name="knob-track" x="0" y="0" width="32" height="32">
+            </frame>
+            <frame id="28:217" name="knob-value-arc" x="0" y="0" width="32" height="32">
+            </frame>
+            <frame id="28:218" name="knob-center-cap" x="6" y="6" width="21" height="21">
+            </frame>
+            <frame id="28:219" name="knob-indicator" x="20" y="10" width="3" height="3">
+            </frame>
+          </frame>
+          <frame id="28:220" name="labels" x="0" y="38" width="44" height="21">
+            <frame id="28:221" name="value" x="0" y="0" width="44" height="11">
+            </frame>
+            <frame id="28:222" name="label" x="0" y="13" width="44" height="8">
+            </frame>
+          </frame>
+        </frame>
+        <frame id="28:223" name="knob-decay" x="126" y="0" width="44" height="59">
+          <frame id="28:224" name="knob-graphic-wrapper" x="6" y="0" width="32" height="32">
+            <frame id="28:225" name="knob-track" x="0" y="0" width="32" height="32">
+            </frame>
+            <frame id="28:226" name="knob-value-arc" x="0" y="0" width="32" height="32">
+            </frame>
+            <frame id="28:227" name="knob-center-cap" x="6" y="6" width="21" height="21">
+            </frame>
+            <frame id="28:228" name="knob-indicator" x="20" y="10" width="3" height="3">
+            </frame>
+          </frame>
+          <frame id="28:229" name="labels" x="0" y="38" width="44" height="21">
+            <frame id="28:230" name="value" x="0" y="0" width="44" height="11">
+            </frame>
+            <frame id="28:231" name="label" x="0" y="13" width="44" height="8">
+            </frame>
+          </frame>
+        </frame>
+        <frame id="28:232" name="knob-sustain" x="252" y="0" width="44" height="59">
+          <frame id="28:233" name="knob-graphic-wrapper" x="6" y="0" width="32" height="32">
+            <frame id="28:234" name="knob-track" x="0" y="0" width="32" height="32">
+            </frame>
+            <frame id="28:235" name="knob-value-arc" x="0" y="0" width="32" height="32">
+            </frame>
+            <frame id="28:236" name="knob-center-cap" x="6" y="6" width="21" height="21">
+            </frame>
+            <frame id="28:237" name="knob-indicator" x="20" y="10" width="3" height="3">
+            </frame>
+          </frame>
+          <frame id="28:238" name="labels" x="0" y="38" width="44" height="21">
+            <frame id="28:239" name="value" x="0" y="0" width="44" height="11">
+            </frame>
+            <frame id="28:240" name="label" x="0" y="13" width="44" height="8">
+            </frame>
+          </frame>
+        </frame>
+        <frame id="28:241" name="knob-release" x="377" y="0" width="44" height="59">
+          <frame id="28:242" name="knob-graphic-wrapper" x="6" y="0" width="32" height="32">
+            <frame id="28:243" name="knob-track" x="0" y="0" width="32" height="32">
+            </frame>
+            <frame id="28:244" name="knob-value-arc" x="0" y="0" width="32" height="32">
+            </frame>
+            <frame id="28:245" name="knob-center-cap" x="6" y="6" width="21" height="21">
+            </frame>
+            <frame id="28:246" name="knob-indicator" x="20" y="10" width="3" height="3">
+            </frame>
+          </frame>
+          <frame id="28:247" name="labels" x="0" y="38" width="44" height="21">
+            <frame id="28:248" name="value" x="0" y="0" width="44" height="11">
+            </frame>
+            <frame id="28:249" name="label" x="0" y="13" width="44" height="8">
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+    </frame>
+    <frame id="28:250" name="right-modulation-column" x="939" y="0" width="453" height="602">
+      <frame id="28:251" name="section-heading" x="16" y="16" width="421" height="35">
+        <frame id="28:252" name="AMPLIFIER SECTION" x="0" y="0" width="82" height="10">
+        </frame>
+        <frame id="28:253" name="LEVEL, UNISON &amp; OUTPUT" x="0" y="12" width="156" height="15">
+        </frame>
+      </frame>
+      <frame id="28:254" name="lvl-pan-unison-block" x="16" y="67" width="421" height="147">
+        <frame id="28:255" name="fader-block" x="0" y="0" width="47" height="147">
+          <frame id="28:256" name="LEVEL" x="12" y="8" width="23" height="8">
+          </frame>
+          <frame id="28:257" name="fader-track" x="16" y="22" width="16" height="100">
+            <frame id="28:258" name="fader-fill" x="2" y="23" width="12" height="75">
+            </frame>
+          </frame>
+          <frame id="28:259" name="-2.4dB" x="8" y="128" width="31" height="11">
+          </frame>
+        </frame>
+        <frame id="28:260" name="level-meters" x="63" y="8" width="16" height="132">
+          <frame id="28:261" name="ch-l" x="0" y="0" width="6" height="132">
+            <frame id="28:262" name="Rectangle" x="0" y="52" width="6" height="80">
+            </frame>
+          </frame>
+          <frame id="28:263" name="ch-r" x="10" y="0" width="6" height="132">
+            <frame id="28:264" name="Rectangle" x="0" y="62" width="6" height="70">
+            </frame>
+          </frame>
+        </frame>
+        <frame id="28:265" name="stereo-block" x="95" y="10" width="44" height="128">
+          <frame id="28:266" name="knob-pan" x="0" y="0" width="44" height="59">
+            <frame id="28:267" name="knob-graphic-wrapper" x="6" y="0" width="32" height="32">
+              <frame id="28:268" name="knob-track" x="0" y="0" width="32" height="32">
+              </frame>
+              <frame id="28:269" name="knob-value-arc" x="0" y="0" width="32" height="32">
+              </frame>
+              <frame id="28:270" name="knob-center-cap" x="6" y="6" width="21" height="21">
+              </frame>
+              <frame id="28:271" name="knob-indicator" x="20" y="10" width="3" height="3">
+              </frame>
+            </frame>
+            <frame id="28:272" name="labels" x="0" y="38" width="44" height="21">
+              <frame id="28:273" name="value" x="0" y="0" width="44" height="11">
+              </frame>
+              <frame id="28:274" name="label" x="0" y="13" width="44" height="8">
+              </frame>
+            </frame>
+          </frame>
+          <frame id="28:275" name="knob-width" x="0" y="69" width="44" height="59">
+            <frame id="28:276" name="knob-graphic-wrapper" x="6" y="0" width="32" height="32">
+              <frame id="28:277" name="knob-track" x="0" y="0" width="32" height="32">
+              </frame>
+              <frame id="28:278" name="knob-value-arc" x="0" y="0" width="32" height="32">
+              </frame>
+              <frame id="28:279" name="knob-center-cap" x="6" y="6" width="21" height="21">
+              </frame>
+              <frame id="28:280" name="knob-indicator" x="20" y="10" width="3" height="3">
+              </frame>
+            </frame>
+            <frame id="28:281" name="labels" x="0" y="38" width="44" height="21">
+              <frame id="28:282" name="value" x="0" y="0" width="44" height="11">
+              </frame>
+              <frame id="28:283" name="label" x="0" y="13" width="44" height="8">
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+      <frame id="28:284" name="unison-settings" x="16" y="230" width="421" height="103">
+        <frame id="28:285" name="unison-header" x="10" y="10" width="401" height="18">
+          <frame id="28:286" name="OSC UNISON ENGINE" x="0" y="4" width="83" height="10">
+          </frame>
+          <frame id="28:287" name="mini-switch" x="323" y="0" width="78" height="18">
+            <frame id="28:288" name="CLASSIC MODE" x="8" y="4" width="62" height="10">
+            </frame>
+          </frame>
+        </frame>
+        <frame id="28:289" name="unison-params" x="10" y="36" width="401" height="57">
+          <frame id="28:290" name="voice-counts" x="0" y="16" width="81" height="26">
+            <frame id="28:291" name="VOICES" x="0" y="0" width="27" height="8">
+            </frame>
+            <frame id="28:292" name="pills" x="0" y="12" width="81" height="14">
+              <frame id="28:293" name="v-1" x="0" y="0" width="17" height="14">
+                <frame id="28:294" name="1" x="6" y="2" width="5" height="10">
+                </frame>
+              </frame>
+              <frame id="28:295" name="v-4" x="19" y="0" width="18" height="14">
+                <frame id="28:296" name="4" x="6" y="2" width="6" height="10">
+                </frame>
+              </frame>
+              <frame id="28:297" name="v-8" x="39" y="0" width="18" height="14">
+                <frame id="28:298" name="8" x="6" y="2" width="6" height="10">
+                </frame>
+              </frame>
+              <frame id="28:299" name="v-16" x="59" y="0" width="22" height="14">
+                <frame id="28:300" name="16" x="6" y="2" width="10" height="10">
+                </frame>
+              </frame>
+            </frame>
+          </frame>
+          <frame id="28:301" name="knob-detune" x="199" y="0" width="42" height="57">
+            <frame id="28:302" name="knob-graphic-wrapper" x="6" y="0" width="30" height="30">
+              <frame id="28:303" name="knob-track" x="0" y="0" width="30" height="30">
+              </frame>
+              <frame id="28:304" name="knob-value-arc" x="0" y="0" width="30" height="30">
+              </frame>
+              <frame id="28:305" name="knob-center-cap" x="5" y="5" width="20" height="20">
+              </frame>
+              <frame id="28:306" name="knob-indicator" x="20" y="8" width="3" height="3">
+              </frame>
+            </frame>
+            <frame id="28:307" name="labels" x="0" y="36" width="42" height="21">
+              <frame id="28:308" name="value" x="0" y="0" width="42" height="11">
+              </frame>
+              <frame id="28:309" name="label" x="0" y="13" width="42" height="8">
+              </frame>
+            </frame>
+          </frame>
+          <frame id="28:310" name="knob-spread" x="359" y="0" width="42" height="57">
+            <frame id="28:311" name="knob-graphic-wrapper" x="6" y="0" width="30" height="30">
+              <frame id="28:312" name="knob-track" x="0" y="0" width="30" height="30">
+              </frame>
+              <frame id="28:313" name="knob-value-arc" x="0" y="0" width="30" height="30">
+              </frame>
+              <frame id="28:314" name="knob-center-cap" x="5" y="5" width="20" height="20">
+              </frame>
+              <frame id="28:315" name="knob-indicator" x="20" y="8" width="3" height="3">
+              </frame>
+            </frame>
+            <frame id="28:316" name="labels" x="0" y="36" width="42" height="21">
+              <frame id="28:317" name="value" x="0" y="0" width="42" height="11">
+              </frame>
+              <frame id="28:318" name="label" x="0" y="13" width="42" height="8">
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+      <frame id="28:319" name="section-heading" x="16" y="349" width="421" height="35">
+        <frame id="28:320" name="ROUTING SECTION" x="0" y="0" width="76" height="10">
+        </frame>
+        <frame id="28:321" name="MOD ASSIGNMENT MATRIX" x="0" y="12" width="166" height="15">
+        </frame>
+      </frame>
+      <frame id="28:322" name="mod-matrix" x="16" y="400" width="421" height="130">
+        <frame id="28:323" name="route-0" x="0" y="0" width="421" height="23">
+          <frame id="28:324" name="LFO1" x="10" y="6" width="20" height="10">
+          </frame>
+          <frame id="28:393" name="arrow-right" x="133" y="8" width="10" height="8">
+            <frame id="28:394" name="Vector" x="2" y="2" width="6" height="5">
+            </frame>
+          </frame>
+          <frame id="28:326" name="CUTOFF" x="247" y="6" width="33" height="10">
+          </frame>
+          <frame id="28:327" name="+40%" x="383" y="6" width="28" height="11">
+          </frame>
+        </frame>
+        <frame id="28:328" name="route-1" x="0" y="27" width="421" height="23">
+          <frame id="28:329" name="ENV2" x="10" y="6" width="23" height="10">
+          </frame>
+          <frame id="28:396" name="arrow-right" x="139" y="8" width="10" height="8">
+            <frame id="28:397" name="Vector" x="2" y="2" width="6" height="5">
+            </frame>
+          </frame>
+          <frame id="28:331" name="PITCH" x="255" y="6" width="25" height="10">
+          </frame>
+          <frame id="28:332" name="+12%" x="386" y="6" width="25" height="11">
+          </frame>
+        </frame>
+        <frame id="28:333" name="route-2" x="0" y="54" width="421" height="23">
+          <frame id="28:334" name="SEQ" x="10" y="6" width="17" height="10">
+          </frame>
+          <frame id="28:399" name="arrow-right" x="135" y="8" width="10" height="8">
+            <frame id="28:400" name="Vector" x="2" y="2" width="6" height="5">
+            </frame>
+          </frame>
+          <frame id="28:336" name="PWM" x="254" y="6" width="22" height="10">
+          </frame>
+          <frame id="28:337" name="+85%" x="384" y="6" width="27" height="11">
+          </frame>
+        </frame>
+        <frame id="28:338" name="route-3" x="0" y="81" width="421" height="23">
+          <frame id="28:339" name="MWHL" x="10" y="6" width="27" height="10">
+          </frame>
+          <frame id="28:402" name="arrow-right" x="144" y="8" width="10" height="8">
+            <frame id="28:403" name="Vector" x="2" y="2" width="6" height="5">
+            </frame>
+          </frame>
+          <frame id="28:341" name="RES" x="261" y="6" width="16" height="10">
+          </frame>
+          <frame id="28:342" name="+20%" x="384" y="6" width="27" height="11">
+          </frame>
+        </frame>
+        <frame id="28:343" name="add-route" x="0" y="108" width="421" height="22">
+          <frame id="28:344" name="+ ADD ROUTE DESTINATION" x="155" y="6" width="112" height="10">
+          </frame>
+        </frame>
+      </frame>
+      <frame id="28:345" name="signal-flow-card" x="16" y="546" width="421" height="40">
+        <frame id="28:346" name="OSC SIGNAL ROUTING CHAIN" x="8" y="8" width="103" height="8">
+        </frame>
+        <frame id="28:347" name="flow-nodes" x="8" y="22" width="405" height="10">
+          <frame id="28:348" name="OSC1" x="0" y="0" width="22" height="10">
+          </frame>
+          <frame id="28:384" name="arrow-right" x="28" y="2" width="8" height="6">
+            <frame id="28:385" name="Vector" x="2" y="1" width="5" height="4">
+            </frame>
+          </frame>
+          <frame id="28:350" name="FILTER" x="42" y="0" width="27" height="10">
+          </frame>
+          <frame id="28:387" name="arrow-right" x="75" y="2" width="8" height="6">
+            <frame id="28:388" name="Vector" x="2" y="1" width="5" height="4">
+            </frame>
+          </frame>
+          <frame id="28:352" name="AMP" x="89" y="0" width="20" height="10">
+          </frame>
+          <frame id="28:390" name="arrow-right" x="115" y="2" width="8" height="6">
+            <frame id="28:391" name="Vector" x="2" y="1" width="5" height="4">
+            </frame>
+          </frame>
+          <frame id="28:354" name="OUTPUT" x="129" y="0" width="35" height="10">
+          </frame>
+        </frame>
+      </frame>
+    </frame>
+  </frame>
+  <frame id="28:355" name="vst-bottom-bar" x="24" y="952" width="1392" height="48">
+    <frame id="28:356" name="preset-indicator" x="16" y="14" width="182" height="19">
+      <frame id="28:357" name="ACTIVE PRESET:" x="0" y="4" width="66" height="10">
+      </frame>
+      <frame id="28:358" name="badge" x="74" y="0" width="108" height="19">
+        <frame id="28:359" name="OBSIDIAN SUB BASS" x="8" y="4" width="92" height="11">
+        </frame>
+      </frame>
+    </frame>
+    <frame id="28:360" name="vst-diagnostics" x="598" y="19" width="281" height="10">
+      <frame id="28:361" name="cpu-box" x="0" y="0" width="128" height="10">
+        <frame id="28:362" name="ENGINE CPU" x="0" y="0" width="49" height="10">
+        </frame>
+        <frame id="28:363" name="cpu-bar" x="55" y="3" width="50" height="4">
+          <frame id="28:364" name="cpu-fill" x="0" y="0" width="22" height="4">
+          </frame>
+        </frame>
+        <frame id="28:365" name="12%" x="111" y="0" width="17" height="10">
+        </frame>
+      </frame>
+      <frame id="28:366" name="VOICES: 8 / 32" x="144" y="0" width="58" height="10">
+      </frame>
+      <frame id="28:367" name="midi-led-group" x="218" y="0" width="63" height="10">
+        <frame id="28:368" name="midi-led" x="0" y="2" width="6" height="6">
+        </frame>
+        <frame id="28:369" name="MIDI ACTIVE" x="12" y="0" width="51" height="10">
+        </frame>
+      </frame>
+    </frame>
+    <frame id="28:370" name="panic-btn" x="1280" y="12" width="96" height="24">
+      <frame id="28:371" name="GOTO NEXT" x="12" y="7" width="48" height="10">
+      </frame>
+      <frame id="28:372" name="chevron-right" x="72" y="6" width="12" height="12">
+        <frame id="28:373" name="Vector" x="4" y="3" width="3" height="6">
+        </frame>
+      </frame>
+    </frame>
+  </frame>
+</frame>

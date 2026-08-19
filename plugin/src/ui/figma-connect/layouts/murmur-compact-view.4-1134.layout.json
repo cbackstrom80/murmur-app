@@ -1,0 +1,87 @@
+{
+  "$schema": "./figma-layout-spec.schema.json",
+  "figmaFileKey": "PFt0LG6XmOiZWcSoUXIWIg",
+  "nodeId": "4:1134",
+  "frameName": "murmur-compact-view",
+  "canonicalName": "murmur-play-compact",
+  "exportedAt": "2026-08-18",
+  "exportSource": "figma-mcp get_metadata",
+  "size": { "width": 320, "height": 560 },
+  "insets": { "top": 14, "right": 14, "bottom": 30, "left": 14 },
+  "sectionGap": 12,
+  "codeOwners": {
+    "shell": "MurmurRootEditor",
+    "header": "MurmurChromeBar",
+    "content": "CompactModeEditor",
+    "scope": "OscilloscopeView::paintCompactMode",
+    "macros": "PatchFocusPanel",
+    "constants": "PlayModeLayout.h"
+  },
+  "children": [
+    {
+      "nodeId": "50:252",
+      "name": "header-bar",
+      "x": 14,
+      "y": 14,
+      "width": 296,
+      "height": 28,
+      "codeMap": "MurmurChromeBar",
+      "constant": "kChromeBarHeightCompact"
+    },
+    {
+      "nodeId": "4:1146",
+      "name": "scope-panel",
+      "x": 14,
+      "y": 54,
+      "width": 292,
+      "height": 152,
+      "constant": "kCompactScopePanelHeight",
+      "padding": 12,
+      "children": [
+        { "nodeId": "4:1147", "name": "scope-header", "height": 10 },
+        { "nodeId": "4:1152", "name": "oscilloscope", "height": 110, "constant": "kCompactScopeOscHeight" }
+      ]
+    },
+    {
+      "nodeId": "4:1172",
+      "name": "performance-macros",
+      "x": 14,
+      "y": 218,
+      "width": 292,
+      "height": 158,
+      "constant": "kCompactMacroPanelHeight",
+      "padding": 12,
+      "grid": { "columns": 3, "rows": 2, "cellWidth": 84, "cellHeight": 52, "colGap": 8, "rowGap": 10 },
+      "knobDiameter": 36,
+      "macroCount": 6
+    },
+    {
+      "nodeId": "4:1224",
+      "name": "output-control-block",
+      "x": 14,
+      "y": 388,
+      "width": 292,
+      "height": 100,
+      "constant": "kCompactOutputBlockHeight",
+      "padding": 12,
+      "masterKnob": { "width": 48, "height": 48, "blockWidth": 128, "blockHeight": 76 },
+      "stats": { "x": 152, "y": 33, "width": 128, "height": 34, "meterHeight": 6, "meterGap": 4 }
+    },
+    {
+      "nodeId": "4:1245",
+      "name": "footer-system",
+      "x": 14,
+      "y": 500,
+      "width": 292,
+      "height": 30,
+      "constant": "kCompactFooterSystemHeight",
+      "modChips": {
+        "height": 12,
+        "gap": 4,
+        "widths": [28, 25, 25, 31],
+        "labels": ["LFO1", "ENV", "SEQ", "RAND"]
+      },
+      "copyright": { "y": 20, "height": 10, "text": "MURMUR OBSIDIAN · © 2026" }
+    }
+  ]
+}

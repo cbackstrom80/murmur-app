@@ -1,0 +1,579 @@
+<frame id="27:265" name="murmur-design-mod-matrix" x="4080" y="820" width="1280" height="720">
+  <frame id="50:186" name="header-bar" x="12" y="12" width="1248" height="60">
+    <frame id="50:187" name="branding" x="16" y="11.5" width="220" height="36">
+      <rounded-rectangle id="128:10" name="murmur-whale-logo" x="0" y="0" width="79.19999694824219" height="36" />
+    </frame>
+    <frame id="50:190" name="view-leds" x="252" y="20" width="101" height="19">
+      <frame id="50:191" name="led-compact" x="0" y="0" width="30" height="19">
+        <ellipse id="50:192" name="led" x="12" y="0" width="6" height="6" />
+        <text id="50:193" name="label" x="0" y="10" width="30" height="9" />
+      </frame>
+      <frame id="50:194" name="led-play" x="44" y="0" width="17" height="19">
+        <ellipse id="50:195" name="led" x="5.5" y="0" width="6" height="6" />
+        <text id="50:196" name="label" x="0" y="10" width="17" height="9" />
+      </frame>
+      <frame id="50:197" name="led-design" x="75" y="0" width="26" height="19">
+        <ellipse id="50:198" name="led" x="10" y="0" width="6" height="6" />
+        <text id="50:199" name="label" x="0" y="10" width="26" height="9" />
+      </frame>
+    </frame>
+    <rounded-rectangle id="50:200" name="score-line" x="369" y="17.5" width="1" height="24" />
+    <frame id="50:201" name="section-leds" x="386" y="20.5" width="168" height="18">
+      <frame id="50:202" name="led-engine" x="0" y="0" width="26" height="18">
+        <ellipse id="50:203" name="led" x="10.5" y="0" width="5" height="5" />
+        <text id="50:204" name="label" x="0" y="9" width="26" height="9" />
+      </frame>
+      <frame id="50:205" name="led-arp" x="38" y="0" width="13" height="18">
+        <ellipse id="50:206" name="led" x="4" y="0" width="5" height="5" />
+        <text id="50:207" name="label" x="0" y="9" width="13" height="9" />
+      </frame>
+      <frame id="50:208" name="led-vocoder" x="63" y="0" width="30" height="18">
+        <ellipse id="50:209" name="led" x="12.5" y="0" width="5" height="5" />
+        <text id="50:210" name="label" x="0" y="9" width="30" height="9" />
+      </frame>
+      <frame id="50:211" name="led-fx" x="105" y="0" width="9" height="18">
+        <ellipse id="50:212" name="led" x="2" y="0" width="5" height="5" />
+        <text id="50:213" name="label" x="0" y="9" width="9" height="9" />
+      </frame>
+      <frame id="50:214" name="led-mod-matrix" x="126" y="0" width="42" height="18">
+        <ellipse id="50:215" name="led" x="18.5" y="0" width="5" height="5" />
+        <text id="50:216" name="label" x="0" y="9" width="42" height="9" />
+      </frame>
+    </frame>
+    <frame id="50:217" name="preset-display" x="570" y="17" width="260" height="25">
+      <text id="50:218" name="preset-name" x="158" y="0" width="102" height="13" />
+      <frame id="50:219" name="preset-meta" x="177" y="15" width="83" height="10">
+        <text id="50:220" name="preset-source" x="0" y="0" width="34" height="10" />
+        <frame id="50:221" name="master-indicator" x="42" y="0" width="41" height="10">
+          <ellipse id="50:222" name="master-led" x="0" y="2" width="6" height="6" />
+          <text id="50:223" name="master-label" x="12" y="0" width="29" height="10" />
+        </frame>
+      </frame>
+    </frame>
+  </frame>
+  <frame id="27:304" name="matrix-workspace" x="12" y="82" width="1256" height="576">
+    <frame id="27:305" name="left-main-area" x="0" y="0" width="966" height="576">
+      <frame id="27:306" name="matrix-grid-card" x="0" y="0" width="966" height="306">
+        <frame id="27:307" name="card-header" x="12" y="12" width="942" height="14">
+          <frame id="27:308" name="header-left" x="0" y="0" width="199" height="14">
+            <ellipse id="27:309" name="led" x="0" y="4" width="6" height="6" />
+            <text id="27:310" name="MODULATION INTERCONNECT GRID" x="14" y="0" width="185" height="14" />
+          </frame>
+          <text id="27:311" name="ACTIVE ROUTINGS INDICATED IN TEAL" x="783" y="2" width="159" height="10" />
+        </frame>
+        <frame id="27:312" name="matrix-grid-canvas" x="12" y="34" width="942" height="260">
+          <frame id="27:313" name="grid-column-headers" x="8" y="8" width="926" height="14">
+            <text id="27:314" name="SOURCE" x="0" y="0" width="70" height="10" />
+            <text id="27:315" name="OSC PITCH" x="72" y="0" width="105" height="9" />
+            <text id="27:316" name="OSC MIX" x="179" y="0" width="105" height="9" />
+            <text id="27:317" name="FILTER CUT" x="286" y="0" width="105" height="9" />
+            <text id="27:318" name="FILTER RES" x="393" y="0" width="105" height="9" />
+            <text id="27:319" name="AMP" x="500" y="0" width="105" height="9" />
+            <text id="27:320" name="PAN" x="607" y="0" width="105" height="9" />
+            <text id="27:321" name="FX SEND" x="714" y="0" width="105" height="9" />
+            <text id="27:322" name="WT POS" x="821" y="0" width="105" height="9" />
+          </frame>
+          <frame id="27:323" name="grid-row-0" x="8" y="23" width="926" height="19.909090042114258">
+            <text id="27:324" name="LFO 1" x="6" y="4.954545021057129" width="70" height="10" />
+            <frame id="27:325" name="cell-0" x="78" y="0" width="103.5" height="19.909090042114258">
+              <frame id="27:326" name="cell-dial" x="43.75" y="1.954545021057129" width="16" height="16" />
+            </frame>
+            <frame id="27:329" name="cell-1" x="183.5" y="0" width="103.5" height="19.909090042114258">
+              <ellipse id="27:330" name="cell-empty" x="48.75" y="6.954545021057129" width="6" height="6" />
+            </frame>
+            <frame id="27:331" name="cell-2" x="289" y="0" width="103.5" height="19.909090042114258">
+              <frame id="27:332" name="cell-dial" x="43.75" y="1.954545021057129" width="16" height="16" />
+            </frame>
+            <frame id="27:335" name="cell-3" x="394.5" y="0" width="103.5" height="19.909090042114258">
+              <ellipse id="27:336" name="cell-empty" x="48.75" y="6.954545021057129" width="6" height="6" />
+            </frame>
+            <frame id="27:337" name="cell-4" x="500" y="0" width="103.5" height="19.909090042114258">
+              <ellipse id="27:338" name="cell-empty" x="48.75" y="6.954545021057129" width="6" height="6" />
+            </frame>
+            <frame id="27:339" name="cell-5" x="605.5" y="0" width="103.5" height="19.909090042114258">
+              <frame id="27:340" name="cell-dial" x="43.75" y="1.954545021057129" width="16" height="16" />
+            </frame>
+            <frame id="27:343" name="cell-6" x="711" y="0" width="103.5" height="19.909090042114258">
+              <ellipse id="27:344" name="cell-empty" x="48.75" y="6.954545021057129" width="6" height="6" />
+            </frame>
+            <frame id="27:345" name="cell-7" x="816.5" y="0" width="103.5" height="19.909090042114258">
+              <frame id="27:346" name="cell-dial" x="43.75" y="1.954545021057129" width="16" height="16" />
+            </frame>
+          </frame>
+          <frame id="27:349" name="grid-row-1" x="8" y="43.909088134765625" width="926" height="19.90909194946289">
+            <text id="27:350" name="LFO 2" x="6" y="4.954545974731445" width="70" height="10" />
+            <frame id="27:351" name="cell-0" x="78" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:352" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:353" name="cell-1" x="183.5" y="0" width="103.5" height="19.90909194946289">
+              <frame id="27:354" name="cell-dial" x="43.75" y="1.9545459747314453" width="16" height="16" />
+            </frame>
+            <frame id="27:357" name="cell-2" x="289" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:358" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:359" name="cell-3" x="394.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:360" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:361" name="cell-4" x="500" y="0" width="103.5" height="19.90909194946289">
+              <frame id="27:362" name="cell-dial" x="43.75" y="1.9545459747314453" width="16" height="16" />
+            </frame>
+            <frame id="27:365" name="cell-5" x="605.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:366" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:367" name="cell-6" x="711" y="0" width="103.5" height="19.90909194946289">
+              <frame id="27:368" name="cell-dial" x="43.75" y="1.9545459747314453" width="16" height="16" />
+            </frame>
+            <frame id="27:371" name="cell-7" x="816.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:372" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+          </frame>
+          <frame id="27:373" name="grid-row-2" x="8" y="64.81817626953125" width="926" height="19.90909194946289">
+            <text id="27:374" name="LFO 3" x="6" y="4.954545974731445" width="70" height="10" />
+            <frame id="27:375" name="cell-0" x="78" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:376" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:377" name="cell-1" x="183.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:378" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:379" name="cell-2" x="289" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:380" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:381" name="cell-3" x="394.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:382" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:383" name="cell-4" x="500" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:384" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:385" name="cell-5" x="605.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:386" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:387" name="cell-6" x="711" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:388" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:389" name="cell-7" x="816.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:390" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+          </frame>
+          <frame id="27:391" name="grid-row-3" x="8" y="85.72726440429688" width="926" height="19.90909194946289">
+            <text id="27:392" name="LFO 4" x="6" y="4.954545974731445" width="70" height="10" />
+            <frame id="27:393" name="cell-0" x="78" y="0" width="103.5" height="19.90909194946289">
+              <frame id="27:394" name="cell-dial" x="43.75" y="1.9545459747314453" width="16" height="16" />
+            </frame>
+            <frame id="27:397" name="cell-1" x="183.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:398" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:399" name="cell-2" x="289" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:400" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:401" name="cell-3" x="394.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:402" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:403" name="cell-4" x="500" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:404" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:405" name="cell-5" x="605.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:406" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:407" name="cell-6" x="711" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:408" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:409" name="cell-7" x="816.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:410" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+          </frame>
+          <frame id="27:411" name="grid-row-4" x="8" y="106.6363525390625" width="926" height="19.90909194946289">
+            <text id="27:412" name="ENV 1" x="6" y="4.954545974731445" width="70" height="10" />
+            <frame id="27:413" name="cell-0" x="78" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:414" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:415" name="cell-1" x="183.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:416" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:417" name="cell-2" x="289" y="0" width="103.5" height="19.90909194946289">
+              <frame id="27:418" name="cell-dial" x="43.75" y="1.9545459747314453" width="16" height="16" />
+            </frame>
+            <frame id="27:421" name="cell-3" x="394.5" y="0" width="103.5" height="19.90909194946289">
+              <frame id="27:422" name="cell-dial" x="43.75" y="1.9545459747314453" width="16" height="16" />
+            </frame>
+            <frame id="27:425" name="cell-4" x="500" y="0" width="103.5" height="19.90909194946289">
+              <frame id="27:426" name="cell-dial" x="43.75" y="1.9545459747314453" width="16" height="16" />
+            </frame>
+            <frame id="27:429" name="cell-5" x="605.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:430" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:431" name="cell-6" x="711" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:432" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:433" name="cell-7" x="816.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:434" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+          </frame>
+          <frame id="27:435" name="grid-row-5" x="8" y="127.54544067382812" width="926" height="19.909093856811523">
+            <text id="27:436" name="ENV 2" x="6" y="4.954546928405762" width="70" height="10" />
+            <frame id="27:437" name="cell-0" x="78" y="0" width="103.5" height="19.909093856811523">
+              <frame id="27:438" name="cell-dial" x="43.75" y="1.9545469284057617" width="16" height="16" />
+            </frame>
+            <frame id="27:441" name="cell-1" x="183.5" y="0" width="103.5" height="19.909093856811523">
+              <ellipse id="27:442" name="cell-empty" x="48.75" y="6.954546928405762" width="6" height="6" />
+            </frame>
+            <frame id="27:443" name="cell-2" x="289" y="0" width="103.5" height="19.909093856811523">
+              <ellipse id="27:444" name="cell-empty" x="48.75" y="6.954546928405762" width="6" height="6" />
+            </frame>
+            <frame id="27:445" name="cell-3" x="394.5" y="0" width="103.5" height="19.909093856811523">
+              <ellipse id="27:446" name="cell-empty" x="48.75" y="6.954546928405762" width="6" height="6" />
+            </frame>
+            <frame id="27:447" name="cell-4" x="500" y="0" width="103.5" height="19.909093856811523">
+              <ellipse id="27:448" name="cell-empty" x="48.75" y="6.954546928405762" width="6" height="6" />
+            </frame>
+            <frame id="27:449" name="cell-5" x="605.5" y="0" width="103.5" height="19.909093856811523">
+              <ellipse id="27:450" name="cell-empty" x="48.75" y="6.954546928405762" width="6" height="6" />
+            </frame>
+            <frame id="27:451" name="cell-6" x="711" y="0" width="103.5" height="19.909093856811523">
+              <ellipse id="27:452" name="cell-empty" x="48.75" y="6.954546928405762" width="6" height="6" />
+            </frame>
+            <frame id="27:453" name="cell-7" x="816.5" y="0" width="103.5" height="19.909093856811523">
+              <frame id="27:454" name="cell-dial" x="43.75" y="1.9545469284057617" width="16" height="16" />
+            </frame>
+          </frame>
+          <frame id="27:457" name="grid-row-6" x="8" y="148.45452880859375" width="926" height="19.90909194946289">
+            <text id="27:458" name="ENV 3" x="6" y="4.954545974731445" width="70" height="10" />
+            <frame id="27:459" name="cell-0" x="78" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:460" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:461" name="cell-1" x="183.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:462" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:463" name="cell-2" x="289" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:464" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:465" name="cell-3" x="394.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:466" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:467" name="cell-4" x="500" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:468" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:469" name="cell-5" x="605.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:470" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:471" name="cell-6" x="711" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:472" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:473" name="cell-7" x="816.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:474" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+          </frame>
+          <frame id="27:475" name="grid-row-7" x="8" y="169.36361694335938" width="926" height="19.90909194946289">
+            <text id="27:476" name="VELOCITY" x="6" y="4.954545974731445" width="70" height="10" />
+            <frame id="27:477" name="cell-0" x="78" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:478" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:479" name="cell-1" x="183.5" y="0" width="103.5" height="19.90909194946289">
+              <frame id="27:480" name="cell-dial" x="43.75" y="1.9545459747314453" width="16" height="16" />
+            </frame>
+            <frame id="27:483" name="cell-2" x="289" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:484" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:485" name="cell-3" x="394.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:486" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:487" name="cell-4" x="500" y="0" width="103.5" height="19.90909194946289">
+              <frame id="27:488" name="cell-dial" x="43.75" y="1.9545459747314453" width="16" height="16" />
+            </frame>
+            <frame id="27:491" name="cell-5" x="605.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:492" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:493" name="cell-6" x="711" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:494" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:495" name="cell-7" x="816.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:496" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+          </frame>
+          <frame id="27:497" name="grid-row-8" x="8" y="190.272705078125" width="926" height="19.90909194946289">
+            <text id="27:498" name="KEY TRACK" x="6" y="4.954545974731445" width="70" height="10" />
+            <frame id="27:499" name="cell-0" x="78" y="0" width="103.5" height="19.90909194946289">
+              <frame id="27:500" name="cell-dial" x="43.75" y="1.9545459747314453" width="16" height="16" />
+            </frame>
+            <frame id="27:503" name="cell-1" x="183.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:504" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:505" name="cell-2" x="289" y="0" width="103.5" height="19.90909194946289">
+              <frame id="27:506" name="cell-dial" x="43.75" y="1.9545459747314453" width="16" height="16" />
+            </frame>
+            <frame id="27:509" name="cell-3" x="394.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:510" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:511" name="cell-4" x="500" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:512" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:513" name="cell-5" x="605.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:514" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:515" name="cell-6" x="711" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:516" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:517" name="cell-7" x="816.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:518" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+          </frame>
+          <frame id="27:519" name="grid-row-9" x="8" y="211.18179321289062" width="926" height="19.90909194946289">
+            <text id="27:520" name="MOD WHEEL" x="6" y="4.954545974731445" width="70" height="10" />
+            <frame id="27:521" name="cell-0" x="78" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:522" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:523" name="cell-1" x="183.5" y="0" width="103.5" height="19.90909194946289">
+              <frame id="27:524" name="cell-dial" x="43.75" y="1.9545459747314453" width="16" height="16" />
+            </frame>
+            <frame id="27:527" name="cell-2" x="289" y="0" width="103.5" height="19.90909194946289">
+              <frame id="27:528" name="cell-dial" x="43.75" y="1.9545459747314453" width="16" height="16" />
+            </frame>
+            <frame id="27:531" name="cell-3" x="394.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:532" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:533" name="cell-4" x="500" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:534" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:535" name="cell-5" x="605.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:536" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:537" name="cell-6" x="711" y="0" width="103.5" height="19.90909194946289">
+              <frame id="27:538" name="cell-dial" x="43.75" y="1.9545459747314453" width="16" height="16" />
+            </frame>
+            <frame id="27:541" name="cell-7" x="816.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:542" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+          </frame>
+          <frame id="27:543" name="grid-row-10" x="8" y="232.09088134765625" width="926" height="19.90909194946289">
+            <text id="27:544" name="RANDOM" x="6" y="4.954545974731445" width="70" height="10" />
+            <frame id="27:545" name="cell-0" x="78" y="0" width="103.5" height="19.90909194946289">
+              <frame id="27:546" name="cell-dial" x="43.75" y="1.9545459747314453" width="16" height="16" />
+            </frame>
+            <frame id="27:549" name="cell-1" x="183.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:550" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:551" name="cell-2" x="289" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:552" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:553" name="cell-3" x="394.5" y="0" width="103.5" height="19.90909194946289">
+              <frame id="27:554" name="cell-dial" x="43.75" y="1.9545459747314453" width="16" height="16" />
+            </frame>
+            <frame id="27:557" name="cell-4" x="500" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:558" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:559" name="cell-5" x="605.5" y="0" width="103.5" height="19.90909194946289">
+              <frame id="27:560" name="cell-dial" x="43.75" y="1.9545459747314453" width="16" height="16" />
+            </frame>
+            <frame id="27:563" name="cell-6" x="711" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:564" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+            <frame id="27:565" name="cell-7" x="816.5" y="0" width="103.5" height="19.90909194946289">
+              <ellipse id="27:566" name="cell-empty" x="48.75" y="6.954545974731445" width="6" height="6" />
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+      <frame id="27:567" name="active-routings-card" x="0" y="316" width="966" height="260">
+        <frame id="27:568" name="card-header" x="12" y="12" width="942" height="14">
+          <frame id="27:569" name="header-left" x="0" y="0" width="146" height="14">
+            <ellipse id="27:570" name="led" x="0" y="4" width="6" height="6" />
+            <text id="27:571" name="ACTIVE ROUTING PATHS" x="14" y="0" width="132" height="14" />
+          </frame>
+          <text id="27:572" name="BIPOLAR SCALING OPTIONS DETECTED" x="788" y="2" width="154" height="10" />
+        </frame>
+        <frame id="27:573" name="routings-table" x="12" y="34" width="942" height="214">
+          <frame id="27:574" name="routings-scroll" x="0" y="0" width="932" height="188">
+            <frame id="27:575" name="route-row-0" x="0" y="0" width="932" height="28">
+              <text id="27:576" name="LFO 1" x="10" y="8" width="80" height="12" />
+              <frame id="27:1029" name="arrow-right" x="102" y="9" width="10" height="10" />
+              <text id="27:578" name="FILTER CUTOFF" x="124" y="8" width="130" height="12" />
+              <frame id="27:579" name="slider-group" x="266" y="9" width="588" height="10">
+                <text id="27:580" name="DEPTH" x="0" y="0" width="24" height="10" />
+                <frame id="27:581" name="slider-track-container" x="30" y="2" width="522" height="6">
+                  <rounded-rectangle id="27:582" name="slider-fill" x="1" y="1" width="113" height="4" />
+                </frame>
+                <text id="27:583" name="75%" x="558" y="0" width="30" height="10" />
+              </frame>
+              <frame id="27:584" name="curve-selector" x="866" y="6" width="27" height="16">
+                <text id="27:585" name="LIN" x="6" y="3" width="15" height="10" />
+              </frame>
+              <frame id="27:586" name="polar-toggle" x="905" y="6" width="17" height="16">
+                <text id="27:587" name="+" x="6" y="3" width="5" height="10" />
+              </frame>
+            </frame>
+            <frame id="27:588" name="route-row-1" x="0" y="32" width="932" height="28">
+              <text id="27:589" name="ENV 1" x="10" y="8" width="80" height="12" />
+              <frame id="27:1032" name="arrow-right" x="102" y="9" width="10" height="10" />
+              <text id="27:591" name="AMP LEVEL" x="124" y="8" width="130" height="12" />
+              <frame id="27:592" name="slider-group" x="266" y="9" width="588" height="10">
+                <text id="27:593" name="DEPTH" x="0" y="0" width="24" height="10" />
+                <frame id="27:594" name="slider-track-container" x="30" y="2" width="522" height="6">
+                  <rounded-rectangle id="27:595" name="slider-fill" x="1" y="1" width="120" height="4" />
+                </frame>
+                <text id="27:596" name="80%" x="558" y="0" width="30" height="10" />
+              </frame>
+              <frame id="27:597" name="curve-selector" x="866" y="6" width="27" height="16">
+                <text id="27:598" name="EXP" x="6" y="3" width="15" height="10" />
+              </frame>
+              <frame id="27:599" name="polar-toggle" x="905" y="6" width="17" height="16">
+                <text id="27:600" name="+" x="6" y="3" width="5" height="10" />
+              </frame>
+            </frame>
+            <frame id="27:601" name="route-row-2" x="0" y="64" width="932" height="28">
+              <text id="27:602" name="LFO 1" x="10" y="8" width="80" height="12" />
+              <frame id="27:1035" name="arrow-right" x="102" y="9" width="10" height="10" />
+              <text id="27:604" name="WAVETABLE POS" x="124" y="8" width="130" height="12" />
+              <frame id="27:605" name="slider-group" x="266" y="9" width="578" height="10">
+                <text id="27:606" name="DEPTH" x="0" y="0" width="24" height="10" />
+                <frame id="27:607" name="slider-track-container" x="30" y="2" width="512" height="6">
+                  <rounded-rectangle id="27:608" name="slider-fill" x="1" y="1" width="128" height="4" />
+                </frame>
+                <text id="27:609" name="85%" x="548" y="0" width="30" height="10" />
+              </frame>
+              <frame id="27:610" name="curve-selector" x="856" y="6" width="27" height="16">
+                <text id="27:611" name="LOG" x="6" y="3" width="15" height="10" />
+              </frame>
+              <frame id="27:612" name="polar-toggle" x="895" y="6" width="27" height="16">
+                <text id="27:613" name="+/-" x="6" y="3" width="15" height="10" />
+              </frame>
+            </frame>
+            <frame id="27:614" name="route-row-3" x="0" y="96" width="932" height="28">
+              <text id="27:615" name="KEY TRACK" x="10" y="8" width="80" height="12" />
+              <frame id="27:1038" name="arrow-right" x="102" y="9" width="10" height="10" />
+              <text id="27:617" name="OSC PITCH" x="124" y="8" width="130" height="12" />
+              <frame id="27:618" name="slider-group" x="266" y="9" width="588" height="10">
+                <text id="27:619" name="DEPTH" x="0" y="0" width="24" height="10" />
+                <frame id="27:620" name="slider-track-container" x="30" y="2" width="522" height="6">
+                  <rounded-rectangle id="27:621" name="slider-fill" x="1" y="1" width="149" height="4" />
+                </frame>
+                <text id="27:622" name="99%" x="558" y="0" width="30" height="10" />
+              </frame>
+              <frame id="27:623" name="curve-selector" x="866" y="6" width="27" height="16">
+                <text id="27:624" name="LIN" x="6" y="3" width="15" height="10" />
+              </frame>
+              <frame id="27:625" name="polar-toggle" x="905" y="6" width="17" height="16">
+                <text id="27:626" name="+" x="6" y="3" width="5" height="10" />
+              </frame>
+            </frame>
+            <frame id="27:627" name="route-row-4" x="0" y="128" width="932" height="28">
+              <text id="27:628" name="MOD WHEEL" x="10" y="8" width="80" height="12" />
+              <frame id="27:1041" name="arrow-right" x="102" y="9" width="10" height="10" />
+              <text id="27:630" name="FX SEND 1 (REVERB)" x="124" y="8" width="130" height="12" />
+              <frame id="27:631" name="slider-group" x="266" y="9" width="598" height="10">
+                <text id="27:632" name="DEPTH" x="0" y="0" width="24" height="10" />
+                <frame id="27:633" name="slider-track-container" x="30" y="2" width="532" height="6">
+                  <rounded-rectangle id="27:634" name="slider-fill" x="1" y="1" width="60" height="4" />
+                </frame>
+                <text id="27:635" name="40%" x="568" y="0" width="30" height="10" />
+              </frame>
+              <frame id="27:636" name="curve-selector" x="876" y="6" width="17" height="16">
+                <text id="27:637" name="S" x="6" y="3" width="5" height="10" />
+              </frame>
+              <frame id="27:638" name="polar-toggle" x="905" y="6" width="17" height="16">
+                <text id="27:639" name="+" x="6" y="3" width="5" height="10" />
+              </frame>
+            </frame>
+            <frame id="27:640" name="route-row-5" x="0" y="160" width="932" height="28">
+              <text id="27:641" name="RANDOM" x="10" y="8" width="80" height="12" />
+              <frame id="27:1044" name="arrow-right" x="102" y="9" width="10" height="10" />
+              <text id="27:643" name="FILTER RESO" x="124" y="8" width="130" height="12" />
+              <frame id="27:644" name="slider-group" x="266" y="9" width="578" height="10">
+                <text id="27:645" name="DEPTH" x="0" y="0" width="24" height="10" />
+                <frame id="27:646" name="slider-track-container" x="30" y="2" width="512" height="6">
+                  <rounded-rectangle id="27:647" name="slider-fill" x="1" y="1" width="60" height="4" />
+                </frame>
+                <text id="27:648" name="40%" x="548" y="0" width="30" height="10" />
+              </frame>
+              <frame id="27:649" name="curve-selector" x="856" y="6" width="27" height="16">
+                <text id="27:650" name="LIN" x="6" y="3" width="15" height="10" />
+              </frame>
+              <frame id="27:651" name="polar-toggle" x="895" y="6" width="27" height="16">
+                <text id="27:652" name="+/-" x="6" y="3" width="15" height="10" />
+              </frame>
+            </frame>
+          </frame>
+          <frame id="27:653" name="scrollbar" x="938" y="0" width="4" height="214">
+            <rounded-rectangle id="27:654" name="thumb" x="0" y="4" width="4" height="80" />
+          </frame>
+        </frame>
+      </frame>
+    </frame>
+    <frame id="27:655" name="right-assign-panel" x="976" y="0" width="280" height="576">
+      <text id="27:656" name="QUICK CONFIG" x="12" y="12" width="58" height="10" />
+      <frame id="27:657" name="drag-source-card" x="12" y="34" width="256" height="76">
+        <text id="27:658" name="DRAG MOD SOURCE" x="10" y="10" width="72" height="10" />
+        <frame id="27:659" name="sources-pill-row" x="10" y="26" width="236" height="40">
+          <frame id="27:660" name="pill-LFO1" x="0" y="0" width="32" height="18">
+            <text id="27:661" name="LFO1" x="6" y="4" width="20" height="10" />
+          </frame>
+          <frame id="27:662" name="pill-LFO2" x="36" y="0" width="32" height="18">
+            <text id="27:663" name="LFO2" x="6" y="4" width="20" height="10" />
+          </frame>
+          <frame id="27:664" name="pill-ENV1" x="72" y="0" width="32" height="18">
+            <text id="27:665" name="ENV1" x="6" y="4" width="20" height="10" />
+          </frame>
+          <frame id="27:666" name="pill-ENV2" x="108" y="0" width="32" height="18">
+            <text id="27:667" name="ENV2" x="6" y="4" width="20" height="10" />
+          </frame>
+          <frame id="27:668" name="pill-VEL" x="144" y="0" width="27" height="18">
+            <text id="27:669" name="VEL" x="6" y="4" width="15" height="10" />
+          </frame>
+          <frame id="27:670" name="pill-KEY" x="175" y="0" width="27" height="18">
+            <text id="27:671" name="KEY" x="6" y="4" width="15" height="10" />
+          </frame>
+          <frame id="27:672" name="pill-MOD" x="206" y="0" width="27" height="18">
+            <text id="27:673" name="MOD" x="6" y="4" width="15" height="10" />
+          </frame>
+          <frame id="27:674" name="pill-RND" x="0" y="22" width="27" height="18">
+            <text id="27:675" name="RND" x="6" y="4" width="15" height="10" />
+          </frame>
+        </frame>
+      </frame>
+      <frame id="27:676" name="recent-dests" x="12" y="122" width="256" height="106">
+        <text id="27:677" name="RECENT DESTINATIONS" x="10" y="10" width="92" height="10" />
+        <frame id="27:678" name="dest-list" x="10" y="28" width="236" height="68">
+          <frame id="27:679" name="dest-row-OSC 01 FILTER RES" x="0" y="0" width="98" height="20">
+            <text id="27:680" name="OSC 01 FILTER RES" x="8" y="5" width="82" height="10" />
+          </frame>
+          <frame id="27:681" name="dest-row-OSC 02 PAN" x="0" y="24" width="64" height="20">
+            <text id="27:682" name="OSC 02 PAN" x="8" y="5" width="48" height="10" />
+          </frame>
+          <frame id="27:683" name="dest-row-GLOBAL REVERB TIME" x="0" y="48" width="103" height="20">
+            <text id="27:684" name="GLOBAL REVERB TIME" x="8" y="5" width="87" height="10" />
+          </frame>
+        </frame>
+      </frame>
+      <line id="27:685" name="Line" x="12" y="240" width="256" height="0" />
+      <frame id="27:686" name="learn-card" x="12" y="252" width="256" height="111">
+        <text id="27:687" name="MIDI INTERFACE MAPPING" x="12" y="12" width="106" height="10" />
+        <frame id="27:688" name="learn-btn" x="12" y="32" width="232" height="37">
+          <ellipse id="27:689" name="led" x="57" y="14.5" width="8" height="8" />
+          <text id="27:690" name="MIDI LEARN ACTIVE" x="73" y="12" width="102" height="13" />
+        </frame>
+        <text id="27:691" name="Twist any physical dial on your MIDI controller to bind to the selected parameter." x="12" y="79" width="232" height="20" />
+      </frame>
+      <frame id="27:692" name="bipolar-info" x="12" y="375" width="256" height="46">
+        <text id="27:693" name="* BIPOLAR (+/-) expands depth modulation symmetrically around current absolute offset value." x="8" y="8" width="240" height="30" />
+      </frame>
+    </frame>
+  </frame>
+  <frame id="27:694" name="vst-bottom-bar" x="12" y="668" width="1256" height="40">
+    <frame id="27:695" name="tech-diagnostics" x="16" y="15" width="232" height="10">
+      <frame id="27:696" name="cpu-meter-box" x="0" y="0" width="82" height="10">
+        <text id="27:697" name="CPU" x="0" y="0" width="15" height="10" />
+        <frame id="27:698" name="cpu-bar" x="21" y="3" width="40" height="4">
+          <rounded-rectangle id="27:699" name="cpu-fill" x="0" y="0" width="16" height="4" />
+        </frame>
+        <text id="27:700" name="40%" x="67" y="0" width="15" height="10" />
+      </frame>
+      <frame id="27:701" name="voice-counts" x="98" y="0" width="72" height="10">
+        <text id="27:702" name="VOICES:" x="0" y="0" width="34" height="10" />
+        <text id="27:703" name="16 / 32" x="38" y="0" width="34" height="10" />
+      </frame>
+      <frame id="27:704" name="midi-activity" x="186" y="0" width="46" height="10">
+        <ellipse id="27:705" name="led" x="0" y="2" width="6" height="6" />
+        <text id="27:706" name="MIDI IN" x="12" y="0" width="34" height="10" />
+      </frame>
+    </frame>
+    <text id="27:707" name="MURMUR DSP ENGINE VST3 · VERSION 1.4.2 · © 2026 MURMUR AUDIO" x="952" y="15" width="288" height="10" />
+  </frame>
+</frame>

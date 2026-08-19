@@ -1,6 +1,7 @@
 #include "DualLfoLabPanel.h"
 
 #include "../PlayModeLayout.h"
+#include "../theme/FigmaKnobTokens.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "ArpUiFormatters.h"
@@ -82,6 +83,8 @@ namespace pw8::plugin::ui
                                           juce::Colour accent)
         : panel(title, accent), wireframe(processor.apvts, lfoIndex), lfoIndex(lfoIndex)
     {
+        wireframe.attachVisualizerBus(processor.getVisualizerBus());
+
         syncHeaderLabel.setFont(fonts::label(8.0f));
         syncHeaderLabel.setColour(juce::Label::textColourId, palette::kTextDim);
         syncHeaderLabel.setJustificationType(juce::Justification::centredLeft);
@@ -130,9 +133,9 @@ namespace pw8::plugin::ui
         mode = std::make_unique<GlowKnob>(processor.apvts, lfoParamId(lfoIndex, "Mode"), "MODE", lfoModeToText);
         motion = std::make_unique<ConcentricGlowKnob>(processor.apvts, lfoParamId(lfoIndex, "PhaseOffset"),
                                                       lfoParamId(lfoIndex, "RateHz"), "PHASE", "RATE");
-        waveform->setMaxDialDiameter(56);
-        mode->setMaxDialDiameter(56);
-        motion->setMaxDialDiameter(72);
+        waveform->applyFigmaContext(figma::KnobContext::PanelGridMedium);
+        mode->applyFigmaContext(figma::KnobContext::PanelGridMedium);
+        motion->applyFigmaContext(figma::KnobContext::LfoMotionDual);
         motion->setInnerAccentColour(accent);
 
         routingLabel.setText(lfoIndex == 0   ? "ROUTED DESTINATIONS: Filter Cutoff, WT Position"
@@ -437,11 +440,11 @@ namespace pw8::plugin::ui
         }
 
         const int columnCount = activePairTab_ == 2 ? layout::kDesignDualLfoQuadColumnCount : 2;
-        const int totalGap = (columnCount - 1) * layout::kDesignDualLfoColumnGap;
-        const int colW = (bounds.getWidth() - totalGap) / columnCount;
 
         if (activePairTab_ == 2)
         {
+            const int totalGap = (columnCount - 1) * layout::kDesignDualLfoColumnGap;
+            const int colW = (bounds.getWidth() - totalGap) / columnCount;
             lfo1_.panel.setBounds(bounds.removeFromLeft(colW));
             bounds.removeFromLeft(layout::kDesignDualLfoColumnGap);
             lfo2_.panel.setBounds(bounds.removeFromLeft(colW));
@@ -452,9 +455,12 @@ namespace pw8::plugin::ui
         }
         else
         {
+            const int colW = layout::kDesignDualLfoColumnWidth;
+            const int totalW = colW * 2 + layout::kDesignDualLfoColumnGap;
+            bounds.removeFromLeft(juce::jmax(0, (bounds.getWidth() - totalW) / 2));
             lfo1_.panel.setBounds(bounds.removeFromLeft(colW));
             bounds.removeFromLeft(layout::kDesignDualLfoColumnGap);
-            lfo2_.panel.setBounds(bounds);
+            lfo2_.panel.setBounds(bounds.removeFromLeft(colW));
         }
 
         layoutColumns();

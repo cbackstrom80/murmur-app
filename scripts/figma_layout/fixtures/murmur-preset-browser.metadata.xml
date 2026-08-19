@@ -1,0 +1,572 @@
+<frame id="27:6" name="murmur-design-preset-browser" x="0" y="0" width="1280" height="720">
+  <frame id="51:2" name="header-bar" x="12" y="12" width="1248" height="60">
+    <frame id="51:3" name="branding" x="16" y="8" width="220" height="43">
+      <frame id="128:9" name="murmur-whale-logo" x="0" y="0" width="95" height="43">
+      </frame>
+    </frame>
+    <frame id="51:6" name="view-leds" x="252" y="20" width="101" height="19">
+      <frame id="51:7" name="led-compact" x="0" y="0" width="30" height="19">
+        <frame id="51:8" name="led" x="12" y="0" width="6" height="6">
+        </frame>
+        <frame id="51:9" name="label" x="0" y="10" width="30" height="9">
+        </frame>
+      </frame>
+      <frame id="51:10" name="led-play" x="44" y="0" width="17" height="19">
+        <frame id="51:11" name="led" x="6" y="0" width="6" height="6">
+        </frame>
+        <frame id="51:12" name="label" x="0" y="10" width="17" height="9">
+        </frame>
+      </frame>
+      <frame id="51:13" name="led-design" x="75" y="0" width="26" height="19">
+        <frame id="51:14" name="led" x="10" y="0" width="6" height="6">
+        </frame>
+        <frame id="51:15" name="label" x="0" y="10" width="26" height="9">
+        </frame>
+      </frame>
+    </frame>
+    <frame id="51:16" name="score-line" x="369" y="18" width="1" height="24">
+    </frame>
+    <frame id="51:17" name="section-leds" x="386" y="20" width="168" height="18">
+      <frame id="51:18" name="led-engine" x="0" y="0" width="26" height="18">
+        <frame id="51:19" name="led" x="10" y="0" width="5" height="5">
+        </frame>
+        <frame id="51:20" name="label" x="0" y="9" width="26" height="9">
+        </frame>
+      </frame>
+      <frame id="51:21" name="led-arp" x="38" y="0" width="13" height="18">
+        <frame id="51:22" name="led" x="4" y="0" width="5" height="5">
+        </frame>
+        <frame id="51:23" name="label" x="0" y="9" width="13" height="9">
+        </frame>
+      </frame>
+      <frame id="51:24" name="led-vocoder" x="63" y="0" width="30" height="18">
+        <frame id="51:25" name="led" x="12" y="0" width="5" height="5">
+        </frame>
+        <frame id="51:26" name="label" x="0" y="9" width="30" height="9">
+        </frame>
+      </frame>
+      <frame id="51:27" name="led-fx" x="105" y="0" width="9" height="18">
+        <frame id="51:28" name="led" x="2" y="0" width="5" height="5">
+        </frame>
+        <frame id="51:29" name="label" x="0" y="9" width="9" height="9">
+        </frame>
+      </frame>
+      <frame id="51:30" name="led-mod-matrix" x="126" y="0" width="42" height="18">
+        <frame id="51:31" name="led" x="18" y="0" width="5" height="5">
+        </frame>
+        <frame id="51:32" name="label" x="0" y="9" width="42" height="9">
+        </frame>
+      </frame>
+    </frame>
+    <frame id="51:33" name="preset-display" x="570" y="17" width="260" height="25">
+      <frame id="51:34" name="preset-name" x="158" y="0" width="102" height="13">
+      </frame>
+      <frame id="51:35" name="preset-meta" x="177" y="15" width="83" height="10">
+        <frame id="51:36" name="preset-source" x="0" y="0" width="34" height="10">
+        </frame>
+        <frame id="51:37" name="master-indicator" x="42" y="0" width="41" height="10">
+          <frame id="51:38" name="master-led" x="0" y="2" width="6" height="6">
+          </frame>
+          <frame id="51:39" name="master-label" x="12" y="0" width="29" height="10">
+          </frame>
+        </frame>
+      </frame>
+    </frame>
+  </frame>
+  <frame id="27:45" name="main-workspace" x="12" y="82" width="1256" height="576">
+    <frame id="27:46" name="left-categories" x="0" y="0" width="240" height="576">
+      <frame id="27:47" name="search-container" x="12" y="12" width="216" height="41">
+        <frame id="27:48" name="SEARCH PRESETS" x="0" y="0" width="68" height="10">
+        </frame>
+        <frame id="27:49" name="search-field" x="0" y="16" width="216" height="25">
+          <frame id="27:50" name="obsidian|" x="10" y="6" width="54" height="13">
+          </frame>
+          <frame id="27:969" name="search" x="198" y="8" width="10" height="10">
+            <frame id="27:970" name="Vector" x="1" y="1" width="8" height="8">
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+      <frame id="27:52" name="Line" x="12" y="65" width="216" height="0">
+      </frame>
+      <frame id="27:53" name="directory-scroller" x="12" y="77" width="216" height="487">
+        <frame id="27:54" name="FOLDERS &amp; CATEGORIES" x="0" y="0" width="96" height="10">
+        </frame>
+        <frame id="27:55" name="tree-scroller-inner" x="0" y="16" width="216" height="471">
+          <frame id="27:56" name="tree-list" x="0" y="0" width="206" height="268">
+            <frame id="27:57" name="cat-BASS" x="0" y="0" width="206" height="25">
+              <frame id="27:58" name="cat-left" x="8" y="6" width="38" height="12">
+                <frame id="27:972" name="folder-open" x="0" y="2" width="10" height="8">
+                  <frame id="27:973" name="Vector" x="1" y="1" width="8" height="6">
+                  </frame>
+                </frame>
+                <frame id="27:60" name="BASS" x="16" y="0" width="22" height="12">
+                </frame>
+              </frame>
+              <frame id="27:61" name="badge" x="179" y="6" width="19" height="13">
+                <frame id="27:62" name="48" x="5" y="2" width="9" height="9">
+                </frame>
+              </frame>
+            </frame>
+            <frame id="27:63" name="cat-LEADS" x="0" y="27" width="206" height="25">
+              <frame id="27:64" name="cat-left" x="8" y="6" width="43" height="12">
+                <frame id="27:975" name="folder" x="0" y="2" width="10" height="8">
+                  <frame id="27:976" name="Vector" x="1" y="1" width="8" height="6">
+                  </frame>
+                </frame>
+                <frame id="27:66" name="LEADS" x="16" y="0" width="27" height="12">
+                </frame>
+              </frame>
+              <frame id="27:67" name="badge" x="179" y="6" width="19" height="13">
+                <frame id="27:68" name="36" x="5" y="2" width="9" height="9">
+                </frame>
+              </frame>
+            </frame>
+            <frame id="27:69" name="cat-PADS" x="0" y="54" width="206" height="25">
+              <frame id="27:70" name="cat-left" x="8" y="6" width="38" height="12">
+                <frame id="27:978" name="folder" x="0" y="2" width="10" height="8">
+                  <frame id="27:979" name="Vector" x="1" y="1" width="8" height="6">
+                  </frame>
+                </frame>
+                <frame id="27:72" name="PADS" x="16" y="0" width="22" height="12">
+                </frame>
+              </frame>
+              <frame id="27:73" name="badge" x="179" y="6" width="19" height="13">
+                <frame id="27:74" name="42" x="5" y="2" width="9" height="9">
+                </frame>
+              </frame>
+            </frame>
+            <frame id="27:75" name="cat-KEYS" x="0" y="81" width="206" height="25">
+              <frame id="27:76" name="cat-left" x="8" y="6" width="38" height="12">
+                <frame id="27:981" name="folder" x="0" y="2" width="10" height="8">
+                  <frame id="27:982" name="Vector" x="1" y="1" width="8" height="6">
+                  </frame>
+                </frame>
+                <frame id="27:78" name="KEYS" x="16" y="0" width="22" height="12">
+                </frame>
+              </frame>
+              <frame id="27:79" name="badge" x="179" y="6" width="19" height="13">
+                <frame id="27:80" name="28" x="5" y="2" width="9" height="9">
+                </frame>
+              </frame>
+            </frame>
+            <frame id="27:81" name="cat-PLUCKS" x="0" y="108" width="206" height="25">
+              <frame id="27:82" name="cat-left" x="8" y="6" width="49" height="12">
+                <frame id="27:984" name="folder" x="0" y="2" width="10" height="8">
+                  <frame id="27:985" name="Vector" x="1" y="1" width="8" height="6">
+                  </frame>
+                </frame>
+                <frame id="27:84" name="PLUCKS" x="16" y="0" width="33" height="12">
+                </frame>
+              </frame>
+              <frame id="27:85" name="badge" x="179" y="6" width="19" height="13">
+                <frame id="27:86" name="24" x="5" y="2" width="9" height="9">
+                </frame>
+              </frame>
+            </frame>
+            <frame id="27:87" name="cat-SEQUENCES" x="0" y="135" width="206" height="25">
+              <frame id="27:88" name="cat-left" x="8" y="6" width="65" height="12">
+                <frame id="27:987" name="folder" x="0" y="2" width="10" height="8">
+                  <frame id="27:988" name="Vector" x="1" y="1" width="8" height="6">
+                  </frame>
+                </frame>
+                <frame id="27:90" name="SEQUENCES" x="16" y="0" width="49" height="12">
+                </frame>
+              </frame>
+              <frame id="27:91" name="badge" x="179" y="6" width="19" height="13">
+                <frame id="27:92" name="31" x="5" y="2" width="9" height="9">
+                </frame>
+              </frame>
+            </frame>
+            <frame id="27:93" name="cat-ARPS" x="0" y="162" width="206" height="25">
+              <frame id="27:94" name="cat-left" x="8" y="6" width="38" height="12">
+                <frame id="27:990" name="folder" x="0" y="2" width="10" height="8">
+                  <frame id="27:991" name="Vector" x="1" y="1" width="8" height="6">
+                  </frame>
+                </frame>
+                <frame id="27:96" name="ARPS" x="16" y="0" width="22" height="12">
+                </frame>
+              </frame>
+              <frame id="27:97" name="badge" x="179" y="6" width="19" height="13">
+                <frame id="27:98" name="18" x="5" y="2" width="9" height="9">
+                </frame>
+              </frame>
+            </frame>
+            <frame id="27:99" name="cat-FX" x="0" y="189" width="206" height="25">
+              <frame id="27:100" name="cat-left" x="8" y="6" width="27" height="12">
+                <frame id="27:993" name="folder" x="0" y="2" width="10" height="8">
+                  <frame id="27:994" name="Vector" x="1" y="1" width="8" height="6">
+                  </frame>
+                </frame>
+                <frame id="27:102" name="FX" x="16" y="0" width="11" height="12">
+                </frame>
+              </frame>
+              <frame id="27:103" name="badge" x="179" y="6" width="19" height="13">
+                <frame id="27:104" name="15" x="5" y="2" width="9" height="9">
+                </frame>
+              </frame>
+            </frame>
+            <frame id="27:105" name="cat-DRUMS" x="0" y="216" width="206" height="25">
+              <frame id="27:106" name="cat-left" x="8" y="6" width="43" height="12">
+                <frame id="27:996" name="folder" x="0" y="2" width="10" height="8">
+                  <frame id="27:997" name="Vector" x="1" y="1" width="8" height="6">
+                  </frame>
+                </frame>
+                <frame id="27:108" name="DRUMS" x="16" y="0" width="27" height="12">
+                </frame>
+              </frame>
+              <frame id="27:109" name="badge" x="179" y="6" width="19" height="13">
+                <frame id="27:110" name="22" x="5" y="2" width="9" height="9">
+                </frame>
+              </frame>
+            </frame>
+            <frame id="27:111" name="cat-USER" x="0" y="243" width="206" height="25">
+              <frame id="27:112" name="cat-left" x="8" y="6" width="38" height="12">
+                <frame id="27:999" name="folder" x="0" y="2" width="10" height="8">
+                  <frame id="27:1000" name="Vector" x="1" y="1" width="8" height="6">
+                  </frame>
+                </frame>
+                <frame id="27:114" name="USER" x="16" y="0" width="22" height="12">
+                </frame>
+              </frame>
+              <frame id="27:115" name="badge" x="179" y="6" width="19" height="13">
+                <frame id="27:116" name="14" x="5" y="2" width="9" height="9">
+                </frame>
+              </frame>
+            </frame>
+          </frame>
+          <frame id="27:117" name="scrollbar" x="212" y="0" width="4" height="471">
+            <frame id="27:118" name="thumb" x="0" y="4" width="4" height="80">
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+    </frame>
+    <frame id="27:119" name="center-presets-panel" x="250" y="0" width="696" height="576">
+      <frame id="27:120" name="presets-panel-header" x="12" y="12" width="672" height="22">
+        <frame id="27:121" name="header-left" x="0" y="4" width="107" height="14">
+          <frame id="27:122" name="led" x="0" y="4" width="6" height="6">
+          </frame>
+          <frame id="27:123" name="CATEGORY: BASS" x="14" y="0" width="93" height="14">
+          </frame>
+        </frame>
+        <frame id="27:124" name="view-toggles" x="592" y="0" width="80" height="22">
+          <frame id="27:125" name="toggle-list" x="2" y="2" width="36" height="18">
+            <frame id="27:126" name="LIST" x="8" y="4" width="20" height="10">
+            </frame>
+          </frame>
+          <frame id="27:127" name="toggle-grid" x="42" y="2" width="36" height="18">
+            <frame id="27:128" name="GRID" x="8" y="4" width="20" height="10">
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+      <frame id="27:129" name="table-content-area" x="12" y="46" width="672" height="518">
+        <frame id="27:130" name="presets-table-scroll" x="0" y="0" width="662" height="350">
+          <frame id="27:131" name="table-header-row" x="0" y="0" width="662" height="18">
+            <frame id="27:132" name="FAV" x="10" y="4" width="18" height="10">
+            </frame>
+            <frame id="27:133" name="PRESET NAME" x="40" y="4" width="296" height="10">
+            </frame>
+            <frame id="27:134" name="ENGINES" x="348" y="4" width="80" height="10">
+            </frame>
+            <frame id="27:135" name="AUTHOR" x="440" y="4" width="120" height="10">
+            </frame>
+            <frame id="27:136" name="DATE" x="572" y="4" width="80" height="10">
+            </frame>
+          </frame>
+          <frame id="27:137" name="Line" x="0" y="20" width="662" height="0">
+          </frame>
+          <frame id="27:138" name="preset-row-0" x="0" y="22" width="662" height="28">
+            <frame id="27:1002" name="star" x="10" y="8" width="12" height="12">
+              <frame id="27:1003" name="Vector" x="1" y="1" width="10" height="10">
+              </frame>
+            </frame>
+            <frame id="27:140" name="OBSIDIAN SUB BASS" x="34" y="8" width="302" height="12">
+            </frame>
+            <frame id="27:141" name="01, 02, 04" x="348" y="8" width="80" height="12">
+            </frame>
+            <frame id="27:142" name="MURMUR AUDIO" x="440" y="8" width="120" height="12">
+            </frame>
+            <frame id="27:143" name="02/12/2026" x="572" y="8" width="80" height="12">
+            </frame>
+          </frame>
+          <frame id="27:144" name="preset-row-1" x="0" y="52" width="662" height="28">
+            <frame id="27:1005" name="star" x="10" y="8" width="12" height="12">
+              <frame id="27:1006" name="Vector" x="1" y="1" width="10" height="10">
+              </frame>
+            </frame>
+            <frame id="27:146" name="RESONATOR GROWL" x="34" y="8" width="302" height="12">
+            </frame>
+            <frame id="27:147" name="01, 03" x="348" y="8" width="80" height="12">
+            </frame>
+            <frame id="27:148" name="CYBER SONICS" x="440" y="8" width="120" height="12">
+            </frame>
+            <frame id="27:149" name="02/10/2026" x="572" y="8" width="80" height="12">
+            </frame>
+          </frame>
+          <frame id="27:150" name="preset-row-2" x="0" y="82" width="662" height="28">
+            <frame id="27:1077" name="star-off" x="10" y="8" width="12" height="12">
+              <frame id="27:1078" name="Vector" x="1" y="1" width="10" height="10">
+              </frame>
+            </frame>
+            <frame id="27:152" name="CHROME ATTACK BASS" x="34" y="8" width="302" height="12">
+            </frame>
+            <frame id="27:153" name="01, 05, 08" x="348" y="8" width="80" height="12">
+            </frame>
+            <frame id="27:154" name="MURMUR AUDIO" x="440" y="8" width="120" height="12">
+            </frame>
+            <frame id="27:155" name="02/09/2026" x="572" y="8" width="80" height="12">
+            </frame>
+          </frame>
+          <frame id="27:156" name="preset-row-3" x="0" y="112" width="662" height="28">
+            <frame id="27:1080" name="star-off" x="10" y="8" width="12" height="12">
+              <frame id="27:1081" name="Vector" x="1" y="1" width="10" height="10">
+              </frame>
+            </frame>
+            <frame id="27:158" name="METALLIC PULSE" x="34" y="8" width="302" height="12">
+            </frame>
+            <frame id="27:159" name="ALL 8" x="348" y="8" width="80" height="12">
+            </frame>
+            <frame id="27:160" name="G. KOVACS" x="440" y="8" width="120" height="12">
+            </frame>
+            <frame id="27:161" name="01/24/2026" x="572" y="8" width="80" height="12">
+            </frame>
+          </frame>
+          <frame id="27:162" name="preset-row-4" x="0" y="142" width="662" height="28">
+            <frame id="27:1008" name="star" x="10" y="8" width="12" height="12">
+              <frame id="27:1009" name="Vector" x="1" y="1" width="10" height="10">
+              </frame>
+            </frame>
+            <frame id="27:164" name="LOW END ENGINE V1" x="34" y="8" width="302" height="12">
+            </frame>
+            <frame id="27:165" name="01" x="348" y="8" width="80" height="12">
+            </frame>
+            <frame id="27:166" name="MURMUR AUDIO" x="440" y="8" width="120" height="12">
+            </frame>
+            <frame id="27:167" name="01/22/2026" x="572" y="8" width="80" height="12">
+            </frame>
+          </frame>
+          <frame id="27:168" name="preset-row-5" x="0" y="172" width="662" height="28">
+            <frame id="27:1083" name="star-off" x="10" y="8" width="12" height="12">
+              <frame id="27:1084" name="Vector" x="1" y="1" width="10" height="10">
+              </frame>
+            </frame>
+            <frame id="27:170" name="OBSIDIAN SUB BASS II" x="34" y="8" width="302" height="12">
+            </frame>
+            <frame id="27:171" name="01, 02" x="348" y="8" width="80" height="12">
+            </frame>
+            <frame id="27:172" name="MURMUR AUDIO" x="440" y="8" width="120" height="12">
+            </frame>
+            <frame id="27:173" name="01/15/2026" x="572" y="8" width="80" height="12">
+            </frame>
+          </frame>
+          <frame id="27:174" name="preset-row-6" x="0" y="202" width="662" height="28">
+            <frame id="27:1011" name="star" x="10" y="8" width="12" height="12">
+              <frame id="27:1012" name="Vector" x="1" y="1" width="10" height="10">
+              </frame>
+            </frame>
+            <frame id="27:176" name="HYDRAULIC CRUSH BASS" x="34" y="8" width="302" height="12">
+            </frame>
+            <frame id="27:177" name="02, 06, 07" x="348" y="8" width="80" height="12">
+            </frame>
+            <frame id="27:178" name="CYBER SONICS" x="440" y="8" width="120" height="12">
+            </frame>
+            <frame id="27:179" name="01/12/2026" x="572" y="8" width="80" height="12">
+            </frame>
+          </frame>
+          <frame id="27:180" name="preset-row-7" x="0" y="232" width="662" height="28">
+            <frame id="27:1086" name="star-off" x="10" y="8" width="12" height="12">
+              <frame id="27:1087" name="Vector" x="1" y="1" width="10" height="10">
+              </frame>
+            </frame>
+            <frame id="27:182" name="CARBON SUB GLIDE" x="34" y="8" width="302" height="12">
+            </frame>
+            <frame id="27:183" name="04, 08" x="348" y="8" width="80" height="12">
+            </frame>
+            <frame id="27:184" name="G. KOVACS" x="440" y="8" width="120" height="12">
+            </frame>
+            <frame id="27:185" name="01/10/2026" x="572" y="8" width="80" height="12">
+            </frame>
+          </frame>
+          <frame id="27:186" name="preset-row-8" x="0" y="262" width="662" height="28">
+            <frame id="27:1089" name="star-off" x="10" y="8" width="12" height="12">
+              <frame id="27:1090" name="Vector" x="1" y="1" width="10" height="10">
+              </frame>
+            </frame>
+            <frame id="27:188" name="SPECTRAL PLUCK BASS" x="34" y="8" width="302" height="12">
+            </frame>
+            <frame id="27:189" name="01, 04" x="348" y="8" width="80" height="12">
+            </frame>
+            <frame id="27:190" name="S. KAWASAKI" x="440" y="8" width="120" height="12">
+            </frame>
+            <frame id="27:191" name="01/05/2026" x="572" y="8" width="80" height="12">
+            </frame>
+          </frame>
+          <frame id="27:192" name="preset-row-9" x="0" y="292" width="662" height="28">
+            <frame id="27:1092" name="star-off" x="10" y="8" width="12" height="12">
+              <frame id="27:1093" name="Vector" x="1" y="1" width="10" height="10">
+              </frame>
+            </frame>
+            <frame id="27:194" name="GRAVEL ENGINE 08" x="34" y="8" width="302" height="12">
+            </frame>
+            <frame id="27:195" name="08" x="348" y="8" width="80" height="12">
+            </frame>
+            <frame id="27:196" name="MURMUR AUDIO" x="440" y="8" width="120" height="12">
+            </frame>
+            <frame id="27:197" name="12/28/2025" x="572" y="8" width="80" height="12">
+            </frame>
+          </frame>
+          <frame id="27:198" name="preset-row-10" x="0" y="322" width="662" height="28">
+            <frame id="27:1014" name="star" x="10" y="8" width="12" height="12">
+              <frame id="27:1015" name="Vector" x="1" y="1" width="10" height="10">
+              </frame>
+            </frame>
+            <frame id="27:200" name="ORGANIC GRUMBLE" x="34" y="8" width="302" height="12">
+            </frame>
+            <frame id="27:201" name="01, 03, 05" x="348" y="8" width="80" height="12">
+            </frame>
+            <frame id="27:202" name="G. KOVACS" x="440" y="8" width="120" height="12">
+            </frame>
+            <frame id="27:203" name="12/20/2025" x="572" y="8" width="80" height="12">
+            </frame>
+          </frame>
+        </frame>
+        <frame id="27:204" name="scrollbar" x="668" y="0" width="4" height="518">
+          <frame id="27:205" name="thumb" x="0" y="4" width="4" height="80">
+          </frame>
+        </frame>
+      </frame>
+    </frame>
+    <frame id="27:206" name="right-preset-detail" x="956" y="0" width="300" height="576">
+      <frame id="27:207" name="PRESET PROFILE" x="12" y="12" width="68" height="10">
+      </frame>
+      <frame id="27:208" name="preset-hero" x="12" y="34" width="276" height="31">
+        <frame id="27:209" name="OBSIDIAN SUB BASS" x="0" y="0" width="276" height="17">
+        </frame>
+        <frame id="27:210" name="BY MURMUR AUDIO" x="0" y="21" width="72" height="10">
+        </frame>
+      </frame>
+      <frame id="27:211" name="waveform-box" x="12" y="77" width="276" height="100">
+        <frame id="27:212" name="WAVEPROFILE SAMPLE" x="6" y="6" width="76" height="9">
+        </frame>
+        <frame id="27:213" name="mini-waveform-canvas" x="6" y="19" width="264" height="75">
+          <frame id="27:214" name="Line" x="0" y="35" width="264" height="0">
+          </frame>
+          <frame id="27:1047" name="audio-waveform" x="0" y="0" width="260" height="60">
+            <frame id="27:1048" name="Vector" x="22" y="5" width="217" height="50">
+            </frame>
+          </frame>
+          <frame id="27:1050" name="audio-waveform" x="0" y="10" width="260" height="60">
+            <frame id="27:1051" name="Vector" x="22" y="5" width="217" height="50">
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+      <frame id="27:217" name="preset-desc-group" x="12" y="189" width="276" height="64">
+        <frame id="27:218" name="DESCRIPTION" x="0" y="0" width="53" height="10">
+        </frame>
+        <frame id="27:219" name="Deep, obsidian-rich analog sub bass. Modeled with extreme analog saturation on Engine 01 combined with an aggressive wavetable sub-glide on Engine 02. Ideal for modern ambient and cyber-noir scores." x="0" y="16" width="276" height="48">
+        </frame>
+      </frame>
+      <frame id="27:220" name="tags-wrapper" x="12" y="265" width="276" height="32">
+        <frame id="27:221" name="TAGS" x="0" y="0" width="20" height="10">
+        </frame>
+        <frame id="27:222" name="tags-list" x="0" y="16" width="276" height="16">
+          <frame id="27:223" name="tag-ANALOG" x="0" y="0" width="41" height="16">
+            <frame id="27:224" name="ANALOG" x="6" y="3" width="29" height="10">
+            </frame>
+          </frame>
+          <frame id="27:225" name="tag-SUB" x="45" y="0" width="27" height="16">
+            <frame id="27:226" name="SUB" x="6" y="3" width="15" height="10">
+            </frame>
+          </frame>
+          <frame id="27:227" name="tag-CINEMATIC" x="76" y="0" width="56" height="16">
+            <frame id="27:228" name="CINEMATIC" x="6" y="3" width="44" height="10">
+            </frame>
+          </frame>
+          <frame id="27:229" name="tag-CYBER" x="136" y="0" width="36" height="16">
+            <frame id="27:230" name="CYBER" x="6" y="3" width="24" height="10">
+            </frame>
+          </frame>
+          <frame id="27:231" name="tag-Saturated" x="176" y="0" width="56" height="16">
+            <frame id="27:232" name="SATURATED" x="6" y="3" width="44" height="10">
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+      <frame id="27:233" name="rating-group" x="12" y="309" width="276" height="10">
+        <frame id="27:234" name="USER RATING" x="0" y="0" width="53" height="10">
+        </frame>
+        <frame id="27:235" name="rating-stars" x="218" y="0" width="58" height="10">
+          <frame id="27:1017" name="star" x="0" y="0" width="10" height="10">
+            <frame id="27:1018" name="Vector" x="1" y="1" width="8" height="8">
+            </frame>
+          </frame>
+          <frame id="27:1020" name="star" x="12" y="0" width="10" height="10">
+            <frame id="27:1021" name="Vector" x="1" y="1" width="8" height="8">
+            </frame>
+          </frame>
+          <frame id="27:1023" name="star" x="24" y="0" width="10" height="10">
+            <frame id="27:1024" name="Vector" x="1" y="1" width="8" height="8">
+            </frame>
+          </frame>
+          <frame id="27:1026" name="star" x="36" y="0" width="10" height="10">
+            <frame id="27:1027" name="Vector" x="1" y="1" width="8" height="8">
+            </frame>
+          </frame>
+          <frame id="27:1095" name="star-off" x="48" y="0" width="10" height="10">
+            <frame id="27:1096" name="Vector" x="1" y="1" width="8" height="8">
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+      <frame id="27:241" name="Line" x="12" y="331" width="276" height="0">
+      </frame>
+      <frame id="27:242" name="action-button-grid" x="12" y="343" width="276" height="67">
+        <frame id="27:243" name="load-btn" x="0" y="0" width="276" height="33">
+          <frame id="27:244" name="LOAD PATCH" x="108" y="10" width="60" height="13">
+          </frame>
+        </frame>
+        <frame id="27:245" name="btn-row" x="0" y="39" width="276" height="28">
+          <frame id="27:246" name="favorite-btn" x="0" y="0" width="135" height="28">
+            <frame id="27:247" name="FAVORITE" x="46" y="8" width="44" height="12">
+            </frame>
+          </frame>
+          <frame id="27:248" name="duplicate-btn" x="141" y="0" width="135" height="28">
+            <frame id="27:249" name="EXPORT" x="51" y="8" width="33" height="12">
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+    </frame>
+  </frame>
+  <frame id="27:250" name="vst-bottom-bar" x="12" y="668" width="1256" height="40">
+    <frame id="27:251" name="tech-diagnostics" x="16" y="15" width="232" height="10">
+      <frame id="27:252" name="cpu-meter-box" x="0" y="0" width="82" height="10">
+        <frame id="27:253" name="CPU" x="0" y="0" width="15" height="10">
+        </frame>
+        <frame id="27:254" name="cpu-bar" x="21" y="3" width="40" height="4">
+          <frame id="27:255" name="cpu-fill" x="0" y="0" width="16" height="4">
+          </frame>
+        </frame>
+        <frame id="27:256" name="40%" x="67" y="0" width="15" height="10">
+        </frame>
+      </frame>
+      <frame id="27:257" name="voice-counts" x="98" y="0" width="72" height="10">
+        <frame id="27:258" name="VOICES:" x="0" y="0" width="34" height="10">
+        </frame>
+        <frame id="27:259" name="16 / 32" x="38" y="0" width="34" height="10">
+        </frame>
+      </frame>
+      <frame id="27:260" name="midi-activity" x="186" y="0" width="46" height="10">
+        <frame id="27:261" name="led" x="0" y="2" width="6" height="6">
+        </frame>
+        <frame id="27:262" name="MIDI IN" x="12" y="0" width="34" height="10">
+        </frame>
+      </frame>
+    </frame>
+    <frame id="27:263" name="MURMUR DSP ENGINE VST3 · VERSION 1.4.2 · © 2026 MURMUR AUDIO" x="952" y="15" width="288" height="10">
+    </frame>
+  </frame>
+</frame>

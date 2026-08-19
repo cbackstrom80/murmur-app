@@ -1,0 +1,654 @@
+<frame id="35:4" name="murmur-design-fx" x="2720" y="820" width="1280" height="720">
+  <frame id="50:140" name="header-bar" x="16" y="16" width="1248" height="60">
+    <frame id="50:141" name="branding" x="16" y="11.5" width="220" height="36">
+      <rounded-rectangle id="128:5" name="murmur-whale-logo" x="0" y="0" width="36" height="36" />
+    </frame>
+    <frame id="50:144" name="view-leds" x="252" y="20" width="101" height="19">
+      <frame id="50:145" name="led-compact" x="0" y="0" width="30" height="19">
+        <ellipse id="50:146" name="led" x="12" y="0" width="6" height="6" />
+        <text id="50:147" name="label" x="0" y="10" width="30" height="9" />
+      </frame>
+      <frame id="50:148" name="led-play" x="44" y="0" width="17" height="19">
+        <ellipse id="50:149" name="led" x="5.5" y="0" width="6" height="6" />
+        <text id="50:150" name="label" x="0" y="10" width="17" height="9" />
+      </frame>
+      <frame id="50:151" name="led-design" x="75" y="0" width="26" height="19">
+        <ellipse id="50:152" name="led" x="10" y="0" width="6" height="6" />
+        <text id="50:153" name="label" x="0" y="10" width="26" height="9" />
+      </frame>
+    </frame>
+    <rounded-rectangle id="50:154" name="score-line" x="369" y="17.5" width="1" height="24" />
+    <frame id="50:155" name="section-leds" x="386" y="20.5" width="168" height="18">
+      <frame id="50:156" name="led-engine" x="0" y="0" width="26" height="18">
+        <ellipse id="50:157" name="led" x="10.5" y="0" width="5" height="5" />
+        <text id="50:158" name="label" x="0" y="9" width="26" height="9" />
+      </frame>
+      <frame id="50:159" name="led-arp" x="38" y="0" width="13" height="18">
+        <ellipse id="50:160" name="led" x="4" y="0" width="5" height="5" />
+        <text id="50:161" name="label" x="0" y="9" width="13" height="9" />
+      </frame>
+      <frame id="50:162" name="led-vocoder" x="63" y="0" width="30" height="18">
+        <ellipse id="50:163" name="led" x="12.5" y="0" width="5" height="5" />
+        <text id="50:164" name="label" x="0" y="9" width="30" height="9" />
+      </frame>
+      <frame id="50:165" name="led-fx" x="105" y="0" width="9" height="18">
+        <ellipse id="50:166" name="led" x="2" y="0" width="5" height="5" />
+        <text id="50:167" name="label" x="0" y="9" width="9" height="9" />
+      </frame>
+      <frame id="50:168" name="led-mod-matrix" x="126" y="0" width="42" height="18">
+        <ellipse id="50:169" name="led" x="18.5" y="0" width="5" height="5" />
+        <text id="50:170" name="label" x="0" y="9" width="42" height="9" />
+      </frame>
+    </frame>
+    <frame id="50:171" name="preset-display" x="570" y="17" width="260" height="25">
+      <text id="50:172" name="preset-name" x="158" y="0" width="102" height="13" />
+      <frame id="50:173" name="preset-meta" x="177" y="15" width="83" height="10">
+        <text id="50:174" name="preset-source" x="0" y="0" width="34" height="10" />
+        <frame id="50:175" name="master-indicator" x="42" y="0" width="41" height="10">
+          <ellipse id="50:176" name="master-led" x="0" y="2" width="6" height="6" />
+          <text id="50:177" name="master-label" x="12" y="0" width="29" height="10" />
+        </frame>
+      </frame>
+    </frame>
+  </frame>
+  <frame id="35:50" name="fx-signal-chain-container" x="16" y="88" width="1248" height="119">
+    <frame id="35:51" name="label-row" x="0" y="4" width="1248" height="11">
+      <text id="35:52" name="SYSTEM FX ROUTING PIPELINE (DRAG TO REORDER)" x="0" y="0" width="235" height="11" />
+      <text id="35:53" name="LATENCY FLUID SYNC ACTIVE" x="1127" y="0" width="121" height="10" />
+    </frame>
+    <frame id="35:54" name="flow-pipeline" x="0" y="21" width="1248" height="94">
+      <frame id="35:55" name="terminal-input" x="8" y="42" width="35" height="10">
+        <ellipse id="35:56" name="node-in" x="0" y="1" width="8" height="8" />
+        <text id="35:57" name="IN" x="12" y="0" width="9" height="10" />
+        <frame id="35:58" name="flow-line-start" x="25" y="4" width="10" height="2" />
+      </frame>
+      <frame id="35:59" name="pipeline-modules" x="43" y="6" width="1153" height="82">
+        <frame id="35:60" name="fx-slot-byp" x="-17.5" y="0" width="88" height="82">
+          <frame id="35:61" name="tile-container" x="0" y="0" width="88" height="82">
+            <frame id="35:62" name="drag-handle" x="6" y="6" width="76" height="2">
+              <ellipse id="35:63" name="Ellipse" x="34" y="0" width="2" height="2" />
+              <ellipse id="35:64" name="Ellipse" x="37" y="0" width="2" height="2" />
+              <ellipse id="35:65" name="Ellipse" x="40" y="0" width="2" height="2" />
+            </frame>
+            <frame id="35:66" name="tile-header" x="6" y="12" width="76" height="10">
+              <text id="35:67" name="BYP" x="0" y="0" width="17" height="10" />
+              <ellipse id="35:68" name="led-state" x="71" y="2.5" width="5" height="5" />
+            </frame>
+            <frame id="35:69" name="glyph-container" x="6" y="26" width="76" height="22">
+              <frame id="35:70" name="icon-wrapper" x="30" y="3" width="16" height="16">
+                <frame id="35:535" name="power-off" x="0" y="0" width="16" height="16" />
+              </frame>
+            </frame>
+            <frame id="35:72" name="mini-slider-tray" x="6" y="52" width="76" height="5">
+              <rounded-rectangle id="35:73" name="slider-fill" x="1" y="1" width="0.00009999999747378752" height="3" />
+            </frame>
+          </frame>
+        </frame>
+        <frame id="35:74" name="fx-slot-sat" x="70.5" y="0" width="100" height="82">
+          <frame id="35:75" name="flow-connector" x="0" y="40" width="12" height="2" />
+          <frame id="35:76" name="tile-container" x="12" y="0" width="88" height="82">
+            <frame id="35:77" name="drag-handle" x="6" y="6" width="76" height="2">
+              <ellipse id="35:78" name="Ellipse" x="34" y="0" width="2" height="2" />
+              <ellipse id="35:79" name="Ellipse" x="37" y="0" width="2" height="2" />
+              <ellipse id="35:80" name="Ellipse" x="40" y="0" width="2" height="2" />
+            </frame>
+            <frame id="35:81" name="tile-header" x="6" y="12" width="76" height="10">
+              <text id="35:82" name="SAT" x="0" y="0" width="17" height="10" />
+              <ellipse id="35:83" name="led-state" x="71" y="2.5" width="5" height="5" />
+            </frame>
+            <frame id="35:84" name="glyph-container" x="6" y="26" width="76" height="22">
+              <frame id="35:85" name="icon-wrapper" x="30" y="3" width="16" height="16">
+                <frame id="74:70" name="zap" x="0" y="0" width="16" height="16" />
+              </frame>
+            </frame>
+            <frame id="35:87" name="mini-slider-tray" x="6" y="52" width="76" height="5">
+              <rounded-rectangle id="35:88" name="slider-fill" x="1" y="1" width="58" height="3" />
+            </frame>
+          </frame>
+        </frame>
+        <frame id="35:89" name="fx-slot-chr" x="170.5" y="0" width="100" height="82">
+          <frame id="35:90" name="flow-connector" x="0" y="40" width="12" height="2" />
+          <frame id="35:91" name="tile-container" x="12" y="0" width="88" height="82">
+            <frame id="35:92" name="drag-handle" x="6" y="6" width="76" height="2">
+              <ellipse id="35:93" name="Ellipse" x="34" y="0" width="2" height="2" />
+              <ellipse id="35:94" name="Ellipse" x="37" y="0" width="2" height="2" />
+              <ellipse id="35:95" name="Ellipse" x="40" y="0" width="2" height="2" />
+            </frame>
+            <frame id="35:96" name="tile-header" x="6" y="12" width="76" height="10">
+              <text id="35:97" name="CHR" x="0" y="0" width="18" height="10" />
+              <ellipse id="35:98" name="led-state" x="71" y="2.5" width="5" height="5" />
+            </frame>
+            <frame id="35:99" name="glyph-container" x="6" y="26" width="76" height="22">
+              <frame id="35:100" name="icon-wrapper" x="30" y="3" width="16" height="16">
+                <frame id="74:78" name="chorus-waves" x="0" y="0" width="16" height="16" />
+              </frame>
+            </frame>
+            <frame id="35:102" name="mini-slider-tray" x="6" y="52" width="76" height="5">
+              <rounded-rectangle id="35:103" name="slider-fill" x="1" y="1" width="29" height="3" />
+            </frame>
+          </frame>
+        </frame>
+        <frame id="35:104" name="fx-slot-tape" x="270.5" y="0" width="100" height="82">
+          <frame id="35:105" name="flow-connector" x="0" y="40" width="12" height="2" />
+          <frame id="35:106" name="tile-container" x="12" y="0" width="88" height="82">
+            <frame id="35:107" name="drag-handle" x="6" y="6" width="76" height="2">
+              <ellipse id="35:108" name="Ellipse" x="34" y="0" width="2" height="2" />
+              <ellipse id="35:109" name="Ellipse" x="37" y="0" width="2" height="2" />
+              <ellipse id="35:110" name="Ellipse" x="40" y="0" width="2" height="2" />
+            </frame>
+            <frame id="35:111" name="tile-header" x="6" y="12" width="76" height="10">
+              <text id="35:112" name="TAPE" x="0" y="0" width="22" height="10" />
+              <ellipse id="35:113" name="led-state" x="71" y="2.5" width="5" height="5" />
+            </frame>
+            <frame id="35:114" name="glyph-container" x="6" y="26" width="76" height="22">
+              <frame id="35:115" name="icon-wrapper" x="30" y="3" width="16" height="16">
+                <frame id="35:490" name="cassette-tape" x="0" y="0" width="16" height="16" />
+              </frame>
+            </frame>
+            <frame id="35:117" name="mini-slider-tray" x="6" y="52" width="76" height="5">
+              <rounded-rectangle id="35:118" name="slider-fill" x="1" y="1" width="47" height="3" />
+            </frame>
+          </frame>
+        </frame>
+        <frame id="35:119" name="fx-slot-mood" x="370.5" y="0" width="100" height="82">
+          <frame id="35:120" name="flow-connector" x="0" y="40" width="12" height="2" />
+          <frame id="35:121" name="tile-container" x="12" y="0" width="88" height="82">
+            <frame id="35:122" name="drag-handle" x="6" y="6" width="76" height="2">
+              <ellipse id="35:123" name="Ellipse" x="34" y="0" width="2" height="2" />
+              <ellipse id="35:124" name="Ellipse" x="37" y="0" width="2" height="2" />
+              <ellipse id="35:125" name="Ellipse" x="40" y="0" width="2" height="2" />
+            </frame>
+            <frame id="35:126" name="tile-header" x="6" y="12" width="76" height="10">
+              <text id="35:127" name="MOOD" x="0" y="0" width="27" height="10" />
+              <ellipse id="35:128" name="led-state" x="71" y="2.5" width="5" height="5" />
+            </frame>
+            <frame id="35:129" name="glyph-container" x="6" y="26" width="76" height="22">
+              <frame id="35:130" name="icon-wrapper" x="30" y="3" width="16" height="16">
+                <frame id="74:72" name="sparkle" x="0" y="0" width="16" height="16" />
+              </frame>
+            </frame>
+            <frame id="35:132" name="mini-slider-tray" x="6" y="52" width="76" height="5">
+              <rounded-rectangle id="35:133" name="slider-fill" x="1" y="1" width="0.00009999999747378752" height="3" />
+            </frame>
+          </frame>
+        </frame>
+        <frame id="35:134" name="fx-slot-fshf" x="470.5" y="0" width="100" height="82">
+          <frame id="35:135" name="flow-connector" x="0" y="40" width="12" height="2" />
+          <frame id="35:136" name="tile-container" x="12" y="0" width="88" height="82">
+            <frame id="35:137" name="drag-handle" x="6" y="6" width="76" height="2">
+              <ellipse id="35:138" name="Ellipse" x="34" y="0" width="2" height="2" />
+              <ellipse id="35:139" name="Ellipse" x="37" y="0" width="2" height="2" />
+              <ellipse id="35:140" name="Ellipse" x="40" y="0" width="2" height="2" />
+            </frame>
+            <frame id="35:141" name="tile-header" x="6" y="12" width="76" height="10">
+              <text id="35:142" name="FSHF" x="0" y="0" width="21" height="10" />
+              <ellipse id="35:143" name="led-state" x="71" y="2.5" width="5" height="5" />
+            </frame>
+            <frame id="35:144" name="glyph-container" x="6" y="26" width="76" height="22">
+              <frame id="35:145" name="icon-wrapper" x="30" y="3" width="16" height="16">
+                <frame id="74:74" name="arrow-up-down" x="0" y="0" width="16" height="16" />
+              </frame>
+            </frame>
+            <frame id="35:147" name="mini-slider-tray" x="6" y="52" width="76" height="5">
+              <rounded-rectangle id="35:148" name="slider-fill" x="1" y="1" width="36" height="3" />
+            </frame>
+          </frame>
+        </frame>
+        <frame id="35:149" name="fx-slot-frac" x="570.5" y="0" width="100" height="82">
+          <frame id="35:150" name="flow-connector" x="0" y="40" width="12" height="2" />
+          <frame id="35:151" name="tile-container" x="12" y="0" width="88" height="82">
+            <frame id="35:152" name="drag-handle" x="6" y="6" width="76" height="2">
+              <ellipse id="35:153" name="Ellipse" x="34" y="0" width="2" height="2" />
+              <ellipse id="35:154" name="Ellipse" x="37" y="0" width="2" height="2" />
+              <ellipse id="35:155" name="Ellipse" x="40" y="0" width="2" height="2" />
+            </frame>
+            <frame id="35:156" name="tile-header" x="6" y="12" width="76" height="10">
+              <text id="35:157" name="FRAC" x="0" y="0" width="23" height="10" />
+              <ellipse id="35:158" name="led-state" x="71" y="2.5" width="5" height="5" />
+            </frame>
+            <frame id="35:159" name="glyph-container" x="6" y="26" width="76" height="22">
+              <frame id="35:160" name="icon-wrapper" x="30" y="3" width="16" height="16">
+                <frame id="74:82" name="granular-scatter" x="0" y="0" width="16" height="16" />
+              </frame>
+            </frame>
+            <frame id="35:162" name="mini-slider-tray" x="6" y="52" width="76" height="5">
+              <rounded-rectangle id="35:163" name="slider-fill" x="1" y="1" width="22" height="3" />
+            </frame>
+          </frame>
+        </frame>
+        <frame id="35:164" name="fx-slot-rev" x="670.5" y="0" width="100" height="82">
+          <frame id="35:165" name="flow-connector" x="0" y="40" width="12" height="2" />
+          <frame id="35:166" name="tile-container" x="12" y="0" width="88" height="82">
+            <frame id="35:167" name="drag-handle" x="6" y="6" width="76" height="2">
+              <ellipse id="35:168" name="Ellipse" x="34" y="0" width="2" height="2" />
+              <ellipse id="35:169" name="Ellipse" x="37" y="0" width="2" height="2" />
+              <ellipse id="35:170" name="Ellipse" x="40" y="0" width="2" height="2" />
+            </frame>
+            <frame id="35:171" name="tile-header" x="6" y="12" width="76" height="10">
+              <text id="35:172" name="REV" x="0" y="0" width="17" height="10" />
+              <ellipse id="35:173" name="led-state" x="71" y="2.5" width="5" height="5" />
+            </frame>
+            <frame id="35:174" name="glyph-container" x="6" y="26" width="76" height="22">
+              <frame id="35:175" name="icon-wrapper" x="30" y="3" width="16" height="16">
+                <frame id="74:95" name="reverb-arcs" x="0" y="0" width="16" height="16" />
+              </frame>
+            </frame>
+            <frame id="35:177" name="mini-slider-tray" x="6" y="52" width="76" height="5">
+              <rounded-rectangle id="35:178" name="slider-fill" x="1" y="1" width="61" height="3" />
+            </frame>
+            <frame id="35:179" name="down-focus-arrow" x="39" y="78" width="10" height="6">
+              <regular-polygon id="35:180" name="Polygon" x="10" y="6" width="10" height="6" />
+            </frame>
+          </frame>
+        </frame>
+        <frame id="35:181" name="fx-slot-eq" x="770.5" y="0" width="100" height="82">
+          <frame id="35:182" name="flow-connector" x="0" y="40" width="12" height="2" />
+          <frame id="35:183" name="tile-container" x="12" y="0" width="88" height="82">
+            <frame id="35:184" name="drag-handle" x="6" y="6" width="76" height="2">
+              <ellipse id="35:185" name="Ellipse" x="34" y="0" width="2" height="2" />
+              <ellipse id="35:186" name="Ellipse" x="37" y="0" width="2" height="2" />
+              <ellipse id="35:187" name="Ellipse" x="40" y="0" width="2" height="2" />
+            </frame>
+            <frame id="35:188" name="tile-header" x="6" y="12" width="76" height="10">
+              <text id="35:189" name="EQ" x="0" y="0" width="12" height="10" />
+              <ellipse id="35:190" name="led-state" x="71" y="2.5" width="5" height="5" />
+            </frame>
+            <frame id="35:191" name="glyph-container" x="6" y="26" width="76" height="22">
+              <frame id="35:192" name="icon-wrapper" x="30" y="3" width="16" height="16">
+                <frame id="35:532" name="sliders-vertical" x="0" y="0" width="16" height="16" />
+              </frame>
+            </frame>
+            <frame id="35:194" name="mini-slider-tray" x="6" y="52" width="76" height="5">
+              <rounded-rectangle id="35:195" name="slider-fill" x="1" y="1" width="72" height="3" />
+            </frame>
+          </frame>
+        </frame>
+        <frame id="35:196" name="fx-slot-comp" x="870.5" y="0" width="100" height="82">
+          <frame id="35:197" name="flow-connector" x="0" y="40" width="12" height="2" />
+          <frame id="35:198" name="tile-container" x="12" y="0" width="88" height="82">
+            <frame id="35:199" name="drag-handle" x="6" y="6" width="76" height="2">
+              <ellipse id="35:200" name="Ellipse" x="34" y="0" width="2" height="2" />
+              <ellipse id="35:201" name="Ellipse" x="37" y="0" width="2" height="2" />
+              <ellipse id="35:202" name="Ellipse" x="40" y="0" width="2" height="2" />
+            </frame>
+            <frame id="35:203" name="tile-header" x="6" y="12" width="76" height="10">
+              <text id="35:204" name="COMP" x="0" y="0" width="26" height="10" />
+              <ellipse id="35:205" name="led-state" x="71" y="2.5" width="5" height="5" />
+            </frame>
+            <frame id="35:206" name="glyph-container" x="6" y="26" width="76" height="22">
+              <frame id="35:207" name="icon-wrapper" x="30" y="3" width="16" height="16">
+                <frame id="74:76" name="gauge" x="0" y="0" width="16" height="16" />
+              </frame>
+            </frame>
+            <frame id="35:209" name="mini-slider-tray" x="6" y="52" width="76" height="5">
+              <rounded-rectangle id="35:210" name="slider-fill" x="1" y="1" width="54" height="3" />
+            </frame>
+          </frame>
+        </frame>
+        <frame id="35:211" name="fx-slot-lim" x="970.5" y="0" width="100" height="82">
+          <frame id="35:212" name="flow-connector" x="0" y="40" width="12" height="2" />
+          <frame id="35:213" name="tile-container" x="12" y="0" width="88" height="82">
+            <frame id="35:214" name="drag-handle" x="6" y="6" width="76" height="2">
+              <ellipse id="35:215" name="Ellipse" x="34" y="0" width="2" height="2" />
+              <ellipse id="35:216" name="Ellipse" x="37" y="0" width="2" height="2" />
+              <ellipse id="35:217" name="Ellipse" x="40" y="0" width="2" height="2" />
+            </frame>
+            <frame id="35:218" name="tile-header" x="6" y="12" width="76" height="10">
+              <text id="35:219" name="LIM" x="0" y="0" width="15" height="10" />
+              <ellipse id="35:220" name="led-state" x="71" y="2.5" width="5" height="5" />
+            </frame>
+            <frame id="35:221" name="glyph-container" x="6" y="26" width="76" height="22">
+              <frame id="35:222" name="icon-wrapper" x="30" y="3" width="16" height="16">
+                <frame id="35:493" name="brick-wall-shield" x="0" y="0" width="16" height="16" />
+              </frame>
+            </frame>
+            <frame id="35:224" name="mini-slider-tray" x="6" y="52" width="76" height="5">
+              <rounded-rectangle id="35:225" name="slider-fill" x="1" y="1" width="65" height="3" />
+            </frame>
+          </frame>
+        </frame>
+        <frame id="35:226" name="fx-slot-voc" x="1070.5" y="0" width="100" height="82">
+          <frame id="35:227" name="flow-connector" x="0" y="40" width="12" height="2" />
+          <frame id="35:228" name="tile-container" x="12" y="0" width="88" height="82">
+            <frame id="35:229" name="drag-handle" x="6" y="6" width="76" height="2">
+              <ellipse id="35:230" name="Ellipse" x="34" y="0" width="2" height="2" />
+              <ellipse id="35:231" name="Ellipse" x="37" y="0" width="2" height="2" />
+              <ellipse id="35:232" name="Ellipse" x="40" y="0" width="2" height="2" />
+            </frame>
+            <frame id="35:233" name="tile-header" x="6" y="12" width="76" height="10">
+              <text id="35:234" name="VOC" x="0" y="0" width="19" height="10" />
+              <ellipse id="35:235" name="led-state" x="71" y="2.5" width="5" height="5" />
+            </frame>
+            <frame id="35:236" name="glyph-container" x="6" y="26" width="76" height="22">
+              <frame id="35:237" name="icon-wrapper" x="30" y="3" width="16" height="16">
+                <frame id="35:511" name="mic-vocal" x="0" y="0" width="16" height="16" />
+              </frame>
+            </frame>
+            <frame id="35:239" name="mini-slider-tray" x="6" y="52" width="76" height="5">
+              <rounded-rectangle id="35:240" name="slider-fill" x="1" y="1" width="0.00009999999747378752" height="3" />
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+      <frame id="35:241" name="terminal-output" x="1196" y="42" width="44" height="10">
+        <frame id="35:242" name="flow-line-end" x="0" y="4" width="10" height="2" />
+        <text id="35:243" name="OUT" x="14" y="0" width="18" height="10" />
+        <ellipse id="35:244" name="node-out" x="36" y="1" width="8" height="8" />
+      </frame>
+    </frame>
+  </frame>
+  <frame id="35:245" name="middle-workspace" x="16" y="219" width="1248" height="419">
+    <frame id="35:246" name="selected-fx-detail-panel" x="0" y="0" width="856" height="360">
+      <frame id="35:247" name="focused-header" x="16" y="16" width="824" height="18">
+        <frame id="35:248" name="focused-header-left" x="0" y="0" width="319" height="18">
+          <frame id="35:249" name="led-active-ring" x="0" y="2" width="14" height="14">
+            <ellipse id="35:250" name="Ellipse" x="5" y="5" width="4" height="4" />
+          </frame>
+          <text id="35:251" name="REVERB (SLOT I3)" x="24" y="1" width="117" height="16" />
+          <frame id="35:252" name="divider" x="151" y="2" width="1" height="14" />
+          <frame id="35:253" name="dropdown-preset" x="162" y="0" width="157" height="18">
+            <text id="35:254" name="PRESET: LARGE CONCERT HALL" x="8" y="4" width="127" height="10" />
+            <frame id="35:255" name="icon-wrapper" x="141" y="5" width="8" height="8">
+              <frame id="35:496" name="chevron-down" x="0" y="0" width="8" height="8" />
+            </frame>
+          </frame>
+        </frame>
+        <frame id="35:257" name="focused-header-right" x="622" y="1" width="202" height="16">
+          <text id="35:258" name="ALGORITHM: COSMIC SPACE EMBED" x="0" y="3" width="146" height="10" />
+          <frame id="35:259" name="active-toggle" x="154" y="0" width="48" height="16">
+            <text id="35:260" name="ACTIVE" x="8" y="3" width="32" height="10" />
+          </frame>
+        </frame>
+      </frame>
+      <frame id="35:261" name="knobs-and-visualization" x="16" y="48" width="824" height="296">
+        <frame id="35:262" name="knobs-subgrid" x="0" y="0" width="260" height="136">
+          <frame id="35:263" name="knob-row-1" x="0" y="0" width="260" height="60">
+            <frame id="35:264" name="knob-WET/DRY" x="0" y="0" width="64" height="60">
+              <frame id="35:265" name="knob-graphic-wrapper" x="16" y="0" width="32" height="32" />
+              <frame id="35:270" name="knob-readout" x="0" y="38" width="64" height="22">
+                <text id="35:271" name="WET/DRY" x="0" y="0" width="64" height="10" />
+                <text id="35:272" name="85%" x="0" y="12" width="64" height="10" />
+              </frame>
+            </frame>
+            <frame id="35:273" name="knob-DECAY" x="98" y="0" width="64" height="60">
+              <frame id="35:274" name="knob-graphic-wrapper" x="16" y="0" width="32" height="32" />
+              <frame id="35:279" name="knob-readout" x="0" y="38" width="64" height="22">
+                <text id="35:280" name="DECAY" x="0" y="0" width="64" height="10" />
+                <text id="35:281" name="3.2s" x="0" y="12" width="64" height="10" />
+              </frame>
+            </frame>
+            <frame id="35:282" name="knob-SIZE" x="196" y="0" width="64" height="60">
+              <frame id="35:283" name="knob-graphic-wrapper" x="16" y="0" width="32" height="32" />
+              <frame id="35:288" name="knob-readout" x="0" y="38" width="64" height="22">
+                <text id="35:289" name="SIZE" x="0" y="0" width="64" height="10" />
+                <text id="35:290" name="78m" x="0" y="12" width="64" height="10" />
+              </frame>
+            </frame>
+          </frame>
+          <frame id="35:291" name="knob-row-2" x="0" y="76" width="260" height="60">
+            <frame id="35:292" name="knob-PRE-DELAY" x="0" y="0" width="64" height="60">
+              <frame id="35:293" name="knob-graphic-wrapper" x="16" y="0" width="32" height="32" />
+              <frame id="35:298" name="knob-readout" x="0" y="38" width="64" height="22">
+                <text id="35:299" name="PRE-DELAY" x="0" y="0" width="64" height="10" />
+                <text id="35:300" name="22ms" x="0" y="12" width="64" height="10" />
+              </frame>
+            </frame>
+            <frame id="35:301" name="knob-DAMPING" x="98" y="0" width="64" height="60">
+              <frame id="35:302" name="knob-graphic-wrapper" x="16" y="0" width="32" height="32" />
+              <frame id="35:307" name="knob-readout" x="0" y="38" width="64" height="22">
+                <text id="35:308" name="DAMPING" x="0" y="0" width="64" height="10" />
+                <text id="35:309" name="65%" x="0" y="12" width="64" height="10" />
+              </frame>
+            </frame>
+            <frame id="35:310" name="knob-DIFFUSION" x="196" y="0" width="64" height="60">
+              <frame id="35:311" name="knob-graphic-wrapper" x="16" y="0" width="32" height="32" />
+              <frame id="35:316" name="knob-readout" x="0" y="38" width="64" height="22">
+                <text id="35:317" name="DIFFUSION" x="0" y="0" width="64" height="10" />
+                <text id="35:318" name="84%" x="0" y="12" width="64" height="10" />
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+        <line id="35:319" name="Line" x="411" y="0" width="0" height="100" />
+        <frame id="35:320" name="eq-curve-section" x="562" y="0" width="262" height="296">
+          <frame id="35:321" name="eq-header" x="0" y="0" width="262" height="11">
+            <text id="35:322" name="REVERB DAMPING FREQUENCY SPECTRUM" x="0" y="0" width="194" height="11" />
+            <text id="35:323" name="HI-PASS: 120Hz · LO-PASS: 8.5kHz" x="194" y="0.5" width="137" height="10" />
+          </frame>
+          <frame id="35:324" name="spectrum-screen" x="0" y="21" width="262" height="132">
+            <frame id="35:325" name="grid-vector-lines" x="0" y="0" width="444" height="130">
+              <line id="35:326" name="Line" x="0" y="32" width="444" height="0" />
+              <line id="35:327" name="Line" x="0" y="65" width="444" height="0" />
+              <line id="35:328" name="Line" x="0" y="98" width="444" height="0" />
+              <line id="35:329" name="Line" x="111" y="0" width="0" height="130" />
+              <line id="35:330" name="Line" x="222" y="0" width="0" height="130" />
+              <line id="35:331" name="Line" x="333" y="0" width="0" height="130" />
+              <line id="35:332" name="Line" x="10" y="110" width="77.27406978607178" height="20.705525875091553" />
+              <line id="35:333" name="Line" x="88" y="90" width="70.71068286895752" height="70.71068286895752" />
+              <line id="35:334" name="Line" x="160" y="20" width="139.46726083755493" height="12.201804220676422" />
+              <line id="35:335" name="Line" x="300" y="32" width="81.91520571708679" height="57.35764503479004" />
+              <line id="35:336" name="Line" x="380" y="90" width="56.38155698776245" height="20.521209239959717" />
+            </frame>
+          </frame>
+          <frame id="35:337" name="stereo-control-row" x="0" y="163" width="262" height="18">
+            <frame id="35:338" name="slider-stereo-width" x="0" y="1" width="280" height="16">
+              <text id="35:339" name="STEREO WIDTH" x="0" y="3" width="64" height="10" />
+              <frame id="35:340" name="slider-capsule-track" x="72" y="0" width="140" height="16" />
+              <text id="35:344" name="110%" x="220" y="3" width="22" height="10" />
+            </frame>
+            <frame id="35:345" name="freeze-trigger" x="280" y="0" width="169" height="18">
+              <text id="35:346" name="FREEZE REVERB TAIL" x="0" y="4" width="84" height="10" />
+              <frame id="35:347" name="btn-freeze" x="90" y="0" width="79" height="18">
+                <text id="35:348" name="INFINITE HOLD" x="10" y="4" width="59" height="10" />
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+    </frame>
+    <frame id="35:349" name="fx-overview-meters-panel" x="868" y="0" width="380" height="360">
+      <frame id="35:350" name="header" x="12" y="12" width="356" height="11">
+        <text id="35:351" name="RACK SIGNALS OUT AT GLANCE" x="0" y="0" width="145" height="11" />
+        <text id="35:352" name="LATENCY: 2.3ms" x="289" y="0.5" width="67" height="10" />
+      </frame>
+      <frame id="35:353" name="meter-rows-stack" x="12" y="33" width="356" height="291">
+        <frame id="35:354" name="fx-row-SAT (SATURATION)" x="0" y="0" width="356" height="24">
+          <frame id="35:355" name="row-left" x="6" y="6" width="98" height="12">
+            <frame id="35:356" name="icon-wrapper" x="0" y="0" width="12" height="12">
+              <frame id="35:487" name="wand-sparkles" x="0" y="0" width="12" height="12" />
+            </frame>
+            <text id="35:358" name="SAT (SATURATION)" x="20" y="1" width="78" height="10" />
+          </frame>
+          <frame id="35:359" name="row-right" x="278" y="8.5" width="72" height="7">
+            <frame id="35:360" name="meter-box" x="0" y="0" width="72" height="7">
+              <text id="35:361" name="OUT" x="0" y="0" width="14" height="7" />
+              <frame id="35:362" name="mini-meter" x="18" y="1.5" width="54" height="4">
+                <rounded-rectangle id="35:363" name="meter-fill" x="0" y="0" width="43" height="4" />
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+        <frame id="35:364" name="fx-row-CHR (CHORUS)" x="0" y="28" width="356" height="24">
+          <frame id="35:365" name="row-left" x="6" y="6" width="82" height="12">
+            <frame id="35:366" name="icon-wrapper" x="0" y="0" width="12" height="12">
+              <frame id="35:547" name="waves" x="0" y="0" width="12" height="12" />
+            </frame>
+            <text id="35:368" name="CHR (CHORUS)" x="20" y="1" width="62" height="10" />
+          </frame>
+          <frame id="35:369" name="row-right" x="278" y="8.5" width="72" height="7">
+            <frame id="35:370" name="meter-box" x="0" y="0" width="72" height="7">
+              <text id="35:371" name="OUT" x="0" y="0" width="14" height="7" />
+              <frame id="35:372" name="mini-meter" x="18" y="1.5" width="54" height="4">
+                <rounded-rectangle id="35:373" name="meter-fill" x="0" y="0" width="22" height="4" />
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+        <frame id="35:374" name="fx-row-TAPE (ANALOG HEAT)" x="0" y="56" width="356" height="24">
+          <frame id="35:375" name="row-left" x="6" y="6" width="110" height="12">
+            <frame id="35:376" name="icon-wrapper" x="0" y="0" width="12" height="12">
+              <frame id="35:517" name="cassette-tape" x="0" y="0" width="12" height="12" />
+            </frame>
+            <text id="35:378" name="TAPE (ANALOG HEAT)" x="20" y="1" width="90" height="10" />
+          </frame>
+          <frame id="35:379" name="row-right" x="278" y="8.5" width="72" height="7">
+            <frame id="35:380" name="meter-box" x="0" y="0" width="72" height="7">
+              <text id="35:381" name="OUT" x="0" y="0" width="14" height="7" />
+              <frame id="35:382" name="mini-meter" x="18" y="1.5" width="54" height="4">
+                <rounded-rectangle id="35:383" name="meter-fill" x="0" y="0" width="38" height="4" />
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+        <frame id="35:384" name="fx-row-FSHF (FREQ SHIFTER)" x="0" y="84" width="356" height="24">
+          <frame id="35:385" name="row-left" x="6" y="6" width="107" height="12">
+            <frame id="35:386" name="icon-wrapper" x="0" y="0" width="12" height="12">
+              <frame id="35:544" name="wand-2" x="0" y="0" width="12" height="12" />
+            </frame>
+            <text id="35:388" name="FSHF (FREQ SHIFTER)" x="20" y="1" width="87" height="10" />
+          </frame>
+          <frame id="35:389" name="row-right" x="278" y="8.5" width="72" height="7">
+            <frame id="35:390" name="meter-box" x="0" y="0" width="72" height="7">
+              <text id="35:391" name="OUT" x="0" y="0" width="14" height="7" />
+              <frame id="35:392" name="mini-meter" x="18" y="1.5" width="54" height="4">
+                <rounded-rectangle id="35:393" name="meter-fill" x="0" y="0" width="27" height="4" />
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+        <frame id="35:394" name="fx-row-FRAC (BIT GRANULAR)" x="0" y="112" width="356" height="24">
+          <frame id="35:395" name="row-left" x="6" y="6" width="112" height="12">
+            <frame id="35:396" name="icon-wrapper" x="0" y="0" width="12" height="12">
+              <frame id="35:520" name="diamond" x="0" y="0" width="12" height="12" />
+            </frame>
+            <text id="35:398" name="FRAC (BIT GRANULAR)" x="20" y="1" width="92" height="10" />
+          </frame>
+          <frame id="35:399" name="row-right" x="278" y="8.5" width="72" height="7">
+            <frame id="35:400" name="meter-box" x="0" y="0" width="72" height="7">
+              <text id="35:401" name="OUT" x="0" y="0" width="14" height="7" />
+              <frame id="35:402" name="mini-meter" x="18" y="1.5" width="54" height="4">
+                <rounded-rectangle id="35:403" name="meter-fill" x="0" y="0" width="14" height="4" />
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+        <frame id="35:404" name="fx-row-REV (REVERB SPACE)" x="0" y="140" width="356" height="24">
+          <frame id="35:405" name="row-left" x="6" y="6" width="107" height="12">
+            <frame id="35:406" name="icon-wrapper" x="0" y="0" width="12" height="12">
+              <frame id="35:508" name="waves" x="0" y="0" width="12" height="12" />
+            </frame>
+            <text id="35:408" name="REV (REVERB SPACE)" x="20" y="1" width="87" height="10" />
+          </frame>
+          <frame id="35:409" name="row-right" x="278" y="8.5" width="72" height="7">
+            <frame id="35:410" name="meter-box" x="0" y="0" width="72" height="7">
+              <text id="35:411" name="OUT" x="0" y="0" width="14" height="7" />
+              <frame id="35:412" name="mini-meter" x="18" y="1.5" width="54" height="4">
+                <rounded-rectangle id="35:413" name="meter-fill" x="0" y="0" width="43" height="4" />
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+        <frame id="35:414" name="fx-row-EQ (EQUALIZER)" x="0" y="168" width="356" height="24">
+          <frame id="35:415" name="row-left" x="6" y="6" width="87" height="12">
+            <frame id="35:416" name="icon-wrapper" x="0" y="0" width="12" height="12">
+              <frame id="35:550" name="sliders-horizontal" x="0" y="0" width="12" height="12" />
+            </frame>
+            <text id="35:418" name="EQ (EQUALIZER)" x="20" y="1" width="67" height="10" />
+          </frame>
+          <frame id="35:419" name="row-right" x="278" y="8.5" width="72" height="7">
+            <frame id="35:420" name="meter-box" x="0" y="0" width="72" height="7">
+              <text id="35:421" name="OUT" x="0" y="0" width="14" height="7" />
+              <frame id="35:422" name="mini-meter" x="18" y="1.5" width="54" height="4">
+                <rounded-rectangle id="35:423" name="meter-fill" x="0" y="0" width="42" height="4" />
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+        <frame id="35:424" name="fx-row-COMP (COMPRESSOR)" x="0" y="196" width="356" height="24">
+          <frame id="35:425" name="row-left" x="6" y="6" width="112" height="12">
+            <frame id="35:426" name="icon-wrapper" x="0" y="0" width="12" height="12">
+              <frame id="35:538" name="circle-x" x="0" y="0" width="12" height="12" />
+            </frame>
+            <text id="35:428" name="COMP (COMPRESSOR)" x="20" y="1" width="92" height="10" />
+          </frame>
+          <frame id="35:429" name="row-right" x="221" y="8.5" width="129" height="7">
+            <frame id="35:430" name="meter-box" x="0" y="0" width="72" height="7">
+              <text id="35:431" name="OUT" x="0" y="0" width="14" height="7" />
+              <frame id="35:432" name="mini-meter" x="18" y="1.5" width="54" height="4">
+                <rounded-rectangle id="35:433" name="meter-fill" x="0" y="0" width="35" height="4" />
+              </frame>
+            </frame>
+            <frame id="35:434" name="reduction-box" x="84" y="0" width="45" height="7">
+              <text id="35:435" name="GR" x="0" y="0" width="9" height="7" />
+              <frame id="35:436" name="gr-meter" x="13" y="1.5" width="32" height="4">
+                <rounded-rectangle id="35:437" name="Rectangle" x="0" y="0" width="14" height="4" />
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+        <frame id="35:438" name="fx-row-LIM (CEILING LIMIT)" x="0" y="224" width="356" height="24">
+          <frame id="35:439" name="row-left" x="6" y="6" width="100" height="12">
+            <frame id="35:440" name="icon-wrapper" x="0" y="0" width="12" height="12">
+              <frame id="35:514" name="brick-wall" x="0" y="0" width="12" height="12" />
+            </frame>
+            <text id="35:442" name="LIM (CEILING LIMIT)" x="20" y="1" width="80" height="10" />
+          </frame>
+          <frame id="35:443" name="row-right" x="221" y="8.5" width="129" height="7">
+            <frame id="35:444" name="meter-box" x="0" y="0" width="72" height="7">
+              <text id="35:445" name="OUT" x="0" y="0" width="14" height="7" />
+              <frame id="35:446" name="mini-meter" x="18" y="1.5" width="54" height="4">
+                <rounded-rectangle id="35:447" name="meter-fill" x="0" y="0" width="49" height="4" />
+              </frame>
+            </frame>
+            <frame id="35:448" name="reduction-box" x="84" y="0" width="45" height="7">
+              <text id="35:449" name="GR" x="0" y="0" width="9" height="7" />
+              <frame id="35:450" name="gr-meter" x="13" y="1.5" width="32" height="4">
+                <rounded-rectangle id="35:451" name="Rectangle" x="0" y="0" width="14" height="4" />
+              </frame>
+            </frame>
+          </frame>
+        </frame>
+      </frame>
+      <frame id="35:452" name="overview-footer" x="12" y="334" width="356" height="14">
+        <text id="35:453" name="CPU CORE ALLOCATION" x="0" y="4" width="96" height="10" />
+        <text id="35:454" name="TOTAL FX LOAD: 14.2%" x="263" y="4" width="93" height="10" />
+      </frame>
+    </frame>
+  </frame>
+  <frame id="35:455" name="vst-bottom-bar" x="16" y="650" width="1248" height="54">
+    <frame id="35:456" name="routing-sidechain" x="16" y="18" width="182" height="18">
+      <text id="35:457" name="SIDECHAIN LINK" x="0" y="4" width="65" height="10" />
+      <frame id="35:458" name="sidechain-chip" x="73" y="0" width="109" height="18">
+        <ellipse id="35:459" name="Ellipse" x="8" y="7" width="4" height="4" />
+        <text id="35:460" name="SC BUS B → OP4 EXT" x="18" y="4" width="83" height="10" />
+      </frame>
+    </frame>
+    <frame id="35:461" name="parallel-mix" x="330.66668701171875" y="20" width="246" height="14">
+      <text id="35:462" name="GLOBAL WET MIX" x="0" y="2" width="71" height="10" />
+      <frame id="35:463" name="wet-slider-track" x="79" y="0" width="140" height="14" />
+      <text id="35:467" name="80%" x="227" y="2" width="19" height="10" />
+    </frame>
+    <frame id="35:468" name="send-buses" x="709.3333740234375" y="18" width="207" height="18">
+      <frame id="35:469" name="send-a" x="0" y="0" width="102" height="18">
+        <text id="35:470" name="SEND A (CHORUS)" x="0" y="4" width="74" height="10" />
+        <frame id="35:471" name="knob-send-a" x="80" y="0" width="22" height="18">
+          <frame id="35:472" name="Frame" x="2" y="0" width="18" height="18" />
+        </frame>
+      </frame>
+      <frame id="35:475" name="send-b" x="114" y="0" width="93" height="18">
+        <text id="35:476" name="SEND B (DELAY)" x="0" y="4" width="65" height="10" />
+        <frame id="35:477" name="knob-send-b" x="71" y="0" width="22" height="18">
+          <frame id="35:478" name="Frame" x="2" y="0" width="18" height="18" />
+        </frame>
+      </frame>
+    </frame>
+    <frame id="35:481" name="global-actions" x="1049" y="18" width="183" height="18">
+      <frame id="35:482" name="btn-routing-option" x="0" y="0" width="90" height="18">
+        <text id="35:483" name="PRE/POST FADER" x="10" y="4" width="70" height="10" />
+      </frame>
+      <frame id="35:484" name="btn-global-bypass" x="100" y="0" width="83" height="18">
+        <text id="35:485" name="ALL FX BYPASS" x="10" y="4" width="63" height="10" />
+      </frame>
+    </frame>
+  </frame>
+</frame>
