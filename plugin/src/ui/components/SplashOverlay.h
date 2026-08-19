@@ -2,6 +2,8 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "UpdateBadge.h"
+
 namespace pw8::plugin::ui
 {
     /// Real branded splash overlay shown briefly when the editor first opens —
@@ -34,6 +36,7 @@ namespace pw8::plugin::ui
 
         juce::Image backgroundImage_;
         juce::Image markIcon_;
+        UpdateBadge updateBadge_; // matches the Figma frame's own update-notification-banner node
 
         double elapsedMs_ = 0.0;
         static constexpr double kDisplayMs = 1500.0;

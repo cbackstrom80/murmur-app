@@ -4,8 +4,10 @@
 
 namespace pw8::plugin::ui
 {
-    /// Small, unobtrusive "a newer version exists" pill — invisible unless
-    /// a real update-check (net::UpdateChecker) confirms one. Clicking
+    /// "New update available" pill — matches the real Figma murmur-vst-splash
+    /// frame's `update-notification-banner` node exactly (pill outline, dot,
+    /// tracked label, chevron; see that frame for the reference). Invisible
+    /// unless a real update-check (net::UpdateChecker) confirms one. Clicking
     /// opens the real GitHub release in the system browser; this never
     /// downloads or installs anything itself (see UpdateChecker's own doc
     /// comment for why: no Sparkle, no code-signing continuity to trust an
@@ -17,7 +19,7 @@ namespace pw8::plugin::ui
         ~UpdateBadge() override;
 
         void paint(juce::Graphics& g) override;
-        void resized() override;
+        void mouseUp(const juce::MouseEvent& event) override;
 
         /// Kicks off the real network check. Safe to call once, shortly
         /// after the editor opens -- becomes visible only if an update is
@@ -25,8 +27,8 @@ namespace pw8::plugin::ui
         void checkNow();
 
     private:
-        juce::HyperlinkButton link_;
-        juce::String latestVersion_;
+        juce::String labelText_;
+        juce::URL releaseUrl_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(UpdateBadge)
     };

@@ -13,7 +13,6 @@
 #include "components/PatchBrowserBar.h"
 #include "components/PresetBrowserOverlay.h"
 #include "components/SplashOverlay.h"
-#include "components/UpdateBadge.h"
 #include "content/FavoritesStore.h"
 #include "content/LicenseStore.h"
 #include "content/PresetRatingsStore.h"
@@ -56,7 +55,6 @@ namespace pw8::plugin::ui
         DesignModeEditor designModeEditor_;
         SplashOverlay splashOverlay_;
         KeyActivationOverlay keyActivationOverlay_;
-        UpdateBadge updateBadge_;
         layout::EditorMode editorMode_ = layout::EditorMode::Play;
         layout::DesignSubPage designSubPage_ = layout::DesignSubPage::Engine;
         layout::PlayViewMode lastNonCompactPlayView_ = layout::PlayViewMode::Desktop;

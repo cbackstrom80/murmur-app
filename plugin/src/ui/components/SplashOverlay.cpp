@@ -43,7 +43,17 @@ namespace pw8::plugin::ui
         backgroundImage_ =
             juce::ImageCache::getFromMemory(BinaryData::murmur_splash_bg_jpg, BinaryData::murmur_splash_bg_jpgSize);
         markIcon_ = branding::getWhaleIcon();
-        setInterceptsMouseClicks(false, false);
+        // false/true, not false/false: the overlay itself stays click-through
+        // (splash isn't modal), but updateBadge_ -- a real child component --
+        // still needs to receive its own click to open the release URL.
+        setInterceptsMouseClicks(false, true);
+
+        addChildComponent(updateBadge_);
+        // Fired immediately, not on dismiss: this banner only exists for the
+        // splash's own ~1.9s lifetime (matches the Figma frame's placement),
+        // unlike the license-activation flow which persists after dismiss.
+        updateBadge_.checkNow();
+
         startTimerHz(30);
     }
 
@@ -72,6 +82,8 @@ namespace pw8::plugin::ui
                 : juce::jmax(0.0f, 1.0f - static_cast<float>((elapsedMs_ - kDisplayMs) / kFadeMs));
 
         g.setOpacity(fadeAlpha);
+        updateBadge_.setAlpha(fadeAlpha); // child component's own paint() doesn't
+                                            // inherit this Graphics context's opacity
 
         // Base fill, matching the Figma frame's own deep-water solid fill --
         // shows through at the crop edges since the source photo is square
@@ -135,6 +147,15 @@ namespace pw8::plugin::ui
                   juce::Justification::centredRight, false);
     }
 
-    void SplashOverlay::resized() {}
+    void SplashOverlay::resized()
+    {
+        // Fixed 380x40 pill, 24px from the top, horizontally centred --
+        // exact geometry from the Figma frame's update-notification-banner
+        // node (absoluteBoundingBox relative to its 1280-wide splash frame).
+        constexpr int kBannerWidth = 380;
+        constexpr int kBannerHeight = 40;
+        constexpr int kBannerTopMargin = 24;
+        updateBadge_.setBounds(getWidth() / 2 - kBannerWidth / 2, kBannerTopMargin, kBannerWidth, kBannerHeight);
+    }
 
 } // namespace pw8::plugin::ui
