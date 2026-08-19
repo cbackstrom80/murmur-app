@@ -1,12 +1,31 @@
 # Rebrand: Patchwork Eight → MURMUR
 
-**Status: IN PROGRESS — Steps 1-6 done, Step 7 (actual GitHub repo rename) intentionally
-held for explicit confirmation** (outward-facing/hard-to-reverse, unlike everything else
-in this document, which is local commits on the existing feature branch). This document
-is the decisions record for finishing the MURMUR rebrand that the plugin's own bundle
-identity already started. Committed as two commits on `cursor/favorites-unison-stack-daw`
-and pushed: `a8d3271` (Step 4, the isolated mass preset rename) and `8bf7e8d` (Steps 1-3
-and 5, everything else — code, tooling, docs).
+**Status: DONE — all 8 steps complete.** This document is the decisions record for
+finishing the MURMUR rebrand that the plugin's own bundle identity already started.
+
+**Step 7 (GitHub repo rename), executed**: `gh repo rename murmur-app --repo
+cbackstrom80/patchwork-eight` — confirmed via `gh repo view` that both
+`cbackstrom80/murmur-app` and the old `cbackstrom80/patchwork-eight` URL resolve to the
+same repo (GitHub's standard redirect). Local directory renamed to match
+(`~/repos/patchwork-eight` → `~/repos/murmur-app`, plain `mv`, git history/working tree
+unaffected). `git remote set-url origin` updated. `~/repos/patchforge`'s
+`package.json`/`README.md` relative paths updated and verified to actually resolve
+against the new local layout. `content/appcast.xml.template`/`docs/appcast.xml.template`
+and both `scripts/build_release_*.sh` GitHub URLs fixed to
+`github.com/cbackstrom80/murmur-app` (also fixes the pre-existing wrong-org bug this doc
+originally flagged — the old URLs pointed at `github.com/patchwork-eight/patchwork-eight`,
+never a real org). CMake's build directory (gitignored, not tracked) had stale absolute
+paths baked in from the old location, as expected — wiped and cleanly reconfigured;
+full rebuild (Standalone/AU/VST3/Quasar) and `ctest` both re-verified clean from the new
+location: 335/336, same one pre-existing unrelated failure, confirming the directory
+rename broke nothing.
+
+Committed as four commits on `cursor/favorites-unison-stack-daw`, all pushed:
+`a8d3271` (Step 4, the isolated mass preset rename), `8bf7e8d` (Steps 1-3 and 5,
+everything else — code, tooling, docs), `4633139` (Step 6 verification results recorded),
+and a final commit fixing the appcast/release-script URLs post-repo-rename (Step 7). The
+sibling `patchforge` repo got its own commit + push
+(`e089adc`) for its path updates.
 
 **Step 3 full sweep, done**: beyond the docs/prose bulk pass, also fixed every remaining
 non-doc old-brand reference found by a final repo-wide grep: `LICENSE` copyright holder,
@@ -240,11 +259,10 @@ it's unrelated to the rebrand's scope.
    `README.md` (`../patchwork-eight` → `../murmur-app`); fix the appcast org-name bug; run
    `patchforge`'s `npm run ingest` to confirm the new path resolves.
    (Verified clean: `patchwork-pipeline` and `pathchforge-storefront` have zero
-   references to this repo's path — nothing to update there.) **Intentionally NOT done —
-   this is the one outward-facing, hard-to-reverse action in this whole effort (changes
-   the repo's real GitHub identity/clone URLs), held for explicit user confirmation before
-   executing, unlike every other step which was a local, reversible commit.**
-8. **Commit in reviewable chunks** — **done**, two commits on
+   references to this repo's path — nothing to update there.) **Done** — executed only
+   after explicit user confirmation, since it's the one outward-facing, hard-to-reverse
+   action in this whole effort. See the execution log at the top of this document.
+8. **Commit in reviewable chunks** — **done**, commits on
    `cursor/favorites-unison-stack-daw`, both pushed: `a8d3271` (Step 4, the mass preset
    rename, isolated as its own commit exactly as planned) and `8bf7e8d` (Steps 1-3 and 5).
 
