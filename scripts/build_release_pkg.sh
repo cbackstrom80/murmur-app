@@ -188,12 +188,16 @@ if [[ "$SYSTEM_ONLY" -eq 0 ]]; then
     done
 fi
 
-if [[ ! -d "$PRESETS_SRC" ]] || [[ -z "$(find "$PRESETS_SRC" -name '*.pw8' -print -quit 2>/dev/null)" ]]; then
+# Real presets on disk are .murmur now (docs/REBRAND_MURMUR.md); .pw8 is
+# still matched too since that migration is a permanent dual-read
+# guarantee, not a deprecation countdown — this packaging script needs the
+# same guarantee its own runtime load paths already have.
+if [[ ! -d "$PRESETS_SRC" ]] || [[ -z "$(find "$PRESETS_SRC" \( -name '*.pw8' -o -name '*.murmur' \) -print -quit 2>/dev/null)" ]]; then
     echo "==> Factory presets not found — generating..."
     python3 scripts/generate_factory_presets.py
 fi
-PRESET_COUNT=$(find "$PRESETS_SRC" -name '*.pw8' | wc -l | tr -d ' ')
-INTERSTELLAR_COUNT=$(find "$PRESETS_SRC/Interstellar" -name '*.pw8' 2>/dev/null | wc -l | tr -d ' ')
+PRESET_COUNT=$(find "$PRESETS_SRC" \( -name '*.pw8' -o -name '*.murmur' \) | wc -l | tr -d ' ')
+INTERSTELLAR_COUNT=$(find "$PRESETS_SRC/Interstellar" \( -name '*.pw8' -o -name '*.murmur' \) 2>/dev/null | wc -l | tr -d ' ')
 echo "==> Bundling $PRESET_COUNT factory presets (${INTERSTELLAR_COUNT} Interstellar)."
 if [[ ! -d "$PRESETS_SRC/Interstellar" ]] || [[ "$INTERSTELLAR_COUNT" -lt 100 ]]; then
     echo "ERROR: Interstellar factory bank missing or incomplete under $PRESETS_SRC/Interstellar" >&2
@@ -260,14 +264,14 @@ STAGING_DST="$PAYLOAD/Library/Application Support/MURMUR/Presets/.murmur-factory
 cp -R "$PRESETS_SRC/"* "$FACTORY_DST/"
 cp -R "$PRESETS_SRC/"* "$STAGING_DST/"
 
-STAGED_INTERSTELLAR=$(find "$FACTORY_DST/Interstellar" -name '*.pw8' 2>/dev/null | wc -l | tr -d ' ')
+STAGED_INTERSTELLAR=$(find "$FACTORY_DST/Interstellar" \( -name '*.pw8' -o -name '*.murmur' \) 2>/dev/null | wc -l | tr -d ' ')
 if [[ "$STAGED_INTERSTELLAR" -lt 100 ]]; then
-    echo "ERROR: pkg payload missing Interstellar bank (found ${STAGED_INTERSTELLAR} .pw8 under factory/Interstellar)" >&2
+    echo "ERROR: pkg payload missing Interstellar bank (found ${STAGED_INTERSTELLAR} .pw8/.murmur under factory/Interstellar)" >&2
     exit 1
 fi
 echo "==> Staged ${PRESET_COUNT} factory presets in pkg payload (${STAGED_INTERSTELLAR} Interstellar)."
 
-find "$SHOWCASE_PRESETS_SRC" -maxdepth 1 -name '*.pw8' -exec cp {} \
+find "$SHOWCASE_PRESETS_SRC" -maxdepth 1 \( -name '*.pw8' -o -name '*.murmur' \) -exec cp {} \
     "$PAYLOAD/Library/Application Support/MURMUR/Presets/showcase/" \;
 cp "$WAVETABLES_SRC"/*.json "$PAYLOAD/Library/Application Support/MURMUR/Wavetables/"
 
@@ -465,20 +469,28 @@ if [[ "$MAKE_DMG" -eq 1 ]]; then
     rm -rf "$DMG_STAGE"
     mkdir -p "$DMG_STAGE"
     cp "$PKG_PATH" "$DMG_STAGE/Install MURMUR.pkg"
-    cp "$REPO_ROOT/docs/BEN_MVP.md" "$DMG_STAGE/1 — READ ME FIRST.txt"
-    cp "$REPO_ROOT/docs/product/README.md" "$DMG_STAGE/MURMUR Product Docs.txt"
-    cp "$REPO_ROOT/docs/INSTALL.md" "$DMG_STAGE/INSTALL.txt"
+
+    # Only the installer (+ app/Applications, when bundled) sit loose at the
+    # root — that's the one thing a real Finder window should read as "the
+    # action to take." Everything else that used to clutter the root as 5-6
+    # separate .txt icons (overlapping the branded background, no clear
+    # focal point — seen in an actual test DMG) moves into Documentation/.
+    DMG_DOCS="$DMG_STAGE/Documentation"
+    mkdir -p "$DMG_DOCS"
+    cp "$REPO_ROOT/docs/BEN_MVP.md" "$DMG_DOCS/Read Me First.txt"
+    cp "$REPO_ROOT/docs/product/README.md" "$DMG_DOCS/Product Docs.txt"
+    cp "$REPO_ROOT/docs/INSTALL.md" "$DMG_DOCS/Install Guide.txt"
     if [[ -n "$RELEASE_NOTES" && -f "$RELEASE_NOTES" ]]; then
-        cp "$RELEASE_NOTES" "$DMG_STAGE/WHATS NEW.txt"
+        cp "$RELEASE_NOTES" "$DMG_DOCS/Whats New.txt"
     elif [[ -f "$REPO_ROOT/docs/RELEASE_1.4.0.md" ]]; then
-        cp "$REPO_ROOT/docs/RELEASE_1.4.0.md" "$DMG_STAGE/WHATS NEW.txt"
+        cp "$REPO_ROOT/docs/RELEASE_1.4.0.md" "$DMG_DOCS/Whats New.txt"
     fi
-    cp "$REPO_ROOT/docs/LOGIC_SMART_CONTROLS.md" "$DMG_STAGE/LOGIC SETUP.txt" 2>/dev/null || true
+    cp "$REPO_ROOT/docs/LOGIC_SMART_CONTROLS.md" "$DMG_DOCS/Logic Setup.txt" 2>/dev/null || true
     if [[ "$SYSTEM_ONLY" -eq 0 && -d "$APP_SRC" ]]; then
         cp -R "$APP_SRC" "$DMG_STAGE/MURMUR.app"
         ln -s /Applications "$DMG_STAGE/Applications" 2>/dev/null || true
     fi
-    cat > "$DMG_STAGE/2 — Double-click Install MURMUR.pkg.txt" << 'DMG_README'
+    cat > "$DMG_STAGE/Read Me First.txt" << 'DMG_README'
 MURMUR — Installation (Apple Silicon Mac)
 =========================================
 
@@ -494,7 +506,7 @@ If macOS blocks the installer: right-click Install MURMUR.pkg → Open → Open.
 
 Presets: click the preset name in the header to open Preset Explorer.
 
-Support docs are in "1 — READ ME FIRST.txt" and INSTALL.txt.
+Full docs, release notes, and Logic setup are in the Documentation folder.
 DMG_README
     if [[ "$SYSTEM_ONLY" -eq 1 ]]; then
         PKG_SUFFIX="arm64"
@@ -502,11 +514,117 @@ DMG_README
         PKG_SUFFIX="${SCOPE_SUFFIX}"
     fi
     DMG_PATH="$DIST_DIR/MURMUR-${VERSION}-macOS-${PKG_SUFFIX}.dmg"
-    # Use /tmp for hdiutil scratch — avoids failures when repo volume is nearly full
-    if ! TMPDIR="${TMPDIR:-/tmp}" hdiutil create -volname "MURMUR ${VERSION}" -srcfolder "$DMG_STAGE" -ov -format UDZO "$DMG_PATH" >/dev/null; then
+    DMG_VOLNAME="MURMUR ${VERSION}"
+
+    # Branded Finder background (kelp forest + whale mark, same artwork as the
+    # plugin's own splash/activation screens — real assets already in the repo,
+    # not a placeholder) instead of the previous plain-white Finder window.
+    # Generated at build time with Pillow rather than committed as a binary, so
+    # it stays in sync if the source art ever changes.
+    DMG_BG_DIR="$DMG_STAGE/.background"
+    mkdir -p "$DMG_BG_DIR"
+    if command -v python3 >/dev/null 2>&1 && python3 -c "import PIL" >/dev/null 2>&1; then
+        python3 - "$REPO_ROOT/plugin/resources/branding/murmur_splash_bg.jpg" \
+                  "$REPO_ROOT/plugin/resources/branding/murmur_whale_512.png" \
+                  "$DMG_BG_DIR/background.png" << 'PYEOF'
+import sys
+from PIL import Image, ImageDraw, ImageFont
+
+kelp_path, whale_path, out_path = sys.argv[1:4]
+W, H = 800, 500
+
+bg = Image.open(kelp_path).convert("RGB")
+src_ratio = bg.width / bg.height
+dst_ratio = W / H
+if src_ratio > dst_ratio:
+    new_w = int(bg.height * dst_ratio)
+    bg = bg.crop(((bg.width - new_w) // 2, 0, (bg.width - new_w) // 2 + new_w, bg.height))
+else:
+    new_h = int(bg.width / dst_ratio)
+    bg = bg.crop((0, (bg.height - new_h) // 2, bg.width, (bg.height - new_h) // 2 + new_h))
+bg = bg.resize((W, H), Image.LANCZOS)
+bg = Image.blend(bg, Image.new("RGB", (W, H), (5, 8, 11)), 0.6)
+bg = bg.convert("RGBA")
+
+# Whale mark already bakes in its own "MURMUR" wordmark (confirmed via
+# screenshot) -- no separate text lockup drawn here, same call made for the
+# in-app splash/activation screens.
+whale = Image.open(whale_path).convert("RGBA")
+whale.thumbnail((170, 170), Image.LANCZOS)
+bg.alpha_composite(whale, (W // 2 - whale.width // 2, 46))
+
+draw = ImageDraw.Draw(bg)
+try:
+    font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 15)
+except OSError:
+    font = ImageFont.load_default()
+instructions = "Double-click Install MURMUR.pkg to begin"
+draw.text((W // 2, H - 46), instructions, fill=(200, 208, 214, 255), font=font, anchor="mm")
+
+bg.convert("RGB").save(out_path, "PNG")
+PYEOF
+        echo "==> DMG background generated"
+    else
+        echo "==> WARNING: python3+Pillow unavailable, DMG will use a plain Finder window" >&2
+    fi
+
+    # Build read-write first so Finder can be driven to set the window's
+    # background/icon layout, then compress to the final distributable image
+    # — hdiutil can't apply Finder view options to a read-only UDZO directly.
+    RW_DMG_PATH="$STAGE_DIR/murmur-rw.dmg"
+    rm -f "$RW_DMG_PATH"
+    if ! TMPDIR="${TMPDIR:-/tmp}" hdiutil create -volname "$DMG_VOLNAME" -srcfolder "$DMG_STAGE" -ov -fs HFS+ -format UDRW "$RW_DMG_PATH" >/dev/null; then
         echo "ERROR: DMG creation failed (often disk space). pkg is still at: $PKG_PATH" >&2
         exit 1
     fi
+
+    MOUNT_OUT="$(hdiutil attach -readwrite -noverify -noautoopen "$RW_DMG_PATH")"
+    MOUNT_POINT="/Volumes/$DMG_VOLNAME"
+
+    if [[ -f "$DMG_BG_DIR/background.png" && -d "$MOUNT_POINT" ]]; then
+        # Best-effort: a fancy layout is a real polish item, not something
+        # worth failing the whole release build over if Finder scripting
+        # misbehaves in a headless/CI environment.
+        osascript << OSA_EOF || echo "==> WARNING: Finder DMG styling failed, continuing with plain layout" >&2
+tell application "Finder"
+    tell disk "$DMG_VOLNAME"
+        open
+        set current view of container window to icon view
+        set toolbar visible of container window to false
+        set statusbar visible of container window to false
+        set the bounds of container window to {200, 120, 1000, 640}
+        set viewOptions to the icon view options of container window
+        set arrangement of viewOptions to not arranged
+        set icon size of viewOptions to 96
+        set background picture of viewOptions to file ".background:background.png"
+        -- Row 1 (y=280): the three "do something" items, clear of the whale
+        -- mark above (ends ~y=216) and the instruction caption below
+        -- (starts ~y=454). Row 2 (y=390): the app/Applications drag pair,
+        -- only present for --full builds.
+        set position of item "Install MURMUR.pkg" of container window to {250, 280}
+        set position of item "Read Me First.txt" of container window to {450, 280}
+        set position of item "Documentation" of container window to {650, 280}
+        try
+            set position of item "MURMUR.app" of container window to {250, 390}
+            set position of item "Applications" of container window to {450, 390}
+        end try
+        close
+        open
+        update without registering applications
+        delay 1
+    end tell
+end tell
+OSA_EOF
+    fi
+
+    hdiutil detach "$MOUNT_POINT" -quiet 2>/dev/null || hdiutil detach "$MOUNT_POINT" -force -quiet 2>/dev/null || true
+
+    rm -f "$DMG_PATH"
+    if ! TMPDIR="${TMPDIR:-/tmp}" hdiutil convert "$RW_DMG_PATH" -format UDZO -ov -o "$DMG_PATH" >/dev/null; then
+        echo "ERROR: DMG compression failed. pkg is still at: $PKG_PATH" >&2
+        exit 1
+    fi
+    rm -f "$RW_DMG_PATH"
     echo "==> DMG: $DMG_PATH"
 fi
 
