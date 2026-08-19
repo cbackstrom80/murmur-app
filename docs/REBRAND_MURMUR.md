@@ -1,10 +1,12 @@
 # Rebrand: Patchwork Eight → MURMUR
 
-**Status: IN PROGRESS.** This document is the decisions record for finishing the MURMUR
-rebrand that the plugin's own bundle identity already started. Steps 1-5 (inventory,
-extension-handling code, cosmetic/identifier renames, mass preset-file rename, CLI tool
-renames) are done as of this update; full verification (Step 6) and the actual GitHub
-repo rename (Step 7) have not started.
+**Status: IN PROGRESS — Steps 1-6 done, Step 7 (actual GitHub repo rename) intentionally
+held for explicit confirmation** (outward-facing/hard-to-reverse, unlike everything else
+in this document, which is local commits on the existing feature branch). This document
+is the decisions record for finishing the MURMUR rebrand that the plugin's own bundle
+identity already started. Committed as two commits on `cursor/favorites-unison-stack-daw`
+and pushed: `a8d3271` (Step 4, the isolated mass preset rename) and `8bf7e8d` (Steps 1-3
+and 5, everything else — code, tooling, docs).
 
 **Step 3 full sweep, done**: beyond the docs/prose bulk pass, also fixed every remaining
 non-doc old-brand reference found by a final repo-wide grep: `LICENSE` copyright holder,
@@ -232,19 +234,19 @@ it's unrelated to the rebrand's scope.
    → "MURMUR -- murmur-info"). One straggler found: `tests/regression/RenderSanityTests.cpp`'s
    `SKIP()` diagnostic message used a path format (`"Sidechain/...pw8"`, no
    `content/presets/` prefix) the Step 4 batch-regex didn't match — fixed.
-6. **Full verification suite** (below) — must be green before the repo rename.
-   **Not started.**
+6. **Full verification suite** (below) — **done**, see Step 6 verification results above.
 7. **GitHub repo rename** `patchwork-eight` → `murmur-app`; update local
    `git remote set-url`; update `~/repos/patchforge/package.json`'s `ingest` script and
    `README.md` (`../patchwork-eight` → `../murmur-app`); fix the appcast org-name bug; run
    `patchforge`'s `npm run ingest` to confirm the new path resolves.
    (Verified clean: `patchwork-pipeline` and `pathchforge-storefront` have zero
-   references to this repo's path — nothing to update there.) **Not started.**
-8. **Commit in reviewable chunks** along the step boundaries above — the mass preset
-   rename should be its own isolated commit so `git log --follow`/reviewers can see it as
-   a pure rename, not mixed with logic changes. Each commit ends
-   `Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>`, then push. **Not started —
-   nothing from this effort has been committed yet.**
+   references to this repo's path — nothing to update there.) **Intentionally NOT done —
+   this is the one outward-facing, hard-to-reverse action in this whole effort (changes
+   the repo's real GitHub identity/clone URLs), held for explicit user confirmation before
+   executing, unlike every other step which was a local, reversible commit.**
+8. **Commit in reviewable chunks** — **done**, two commits on
+   `cursor/favorites-unison-stack-daw`, both pushed: `a8d3271` (Step 4, the mass preset
+   rename, isolated as its own commit exactly as planned) and `8bf7e8d` (Steps 1-3 and 5).
 
 ## Verification (Steps 2-3, already run)
 
