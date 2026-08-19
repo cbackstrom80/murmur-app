@@ -84,6 +84,7 @@ target_sources(pw8_plugin PRIVATE
     src/content/PresetRatingsStore.cpp
     src/content/LicenseStore.cpp
     src/net/MurmurApiClient.cpp
+    src/net/UpdateChecker.cpp
     src/ui/MurmurRootEditor.cpp
     src/ui/DesignModeEditor.cpp
     src/ui/PlayModeEditor.cpp
@@ -147,6 +148,7 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/PresetBrowserOverlay.cpp
     src/ui/components/SplashOverlay.cpp
     src/ui/components/KeyActivationOverlay.cpp
+    src/ui/components/UpdateBadge.cpp
     src/ui/components/AmpEnvelopePanel.cpp
     src/ui/components/ObsidianEnvelopeVisualizer.cpp
     src/ui/components/ModSourceChip.cpp

@@ -2,7 +2,12 @@
 <!--
   Sparkle appcast template — Standalone MURMUR.app only (future).
 
-  Sparkle is not wired into the plugin yet. When ready:
+  Sparkle is still not wired in (see below for why) -- a lighter real
+  alternative already ships: plugin/src/net/UpdateChecker.h checks the
+  live GitHub Releases API and shows an in-app "UPDATE AVAILABLE" link
+  (no auto-install). This appcast stays as the real plan for later, if
+  Sparkle's Xcode-project + code-signing-continuity requirements ever
+  make sense to take on. When ready:
     1. Add Sparkle as a dependency to the Standalone target only.
     2. Host this file at a stable HTTPS URL (e.g. GitHub Pages or S3).
     3. Sign updates with Sparkle's generate_appcast / generate_keys workflow.

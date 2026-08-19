@@ -174,6 +174,10 @@ namespace pw8::plugin::ui
             });
         };
 
+        // Small, hidden-until-real corner badge -- see UpdateBadge/UpdateChecker's
+        // own doc comments for why this checks-and-links rather than auto-updating.
+        addChildComponent(updateBadge_);
+
         // Splash goes last so it paints on top of everything else added above.
         addAndMakeVisible(splashOverlay_);
         splashOverlay_.setBounds(getLocalBounds());
@@ -183,6 +187,8 @@ namespace pw8::plugin::ui
             const content::LicenseStore licenseCheck;
             if (!licenseCheck.info().isActivated())
                 keyActivationOverlay_.setVisible(true);
+
+            updateBadge_.checkNow();
         };
     }
 
@@ -381,6 +387,12 @@ namespace pw8::plugin::ui
 
         if (keyActivationOverlay_.isVisible())
             keyActivationOverlay_.setBounds(bounds);
+
+        constexpr int kBadgeWidth = 200;
+        constexpr int kBadgeHeight = 22;
+        constexpr int kBadgeMargin = 12;
+        updateBadge_.setBounds(bounds.getWidth() - kBadgeWidth - kBadgeMargin,
+                               bounds.getHeight() - kBadgeHeight - kBadgeMargin, kBadgeWidth, kBadgeHeight);
 
         if (presetBrowserOverlay_.isVisible())
             presetBrowserOverlay_.setBounds(bounds);
