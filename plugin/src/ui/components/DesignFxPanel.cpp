@@ -1015,6 +1015,16 @@ namespace pw8::plugin::ui
         repaint(routingBounds_);
     }
 
+    void DesignFxPanel::mouseUp(const juce::MouseEvent& event)
+    {
+        juce::ignoreUnused(event);
+        if (activeDrag_ != DragTarget::None)
+        {
+            activeDrag_ = DragTarget::None;
+            repaint(routingBounds_);
+        }
+    }
+
     void DesignFxPanel::paintFocusedHeader(juce::Graphics& g, juce::Rectangle<int> bounds) const
     {
         const int slot = selectedEngineSlot();

@@ -42,6 +42,14 @@ namespace pw8::plugin::ui
         quasarPill_ = std::make_unique<GlowRingButton>("QUASAR");
         quasarPill_->setAccentColour(juce::Colour(0xff7c4dff));
         quasarPill_->setClickingTogglesState(false);
+        quasarPill_->onClick = [this] {
+            const auto prefix = slotParamPrefix(slotIndex_);
+            const int type = readEffectType(apvts_, prefix);
+            setEffectType(apvts_, prefix, type == 13 ? 0 : 13);
+            refresh();
+            if (onSlotSelected)
+                onSlotSelected(slotIndex_);
+        };
         addAndMakeVisible(*quasarPill_);
 
         bypassButton_.setClickingTogglesState(false);

@@ -77,7 +77,16 @@ namespace pw8::plugin::ui
             bounds.removeFromTop(gap);
             if (primaryRow != nullptr)
                 primaryRow->setBounds(bounds.removeFromTop(layout::kQuasarPrimaryKnobRowHeight));
+
+            auto macroRow = bounds.removeFromTop(layout::kQuasarMacroRowHeight);
             bounds.removeFromTop(gap);
+            if (orbitMacro != nullptr && spreadMacro != nullptr)
+            {
+                const int macroW = juce::jmax(80, (macroRow.getWidth() - gap) / 2);
+                orbitMacro->setBounds(macroRow.removeFromLeft(macroW).withHeight(layout::kQuasarMacroRowHeight));
+                macroRow.removeFromLeft(gap);
+                spreadMacro->setBounds(macroRow.removeFromLeft(macroW).withHeight(layout::kQuasarMacroRowHeight));
+            }
 
             auto cards = bounds.removeFromTop(layout::kQuasarBottomCardHeight);
             const int cardGap = gap;
@@ -99,6 +108,7 @@ namespace pw8::plugin::ui
         {
             return layout::kQuasarBinauralFieldHeight + layout::kDesignFxPageSectionGap
                    + layout::kQuasarPrimaryKnobRowHeight + layout::kDesignFxPageSectionGap
+                   + layout::kQuasarMacroRowHeight + layout::kDesignFxPageSectionGap
                    + layout::kQuasarBottomCardHeight + layout::kDesignFxPageSectionGap
                    + layout::kQuasarTelemetryBarHeight + 24;
         }

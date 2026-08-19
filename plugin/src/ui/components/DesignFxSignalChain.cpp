@@ -194,7 +194,8 @@ namespace pw8::plugin::ui
         const bool bypassed = def.label[0] == 'B' && def.label[1] == 'Y' && liveType == 0;
         const bool moodActive = index == 4 && liveType == 8;
         const bool moodUiActive = index == 4 && selected;
-        const bool active = moodUiActive || moodActive || (!def.disabled && liveType != 0 && !bypassed);
+        const bool slotMatches = liveType == def.effectType;
+        const bool active = moodUiActive || moodActive || (!def.disabled && slotMatches && !bypassed);
         const bool dim = def.disabled || (bypassed && !moodUiActive && !moodActive);
 
         g.setColour(dim ? palette::kFigmaFxChipFill.withAlpha(0.65f)
@@ -295,7 +296,7 @@ namespace pw8::plugin::ui
             }
             paintChip(g, tile, kChips[i], i, liveTypes_[i], mixLevels_[i], i == selectedChip_, ghost);
             x += tileW;
-            if (i + 1 < kChips.size())
+            if (d + 1 < kChips.size())
             {
                 g.setColour(palette::kAccent.withAlpha(0.8f));
                 g.fillRect(x, y + tileH * 0.5f - 1.0f, connW, 2.0f);

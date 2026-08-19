@@ -102,7 +102,7 @@ namespace pw8::plugin::ui
     {
         slotIndex_ = juce::jlimit<std::size_t>(3, 6, globalFxSlotIndex);
         airKnob_.reset();
-        airKnob_ = std::make_unique<GlowKnob>(apvts_, slotParamPrefix() + "Qsr1Distance", "AIR");
+        airKnob_ = std::make_unique<GlowKnob>(apvts_, slotParamPrefix() + "Qsr1Level", "AIR");
         airKnob_->applyFigmaContext(figma::KnobContext::PanelGridMedium);
         panel_.addAndMakeVisible(*airKnob_);
         refresh();

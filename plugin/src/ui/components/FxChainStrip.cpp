@@ -624,6 +624,12 @@ namespace pw8::plugin::ui
 
     void FxChainStrip::timerCallback()
     {
+        if (designFxPageMode_)
+        {
+            updateGainReductionLabel();
+            return;
+        }
+
         const int type = readEffectType(apvts_, selectedSlot().paramPrefix);
         const auto& spec = fxPlaySpecForType(type);
         slotTitleLabel_.setText(selectedSlot().shortLabel + " · " + spec.name, juce::dontSendNotification);

@@ -14,16 +14,17 @@ namespace pw8::plugin::ui
             const char* field;
             const char* label;
             modulation::ModDestination destination;
+            bool enableMod;
         };
 
         static constexpr KnobSpec kKnobSpecs[] = {
-            {"CntrLevel", "WIDTH", modulation::ModDestination::QuasarCntrLevel},
-            {"QuasarCrossfeed", "CROSSFEED", modulation::ModDestination::QuasarCrossfeed},
-            {"Qsr1Distance", "DISTANCE", modulation::ModDestination::QuasarQsr1Distance},
-            {"Qsr1AngleDeg", "AZIMUTH", modulation::ModDestination::QuasarQsr1Angle},
-            {"Qsr1Height", "ELEVATION", modulation::ModDestination::QuasarQsr1Height},
-            {"Qsr1RoomSize", "HRTF SIZE", modulation::ModDestination::QuasarRoomAmount},
-            {"Mix", "MIX", modulation::ModDestination::MasterFxMix},
+            {"CntrLevel", "WIDTH", modulation::ModDestination::QuasarCntrLevel, true},
+            {"QuasarCrossfeed", "CROSSFEED", modulation::ModDestination::QuasarCrossfeed, true},
+            {"Qsr1Distance", "DISTANCE", modulation::ModDestination::QuasarQsr1Distance, true},
+            {"Qsr1AngleDeg", "AZIMUTH", modulation::ModDestination::QuasarQsr1Angle, true},
+            {"Qsr1Height", "ELEVATION", modulation::ModDestination::QuasarQsr1Height, true},
+            {"Qsr1RoomSize", "HRTF SIZE", modulation::ModDestination::QuasarRoomAmount, false},
+            {"Mix", "MIX", modulation::ModDestination::MasterFxMix, true},
         };
     } // namespace
 
@@ -49,7 +50,8 @@ namespace pw8::plugin::ui
         {
             auto knob = std::make_unique<GlowKnob>(apvts_, prefix + spec.field, spec.label);
             knob->applyFigmaContext(figma::KnobContext::DesignVocoder);
-            knob->enableModulationTarget(processor_, spec.destination, targetIndex);
+            if (spec.enableMod)
+                knob->enableModulationTarget(processor_, spec.destination, targetIndex);
             addAndMakeVisible(*knob);
             knobs_.push_back(std::move(knob));
         }

@@ -80,7 +80,7 @@ namespace pw8::plugin::ui
              {{{"SHIFT", "FreqShiftHz", false, false}, {"FEED", "FreqShiftFeedback", true, false}, {"WET", "Mix", true, false}}}},
             {"FRACTURE", "GLITCH", "Shattered buffer delay & decimate", 6, 4, 6, 0xffff6cab, false,
              {{{"SIZE", "FractalBaseDelayMs", false, false}, {"DENS", "FractalMorph", true, false}, {"BITS", "", false, false}}}},
-            {"REVERB", "REVERB SPACE", "Diffuse algorithmic algorithmic space", 7, 2, 7, 0xff5a8cff, false,
+            {"REVERB", "REVERB SPACE", "Diffuse algorithmic space", 7, 2, 7, 0xff5a8cff, false,
              {{{"DECAY", "ReverbDecaySeconds", false, false}, {"SIZE", "ReverbSize", false, false}, {"WET", "Mix", true, false}}}},
             {"EQ", "EQUALIZER", "3-band sweepable parametric EQ", 8, 5, 8, 0xff4fd4c4, false,
              {{{"LOW", "EqLowGainDb", false, false}, {"MID", "EqMidGainDb", false, false}, {"HIGH", "EqHighGainDb", false, false}}}},
@@ -297,7 +297,7 @@ namespace pw8::plugin::ui
         const auto& card = kCards[static_cast<std::size_t>(cardIndex)];
         if (card.quasar)
             return readEffectType(apvts_, prefix) == 13;
-        return readEffectType(apvts_, prefix) != 0;
+        return readEffectType(apvts_, prefix) == card.defaultEffectType;
     }
 
     void DesignFxCardBrowser::toggleCardEnabled(int cardIndex)
@@ -319,10 +319,10 @@ namespace pw8::plugin::ui
         }
 
         const int current = readEffectType(apvts_, prefix);
-        if (current == 0)
-            setEffectType(apvts_, prefix, card.defaultEffectType);
-        else
+        if (current == card.defaultEffectType)
             setEffectType(apvts_, prefix, 0);
+        else
+            setEffectType(apvts_, prefix, card.defaultEffectType);
         repaint();
     }
 

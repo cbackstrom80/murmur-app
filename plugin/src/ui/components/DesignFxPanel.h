@@ -54,6 +54,7 @@ namespace pw8::plugin::ui
         void paintViewToggleGroup(juce::Graphics& g, juce::Rectangle<int> bounds) const;
         void mouseDown(const juce::MouseEvent& event) override;
         void mouseDrag(const juce::MouseEvent& event) override;
+        void mouseUp(const juce::MouseEvent& event) override;
         [[nodiscard]] juce::String selectedChipTitle() const;
         [[nodiscard]] juce::String focusedStatusLine() const;
         [[nodiscard]] int selectedEngineSlot() const;

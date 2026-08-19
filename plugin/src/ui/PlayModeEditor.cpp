@@ -455,6 +455,9 @@ namespace pw8::plugin::ui
         if (masterMotionLabPanel_.isVisible())
             return masterMotionLabPanel_.keyPressed(key);
 
+        if (masterQuasarPanel_.isVisible())
+            return masterQuasarPanel_.keyPressed(key);
+
         if (wavetableLabPanel_.isVisible())
             return wavetableLabPanel_.keyPressed(key);
 

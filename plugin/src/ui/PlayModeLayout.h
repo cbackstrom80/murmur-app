@@ -664,6 +664,7 @@ namespace pw8::plugin::ui::layout
     inline constexpr int kQuasarPanelHeaderHeight = 44;
     inline constexpr int kQuasarBinauralFieldHeight = 318;
     inline constexpr int kQuasarPrimaryKnobRowHeight = 105;
+    inline constexpr int kQuasarMacroRowHeight = 88;
     inline constexpr int kQuasarBottomCardHeight = 141;
     inline constexpr int kQuasarTelemetryBarHeight = 32;
     inline constexpr int kQuasarPrimaryKnobCellWidth = 80;

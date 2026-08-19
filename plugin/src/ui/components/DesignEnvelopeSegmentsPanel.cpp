@@ -171,8 +171,13 @@ namespace pw8::plugin::ui
             shapeChip_.setEnabled(false);
             durationSlider_.setEnabled(false);
             levelSlider_.setEnabled(false);
+            loopStartSlider_.setEnabled(false);
+            loopEndSlider_.setEnabled(false);
             return;
         }
+
+        loopStartSlider_.setEnabled(true);
+        loopEndSlider_.setEnabled(true);
 
         typeChip_.setEnabled(true);
         shapeChip_.setEnabled(true);

@@ -527,8 +527,12 @@ namespace pw8::plugin::ui
         {
             if (colorSwatchBounds(i).contains(event.getPosition()))
             {
-                processor_.setMorphKeyframeColor(selectedKeyframe_, kPaletteColors[i]);
-                refreshFromPatch();
+                const auto& mk = processor_.getCurrentPatch().morphKoin;
+                if (selectedKeyframe_ < mk.keyframes.size())
+                {
+                    processor_.setMorphKeyframeColor(selectedKeyframe_, kPaletteColors[i]);
+                    refreshFromPatch();
+                }
                 return;
             }
         }
