@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
 project(murmur
-    VERSION 1.5.0
+    VERSION 1.6.0
     DESCRIPTION "MURMUR -- AI-native dual-layer 8-engine algorithmic software synthesizer"
     LANGUAGES CXX C)
 # C is only needed for the optional JUCE plugin target (a handful of JUCE's
