@@ -621,7 +621,7 @@ namespace pw8::plugin::ui::layout
     inline constexpr int kDesignFxPageSignalChainSectionHeight =
         kDesignFxPageSignalChainLabelGap + kDesignFxPageSignalChainLabelHeight + kDesignFxPageSignalChainLabelGap
         + kDesignFxPageSignalChainPipelineHeight;
-    inline constexpr int kDesignFxPageChipWidth = 82;
+    inline constexpr int kDesignFxPageChipWidth = 88;
     inline constexpr int kDesignFxPageChipHeight = 82;
     inline constexpr int kDesignFxPageChipPadding = 6;
     inline constexpr int kDesignFxPageFlowConnectorWidth = 12;
