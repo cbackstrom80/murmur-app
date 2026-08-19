@@ -162,8 +162,22 @@ echo "    version: $VERSION"
 echo "    target:  $TARGET ($SCOPE_SUFFIX pkg)"
 echo "    arch:    $(uname -m) native (Apple Silicon arm64 on M-series Macs)"
 
-if [[ ! -d "$AU_SRC" ]] || { [[ "$SYSTEM_ONLY" -eq 0 ]] && [[ ! -d "$VST3_SRC" || ! -d "$APP_SRC" ]]; }; then
-    echo "==> Release artifacts not found — building via plugin-release preset (arm64)..."
+# Force a rebuild if artifacts are missing/incomplete (bundle dir present
+# but no executable inside -- a real partial build was caught shipping this
+# way once) OR if a cached AU's own embedded version doesn't match the
+# version being packaged right now -- directory-existence alone let a stale
+# build/plugin-release from an earlier version slip straight through
+# packaging with the wrong version number baked into its Info.plist.
+CACHED_AU_VERSION=""
+[[ -f "$AU_SRC/Contents/Info.plist" ]] && CACHED_AU_VERSION="$(plutil -extract CFBundleShortVersionString raw "$AU_SRC/Contents/Info.plist" 2>/dev/null || true)"
+NEEDS_BUILD=0
+[[ ! -x "$AU_SRC/Contents/MacOS/MURMUR" ]] && NEEDS_BUILD=1
+[[ "$SYSTEM_ONLY" -eq 0 && ( ! -x "$VST3_SRC/Contents/MacOS/MURMUR" || ! -x "$APP_SRC/Contents/MacOS/MURMUR" ) ]] && NEEDS_BUILD=1
+[[ -n "$CACHED_AU_VERSION" && "$CACHED_AU_VERSION" != "$VERSION" ]] && NEEDS_BUILD=1
+
+if [[ "$NEEDS_BUILD" -eq 1 ]]; then
+    echo "==> Release artifacts missing/incomplete/stale (cached version: ${CACHED_AU_VERSION:-none}, want: $VERSION) — building via plugin-release preset (arm64)..."
+    rm -rf "$BUILD_DIR"
     cmake --preset plugin-release -DCMAKE_OSX_ARCHITECTURES=arm64
     if [[ "$SYSTEM_ONLY" -eq 1 ]]; then
         cmake --build --preset plugin-release -j --target pw8_plugin_AU
@@ -172,17 +186,21 @@ if [[ ! -d "$AU_SRC" ]] || { [[ "$SYSTEM_ONLY" -eq 0 ]] && [[ ! -d "$VST3_SRC" |
     fi
 fi
 
+# Check for the real executable inside the bundle, not just the bundle
+# directory -- a real incomplete/partial build was caught leaving an empty
+# Contents/MacOS/ (bundle dir present, binary missing) that this loop's
+# older -d-only check let straight through into a real .pkg/.dmg.
 for artifact in "$AU_SRC"; do
-    if [[ ! -d "$artifact" ]]; then
-        echo "ERROR: expected build artifact missing: $artifact" >&2
+    if [[ ! -x "$artifact/Contents/MacOS/MURMUR" ]]; then
+        echo "ERROR: expected build artifact missing or incomplete (no executable): $artifact" >&2
         exit 1
     fi
 done
 
 if [[ "$SYSTEM_ONLY" -eq 0 ]]; then
     for artifact in "$VST3_SRC" "$APP_SRC"; do
-        if [[ ! -d "$artifact" ]]; then
-            echo "ERROR: expected build artifact missing: $artifact" >&2
+        if [[ ! -x "$artifact/Contents/MacOS/MURMUR" ]]; then
+            echo "ERROR: expected build artifact missing or incomplete (no executable): $artifact" >&2
             exit 1
         fi
     done
