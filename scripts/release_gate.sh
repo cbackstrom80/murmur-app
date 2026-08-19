@@ -90,12 +90,19 @@ scripts/figma_layout.sh check
 python3 scripts/test_figma_layout.py
 
 PRESETS_SRC="content/presets/factory"
-if [[ ! -d "$PRESETS_SRC" ]] || [[ -z "$(find "$PRESETS_SRC" -name '*.pw8' -print -quit 2>/dev/null)" ]]; then
+# Real presets on disk are .murmur now (docs/REBRAND_MURMUR.md); .pw8 is
+# still matched too since that migration is a permanent dual-read
+# guarantee. A stale .pw8-only version of this exact check (in
+# build_release_pkg.sh) already caused one real incident this session:
+# it read "0 presets" against the real 1,129-file .murmur library and
+# silently regenerated a throwaway 250-patch substitute with no
+# Interstellar bank at all. Don't reintroduce that here.
+if [[ ! -d "$PRESETS_SRC" ]] || [[ -z "$(find "$PRESETS_SRC" \( -name '*.pw8' -o -name '*.murmur' \) -print -quit 2>/dev/null)" ]]; then
     echo "==> Generating factory presets..."
     python3 scripts/generate_factory_presets.py
 fi
-PRESET_COUNT=$(find "$PRESETS_SRC" -name '*.pw8' | wc -l | tr -d ' ')
-INTERSTELLAR_COUNT=$(find "$PRESETS_SRC/Interstellar" -name '*.pw8' 2>/dev/null | wc -l | tr -d ' ')
+PRESET_COUNT=$(find "$PRESETS_SRC" \( -name '*.pw8' -o -name '*.murmur' \) | wc -l | tr -d ' ')
+INTERSTELLAR_COUNT=$(find "$PRESETS_SRC/Interstellar" \( -name '*.pw8' -o -name '*.murmur' \) 2>/dev/null | wc -l | tr -d ' ')
 WAVETABLE_COUNT=$(find content/wavetables -maxdepth 1 -name '*.json' 2>/dev/null | wc -l | tr -d ' ')
 
 echo "    Factory presets: ${PRESET_COUNT} (${INTERSTELLAR_COUNT} Interstellar)"
@@ -110,7 +117,7 @@ HOOVER_COUNT=$(python3 - <<'PY'
 import json, pathlib
 root = pathlib.Path("content/presets/factory/Basses")
 count = 0
-for path in root.glob("*.pw8"):
+for path in list(root.glob("*.pw8")) + list(root.glob("*.murmur")):
     try:
         data = json.loads(path.read_text())
     except json.JSONDecodeError:

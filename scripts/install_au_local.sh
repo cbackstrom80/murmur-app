@@ -105,8 +105,8 @@ if [[ -d "$PRESETS_SRC" ]]; then
   echo "    to:   $PRESETS_DEST"
   mkdir -p "$PRESETS_DEST"
   rsync -a "${PRESETS_SRC}/" "${PRESETS_DEST}/"
-  PRESET_COUNT=$(find "$PRESETS_DEST" -name '*.pw8' | wc -l | tr -d ' ')
-  SIDECHAIN_COUNT=$(find "$PRESETS_DEST/Sidechain" -name '*.pw8' 2>/dev/null | wc -l | tr -d ' ')
+  PRESET_COUNT=$(find "$PRESETS_DEST" \( -name '*.pw8' -o -name '*.murmur' \) | wc -l | tr -d ' ')
+  SIDECHAIN_COUNT=$(find "$PRESETS_DEST/Sidechain" \( -name '*.pw8' -o -name '*.murmur' \) 2>/dev/null | wc -l | tr -d ' ')
   echo "    ${PRESET_COUNT} factory presets (${SIDECHAIN_COUNT} Sidechain / vocoder)"
 fi
 
