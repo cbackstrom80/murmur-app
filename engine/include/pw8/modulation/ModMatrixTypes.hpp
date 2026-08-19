@@ -28,6 +28,13 @@ namespace pw8::modulation
         ModWheel,   ///< MIDI CC1 (0..1), channel-wide performance source.
         Expression, ///< MIDI CC11 (0..1), channel-wide — expression pedal / knob.
         Sidechain,  ///< AU sidechain envelope follower (0..1); silent when no bus routed.
+        /// Marbles-style generative sources (Track E — GenerativeSources.hpp).
+        Random1,
+        Random2,
+        Random3,
+        Random4,
+        RandomT, ///< slow T-clock random (-1..1)
+        RandomX, ///< fast X-clock random (-1..1)
     };
 
     enum class ModDestination : std::uint8_t
@@ -59,6 +66,55 @@ namespace pw8::modulation
         VocoderFormant,
         /// Meta-mod: modulate another route's depth (targetIndex = route index).
         ModRouteDepth,
+        /// Patch-level morph timeline position offset (Layer/Global scope routes; targetIndex ignored).
+        MorphPosition,
+        /// Blades dual-filter morph destinations (global scope; targetIndex ignored).
+        FilterModeMorph,  ///< global F1 LP→BP→HP morph offset (0..1 additive).
+        FilterRouting,    ///< layerA.filterRouting morph offset (0..1 additive).
+        FilterDrive,      ///< global Filter 2 drive offset (0..1 additive).
+        /// Master dynamics (Global scope; targetIndex ignored).
+        MasterDynamicsMix, ///< masterDynamics.mix offset (0..1 additive).
+        SidechainDepth,    ///< masterDynamics.sidechainGain offset (0..2 additive).
+        /// QUASAR / BinauralSpace (Global scope; targetIndex = master FX slot 0..3).
+        QuasarQsr1Angle,   ///< `qsr1AngleDeg` offset (degrees additive, wrapped at apply).
+        QuasarQsr2Angle,   ///< `qsr2AngleDeg` offset (degrees additive, wrapped at apply).
+        QuasarRoomAmount,  ///< `qsr1RoomAmount` offset (0..1 additive).
+        QuasarCrossfeed,   ///< `quasarCrossfeed` offset (0..1 additive).
+        QuasarDelayVolume, ///< `quasarDelayVolume` offset (0..1 additive).
+        QuasarQsr1Distance,   ///< `qsr1Distance` offset (0..1 additive).
+        QuasarQsr2Distance,   ///< `qsr2Distance` offset (0..1 additive).
+        QuasarDelayTime,      ///< `quasarDelayTimeMs` offset (ms additive).
+        QuasarDelayFeedback,  ///< `quasarDelayFeedback` offset (0..1 additive).
+        QuasarQsr1Height,     ///< `qsr1Height` offset (-1..1 additive).
+        QuasarQsr2Height,     ///< `qsr2Height` offset (-1..1 additive).
+        QuasarCntrLevel,      ///< `cntrLevel` offset (0..1 additive).
+        QuasarQsr1Level,      ///< `qsr1Level` offset (0..1 additive).
+        QuasarQsr2Level,      ///< `qsr2Level` offset (0..1 additive).
+        /// Per-operator engine params (targetIndex 0..7).
+        OperatorFmModulatorRatio,
+        OperatorFmModulatorIndex,
+        OperatorFmModulatorFeedback,
+        OperatorFreqRatio,
+        OperatorPhaseBend,
+        OperatorPhaseFold,
+        OperatorPhaseAsymmetry,
+        OperatorAdditivePartialCount,
+        OperatorAdditiveTilt,
+        OperatorAdditiveOddEven,
+        OperatorAdditiveStretch,
+        OperatorResonatorStructure,
+        OperatorResonatorDecay,
+        OperatorResonatorDamping,
+        OperatorResonatorBrightness,
+        OperatorResonatorModeCount,
+        OperatorGrainDensity,
+        OperatorGrainSizeMs,
+        OperatorGrainPositionJitter,
+        OperatorGrainPitchJitter,
+        /// Layer unison (Global/Layer scope; targetIndex ignored).
+        UnisonVoices,
+        UnisonDetune,
+        UnisonSpread,
     };
 
     /// VOICE-scoped routes read a per-voice, independently-phased source (each
@@ -82,6 +138,16 @@ namespace pw8::modulation
         Global,
     };
 
+    /// Per-route source shaping (Design mod matrix LIN/EXP/LOG/S). Applied in
+    /// ModMatrixExecutor before scaling by `amount`.
+    enum class ModCurve : std::uint8_t
+    {
+        Linear = 0,
+        Exponential,
+        Logarithmic,
+        SCurve,
+    };
+
     struct ModRoute
     {
         ModSource source = ModSource::None;
@@ -90,6 +156,7 @@ namespace pw8::modulation
         std::uint8_t targetIndex = 0;
         float amount = 0.0f;
         ModScope scope = ModScope::Voice;
+        ModCurve curve = ModCurve::Linear;
 
         [[nodiscard]] bool isActive() const noexcept
         {

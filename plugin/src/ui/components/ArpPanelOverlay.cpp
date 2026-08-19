@@ -2,6 +2,7 @@
 
 #include "../PerformanceMetricsUi.h"
 #include "../PlayModeLayout.h"
+#include "../theme/FigmaKnobTokens.h"
 #include "../theme/ObsidianDraw.h"
 #include "../theme/ObsidianRotary.h"
 #include "../theme/ObsidianFonts.h"
@@ -12,6 +13,7 @@
 #include "pw8/modulation/ModMatrixTypes.hpp"
 #include "pw8/oscillator/ClassicOscillator.hpp"
 #include "pw8/patch/Patch.hpp"
+#include "pw8/sequencer/ArpeggiatorTypes.hpp"
 #include "state/PluginState.h"
 
 namespace pw8::plugin::ui
@@ -185,7 +187,7 @@ namespace pw8::plugin::ui
 
         addAndMakeVisible(leftPanel_);
         playbackDirectionLabel_.setText("PLAYBACK DIRECTION", juce::dontSendNotification);
-        playbackDirectionLabel_.setFont(fonts::label(8.0f));
+        playbackDirectionLabel_.setFont(fonts::label(10.0f));
         playbackDirectionLabel_.setColour(juce::Label::textColourId, palette::kTextDim);
         leftPanel_.addAndMakeVisible(playbackDirectionLabel_);
 
@@ -198,7 +200,7 @@ namespace pw8::plugin::ui
         }
 
         octaveRangeLabel_.setText("OCTAVE RANGE", juce::dontSendNotification);
-        octaveRangeLabel_.setFont(fonts::label(8.0f));
+        octaveRangeLabel_.setFont(fonts::label(10.0f));
         octaveRangeLabel_.setColour(juce::Label::textColourId, palette::kTextDim);
         leftPanel_.addAndMakeVisible(octaveRangeLabel_);
         for (std::size_t i = 0; i < octaveButtons_.size(); ++i)
@@ -216,12 +218,62 @@ namespace pw8::plugin::ui
             apvts_, juce::String(kArpIdPrefix) + "Latch", latchButton_);
 
         holdLabel_.setText("PATTERN HOLD", juce::dontSendNotification);
-        holdLabel_.setFont(fonts::label(9.0f));
+        holdLabel_.setFont(fonts::label(10.0f));
         holdLabel_.setColour(juce::Label::textColourId, palette::kTextPrimary);
         holdLabel_.setJustificationType(juce::Justification::centredLeft);
         leftPanel_.addAndMakeVisible(holdLabel_);
 
         addAndMakeVisible(stepPanel_);
+
+        freeSyncButton_.setClickingTogglesState(false);
+        freeSyncButton_.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
+        freeSyncButton_.setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
+        freeSyncButton_.onClick = [this] {
+            const bool tempoSync = readParam(apvts_, juce::String(kArpIdPrefix) + "RateMode", 1.0f) >= 0.5f;
+            setRateModeFree(tempoSync);
+        };
+        stepPanel_.addAndMakeVisible(freeSyncButton_);
+
+        auto styleStepToolbarButton = [](juce::TextButton& btn) {
+            btn.setClickingTogglesState(false);
+            btn.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
+            btn.setColour(juce::TextButton::textColourOffId, palette::kTextPrimary);
+        };
+        styleStepToolbarButton(stepDecButton_);
+        stepDecButton_.onClick = [this] { adjustNumSteps(-1); };
+        stepPanel_.addAndMakeVisible(stepDecButton_);
+
+        stepCountLabel_.setFont(fonts::label(10.0f));
+        stepCountLabel_.setColour(juce::Label::textColourId, palette::kTextPrimary);
+        stepCountLabel_.setJustificationType(juce::Justification::centred);
+        stepPanel_.addAndMakeVisible(stepCountLabel_);
+
+        styleStepToolbarButton(stepIncButton_);
+        stepIncButton_.onClick = [this] { adjustNumSteps(1); };
+        stepPanel_.addAndMakeVisible(stepIncButton_);
+
+        static constexpr const char* kPageLabels[] = {"1–16", "17–32", "33–48", "49–64"};
+        for (std::size_t i = 0; i < pageButtons_.size(); ++i)
+        {
+            pageButtons_[i].setButtonText(kPageLabels[i]);
+            pageButtons_[i].setClickingTogglesState(false);
+            pageButtons_[i].setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
+            pageButtons_[i].setColour(juce::TextButton::textColourOffId, palette::kTextDim);
+            pageButtons_[i].onClick = [this, i] { setStepPage(static_cast<int>(i)); };
+            stepPanel_.addAndMakeVisible(pageButtons_[i]);
+        }
+
+        static constexpr const char* kPatternLabels[] = {"FILL", "CLEAR", "RANDOM", "EUCLID"};
+        for (std::size_t i = 0; i < patternButtons_.size(); ++i)
+        {
+            patternButtons_[i].setButtonText(kPatternLabels[i]);
+            patternButtons_[i].setClickingTogglesState(false);
+            patternButtons_[i].setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
+            patternButtons_[i].setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
+            patternButtons_[i].onClick = [this, i] { applyPatternTool(static_cast<int>(i)); };
+            stepPanel_.addAndMakeVisible(patternButtons_[i]);
+        }
+
         stepViewport_.setViewedComponent(&stepStrip_, false);
         stepViewport_.setScrollBarsShown(true, false);
         stepViewport_.setScrollBarThickness(8);
@@ -229,7 +281,7 @@ namespace pw8::plugin::ui
 
         addAndMakeVisible(timingPanel_);
         clockResolutionLabel_.setText("CLOCK RESOLUTION", juce::dontSendNotification);
-        clockResolutionLabel_.setFont(fonts::label(8.0f));
+        clockResolutionLabel_.setFont(fonts::label(10.0f));
         clockResolutionLabel_.setColour(juce::Label::textColourId, palette::kTextDim);
         timingPanel_.addAndMakeVisible(clockResolutionLabel_);
 
@@ -241,39 +293,27 @@ namespace pw8::plugin::ui
             timingPanel_.addAndMakeVisible(syncButtons_[i]);
         }
 
-        gateSlider_.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-        gateSlider_.setRotaryParameters(rotary::kStartAngle, rotary::kEndAngle, true);
-        gateSlider_.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 76, 16);
-        gateSlider_.setRange(0.05, 1.0, 0.01);
-        gateSlider_.setValue(processor_.getCurrentPatch().arpeggiator.steps[0].gate, juce::dontSendNotification);
-        gateSlider_.setColour(juce::Slider::textBoxBackgroundColourId, palette::kPanelRaised);
-        gateSlider_.setColour(juce::Slider::textBoxOutlineColourId, palette::kBorder);
-        gateSlider_.setColour(juce::Slider::textBoxTextColourId, palette::kTextPrimary);
-        gateSlider_.textFromValueFunction = [](double v) { return juce::String(static_cast<int>(v * 100.0)) + "%"; };
-        gateSlider_.onValueChange = [this] {
-            processor_.setAllArpStepsGate(static_cast<float>(gateSlider_.getValue()));
-        };
-        timingPanel_.addAndMakeVisible(gateSlider_);
-
-        gateLabel_.setText("GATE", juce::dontSendNotification);
-        gateLabel_.setFont(fonts::label(11.0f));
-        gateLabel_.setColour(juce::Label::textColourId, palette::kTextPrimary);
-        gateLabel_.setJustificationType(juce::Justification::centred);
-        timingPanel_.addAndMakeVisible(gateLabel_);
+        gateKnob_ = std::make_unique<GlowKnob>(
+            "Gate", 0.05, 1.0, processor_.getCurrentPatch().arpeggiator.steps[0].gate,
+            [this](double v) { processor_.setAllArpStepsGate(static_cast<float>(v)); },
+            [](float v) { return juce::String(static_cast<int>(v * 100.0f)) + "%"; });
+        gateKnob_->applyFigmaContext(figma::KnobContext::ArpTiming);
+        gateKnob_->setMaxDialDiameter(layout::kArpTimingKnobDialSize);
+        timingPanel_.addAndMakeVisible(*gateKnob_);
 
         numStepsKnob_ = std::make_unique<GlowKnob>(
-            apvts_, juce::String(kArpIdPrefix) + "NumSteps", "LENGTH",
+            apvts_, juce::String(kArpIdPrefix) + "NumSteps", "STEPS",
             [](float v) { return juce::String(juce::roundToInt(v)); });
-        numStepsKnob_->setMaxDialDiameter(layout::kArpTimingKnobDialSize);
+        numStepsKnob_->applyFigmaContext(figma::KnobContext::ArpTiming);
         timingPanel_.addAndMakeVisible(*numStepsKnob_);
 
         swingKnob_ = std::make_unique<GlowKnob>(apvts_, juce::String(kArpIdPrefix) + "Swing", "SWING",
                                                 [](float v) { return juce::String(static_cast<int>(v * 100.0f)) + "%"; });
-        swingKnob_->setMaxDialDiameter(layout::kArpTimingKnobDialSize);
+        swingKnob_->applyFigmaContext(figma::KnobContext::ArpTiming);
         timingPanel_.addAndMakeVisible(*swingKnob_);
 
         rateHzKnob_ = std::make_unique<GlowKnob>(apvts_, juce::String(kArpIdPrefix) + "RateHz", "RATE HZ");
-        rateHzKnob_->setMaxDialDiameter(layout::kArpTimingKnobDialSize);
+        rateHzKnob_->applyFigmaContext(figma::KnobContext::ArpTiming);
         timingPanel_.addAndMakeVisible(*rateHzKnob_);
 
         addAndMakeVisible(curvePanel_);
@@ -393,8 +433,8 @@ namespace pw8::plugin::ui
         if (arp.numSteps > 0)
         {
             const float gate = arp.steps[0].gate;
-            if (std::abs(gateSlider_.getValue() - gate) > 0.001)
-                gateSlider_.setValue(gate, juce::dontSendNotification);
+            if (std::abs(gateKnob_->getManualValue() - gate) > 0.001)
+                gateKnob_->setManualValue(gate, juce::dontSendNotification);
         }
 
         const bool tempoSync = readParam(apvts_, juce::String(kArpIdPrefix) + "RateMode", 1.0f) >= 0.5f;
@@ -412,9 +452,26 @@ namespace pw8::plugin::ui
         for (std::size_t i = 0; i < octaveButtons_.size(); ++i)
             highlightChoiceButton(octaveButtons_[i], static_cast<int>(i + 1) == octaves);
 
-        static constexpr int kSyncIndices[] = {4, 5, 6, 6};
+        static constexpr int kSyncIndices[] = {4, 5, 6, 7};
         for (std::size_t i = 0; i < syncButtons_.size(); ++i)
             highlightChoiceButton(syncButtons_[i], tempoSync && syncIdx == kSyncIndices[i]);
+
+        highlightChoiceButton(freeSyncButton_, tempoSync);
+        freeSyncButton_.setButtonText(tempoSync ? "SYNC" : "FREE");
+
+        const int numSteps = static_cast<int>(processor_.getArpNumSteps());
+        stepCountLabel_.setText(juce::String(numSteps) + " / 64", juce::dontSendNotification);
+        stepDecButton_.setEnabled(numSteps > 1);
+        stepIncButton_.setEnabled(numSteps < static_cast<int>(sequencer::kMaxArpSteps));
+
+        const int pageCount = juce::jmax(1, (numSteps + layout::kArpStepPageSize - 1) / layout::kArpStepPageSize);
+        for (std::size_t i = 0; i < pageButtons_.size(); ++i)
+        {
+            const bool visible = static_cast<int>(i) < pageCount;
+            pageButtons_[i].setVisible(visible);
+            if (visible)
+                highlightChoiceButton(pageButtons_[i], static_cast<int>(i) == currentStepPage());
+        }
 
         rateHzKnob_->setVisible(!tempoSync);
 
@@ -460,10 +517,67 @@ namespace pw8::plugin::ui
 
     void ArpPanelOverlay::setSyncDivisionQuick(int buttonIndex)
     {
-        static constexpr int kSyncIndices[] = {4, 5, 6, 6};
+        static constexpr int kSyncIndices[] = {4, 5, 6, 7};
         const int idx = kSyncIndices[juce::jlimit(0, 3, buttonIndex)];
         setParam(apvts_, juce::String(kArpIdPrefix) + "RateMode", 1.0f);
         setParam(apvts_, juce::String(kArpIdPrefix) + "SyncDivisionIndex", static_cast<float>(idx));
+    }
+
+    void ArpPanelOverlay::setRateModeFree(bool free)
+    {
+        setParam(apvts_, juce::String(kArpIdPrefix) + "RateMode", free ? 0.0f : 1.0f);
+    }
+
+    int ArpPanelOverlay::currentStepPage() const noexcept
+    {
+        return stepStrip_.pageStart() / layout::kArpStepPageSize;
+    }
+
+    void ArpPanelOverlay::setStepPage(int pageIndex)
+    {
+        const int page = juce::jmax(0, pageIndex);
+        stepStrip_.setPageStart(page * layout::kArpStepPageSize);
+        stepStrip_.syncLayoutMetrics(stepViewport_.getViewWidth());
+        stepViewport_.setViewPosition(0, 0);
+        repaint();
+    }
+
+    void ArpPanelOverlay::adjustNumSteps(int delta)
+    {
+        const int current = static_cast<int>(processor_.getArpNumSteps());
+        processor_.setArpNumSteps(current + delta);
+        stepStrip_.syncLayoutMetrics(stepViewport_.getViewWidth());
+        stepStrip_.repaint();
+    }
+
+    void ArpPanelOverlay::applyPatternTool(int toolIndex)
+    {
+        processor_.syncCurrentPatchFromApvts();
+        const auto& arp = processor_.getCurrentPatch().arpeggiator;
+        const int numSteps = static_cast<int>(arp.numSteps);
+
+        switch (toolIndex)
+        {
+            case 0:
+                processor_.setAllArpStepsEnabled(true);
+                break;
+            case 1:
+                processor_.setAllArpStepsEnabled(false);
+                break;
+            case 2:
+                processor_.randomizeArpPattern(0.62f);
+                break;
+            case 3:
+            {
+                euclideanPulseCount_ = (euclideanPulseCount_ % juce::jmax(1, numSteps)) + 1;
+                processor_.applyEuclideanArpPattern(euclideanPulseCount_);
+                patternButtons_[3].setButtonText("EUCLID " + juce::String(euclideanPulseCount_));
+                break;
+            }
+            default:
+                break;
+        }
+        stepStrip_.repaint();
     }
 
     juce::String ArpPanelOverlay::engineRoutingSubtitle(int engineIndex) const
@@ -488,7 +602,7 @@ namespace pw8::plugin::ui
         if (holdRowBounds_.isEmpty())
             return;
 
-        auto row = holdRowBounds_.toFloat();
+        auto row = getLocalArea(&leftPanel_, holdRowBounds_).toFloat();
         g.setColour(juce::Colour(0xff1a1c23));
         g.fillRoundedRectangle(row, 6.0f);
         g.setColour(palette::kBorder);
@@ -584,7 +698,7 @@ namespace pw8::plugin::ui
     {
         paintHoldRow(g);
         paintFooterBar(g);
-        paintVelocityCurve(g, curvePanel_.getContentBounds().reduced(12, 28));
+        paintVelocityCurve(g, getLocalArea(&curvePanel_, curvePanel_.getContentBounds().reduced(12, 28)));
         paintFooterModChips(g);
 
         if (!cpuBarBounds_.isEmpty())
@@ -685,7 +799,34 @@ namespace pw8::plugin::ui
         auto centerTop = center;
 
         stepPanel_.setBounds(centerTop);
-        stepViewport_.setBounds(stepPanel_.getContentBounds().reduced(8, 4));
+
+        {
+            auto stepContent = stepPanel_.getContentBounds().reduced(8, 4);
+            auto toolRow = stepContent.removeFromTop(layout::kArpStepToolRowHeight);
+            freeSyncButton_.setBounds(toolRow.removeFromLeft(52).reduced(0, 2));
+            toolRow.removeFromLeft(10);
+            stepDecButton_.setBounds(toolRow.removeFromLeft(layout::kArpStepToolbarButtonWidth).reduced(0, 2));
+            toolRow.removeFromLeft(4);
+            stepCountLabel_.setBounds(toolRow.removeFromLeft(layout::kArpStepCountLabelWidth).reduced(0, 2));
+            toolRow.removeFromLeft(4);
+            stepIncButton_.setBounds(toolRow.removeFromLeft(layout::kArpStepToolbarButtonWidth).reduced(0, 2));
+            toolRow.removeFromLeft(12);
+            const int pageW = 44;
+            for (auto& btn : pageButtons_)
+            {
+                btn.setBounds(toolRow.removeFromLeft(pageW).reduced(1, 2));
+                toolRow.removeFromLeft(4);
+            }
+            toolRow.removeFromLeft(8);
+            const int patternW = 56;
+            for (auto& btn : patternButtons_)
+            {
+                btn.setBounds(toolRow.removeFromLeft(patternW).reduced(1, 2));
+                toolRow.removeFromLeft(4);
+            }
+            stepContent.removeFromTop(4);
+            stepViewport_.setBounds(stepContent);
+        }
         stepStrip_.syncLayoutMetrics(stepViewport_.getWidth());
         stepViewport_.setViewPosition(0, 0);
 
@@ -696,8 +837,8 @@ namespace pw8::plugin::ui
         // Left panel content — Figma `left-parameters` (4:1305)
         {
             auto content = leftPanel_.getContentBounds().reduced(8, 0);
-            playbackDirectionLabel_.setBounds(content.removeFromTop(10));
-            content.removeFromTop(4);
+            playbackDirectionLabel_.setBounds(content.removeFromTop(12));
+            content.removeFromTop(6);
 
             for (auto& btn : modeButtons_)
             {
@@ -706,8 +847,8 @@ namespace pw8::plugin::ui
             }
 
             content.removeFromTop(10);
-            octaveRangeLabel_.setBounds(content.removeFromTop(10));
-            content.removeFromTop(4);
+            octaveRangeLabel_.setBounds(content.removeFromTop(12));
+            content.removeFromTop(6);
             auto octRow = content.removeFromTop(layout::kArpOctaveStripHeight);
             const int octW = octRow.getWidth() / static_cast<int>(octaveButtons_.size());
             for (auto& btn : octaveButtons_)
@@ -725,8 +866,8 @@ namespace pw8::plugin::ui
         // Timing panel — Figma `pattern-controls` (4:1515)
         {
             auto content = timingPanel_.getContentBounds().reduced(12);
-            clockResolutionLabel_.setBounds(content.removeFromTop(10));
-            content.removeFromTop(4);
+            clockResolutionLabel_.setBounds(content.removeFromTop(12));
+            content.removeFromTop(6);
 
             auto syncGrid = content.removeFromTop(layout::kArpSyncGridHeight).withWidth(layout::kArpSyncGridWidth);
             const int syncGap = 2;
@@ -743,9 +884,7 @@ namespace pw8::plugin::ui
             auto knobRow = content.removeFromTop(layout::kArpTimingKnobHeight);
             swingKnob_->setBounds(knobRow.removeFromLeft(layout::kArpTimingKnobWidth).reduced(0, 0));
             knobRow.removeFromLeft(42);
-            auto gateArea = knobRow.removeFromLeft(layout::kArpTimingKnobWidth);
-            gateSlider_.setBounds(gateArea.removeFromTop(layout::kArpTimingKnobDialSize).reduced(4, 0));
-            gateLabel_.setBounds(gateArea.removeFromTop(10));
+            gateKnob_->setBounds(knobRow.removeFromLeft(layout::kArpTimingKnobWidth).reduced(0, 0));
             knobRow.removeFromLeft(42);
             numStepsKnob_->setBounds(knobRow.removeFromLeft(layout::kArpTimingKnobWidth).reduced(0, 0));
             knobRow.removeFromLeft(42);

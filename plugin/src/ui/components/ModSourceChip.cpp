@@ -21,7 +21,7 @@ namespace pw8::plugin::ui
         if (!description.startsWith(kDragDescriptionPrefix))
             return std::nullopt;
         const int ordinal = description.substring(static_cast<int>(std::char_traits<char>::length(kDragDescriptionPrefix))).getIntValue();
-        if (ordinal < 0 || ordinal > static_cast<int>(modulation::ModSource::Sidechain))
+        if (ordinal < 0 || ordinal > static_cast<int>(modulation::ModSource::RandomX))
             return std::nullopt;
         return static_cast<modulation::ModSource>(ordinal);
     }
@@ -63,6 +63,12 @@ namespace pw8::plugin::ui
             case ModSource::Macro7: return "MACRO 7";
             case ModSource::Macro8: return "MACRO 8";
             case ModSource::Sidechain: return "SIDECHAIN";
+            case ModSource::Random1: return "RND 1";
+            case ModSource::Random2: return "RND 2";
+            case ModSource::Random3: return "RND 3";
+            case ModSource::Random4: return "RND 4";
+            case ModSource::RandomT: return "RND T";
+            case ModSource::RandomX: return "RND X";
         }
         return "-";
     }
@@ -75,6 +81,9 @@ namespace pw8::plugin::ui
             case ModDestination::None: return "-";
             case ModDestination::FilterCutoff: return "GLOBAL FILTER CUTOFF";
             case ModDestination::FilterResonance: return "GLOBAL FILTER RESONANCE";
+            case ModDestination::FilterModeMorph: return "GLOBAL FILTER MODE MORPH";
+            case ModDestination::FilterRouting: return "FILTER ROUTING MORPH";
+            case ModDestination::FilterDrive: return "FILTER 2 DRIVE";
             case ModDestination::OperatorFilterCutoff:
                 return "ENG " + juce::String(static_cast<int>(targetIndex)) + " FILTER CUTOFF";
             case ModDestination::OperatorFilterResonance:
@@ -115,6 +124,83 @@ namespace pw8::plugin::ui
                 return "FX " + juce::String(static_cast<int>(targetIndex)) + " VOC FORM";
             case ModDestination::ModRouteDepth:
                 return "ROUTE " + juce::String(static_cast<int>(targetIndex)) + " DEPTH";
+            case ModDestination::MorphPosition:
+                return "MORPH POSITION";
+            case ModDestination::MasterDynamicsMix:
+                return "MASTER DYNAMICS MIX";
+            case ModDestination::SidechainDepth:
+                return "SIDECHAIN DEPTH";
+            case ModDestination::QuasarQsr1Angle:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " QSR1 AZ";
+            case ModDestination::QuasarQsr2Angle:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " QSR2 AZ";
+            case ModDestination::QuasarRoomAmount:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " QSR ROOM";
+            case ModDestination::QuasarCrossfeed:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " QSR XFEED";
+            case ModDestination::QuasarDelayVolume:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " QSR DLY";
+            case ModDestination::QuasarQsr1Distance:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " QSR1 DIST";
+            case ModDestination::QuasarQsr2Distance:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " QSR2 DIST";
+            case ModDestination::QuasarDelayTime:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " QSR DLY T";
+            case ModDestination::QuasarDelayFeedback:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " QSR FDBK";
+            case ModDestination::QuasarQsr1Height:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " QSR1 HT";
+            case ModDestination::QuasarQsr2Height:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " QSR2 HT";
+            case ModDestination::QuasarCntrLevel:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " QSR CNTR";
+            case ModDestination::QuasarQsr1Level:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " QSR1 LVL";
+            case ModDestination::QuasarQsr2Level:
+                return "MASTER " + juce::String(static_cast<int>(targetIndex)) + " QSR2 LVL";
+            case ModDestination::OperatorFmModulatorRatio:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " FM RATIO";
+            case ModDestination::OperatorFmModulatorIndex:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " FM INDEX";
+            case ModDestination::OperatorFmModulatorFeedback:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " FM FDBK";
+            case ModDestination::OperatorFreqRatio:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " FREQ RATIO";
+            case ModDestination::OperatorPhaseBend:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " PHASE BEND";
+            case ModDestination::OperatorPhaseFold:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " PHASE FOLD";
+            case ModDestination::OperatorPhaseAsymmetry:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " PHASE ASYM";
+            case ModDestination::OperatorAdditivePartialCount:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " PARTIALS";
+            case ModDestination::OperatorAdditiveTilt:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " ADD TILT";
+            case ModDestination::OperatorAdditiveOddEven:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " ODD/EVEN";
+            case ModDestination::OperatorAdditiveStretch:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " STRETCH";
+            case ModDestination::OperatorResonatorStructure:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " RES STR";
+            case ModDestination::OperatorResonatorDecay:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " RES DEC";
+            case ModDestination::OperatorResonatorDamping:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " RES DAMP";
+            case ModDestination::OperatorResonatorBrightness:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " RES BRIGHT";
+            case ModDestination::OperatorResonatorModeCount:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " RES MODES";
+            case ModDestination::OperatorGrainDensity:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " GRAIN DENS";
+            case ModDestination::OperatorGrainSizeMs:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " GRAIN SIZE";
+            case ModDestination::OperatorGrainPositionJitter:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " POS JIT";
+            case ModDestination::OperatorGrainPitchJitter:
+                return "OP " + juce::String(static_cast<int>(targetIndex)) + " PITCH JIT";
+            case ModDestination::UnisonVoices: return "UNISON VOICES";
+            case ModDestination::UnisonDetune: return "UNISON DETUNE";
+            case ModDestination::UnisonSpread: return "UNISON SPREAD";
         }
         return "-";
     }

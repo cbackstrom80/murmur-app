@@ -86,30 +86,7 @@ namespace pw8::plugin::ui
 
         [[nodiscard]] std::array<float, kNumEffectSlotFields> effectSlotValues(const effects::EffectSlotParams& p)
         {
-            return {
-                static_cast<float>(p.type), p.mix,        p.saturationDriveDb, p.chorusRateHz,   p.chorusDepthMs,
-                p.chorusBaseDelayMs,        p.tapeDelayMs, p.tapeFeedback,      p.tapeDriveDb,    p.tapeDuckAmount,
-                p.tapeDriftDepthMs,         p.tapeDriftRateHz, static_cast<float>(p.tapePanMode), p.nodeInsanity,
-                p.freqShiftHz,              p.freqShiftDelayMs, p.freqShiftFeedback, p.freqShiftLowCutHz,
-                p.freqShiftHighCutHz,       p.fractalMorph, p.fractalBaseDelayMs, p.fractalRatio, p.fractalSpreadMs,
-                p.reverbSizeParam,          p.reverbDecaySeconds, p.reverbPreDelayMs,
-                p.reverbHighRatio,          p.reverbHighCrossoverHz, p.reverbLowRatio, p.reverbLowCrossoverHz,
-                p.reverbDiffusion,          p.reverbDensity, p.reverbModDepth,    p.reverbModRateHz,
-                p.reverbEarlyLevel,         p.reverbLateLevel, p.reverbRollOffHz, p.reverbVlfCutDb,
-                p.eqLowFreqHz,              p.eqLowGainDb,  p.eqMidFreqHz,       p.eqMidGainDb,    p.eqMidQ,
-                p.eqHighFreqHz,             p.eqHighGainDb,
-                p.compThresholdDb,          p.compRatio,    p.compAttackMs,      p.compReleaseMs,  p.compKneeDb,
-                p.compMakeupDb,
-                p.compTransformerCore,      p.compTransformerBrand, p.compTransformerAmount,
-                p.limiterCeilingDb,         p.limiterLookaheadMs, p.limiterReleaseMs,
-                static_cast<float>(p.tapeDelaySync), static_cast<float>(p.tapeDelaySyncDivisionIndex),
-                p.compAutoMakeup ? 1.0f : 0.0f, static_cast<float>(p.compCharacter),
-                static_cast<float>(p.vocoderBandCount), p.vocoderFormant, p.vocoderSibilance, p.vocoderScGainDb,
-                p.vocoderReleaseMs,
-                static_cast<float>(p.reverbCharacter),
-                static_cast<float>(p.saturationCharacter),
-                p.eqOutGainDb,
-            };
+            return effectSlotFieldValues(p);
         }
 
         void appendSlotParams(DesignFxPresetEntry& entry, const effects::EffectSlotParams& slotParams)

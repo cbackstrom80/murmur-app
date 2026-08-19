@@ -1,10 +1,12 @@
 #include "DesignFxPanel.h"
 
+#include "../PerformanceMetricsUi.h"
 #include "../PlayModeLayout.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "FxEffectPlayParams.h"
 #include "state/PluginState.h"
+#include "pw8/modulation/ModMatrixTypes.hpp"
 
 namespace pw8::plugin::ui
 {
@@ -209,7 +211,10 @@ namespace pw8::plugin::ui
 
     DesignFxPanel::DesignFxPanel(PatchworkEightProcessor& processor,
                                  ModAssignmentController& modAssignmentController)
-        : processor_(processor), signalChain_(processor.apvts), detailStrip_(processor),
+        : processor_(processor),
+          cardBrowser_(processor.apvts),
+          signalChain_(processor.apvts),
+          detailStrip_(processor),
           heroViz_(processor.apvts)
     {
         juce::ignoreUnused(modAssignmentController);
@@ -222,15 +227,53 @@ namespace pw8::plugin::ui
         };
         addAndMakeVisible(backButton_);
 
-        titleLabel_.setText("FX RACK", juce::dontSendNotification);
+        titleLabel_.setText("FX MODULES", juce::dontSendNotification);
         titleLabel_.setFont(fonts::label(14.0f));
         titleLabel_.setColour(juce::Label::textColourId, palette::kTextPrimary);
         addAndMakeVisible(titleLabel_);
+
+        modulesLabel_.setText("FX MODULES", juce::dontSendNotification);
+        modulesLabel_.setFont(fonts::denseBold(14.0f));
+        modulesLabel_.setColour(juce::Label::textColourId, palette::kTextPrimary);
+        addAndMakeVisible(modulesLabel_);
+
+        modulesHintLabel_.setText("Click any card to open its full editor", juce::dontSendNotification);
+        modulesHintLabel_.setFont(fonts::micro(8.0f));
+        modulesHintLabel_.setColour(juce::Label::textColourId, palette::kFigmaFxMutedText);
+        addAndMakeVisible(modulesHintLabel_);
+
+        cardsToggle_.setClickingTogglesState(false);
+        cardsToggle_.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentBlack);
+        cardsToggle_.setColour(juce::TextButton::buttonOnColourId, juce::Colours::transparentBlack);
+        cardsToggle_.setColour(juce::TextButton::textColourOffId, palette::kFigmaFxToggleOnText);
+        cardsToggle_.onClick = [this] { setFxViewMode(FxViewMode::Cards); };
+        addAndMakeVisible(cardsToggle_);
+
+        chainToggle_.setClickingTogglesState(false);
+        chainToggle_.setColour(juce::TextButton::buttonColourId, juce::Colours::transparentBlack);
+        chainToggle_.setColour(juce::TextButton::buttonOnColourId, juce::Colours::transparentBlack);
+        chainToggle_.setColour(juce::TextButton::textColourOffId, palette::kFigmaFxMutedText);
+        chainToggle_.onClick = [this] { setFxViewMode(FxViewMode::Chain); };
+        addAndMakeVisible(chainToggle_);
+
+        detailBackButton_.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
+        detailBackButton_.setColour(juce::TextButton::textColourOffId, palette::kAccent);
+        detailBackButton_.onClick = [this] { setFxViewMode(FxViewMode::Cards); };
+        addChildComponent(detailBackButton_);
 
         presetLabel_.setText("PRESET: CLASS A TUBE CRUNCH", juce::dontSendNotification);
         presetLabel_.setFont(fonts::label(8.0f));
         presetLabel_.setColour(juce::Label::textColourId, palette::kTextDim);
         addAndMakeVisible(presetLabel_);
+
+        addAndMakeVisible(cardBrowser_);
+        cardBrowser_.onCardSelected = [this](int cardIndex) { openCard(cardIndex); };
+        cardBrowser_.onCardToggle = [this](int) { signalChain_.repaint(); };
+
+        statusPanicButton_.setColour(juce::TextButton::buttonColourId, palette::kFigmaFxChipFill);
+        statusPanicButton_.setColour(juce::TextButton::textColourOffId, palette::kAccentWarm);
+        statusPanicButton_.onClick = [this] { processor_.panicAllNotes(); };
+        addChildComponent(statusPanicButton_);
 
         addAndMakeVisible(signalChain_);
         signalChain_.setUiState(&uiState_);
@@ -248,7 +291,11 @@ namespace pw8::plugin::ui
             processor_.applyFxProcessOrderFromChipDisplay(order);
             uiState_.saveUserPreferences();
         };
-        signalChain_.onChipSelected = [this](std::size_t chipIndex) { bindSelectedChip(chipIndex); };
+        signalChain_.onChipSelected = [this](std::size_t chipIndex) {
+            bindSelectedChip(chipIndex);
+            if (viewMode_ == FxViewMode::Cards)
+                setFxViewMode(FxViewMode::Chain);
+        };
 
         detailStrip_.setDesignFxPageMode(true);
         detailStrip_.onVocoderLabRequested = [this](std::size_t slotIndex) {
@@ -272,7 +319,215 @@ namespace pw8::plugin::ui
 
         presetLibrary_.rescan();
         bindSelectedChip(1);
+        setFxViewMode(FxViewMode::Cards);
         startTimerHz(8);
+    }
+
+    void DesignFxPanel::setFxViewMode(FxViewMode mode)
+    {
+        if (viewMode_ == mode)
+            return;
+
+        viewMode_ = mode;
+        applyViewVisibility();
+        updateToggleButtons();
+        resized();
+    }
+
+    void DesignFxPanel::applyViewVisibility()
+    {
+        const bool cards = viewMode_ == FxViewMode::Cards;
+        const bool chain = viewMode_ == FxViewMode::Chain;
+        const bool detail = viewMode_ == FxViewMode::Detail;
+
+        cardBrowser_.setVisible(cards);
+        signalChain_.setVisible(chain);
+        detailStrip_.setVisible(chain || detail);
+        heroViz_.setVisible(chain || detail);
+
+        modulesLabel_.setVisible(cards || chain);
+        modulesHintLabel_.setVisible(cards || chain);
+        cardsToggle_.setVisible(cards || chain);
+        chainToggle_.setVisible(cards || chain);
+        detailBackButton_.setVisible(detail);
+
+        presetLabel_.setVisible(chain || detail);
+    }
+
+    void DesignFxPanel::updateToggleButtons()
+    {
+        const bool cardsActive = viewMode_ == FxViewMode::Cards;
+        cardsToggle_.setColour(juce::TextButton::textColourOffId,
+                               cardsActive ? palette::kFigmaFxToggleOnText : palette::kFigmaFxMutedText);
+        chainToggle_.setColour(juce::TextButton::textColourOffId,
+                               cardsActive ? palette::kFigmaFxMutedText : palette::kFigmaFxToggleOnText);
+        repaint(viewToggleBounds_);
+    }
+
+    void DesignFxPanel::paintViewToggleGroup(juce::Graphics& g, juce::Rectangle<int> bounds) const
+    {
+        g.setColour(palette::kFigmaFxViewToggleBg);
+        g.fillRoundedRectangle(bounds.toFloat(), 6.0f);
+        g.setColour(palette::kFigmaFxCardBorderDim);
+        g.drawRoundedRectangle(bounds.toFloat(), 6.0f, 1.0f);
+
+        const bool cardsActive = viewMode_ == FxViewMode::Cards;
+        auto inner = bounds.reduced(4);
+        auto cardsArea = inner.removeFromLeft(inner.getWidth() / 2);
+        inner.removeFromLeft(4);
+        auto chainArea = inner;
+
+        if (cardsActive)
+        {
+            g.setColour(palette::kFigmaFxToggleOnFill);
+            g.fillRoundedRectangle(cardsArea.toFloat(), 4.0f);
+            g.setColour(palette::kFigmaFxToggleOnBorder);
+            g.drawRoundedRectangle(cardsArea.toFloat(), 4.0f, 1.0f);
+        }
+        else
+        {
+            g.setColour(palette::kFigmaFxToggleOnFill);
+            g.fillRoundedRectangle(chainArea.toFloat(), 4.0f);
+            g.setColour(palette::kFigmaFxToggleOnBorder);
+            g.drawRoundedRectangle(chainArea.toFloat(), 4.0f, 1.0f);
+        }
+    }
+
+    bool DesignFxPanel::modSourceActive(modulation::ModSource source) const
+    {
+        for (const auto& route : processor_.getCurrentPatch().layerA.modRoutes)
+        {
+            if (route.isActive() && route.source == source)
+                return true;
+        }
+        return false;
+    }
+
+    void DesignFxPanel::paintCardBrowserModChips(juce::Graphics& g) const
+    {
+        static const struct
+        {
+            const char* label;
+            juce::Colour colour;
+            modulation::ModSource source;
+        } kChips[] = {
+            {"LFO1", palette::kAccent, modulation::ModSource::Lfo1},
+            {"LFO2", juce::Colour(0xff7f9fe0), modulation::ModSource::Lfo2},
+            {"ENV1", juce::Colour(0xff8f7fe0), modulation::ModSource::Env1},
+            {"ENV2", juce::Colour(0xffe0c17f), modulation::ModSource::Env2},
+        };
+
+        g.setFont(fonts::micro(7.0f));
+        for (std::size_t i = 0; i < statusModChipBounds_.size(); ++i)
+        {
+            const auto chip = statusModChipBounds_[i].toFloat();
+            if (chip.isEmpty())
+                continue;
+
+            const auto& spec = kChips[i];
+            const bool active = modSourceActive(spec.source);
+            g.setColour(spec.colour.withAlpha(active ? 0.16f : 0.08f));
+            g.fillRoundedRectangle(chip, 4.0f);
+            g.setColour(spec.colour.withAlpha(active ? 1.0f : 0.82f));
+            g.drawRoundedRectangle(chip.reduced(0.5f), 4.0f, 1.0f);
+            g.setColour(active ? palette::kTextPrimary : palette::kTextDim);
+            g.drawText(spec.label, chip, juce::Justification::centred);
+        }
+    }
+
+    void DesignFxPanel::paintCardBrowserStatusBar(juce::Graphics& g, juce::Rectangle<int> bounds) const
+    {
+        g.setColour(palette::kFigmaFxStatusBarFill);
+        g.fillRoundedRectangle(bounds.toFloat(), 8.0f);
+        g.setColour(palette::kFigmaFxCardBorderDim);
+        g.drawRoundedRectangle(bounds.toFloat(), 8.0f, 1.0f);
+
+        const auto metrics = readPerformanceMetrics(processor_);
+        const float fxLoad = estimateFxLoadPercent(processor_);
+        const int cpuPercent = juce::jlimit(0, 100, juce::roundToInt(metrics.cpuPercent));
+
+        auto inner = bounds.reduced(16, 0);
+        auto left = inner.removeFromLeft(juce::jmin(520, inner.getWidth() * 2 / 3));
+
+        g.setColour(palette::kFigmaFxMutedText);
+        g.setFont(fonts::micro(8.0f));
+        auto cpuRow = left.removeFromLeft(92);
+        g.drawText("CPU", cpuRow.removeFromLeft(24), juce::Justification::centredLeft);
+        auto cpuTrack = cpuRow.removeFromLeft(40).withSizeKeepingCentre(40, 4);
+        g.setColour(palette::kFigmaFxVizFill);
+        g.fillRoundedRectangle(cpuTrack.toFloat(), 2.0f);
+        g.setColour(palette::kFigmaFxToggleOnText);
+        g.fillRoundedRectangle(cpuTrack.getX(), cpuTrack.getY(),
+                               juce::jmax(2, juce::roundToInt(cpuTrack.getWidth() * cpuPercent / 100.0f)),
+                               cpuTrack.getHeight(), 2.0f);
+        g.drawText(juce::String(cpuPercent) + "%", cpuRow, juce::Justification::centredLeft);
+
+        left.removeFromLeft(16);
+        g.setColour(palette::kBorder.withAlpha(0.5f));
+        g.drawVerticalLine(left.getX(), static_cast<float>(bounds.getY() + 14),
+                           static_cast<float>(bounds.getBottom() - 14));
+        left.removeFromLeft(16);
+
+        g.setColour(palette::kFigmaFxMutedText);
+        g.drawText("OUTPUTS ACTIVE:", left.removeFromLeft(88), juce::Justification::centredLeft);
+        left.removeFromLeft(6);
+        for (int out = 1; out <= 4; ++out)
+        {
+            auto pill = left.removeFromLeft(44);
+            g.setColour(palette::kAccent.withAlpha(0.08f));
+            g.fillRoundedRectangle(pill.toFloat(), 3.0f);
+            g.setColour(palette::kAccent);
+            g.drawRoundedRectangle(pill.toFloat(), 3.0f, 1.0f);
+            g.setFont(fonts::micro(7.0f));
+            g.drawText("OUT " + juce::String(out), pill, juce::Justification::centred);
+            left.removeFromLeft(6);
+        }
+
+        if (!statusModChipBounds_.front().isEmpty())
+        {
+            g.setColour(palette::kFigmaFxMutedText);
+            g.setFont(fonts::micro(8.0f));
+            const auto modLabel = juce::Rectangle<int>(statusModChipBounds_.front().getX() - 72,
+                                                       statusModChipBounds_.front().getY() - 2, 64, 14);
+            g.drawText("MOD SOURCES:", modLabel, juce::Justification::centredLeft);
+            paintCardBrowserModChips(g);
+        }
+
+        g.setColour(palette::kFigmaFxMutedText);
+        g.setFont(fonts::micro(8.0f));
+        g.drawText("FX LOAD " + juce::String(juce::roundToInt(fxLoad)) + "%",
+                   inner.removeFromRight(72).withSizeKeepingCentre(72, 14), juce::Justification::centredRight);
+    }
+
+    void DesignFxPanel::openCard(int cardIndex)
+    {
+        if (cardBrowser_.isQuasarCard(cardIndex))
+        {
+            if (onQuasarLabRequested)
+            {
+                for (std::size_t i = 3; i < 7; ++i)
+                {
+                    const auto prefix = pw8::plugin::masterFxParamId(i - 3, "");
+                    if (auto* raw = processor_.apvts.getRawParameterValue(prefix + "Type"))
+                    {
+                        if (static_cast<int>(raw->load() + 0.5f) == 13)
+                        {
+                            onQuasarLabRequested(i);
+                            return;
+                        }
+                    }
+                }
+                onQuasarLabRequested(5);
+            }
+            return;
+        }
+
+        const int chipIndex = cardBrowser_.chipIndexForCard(cardIndex);
+        if (chipIndex < 0)
+            return;
+
+        bindSelectedChip(static_cast<std::size_t>(chipIndex));
+        setFxViewMode(FxViewMode::Detail);
     }
 
     void DesignFxPanel::syncStubKnobsToApvts()
@@ -629,10 +884,43 @@ namespace pw8::plugin::ui
         return juce::String(spec.heroTitle) + " (SLOT " + spec.slotLabel + ")";
     }
 
+    juce::String DesignFxPanel::focusedStatusLine() const
+    {
+        const auto pill = currentModePillForChip();
+        switch (selectedChip_)
+        {
+            case 1:
+                if (pill == "TAPE") return "MODEL: MAGNETIC TAPE SATURATION";
+                if (pill == "DIODE") return "MODEL: ASYMMETRIC DIODE CLIP";
+                if (pill == "FOLD") return "MODEL: WAVEFOLDING HARMONICS";
+                if (pill == "CRUSH") return "MODEL: BIT-REDUCTION CRUSH";
+                return "MODEL: ANALOG BI-POLAR HARMONICS";
+            case 2: return "ENGINE: MULTI-VOICE ENSEMBLE";
+            case 3: return "ENGINE: ANALOG TAPE DRIFT";
+            case 4:
+                if (pill.isNotEmpty()) return "MODEL: " + pill + " SPECTRAL FILTER";
+                return "MODEL: TRANSISTOR LOWPASS SWEEP";
+            case 5: return "ENGINE: BODE FREQUENCY SHIFT";
+            case 6: return "ENGINE: FRACTAL GRANULAR BUFFER";
+            case 7:
+                if (pill.isNotEmpty()) return "ENGINE: " + pill + " REVERB";
+                return "ENGINE: ALGORITHMIC DIFFUSE SPACE";
+            case 8: return "ENGINE: 3-BAND PARAMETRIC EQ";
+            case 9:
+                if (pill.isNotEmpty()) return "MODEL: " + pill + " COMPRESSOR";
+                return "MODEL: STEREO BUS DYNAMICS";
+            case 10: return "ENGINE: TRUE PEAK LIMITER";
+            case 11: return "ENGINE: MULTI-BAND VOCODER";
+            default: return {};
+        }
+    }
+
     void DesignFxPanel::timerCallback()
     {
         repaint(headerBounds_);
         repaint(routingBounds_);
+        if (viewMode_ == FxViewMode::Cards)
+            cardBrowser_.repaint();
     }
 
     void DesignFxPanel::mouseDown(const juce::MouseEvent& event)
@@ -740,7 +1028,7 @@ namespace pw8::plugin::ui
         auto titleArea = bounds.withTrimmedLeft(24);
         g.setColour(palette::kTextPrimary);
         g.setFont(fonts::label(11.0f));
-        g.drawText(selectedChipTitle(), titleArea.removeFromLeft(juce::jmin(420, titleArea.getWidth() - 200)),
+        g.drawText(selectedChipTitle(), titleArea.removeFromLeft(juce::jmin(380, titleArea.getWidth() - 320)),
                    juce::Justification::centredLeft);
 
         titleArea.removeFromLeft(8);
@@ -748,7 +1036,7 @@ namespace pw8::plugin::ui
         g.fillRect(titleArea.removeFromLeft(1).withHeight(14).withY(bounds.getY() + 2));
         titleArea.removeFromLeft(8);
 
-        auto presetArea = titleArea.removeFromLeft(160);
+        auto presetArea = titleArea.removeFromLeft(165);
         presetChipBounds_ = presetArea;
         g.setColour(palette::kPanel);
         g.fillRoundedRectangle(presetArea.toFloat(), 4.0f);
@@ -756,17 +1044,28 @@ namespace pw8::plugin::ui
         g.drawRoundedRectangle(presetArea.toFloat(), 4.0f, 0.8f);
         g.setColour(palette::kTextDim);
         g.setFont(fonts::label(8.0f));
-        g.drawText(presetLabel_.getText(), presetArea.reduced(8, 4), juce::Justification::centredLeft);
+        auto presetText = presetArea.reduced(8, 4);
+        g.drawText(presetLabel_.getText(), presetText.removeFromRight(12), juce::Justification::centredLeft);
+        g.setColour(palette::kTextDim.withAlpha(0.65f));
+        g.drawText("▼", presetText, juce::Justification::centredRight);
 
-        auto right = bounds.withTrimmedLeft(bounds.getWidth() - 132);
+        auto right = bounds.withTrimmedLeft(bounds.getWidth() - 280);
+        activeToggleBounds_ =
+            right.removeFromRight(layout::kDesignFxPageDetailActiveToggleWidth)
+                .withSizeKeepingCentre(layout::kDesignFxPageDetailActiveToggleWidth,
+                                       layout::kDesignFxPageDetailActiveToggleHeight);
+        right.removeFromRight(10);
+
         g.setColour(palette::kTextDim);
         g.setFont(fonts::label(8.0f));
-        g.drawText("ACTIVE FX", right.removeFromLeft(64), juce::Justification::centredRight);
-        right.removeFromLeft(8);
-        activeToggleBounds_ = right.withSize(right.getWidth(), 16);
+        g.drawText(focusedStatusLine(), right, juce::Justification::centredRight);
+
         g.setColour(active ? palette::kFigmaPillActive : palette::kPanel);
         g.fillRoundedRectangle(activeToggleBounds_.toFloat(), 4.0f);
+        g.setColour(active ? palette::kAccent : palette::kBorder);
+        g.drawRoundedRectangle(activeToggleBounds_.toFloat(), 4.0f, active ? 1.0f : 0.8f);
         g.setColour(active ? palette::kAccent : palette::kTextDim);
+        g.setFont(fonts::label(8.0f));
         g.drawText("ACTIVE", activeToggleBounds_, juce::Justification::centred);
     }
 
@@ -864,21 +1163,25 @@ namespace pw8::plugin::ui
 
     void DesignFxPanel::paint(juce::Graphics& g)
     {
-        if (!detailChromeBounds_.isEmpty())
+        if (viewMode_ != FxViewMode::Cards && !detailChromeBounds_.isEmpty())
         {
-            g.setColour(palette::kPanelRaised.withAlpha(0.55f));
+            g.setColour(palette::kFigmaFxStatusBarFill.withAlpha(0.55f));
             g.fillRoundedRectangle(detailChromeBounds_.toFloat(), 8.0f);
-            g.setColour(palette::kBorder.withAlpha(0.45f));
+            g.setColour(palette::kFigmaFxCardBorderDim.withAlpha(0.65f));
             g.drawRoundedRectangle(detailChromeBounds_.toFloat().reduced(0.5f), 8.0f, 1.0f);
         }
 
-        paintFocusedHeader(g, headerBounds_);
+        if (viewMode_ != FxViewMode::Cards)
+            paintFocusedHeader(g, headerBounds_);
+        if (viewMode_ == FxViewMode::Cards && !statusBarBounds_.isEmpty())
+            paintCardBrowserStatusBar(g, statusBarBounds_);
         paintRoutingBar(g, routingBounds_);
     }
 
     void DesignFxPanel::paintOverChildren(juce::Graphics& g)
     {
-        juce::ignoreUnused(g);
+        if ((viewMode_ == FxViewMode::Cards || viewMode_ == FxViewMode::Chain) && !viewToggleBounds_.isEmpty())
+            paintViewToggleGroup(g, viewToggleBounds_);
     }
 
     void DesignFxPanel::resized()
@@ -890,23 +1193,84 @@ namespace pw8::plugin::ui
             auto header = bounds.removeFromTop(layout::kDesignLabPanelHeaderHeight);
             backButton_.setBounds(header.removeFromLeft(120));
             header.removeFromLeft(8);
-            titleLabel_.setBounds(header.removeFromLeft(160));
+            titleLabel_.setBounds(header.removeFromLeft(200));
         }
 
-        signalChain_.setBounds(bounds.removeFromTop(layout::kDesignFxPageSignalChainSectionHeight));
+        auto subHeader = bounds.removeFromTop(layout::kDesignFxCardBrowserSubHeaderHeight);
+        subHeaderBounds_ = subHeader;
+        if (viewMode_ == FxViewMode::Detail)
+        {
+            detailBackButton_.setBounds(subHeader.removeFromLeft(120));
+        }
+        else
+        {
+            modulesLabel_.setBounds(subHeader.removeFromTop(16));
+            modulesHintLabel_.setBounds(subHeader.removeFromTop(10));
+            subHeader = subHeaderBounds_;
+            subHeader.removeFromLeft(120);
+            viewToggleBounds_ = subHeader.removeFromRight(layout::kDesignFxViewToggleWidth)
+                                    .withSizeKeepingCentre(layout::kDesignFxViewToggleWidth,
+                                                           layout::kDesignFxViewToggleHeight);
+            auto toggleInner = viewToggleBounds_.reduced(4);
+            cardsToggle_.setBounds(toggleInner.removeFromLeft(toggleInner.getWidth() / 2));
+            toggleInner.removeFromLeft(4);
+            chainToggle_.setBounds(toggleInner);
+        }
         bounds.removeFromTop(layout::kDesignFxPageSectionGap);
 
         routingBounds_ = bounds.removeFromBottom(layout::kDesignFxPageRoutingBarHeight);
         bounds.removeFromBottom(layout::kDesignFxPageSectionGap);
 
+        if (viewMode_ == FxViewMode::Cards)
+        {
+            statusBarBounds_ = bounds.removeFromBottom(layout::kDesignFxCardBrowserStatusBarHeight);
+            bounds.removeFromBottom(layout::kDesignFxPageSectionGap);
+            cardBrowser_.setBounds(bounds);
+
+            auto statusInner = statusBarBounds_.reduced(16, 0);
+            const int chipH = 18;
+            const int rowY = statusBarBounds_.getCentreY() - chipH / 2;
+            statusPanicButton_.setVisible(true);
+            statusPanicButton_.setBounds(statusInner.removeFromRight(73).withY(rowY).withHeight(chipH));
+
+            statusInner.removeFromRight(80);
+            auto modRow = statusInner.withSizeKeepingCentre(142, 14);
+            modRow.setCentre(statusBarBounds_.getCentreX() + 28, statusBarBounds_.getCentreY());
+            static constexpr int kModChipWidths[] = {30, 31, 31, 32};
+            for (std::size_t i = 0; i < statusModChipBounds_.size(); ++i)
+            {
+                statusModChipBounds_[i] = modRow.removeFromLeft(kModChipWidths[i]).withHeight(14);
+                if (i + 1 < statusModChipBounds_.size())
+                    modRow.removeFromLeft(6);
+            }
+
+            detailChromeBounds_ = {};
+            headerBounds_ = {};
+            presetLabel_.setBounds({});
+            detailStrip_.setBounds({});
+            heroViz_.setBounds({});
+            signalChain_.setBounds({});
+            return;
+        }
+
+        statusPanicButton_.setVisible(false);
+        statusModChipBounds_ = {};
+
+        if (viewMode_ == FxViewMode::Chain)
+        {
+            signalChain_.setBounds(bounds.removeFromTop(layout::kDesignFxPageSignalChainSectionHeight));
+            bounds.removeFromTop(layout::kDesignFxPageSectionGap);
+        }
+
         detailChromeBounds_ = bounds;
 
         auto inner = detailChromeBounds_.reduced(layout::kDesignFxPageDetailPadding);
         headerBounds_ = inner.removeFromTop(layout::kDesignFxPageDetailHeaderHeight);
-        inner.removeFromTop(14);
+        inner.removeFromTop(layout::kDesignFxPageDetailHeaderGap);
 
         presetLabel_.setBounds({});
         auto body = inner.removeFromTop(layout::kDesignFxPageDetailBodyHeight);
+        statusBarBounds_ = {};
         if (selectedChip_ == 8)
         {
             auto sidebar = body.removeFromLeft(layout::kDesignFxPageEqSidebarWidth);
@@ -914,13 +1278,18 @@ namespace pw8::plugin::ui
             detailStrip_.setBounds(sidebar);
             heroViz_.setBounds(body);
         }
+        else if (viewMode_ == FxViewMode::Detail)
+        {
+            detailStrip_.setBounds(body.removeFromLeft(layout::kDesignFxPageDetailControlsWidth));
+            body.removeFromLeft(layout::kDesignFxPageDetailControlsVizGap);
+            const int heroWidth = juce::jmax(layout::kDesignFxPageDetailHeroWidth, body.getWidth());
+            heroViz_.setBounds(body.removeFromLeft(heroWidth));
+        }
         else
         {
-            auto heroBounds = body.removeFromRight(juce::jmax(220, body.getWidth() - layout::kDesignFxPageDetailControlsWidth
-                                                                         - layout::kDesignFxPageDetailControlsVizGap));
-            body.removeFromRight(layout::kDesignFxPageDetailControlsVizGap);
-            detailStrip_.setBounds(body);
-            heroViz_.setBounds(heroBounds);
+            detailStrip_.setBounds(body.removeFromLeft(layout::kDesignFxPageDetailControlsWidth));
+            body.removeFromLeft(layout::kDesignFxPageDetailControlsVizGap);
+            heroViz_.setBounds(body);
         }
     }
 

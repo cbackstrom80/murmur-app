@@ -1,4 +1,4 @@
-// url=https://www.figma.com/design/pi5kUNcZWQGhqfRAVu3voh/MURMUR-Obsidian?node-id=12-3
+// url=https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/MURMUR-Obsidian?node-id=12-3
 // source=plugin/src/ui/components/AlgorithmGraphView.h
 // component=AlgorithmGraphView
 import figma from 'figma'

@@ -1,6 +1,8 @@
+#include "DesignFxUiState.h"
 #include "FxChainStrip.h"
 
 #include "../PlayModeLayout.h"
+#include "../theme/FigmaKnobTokens.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "LabLauncherChip.h"
@@ -77,6 +79,7 @@ namespace pw8::plugin::ui
         chainFlow_.onSlotSelected = [this](std::size_t index) { selectSlot(index); };
 
         panel_.addAndMakeVisible(wireframe_);
+        wireframe_.attachVisualizerBus(processor_.getVisualizerBus());
 
         static constexpr int kDefaultInsertTypes[] = {1, 2, 3};
         static constexpr int kDefaultMasterTypes[] = {7, 8, 9, 10};
@@ -120,6 +123,7 @@ namespace pw8::plugin::ui
         panel_.addAndMakeVisible(*typeRow_);
 
         designModeRow_ = std::make_unique<MetadataFacetRow>("MODE");
+        designModeRow_->setCompactFxMode(true);
         designModeRow_->setVisible(false);
         designModeRow_->onChange = [this]() {
             const auto pill = designModeRow_->getSelectedValue();
@@ -139,6 +143,17 @@ namespace pw8::plugin::ui
                 onVocoderLabRequested(selectedSlotIndex_);
         };
         panel_.addAndMakeVisible(*vocoderLabChip_);
+
+        quasarLabChip_ = std::make_unique<LabLauncherChip>();
+        quasarLabChip_->setLabel("QUASAR LAB →");
+        quasarLabChip_->setAccentColour(juce::Colour(0xff7c4dff));
+        quasarLabChip_->setHighlighted(true);
+        quasarLabChip_->setVisible(false);
+        quasarLabChip_->onClick = [this]() {
+            if (onQuasarLabRequested)
+                onQuasarLabRequested(selectedSlotIndex_);
+        };
+        panel_.addAndMakeVisible(*quasarLabChip_);
 
         slotTitleLabel_.setJustificationType(juce::Justification::centredLeft);
         slotTitleLabel_.setFont(fonts::label(12.0f));
@@ -160,6 +175,7 @@ namespace pw8::plugin::ui
         swapRight_.onClick = [this]() { swapSelectedSlot(1); };
 
         mixKnob_ = std::make_unique<GlowKnob>(apvts_, "", "Mix");
+        mixKnob_->applyFigmaContext(figma::KnobContext::DesignFxDetail);
         panel_.addAndMakeVisible(*mixKnob_);
 
         transCoreRow_ = std::make_unique<MetadataFacetRow>("TRANS");
@@ -320,14 +336,16 @@ namespace pw8::plugin::ui
         }
 
         const int type = readEffectType(apvts_, selectedSlot().paramPrefix);
+        const bool quasarSlot = type == 13 && selectedSlotIndex_ >= 3;
         const bool vocoderSlot = type == 11;
+        quasarLabChip_->setVisible(quasarSlot);
         vocoderLabChip_->setVisible(vocoderSlot);
         if (typeRow_ != nullptr)
-            typeRow_->setVisible(!vocoderSlot);
+            typeRow_->setVisible(!vocoderSlot && !quasarSlot);
         for (auto& knob : paramKnobs_)
-            knob->setVisible(!vocoderSlot);
+            knob->setVisible(!vocoderSlot && !quasarSlot);
         if (mixKnob_ != nullptr)
-            mixKnob_->setVisible(!vocoderSlot && type != 0);
+            mixKnob_->setVisible(!vocoderSlot && !quasarSlot && type != 0);
     }
 
     void FxChainStrip::updateFlowPrefixes()
@@ -407,6 +425,7 @@ namespace pw8::plugin::ui
             if (def.fieldSuffix == nullptr || def.fieldSuffix[0] == '\0')
                 continue;
             auto knob = std::make_unique<GlowKnob>(apvts_, prefix + def.fieldSuffix, def.label);
+            knob->applyFigmaContext(figma::KnobContext::DesignFxDetail);
             panel_.addAndMakeVisible(*knob);
             paramKnobs_.push_back(std::move(knob));
         }
@@ -419,8 +438,6 @@ namespace pw8::plugin::ui
     {
         paramKnobs_.clear();
         designKnobGrid_.clear();
-        for (auto& stub : designStubKnobs_)
-            stub.reset();
 
         const auto& prefix = selectedSlot().paramPrefix;
         const int type = readEffectType(apvts_, prefix);
@@ -436,20 +453,28 @@ namespace pw8::plugin::ui
             {
                 if (def.label != nullptr && def.label[0] != '\0')
                 {
-                    auto stub = std::make_unique<DesignFxStubKnob>(def.label);
-                    if (designFxUiState_ != nullptr)
-                        stub->setNormalizedValue(designFxUiState_->knobValue(designFxChipIndex_, i));
+                    const float initial = designFxUiState_ != nullptr
+                                              ? designFxUiState_->knobValue(designFxChipIndex_, i)
+                                              : 0.5f;
                     const std::size_t chip = designFxChipIndex_;
-                    stub->onValueChanged = [this, chip, i](float value) {
-                        if (designFxUiState_ != nullptr)
-                            designFxUiState_->setKnobValue(chip, i, value);
-                        if (onDesignUiChanged)
-                            onDesignUiChanged();
-                    };
-                    panel_.addAndMakeVisible(*stub);
-                    designStubKnobs_[i] = std::move(stub);
+                    auto knob = std::make_unique<GlowKnob>(
+                        def.label, 0.0, 1.0, static_cast<double>(initial),
+                        [this, chip, i](double value) {
+                            if (designFxUiState_ != nullptr)
+                                designFxUiState_->setKnobValue(chip, i, static_cast<float>(value));
+                            if (onDesignUiChanged)
+                                onDesignUiChanged();
+                        });
+                    knob->applyFigmaContext(figma::KnobContext::DesignFxDetail);
+                    knob->setShowNameLabel(false);
+                    knob->setShowModRouteRing(false);
+                    auto* raw = knob.get();
+                    panel_.addAndMakeVisible(*knob);
+                    paramKnobs_.push_back(std::move(knob));
+                    designKnobGrid_.push_back(raw);
                 }
-                designKnobGrid_.push_back(nullptr);
+                else
+                    designKnobGrid_.push_back(nullptr);
                 continue;
             }
 
@@ -466,6 +491,9 @@ namespace pw8::plugin::ui
             }
 
             auto knob = std::make_unique<GlowKnob>(apvts_, prefix + def.fieldSuffix, def.label);
+            knob->applyFigmaContext(figma::KnobContext::DesignFxDetail);
+            knob->setShowNameLabel(false);
+            knob->setShowModRouteRing(false);
             auto* raw = knob.get();
             panel_.addAndMakeVisible(*knob);
             paramKnobs_.push_back(std::move(knob));
@@ -474,6 +502,12 @@ namespace pw8::plugin::ui
 
         syncDesignModeRowFromChip();
         updatePlayDashboardUi();
+
+        if (mixKnob_ != nullptr)
+        {
+            mixKnob_->setShowNameLabel(false);
+            mixKnob_->setShowModRouteRing(false);
+        }
     }
 
     void FxChainStrip::syncDesignModeRowFromChip()
@@ -630,6 +664,7 @@ namespace pw8::plugin::ui
         {
             transAmountKnob_ =
                 std::make_unique<GlowKnob>(apvts_, selectedSlot().paramPrefix + "CompTransformerAmount", "Trans");
+            transAmountKnob_->applyFigmaContext(figma::KnobContext::DesignFxDetail);
             panel_.addAndMakeVisible(*transAmountKnob_);
         }
         else if (!show)
@@ -762,6 +797,7 @@ namespace pw8::plugin::ui
         {
             mixKnob_.reset();
             mixKnob_ = std::make_unique<GlowKnob>(apvts_, selectedSlot().paramPrefix + "Mix", "Mix");
+            mixKnob_->applyFigmaContext(figma::KnobContext::DesignFxDetail);
             panel_.addAndMakeVisible(*mixKnob_);
         }
 
@@ -855,9 +891,12 @@ namespace pw8::plugin::ui
             typeRow_->setBounds(main.removeFromTop(34));
         main.removeFromTop(4);
 
-        if (playDashboardMode_ && vocoderLabChip_->isVisible())
+        if (playDashboardMode_ && (vocoderLabChip_->isVisible() || quasarLabChip_->isVisible()))
         {
-            vocoderLabChip_->setBounds(main.removeFromTop(28).reduced(2));
+            if (quasarLabChip_->isVisible())
+                quasarLabChip_->setBounds(main.removeFromTop(28).reduced(2));
+            else
+                vocoderLabChip_->setBounds(main.removeFromTop(28).reduced(2));
             main.removeFromTop(4);
         }
 
@@ -930,9 +969,12 @@ namespace pw8::plugin::ui
 
         auto editor = content.removeFromTop(layout::kFxSlotEditorHeight);
 
-        if (vocoderLabChip_->isVisible())
+        if (vocoderLabChip_->isVisible() || quasarLabChip_->isVisible())
         {
-            vocoderLabChip_->setBounds(editor.removeFromTop(layout::kLabChipHeight).reduced(2));
+            if (quasarLabChip_->isVisible())
+                quasarLabChip_->setBounds(editor.removeFromTop(layout::kLabChipHeight).reduced(2));
+            else
+                vocoderLabChip_->setBounds(editor.removeFromTop(layout::kLabChipHeight).reduced(2));
             editor.removeFromTop(4);
         }
 
@@ -1008,21 +1050,13 @@ namespace pw8::plugin::ui
             const int rowStep = knobH + 6;
             std::size_t row = 0;
 
-            for (auto* knob : designKnobGrid_)
+            for (std::size_t i = 0; i < designKnobGrid_.size(); ++i)
             {
-                if (knob == nullptr || !knob->isVisible())
+                if (designKnobGrid_[i] == nullptr || !designKnobGrid_[i]->isVisible())
                     continue;
-                knob->setMaxDialDiameter(juce::jmin(28, knobW - 4));
-                knob->setBounds(controls.getX(), controls.getY() + static_cast<int>(row) * rowStep, knobW, knobH);
-                ++row;
-            }
-
-            for (std::size_t i = 0; i < designStubKnobs_.size(); ++i)
-            {
-                if (designStubKnobs_[i] == nullptr)
-                    continue;
-                designStubKnobs_[i]->setBounds(controls.getX(), controls.getY() + static_cast<int>(row) * rowStep,
-                                               knobW, knobH);
+                designKnobGrid_[i]->setMaxDialDiameter(juce::jmin(28, knobW - 4));
+                designKnobGrid_[i]->setBounds(controls.getX(), controls.getY() + static_cast<int>(row) * rowStep, knobW,
+                                              knobH);
                 ++row;
             }
 
@@ -1050,8 +1084,6 @@ namespace pw8::plugin::ui
                     knob->setMaxDialDiameter(layout::kDesignFxPageDetailKnobDialSize);
                     knob->setBounds(cell);
                 }
-                else if (index < designStubKnobs_.size() && designStubKnobs_[index] != nullptr)
-                    designStubKnobs_[index]->setBounds(cell);
             };
 
             for (std::size_t i = 0; i < designKnobGrid_.size(); ++i)
@@ -1062,7 +1094,9 @@ namespace pw8::plugin::ui
                 designModeRow_->setBounds(controls.removeFromTop(layout::kDesignFxPageDetailModeStripHeight));
         }
 
-        if (vocoderLabChip_ != nullptr && vocoderLabChip_->isVisible())
+        if (quasarLabChip_ != nullptr && quasarLabChip_->isVisible())
+            quasarLabChip_->setBounds(controls.removeFromTop(layout::kLabChipHeight).reduced(0, 2));
+        else if (vocoderLabChip_ != nullptr && vocoderLabChip_->isVisible())
             vocoderLabChip_->setBounds(controls.removeFromTop(layout::kLabChipHeight).reduced(0, 2));
 
         chainFlow_.setBounds({});
@@ -1085,12 +1119,12 @@ namespace pw8::plugin::ui
         const int knobH = layout::kDesignFxPageDetailKnobHeight;
         const int colStep = knobW + layout::kDesignFxPageDetailKnobColGap;
         const int rowStep = knobH + (layout::kDesignFxPageDetailKnobRowGap - knobH);
-        const int dialSize = layout::kDesignFxPageDetailKnobDialSize;
         const bool eqSidebar = designFxChipIndex_ == 8;
 
         for (std::size_t i = 0; i < designKnobGrid_.size() && i < spec.knobs.size(); ++i)
         {
-            if (designKnobGrid_[i] != nullptr || (i < designStubKnobs_.size() && designStubKnobs_[i] != nullptr))
+            auto* knob = designKnobGrid_[i];
+            if (knob == nullptr || !knob->isVisible())
                 continue;
 
             juce::Rectangle<int> cell;
@@ -1098,9 +1132,9 @@ namespace pw8::plugin::ui
             {
                 const int visibleBefore = static_cast<int>(std::count_if(
                     designKnobGrid_.begin(), designKnobGrid_.begin() + static_cast<std::ptrdiff_t>(i),
-                    [](GlowKnob* knob) { return knob != nullptr && knob->isVisible(); }));
+                    [](GlowKnob* k) { return k != nullptr && k->isVisible(); }));
                 cell = juce::Rectangle<int>(designKnobGridBounds_.getX(),
-                                              designKnobGridBounds_.getY() + visibleBefore * (knobH + 6), knobW, knobH);
+                                            designKnobGridBounds_.getY() + visibleBefore * (knobH + 6), knobW, knobH);
             }
             else
             {
@@ -1111,16 +1145,16 @@ namespace pw8::plugin::ui
             }
             cell = getLocalArea(&panel_, cell);
 
-            const auto dial = juce::Rectangle<int>(cell.getCentreX() - dialSize / 2, cell.getY(), dialSize, dialSize);
-            g.setColour(palette::kPanel);
-            g.fillEllipse(dial.toFloat());
-            g.setColour(palette::kBorder.withAlpha(0.55f));
-            g.drawEllipse(dial.toFloat(), 1.0f);
+            if (spec.knobs[i].label != nullptr && spec.knobs[i].label[0] != '\0')
+            {
+                g.setColour(palette::kFigmaFxMutedText);
+                g.setFont(fonts::micro(7.0f));
+                g.drawText(spec.knobs[i].label, cell.removeFromTop(10), juce::Justification::centred);
+            }
 
-            g.setColour(palette::kTextDim.withAlpha(0.45f));
-            g.setFont(fonts::label(7.0f));
-            g.drawText(spec.knobs[i].label != nullptr ? spec.knobs[i].label : "",
-                       cell.removeFromTop(knobH).removeFromBottom(18), juce::Justification::centred);
+            g.setColour(palette::kAccent);
+            g.setFont(fonts::denseBold(8.0f));
+            g.drawText(knob->getValueDisplayText(), cell.removeFromBottom(14), juce::Justification::centred);
         }
     }
 

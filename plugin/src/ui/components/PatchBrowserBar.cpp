@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include "../PlayModeLayout.h"
+#include "../theme/FigmaKnobTokens.h"
 #include "../theme/BrandingAssets.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
@@ -121,6 +122,7 @@ namespace pw8::plugin::ui
 
         masterVolumeKnob_ = std::make_unique<GlowKnob>(processor_.apvts, kMasterGainId, "VOL", nullptr, palette::kAccentWarm);
         masterVolumeKnob_->setHeaderCompactMode(true);
+        masterVolumeKnob_->applyFigmaContext(figma::KnobContext::PlayHeaderMaster);
         addAndMakeVisible(*masterVolumeKnob_);
 
         prevButton_.onClick = [this] { stepPreset(-1); };
@@ -269,7 +271,8 @@ namespace pw8::plugin::ui
         if (masterVolumeKnob_ != nullptr)
         {
             masterVolumeKnob_->setVisible(true);
-            masterVolumeKnob_->setMaxDialDiameter(obsidianChromeMode_ ? layout::kObsidianMasterKnobSize : 40);
+            masterVolumeKnob_->applyFigmaContext(
+                obsidianChromeMode_ ? figma::KnobContext::ChromeMaster : figma::KnobContext::PlayHeaderMaster);
         }
         resized();
     }

@@ -131,6 +131,11 @@ for _i in range(1, 9):
 MOD_SOURCE_IDS["mod_wheel"] = 29
 MOD_SOURCE_IDS["expression"] = 30
 MOD_SOURCE_IDS["sidechain"] = 31
+MOD_SOURCE_IDS.update({
+    "random1": 32, "random2": 33, "random3": 34, "random4": 35,
+    "random_t": 36, "random_x": 37,
+    "r1": 32, "r2": 33, "r3": 34, "r4": 35,
+})
 MOD_SOURCE_NAMES = {v: k for k, v in MOD_SOURCE_IDS.items()}
 
 MOD_DEST_IDS: dict[str, int] = {
@@ -147,21 +152,121 @@ MOD_DEST_IDS: dict[str, int] = {
     "vocoder_mix": 21,
     "vocoder_formant": 22,
     "mod_route_depth": 23,
+    "morph_position": 24,
+    "filter_mode_morph": 25,
+    "filter_routing": 26,
+    "filter_drive": 27,
+    "master_dynamics_mix": 28,
+    "sidechain_depth": 29,
+    "quasar_qsr1_angle": 30,
+    "quasar_qsr2_angle": 31,
+    "quasar_room_amount": 32,
+    "quasar_crossfeed": 33,
+    "quasar_delay_volume": 34,
+    "quasar_qsr1_distance": 35,
+    "quasar_qsr2_distance": 36,
+    "quasar_delay_time": 37,
+    "quasar_delay_feedback": 38,
+    "quasar_qsr1_height": 39,
+    "quasar_qsr2_height": 40,
+    "quasar_cntr_level": 41,
+    "quasar_qsr1_level": 42,
+    "quasar_qsr2_level": 43,
+    "operator_fm_modulator_ratio": 44,
+    "operator_fm_modulator_index": 45,
+    "operator_fm_modulator_feedback": 46,
+    "operator_freq_ratio": 47,
+    "operator_phase_bend": 48,
+    "operator_phase_fold": 49,
+    "operator_phase_asymmetry": 50,
+    "operator_additive_partial_count": 51,
+    "operator_additive_tilt": 52,
+    "operator_additive_odd_even": 53,
+    "operator_additive_stretch": 54,
+    "operator_resonator_structure": 55,
+    "operator_resonator_decay": 56,
+    "operator_resonator_damping": 57,
+    "operator_resonator_brightness": 58,
+    "operator_resonator_mode_count": 59,
+    "operator_grain_density": 60,
+    "operator_grain_size_ms": 61,
+    "operator_grain_position_jitter": 62,
+    "operator_grain_pitch_jitter": 63,
+    "unison_voices": 64,
+    "unison_detune": 65,
+    "unison_spread": 66,
 }
 MOD_DEST_NAMES = {v: k for k, v in MOD_DEST_IDS.items()}
 # Destinations that require targetIndex (operator index 0-7, or master slot 0-3).
 MOD_DEST_NEEDS_TARGET = {3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-                         21, 22}
+                         21, 22, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43,
+                         44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
+                         60, 61, 62, 63}
 
 MOD_SCOPE_IDS = {"voice": 0, "layer": 1, "global": 2}
 MOD_SCOPE_NAMES = {v: k for k, v in MOD_SCOPE_IDS.items()}
+
+# -- MasterDynamics (Streams Track C — docs/MASTER_DYNAMICS_SPEC.md) -----------
+
+MASTER_DYNAMICS_MODE_IDS: dict[str, int] = {
+    "envelope": 0,
+    "vactrol": 1,
+    "follower": 2,
+    "compressor": 3,
+}
+MASTER_DYNAMICS_MODE_NAMES = {v: k for k, v in MASTER_DYNAMICS_MODE_IDS.items()}
+
+MASTER_DYNAMICS_FIELDS: dict[str, dict] = {
+    "enabled": {"type": "bool", "default": False},
+    "mode": {"type": "string", "default": "envelope",
+             "note": "envelope | vactrol | follower | compressor"},
+    "thresholdDb": {"type": "float", "range": [-60.0, 0.0], "default": -12.0},
+    "ratio": {"type": "float", "range": [1.0, 20.0], "default": 4.0},
+    "attackMs": {"type": "float", "range": [0.1, 500.0], "default": 5.0},
+    "releaseMs": {"type": "float", "range": [1.0, 5000.0], "default": 80.0},
+    "sidechainGain": {"type": "float", "range": [0.0, 2.0], "default": 1.0},
+    "vactrolSlewMs": {"type": "float", "range": [1.0, 5000.0], "default": 40.0},
+    "makeupDb": {"type": "float", "range": [0.0, 24.0], "default": 0.0},
+    "mix": {"type": "float", "range": [0.0, 1.0], "default": 1.0},
+}
+
+# -- Generative (Marbles Track E — GenerativeSources.hpp) ----------------------
+
+GENERATIVE_STREAM_FIELDS: dict[str, dict] = {
+    "spread": {"type": "float", "range": [0.0, 1.0], "default": 0.5},
+    "bias": {"type": "float", "range": [-1.0, 1.0], "default": 0.0},
+    "lagMs": {"type": "float", "range": [0.1, 5000.0], "default": 80.0},
+}
+
+GENERATIVE_FIELDS: dict[str, dict] = {
+    "seed": {"type": "int", "range": [0, 2**64 - 1], "default": 0, "note": "0 = inherit patch seed"},
+    "dejaVu": {"type": "bool", "default": True},
+    "seedLocked": {"type": "bool", "default": False},
+    "clockTRateHz": {"type": "float", "range": [0.01, 40.0], "default": 0.47},
+    "clockXRateHz": {"type": "float", "range": [0.01, 40.0], "default": 4.7},
+    "correlation": {"type": "float", "range": [0.0, 1.0], "default": 0.0},
+}
+
+# -- Peaks utility (Track F — PeaksUtility.hpp) --------------------------------
+
+PEAKS_UTILITY_MODE_IDS: dict[str, int] = {"mini_envelope": 0, "mini_lfo": 1, "envelope": 0, "lfo": 1}
+PEAKS_UTILITY_MODE_NAMES = {0: "mini_envelope", 1: "mini_lfo"}
+
+PEAKS_UTILITY_SLOT_FIELDS: dict[str, dict] = {
+    "enabled": {"type": "bool", "default": False},
+    "mode": {"type": "string", "default": "mini_envelope", "note": "mini_envelope | mini_lfo"},
+    "attackMs": {"type": "float", "range": [0.1, 5000.0], "default": 5.0},
+    "releaseMs": {"type": "float", "range": [1.0, 5000.0], "default": 80.0},
+    "lfoRateHz": {"type": "float", "range": [0.01, 40.0], "default": 0.5},
+    "lfoDepth": {"type": "float", "range": [0.0, 1.0], "default": 0.5},
+}
 
 # -- EffectType ---------------------------------------------------------------
 
 EFFECT_TYPE_IDS: dict[str, int] = {
     "bypass": 0, "saturation": 1, "chorus": 2, "tape_delay": 3, "node_delay": 4,
     "freq_shift_echo": 5, "fractal_echo": 6, "reverb": 7, "eq": 8,
-    "compressor": 9, "limiter": 10, "vocoder": 11,
+    "compressor": 9, "limiter": 10, "vocoder": 11, "clouds": 12, "binaural_space": 13,
 }
 EFFECT_TYPE_NAMES = {v: k for k, v in EFFECT_TYPE_IDS.items()}
 
@@ -226,6 +331,43 @@ EFFECT_FIELDS: dict[str, dict[str, dict]] = {
         "limiterCeilingDb": {"type": "float", "range": [-6.0, 0.0], "default": -0.8},
         "limiterLookaheadMs": {"type": "float", "range": [0.0, 20.0], "default": 4.0},
         "limiterReleaseMs": {"type": "float", "range": [1.0, 1000.0], "default": 60.0},
+    },
+    "clouds": {
+        "cloudsDensity": {"type": "float", "range": [0.0, 1.0], "default": 0.35},
+        "cloudsGrainSizeMs": {"type": "float", "range": [5.0, 500.0], "default": 80.0},
+        "cloudsPitch": {"type": "float", "range": [0.25, 4.0], "default": 1.0},
+        "cloudsFreeze": {"type": "float", "range": [0.0, 1.0], "default": 0.0},
+        "cloudsMode": {"type": "int", "range": [0, 2], "default": 0,
+                       "note": "0=granular 1=loop_delay 2=pitch_shift"},
+    },
+    "binaural_space": {
+        "mix": {"type": "float", "range": [0.0, 1.0], "default": 1.0},
+        "qsr1Level": {"type": "float", "range": [0.0, 1.0], "default": 0.65},
+        "qsr2Level": {"type": "float", "range": [0.0, 1.0], "default": 0.55},
+        "cntrLevel": {"type": "float", "range": [0.0, 1.0], "default": 0.85},
+        "inputSplitHpfHz": {"type": "float", "range": [20.0, 500.0], "default": 120.0},
+        "cntrHpfHz": {"type": "float", "range": [20.0, 300.0], "default": 80.0},
+        "qsr1Height": {"type": "float", "range": [-1.0, 1.0], "default": 0.0},
+        "qsr1AngleDeg": {"type": "float", "range": [0.0, 360.0], "default": 30.0},
+        "qsr1Distance": {"type": "float", "range": [0.0, 1.0], "default": 0.35},
+        "qsr2Height": {"type": "float", "range": [-1.0, 1.0], "default": 0.0},
+        "qsr2AngleDeg": {"type": "float", "range": [0.0, 360.0], "default": 330.0},
+        "qsr2Distance": {"type": "float", "range": [0.0, 1.0], "default": 0.4},
+        "qsr1RoomAmount": {"type": "float", "range": [0.0, 1.0], "default": 0.45},
+        "qsr1RoomSize": {"type": "float", "range": [0.2, 3.0], "default": 1.0},
+        "qsr1RoomDamping": {"type": "float", "range": [0.0, 1.0], "default": 0.55},
+        "qsr2RoomAmount": {"type": "float", "range": [0.0, 1.0], "default": 0.40},
+        "qsr2RoomSize": {"type": "float", "range": [0.2, 3.0], "default": 1.1},
+        "qsr2RoomDamping": {"type": "float", "range": [0.0, 1.0], "default": 0.50},
+        "quasarDelayTimeMs": {"type": "float", "range": [3.0, 20000.0], "default": 450.0},
+        "quasarDelayFeedback": {"type": "float", "range": [0.0, 0.95], "default": 0.35},
+        "quasarDelayVolume": {"type": "float", "range": [0.0, 1.0], "default": 0.25},
+        "quasarOutputMode": {"type": "int", "range": [0, 2], "default": 0,
+                             "note": "0=headphone 1=speaker 2=monitor"},
+        "quasarCrossfeed": {"type": "float", "range": [0.0, 1.0], "default": 0.0},
+        "quasarDelaySync": {"type": "bool", "default": False},
+        "quasarDelaySyncDivisionIndex": {"type": "int", "range": [0, 8], "default": 2},
+        "qsrStereoSplit": {"type": "bool", "default": True},
     },
 }
 

@@ -40,6 +40,7 @@ namespace pw8::plugin
         Env7,
         LayerGainPan,
         MasterGain,
+        Portamento,
         InsertFx0,
         InsertFx1,
         InsertFx2,
@@ -50,6 +51,9 @@ namespace pw8::plugin
         Arp,
         Unison,
         FxRouting,
+        MasterDynamics,
+        Generative,
+        PeaksUtility,
         Count
     };
 

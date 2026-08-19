@@ -14,7 +14,10 @@ from pathlib import Path
 from patch_schema import (
     BASE_OPERATOR_FIELDS, ENGINE_EXTRA_FIELDS, ENGINE_NAMES,
     EFFECT_FIELDS, EFFECT_TYPE_IDS, EFFECT_TYPE_NAMES,
-    FILTER_MODE_IDS, FILTER_MODE_NAMES, MOD_DEST_IDS, MOD_DEST_NEEDS_TARGET,
+    FILTER_MODE_IDS, FILTER_MODE_NAMES,     MASTER_DYNAMICS_FIELDS, MASTER_DYNAMICS_MODE_IDS,
+    GENERATIVE_FIELDS, GENERATIVE_STREAM_FIELDS,
+    PEAKS_UTILITY_SLOT_FIELDS, PEAKS_UTILITY_MODE_IDS, PEAKS_UTILITY_MODE_NAMES,
+    MOD_DEST_IDS, MOD_DEST_NEEDS_TARGET,
     MOD_SCOPE_IDS, MOD_SOURCE_IDS, clamp, resolve_engine, resolve_from_map,
 )
 
@@ -112,6 +115,7 @@ def default_patch(name: str, description: str = "") -> dict:
                     for i in range(8)],
         "arpeggiator": {"enabled": False},
         "masterEffects": [],
+        "masterDynamics": {"enabled": False},
     }
 
 
@@ -338,10 +342,123 @@ def _normalize_macro_values(raw) -> list[float]:
     return out
 
 
+def set_master_dynamics(patch_id: str, params: dict | None) -> list[str]:
+    """Configure Streams-style master bus dynamics (top-level masterDynamics)."""
+    patch = load_scratch(patch_id)
+    warnings: list[str] = []
+    md = dict(patch.get("masterDynamics", {"enabled": False}))
+
+    if params:
+        for key, value in params.items():
+            if key == "mode":
+                mode_key = str(value).strip().lower().replace(" ", "_")
+                if mode_key not in MASTER_DYNAMICS_MODE_IDS:
+                    raise ValueError(
+                        f"unknown masterDynamics mode '{value}' — valid: {sorted(MASTER_DYNAMICS_MODE_IDS)}"
+                    )
+                md["mode"] = mode_key
+                continue
+            if key not in MASTER_DYNAMICS_FIELDS:
+                warnings.append(f"unknown masterDynamics field '{key}' ignored")
+                continue
+            spec = MASTER_DYNAMICS_FIELDS[key]
+            if spec.get("type") == "bool":
+                md[key] = bool(value)
+            elif spec.get("type") == "string":
+                md[key] = str(value)
+            else:
+                clamped, warn = clamp(float(value), spec)
+                md[key] = clamped
+                if warn:
+                    warnings.append(warn)
+
+    patch["masterDynamics"] = md
+    write_scratch(patch_id, patch)
+    return warnings
+
+
+def set_generative(patch_id: str, params: dict | None = None,
+                   streams: list[dict] | None = None) -> list[str]:
+    """Configure Marbles-style generative mod sources (top-level generative on patch)."""
+    patch = load_scratch(patch_id)
+    warnings: list[str] = []
+    gen = dict(patch.get("generative", {}))
+
+    for key, value in (params or {}).items():
+        if key not in GENERATIVE_FIELDS:
+            warnings.append(f"unknown generative field '{key}' ignored")
+            continue
+        spec = GENERATIVE_FIELDS[key]
+        if spec.get("type") == "bool":
+            gen[key] = bool(value)
+        else:
+            clamped, warn = clamp(value, spec)
+            if warn:
+                warnings.append(f"{key}: {warn}")
+            gen[key] = clamped
+
+    if streams is not None:
+        merged: list[dict] = []
+        for i, stream in enumerate(streams[:4]):
+            entry: dict = {}
+            for key, value in stream.items():
+                if key not in GENERATIVE_STREAM_FIELDS:
+                    warnings.append(f"stream[{i}] unknown field '{key}' ignored")
+                    continue
+                clamped, warn = clamp(value, GENERATIVE_STREAM_FIELDS[key])
+                if warn:
+                    warnings.append(f"streams[{i}].{key}: {warn}")
+                entry[key] = clamped
+            merged.append(entry)
+        if merged:
+            gen["streams"] = merged
+
+    patch["generative"] = gen
+    write_scratch(patch_id, patch)
+    return warnings
+
+
+def set_utility_peaks(patch_id: str, slot: int, params: dict | None = None) -> list[str]:
+    """Configure a Peaks utility slot (0–1) on top-level utilityPeaks."""
+    if slot not in (0, 1):
+        raise ValueError("slot must be 0 or 1")
+    patch = load_scratch(patch_id)
+    warnings: list[str] = []
+    peaks = dict(patch.get("utilityPeaks", {}))
+    slots: list[dict] = list(peaks.get("slots", [{}, {}]))
+    while len(slots) < 2:
+        slots.append({})
+    entry = dict(slots[slot])
+
+    for key, value in (params or {}).items():
+        if key == "mode":
+            mode_id = resolve_from_map(value, PEAKS_UTILITY_MODE_IDS, "peaks utility mode")
+            entry["mode"] = mode_id
+            continue
+        if key not in PEAKS_UTILITY_SLOT_FIELDS:
+            warnings.append(f"unknown utilityPeaks field '{key}' ignored")
+            continue
+        spec = PEAKS_UTILITY_SLOT_FIELDS[key]
+        if spec.get("type") == "bool":
+            entry[key] = bool(value)
+        else:
+            clamped, warn = clamp(value, spec)
+            if warn:
+                warnings.append(f"{key}: {warn}")
+            entry[key] = clamped
+
+    slots[slot] = entry
+    peaks["slots"] = slots
+    patch["utilityPeaks"] = peaks
+    write_scratch(patch_id, patch)
+    return warnings
+
+
 def set_morph_koin(patch_id: str, label: str, keyframes: list[dict],
                    default_position: float = 0.0, description: str = "",
                    curve: str = "linear", wrap: bool = False,
                    position: float | None = None,
+                   autoplay_source: str = "none",
                    macro_koins: list[dict] | None = None) -> list[str]:
     """Configure a Frames-style morph KOIN: top-level morphKoin metadata + uiFocus morph entry.
 
@@ -389,10 +506,23 @@ def set_morph_koin(patch_id: str, label: str, keyframes: list[dict],
         overrides = kf.get("paramOverrides")
         if overrides:
             if not isinstance(overrides, dict):
-                raise ValueError("paramOverrides must be a dict of path -> float")
-            entry["paramOverrides"] = {str(k): float(v) for k, v in overrides.items()}
+                raise ValueError("paramOverrides must be a dict of path -> float or override object")
+            parsed_overrides: dict = {}
+            for k, v in overrides.items():
+                if isinstance(v, (int, float)):
+                    parsed_overrides[str(k)] = float(v)
+                elif isinstance(v, dict):
+                    parsed_overrides[str(k)] = {
+                        "value": float(v.get("value", 0.0)),
+                        "easing": str(v.get("easing", "")),
+                        "response": str(v.get("response", "")),
+                    }
+                else:
+                    raise ValueError("paramOverrides values must be float or {value,easing?,response?}")
+            entry["paramOverrides"] = parsed_overrides
         parsed_keyframes.append(entry)
 
+    autoplay = str(autoplay_source or "none")
     patch["morphKoin"] = {
         "label": label[:32],
         "description": description,
@@ -400,6 +530,7 @@ def set_morph_koin(patch_id: str, label: str, keyframes: list[dict],
         "position": pos,
         "curve": curve_norm,
         "wrap": bool(wrap),
+        "autoplaySource": autoplay,
         "keyframes": parsed_keyframes,
     }
 
@@ -424,6 +555,65 @@ def set_morph_koin(patch_id: str, label: str, keyframes: list[dict],
             warnings.extend(macro_warnings)
 
     return warnings
+
+
+def add_morph_keyframe(patch_id: str, name: str, position: float,
+                       macro_values: list[float] | None = None,
+                       param_overrides: dict | None = None) -> list[str]:
+    """Append one morph keyframe (DESIGN cap 16). Preserves existing keyframes."""
+    patch = load_scratch(patch_id)
+    morph = patch.setdefault("morphKoin", {"label": "MORPH", "keyframes": []})
+    keyframes = morph.setdefault("keyframes", [])
+    if len(keyframes) >= 16:
+        raise ValueError("morph keyframe cap is 16")
+
+    pos, w0 = clamp(position, {"range": [0.0, 1.0]})
+    warnings: list[str] = []
+    if w0:
+        warnings.append(w0)
+
+    entry: dict = {"name": str(name)[:32], "position": pos}
+    mv = _normalize_macro_values(macro_values)
+    if mv:
+        while len(mv) < 8:
+            mv.append(0.0)
+        entry["macroValues"] = mv
+
+    if param_overrides:
+        parsed: dict = {}
+        for k, v in param_overrides.items():
+            if isinstance(v, (int, float)):
+                parsed[str(k)] = float(v)
+            elif isinstance(v, dict):
+                parsed[str(k)] = {
+                    "value": float(v.get("value", 0.0)),
+                    "easing": str(v.get("easing", "")),
+                    "response": str(v.get("response", "")),
+                }
+            else:
+                raise ValueError("param_overrides values must be float or override object")
+        entry["paramOverrides"] = parsed
+
+    keyframes.append(entry)
+    keyframes.sort(key=lambda k: k.get("position", 0.0))
+    write_scratch(patch_id, patch)
+    return warnings
+
+
+def remove_morph_keyframe(patch_id: str, index: int) -> list[str]:
+    """Remove morph keyframe by index (0-based). Requires at least one keyframe remains for PLAY."""
+    patch = load_scratch(patch_id)
+    morph = patch.get("morphKoin")
+    if not morph or not morph.get("keyframes"):
+        raise ValueError("patch has no morphKoin keyframes")
+
+    keyframes = morph["keyframes"]
+    if index < 0 or index >= len(keyframes):
+        raise ValueError(f"keyframe index {index} out of range (0..{len(keyframes) - 1})")
+
+    keyframes.pop(index)
+    write_scratch(patch_id, patch)
+    return []
 
 
 def explain_patch(patch: dict) -> str:
@@ -463,4 +653,24 @@ def explain_patch(patch: dict) -> str:
         name = EFFECT_TYPE_NAMES.get(slot.get("type", 0), "?")
         if name != "bypass":
             lines.append(f"  Master FX: {name} (mix={slot.get('mix', 1.0):.2f})")
+    md = patch.get("masterDynamics")
+    if md and md.get("enabled"):
+        mode = md.get("mode", "envelope")
+        lines.append(
+            f"  Master dynamics: {mode} (mix={md.get('mix', 1.0):.2f}, "
+            f"threshold={md.get('thresholdDb', -12.0):.1f}dB)"
+        )
+    gen = patch.get("generative")
+    if gen:
+        lines.append(
+            f"  Generative: T={gen.get('clockTRateHz', 0.47):.2f}Hz "
+            f"X={gen.get('clockXRateHz', 4.7):.2f}Hz "
+            f"dejaVu={gen.get('dejaVu', True)} corr={gen.get('correlation', 0.0):.2f}"
+        )
+    peaks = patch.get("utilityPeaks")
+    if peaks and peaks.get("slots"):
+        for i, slot in enumerate(peaks["slots"]):
+            if slot.get("enabled"):
+                mode = PEAKS_UTILITY_MODE_NAMES.get(slot.get("mode", 0), "?")
+                lines.append(f"  Utility peaks slot {i}: {mode}")
     return "\n".join(lines)

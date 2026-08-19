@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include "../PlayModeLayout.h"
+#include "../theme/FigmaKnobTokens.h"
 #include "../theme/ObsidianDraw.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
@@ -22,7 +23,14 @@ namespace pw8::plugin::ui
         using layout::kDesignModeV2EnvelopeYOffset;
         using layout::kDesignModeV2KnobsEnvelopeRowHeight;
         using layout::kDesignModeV2LevelRowHeight;
+        using layout::kDesignModeV2CardCornerRadius;
+        using layout::kDesignModeV2CardKnobContainerGap;
+        using layout::kDesignModeV2CardKnobContainerWidth;
+        using layout::kDesignModeV2CardKnobDialSize;
+        using layout::kDesignModeV2CardRowGapBeforeKnobs;
+        using layout::kDesignModeV2ContextVisualizerMinHeight;
         using layout::kDesignModeV2OscillatorPickerHeight;
+        using layout::kDesignModeV2SubPickerHeight;
         using layout::kDesignModeV2TypeStripHeight;
         using layout::kEngineCardCornerRadius;
         using layout::kEngineCardFilterEnvGap;
@@ -96,8 +104,10 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    EngineCard::EngineCard(PatchworkEightProcessor& processor, int engineIndex)
+    EngineCard::EngineCard(PatchworkEightProcessor& processor, ModAssignmentController& assignmentController,
+                           int engineIndex)
         : processor_(processor),
+          assignmentController_(assignmentController),
           engineIndex_(engineIndex),
           oscillatorPicker_(processor_, engineIndex),
           adsrMini_(processor_, engineIndex)
@@ -137,19 +147,18 @@ namespace pw8::plugin::ui
         };
         addAndMakeVisible(adsrMini_);
 
-        coarseKnob_ = std::make_unique<GlowKnob>(apvts, operatorParamId(idx, "FrequencyRatio"), "COARSE");
-        fineKnob_ = std::make_unique<GlowKnob>(apvts, operatorParamId(idx, "PhaseBend"), "FINE");
-        cutoffKnob_ = std::make_unique<GlowKnob>(apvts, operatorFilterParamId(idx, "CutoffHz"), "CUT");
-        resKnob_ = std::make_unique<GlowKnob>(apvts, operatorFilterParamId(idx, "Resonance"), "RESO");
+        pitchKnob_ = std::make_unique<ConcentricGlowKnob>(
+            apvts, operatorParamId(idx, "PhaseBend"), operatorParamId(idx, "FreqRatio"), "FI", "CO");
+        filterKnob_ = std::make_unique<ConcentricGlowKnob>(
+            apvts, operatorFilterParamId(idx, "Resonance"), operatorFilterParamId(idx, "CutoffHz"), "RS", "CT");
 
-        for (auto* knob : {coarseKnob_.get(), fineKnob_.get(), cutoffKnob_.get(), resKnob_.get()})
+        for (auto* knob : {pitchKnob_.get(), filterKnob_.get()})
         {
-            knob->setHeaderCompactMode(true);
-            knob->setMaxDialDiameter(kEngineCardKnobDialSize);
+            knob->applyFigmaContext(figma::KnobContext::EngineCard);
             addAndMakeVisible(*knob);
         }
 
-        levelCaption_.setFont(fonts::label(7.0f));
+        levelCaption_.setFont(fonts::micro(7.0f));
         levelCaption_.setColour(juce::Label::textColourId, palette::kTextDim);
         levelCaption_.setJustificationType(juce::Justification::centredLeft);
         addAndMakeVisible(levelCaption_);
@@ -164,7 +173,7 @@ namespace pw8::plugin::ui
         levelAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
             apvts, operatorParamId(idx, "Level"), levelSlider_);
 
-        levelValueLabel_.setFont(fonts::value(7.0f));
+        levelValueLabel_.setFont(fonts::micro(7.0f));
         levelValueLabel_.setColour(juce::Label::textColourId, palette::kAccentWarm);
         levelValueLabel_.setJustificationType(juce::Justification::centredRight);
         addAndMakeVisible(levelValueLabel_);
@@ -181,6 +190,28 @@ namespace pw8::plugin::ui
 
         startTimerHz(10);
         refreshLevelLabel();
+        wireModTargets();
+    }
+
+    void EngineCard::wireModTargets()
+    {
+        const auto targetIndex = static_cast<std::uint8_t>(engineIndex_);
+        if (pitchKnob_ != nullptr)
+        {
+            pitchKnob_->enableInnerModulationTarget(processor_, modulation::ModDestination::OperatorPhaseBend,
+                                                    targetIndex);
+            pitchKnob_->enableOuterModulationTarget(processor_, modulation::ModDestination::OperatorFreqRatio,
+                                                    targetIndex);
+            pitchKnob_->setModAssignmentController(&assignmentController_);
+        }
+        if (filterKnob_ != nullptr)
+        {
+            filterKnob_->enableInnerModulationTarget(processor_, modulation::ModDestination::OperatorFilterResonance,
+                                                     targetIndex);
+            filterKnob_->enableOuterModulationTarget(processor_, modulation::ModDestination::OperatorFilterCutoff,
+                                                     targetIndex);
+            filterKnob_->setModAssignmentController(&assignmentController_);
+        }
     }
 
     EngineCard::~EngineCard() { stopTimer(); }
@@ -211,6 +242,42 @@ namespace pw8::plugin::ui
             playBoardCompactMode_ = false;
         oscillatorPicker_.setPlayBoardCompactMode(false);
         oscillatorPicker_.setDesignModeV2Layout(designMode);
+
+        if (designMode)
+        {
+            titleLabel_.setFont(fonts::label(10.0f));
+            titleLabel_.setColour(juce::Label::textColourId, palette::kFigmaTextPrimary);
+            levelCaption_.setText("LVL", juce::dontSendNotification);
+            levelCaption_.setColour(juce::Label::textColourId, palette::kFigmaTextDim);
+            styleMixButton(onButton_, palette::kFigmaTeal.withAlpha(0.22f));
+            styleMixButton(soloButton_, palette::kFigmaTeal.withAlpha(0.18f));
+            styleMixButton(muteButton_, palette::kAccentWarm.withAlpha(0.28f));
+            onButton_.setColour(juce::TextButton::textColourOnId, palette::kFigmaTeal);
+            soloButton_.setColour(juce::TextButton::textColourOnId, palette::kFigmaTeal);
+            for (auto* knob : {pitchKnob_.get(), filterKnob_.get()})
+            {
+                knob->applyFigmaContext(figma::KnobContext::DesignEngineCard);
+                knob->setDesignCardCompactLayout(true);
+            }
+        }
+        else
+        {
+            titleLabel_.setFont(fonts::label(static_cast<float>(kEngineCardTitleFontSize)));
+            titleLabel_.setColour(juce::Label::textColourId, palette::kTextPrimary);
+            levelCaption_.setText({}, juce::dontSendNotification);
+            levelCaption_.setColour(juce::Label::textColourId, palette::kTextDim);
+            styleMixButton(onButton_, palette::kAccent.withAlpha(0.28f));
+            styleMixButton(soloButton_);
+            styleMixButton(muteButton_, palette::kAccentWarm.withAlpha(0.35f));
+            onButton_.setColour(juce::TextButton::textColourOnId, palette::kTextPrimary);
+            soloButton_.setColour(juce::TextButton::textColourOnId, palette::kTextPrimary);
+            for (auto* knob : {pitchKnob_.get(), filterKnob_.get()})
+            {
+                knob->applyFigmaContext(figma::KnobContext::EngineCard);
+                knob->setDesignCardCompactLayout(false);
+            }
+        }
+
         applyPlayBoardCompactVisibility();
         applyDesignModeV2Visibility();
         resized();
@@ -236,10 +303,8 @@ namespace pw8::plugin::ui
 
         designShowPitchKnobs_ = showPitch;
         designShowFilterKnobs_ = showFilter;
-        coarseKnob_->setVisible(showPitch);
-        fineKnob_->setVisible(showPitch);
-        cutoffKnob_->setVisible(showFilter);
-        resKnob_->setVisible(showFilter);
+        pitchKnob_->setVisible(showPitch);
+        filterKnob_->setVisible(showFilter);
         resized();
     }
 
@@ -268,11 +333,9 @@ namespace pw8::plugin::ui
         onButton_.setVisible(!playBoardCompactMode_);
         soloButton_.setVisible(!playBoardCompactMode_);
         muteButton_.setVisible(!playBoardCompactMode_);
-        cutoffKnob_->setVisible(!playBoardCompactMode_);
-        resKnob_->setVisible(!playBoardCompactMode_);
+        pitchKnob_->setVisible(!playBoardCompactMode_);
+        filterKnob_->setVisible(!playBoardCompactMode_);
         adsrMini_.setVisible(!playBoardCompactMode_);
-        coarseKnob_->setVisible(!playBoardCompactMode_);
-        fineKnob_->setVisible(!playBoardCompactMode_);
         engineTypeBadge_.setVisible(playBoardCompactMode_);
 
         for (auto& btn : filterModeButtons_)
@@ -328,7 +391,7 @@ namespace pw8::plugin::ui
         refreshEngineTypeBadge();
         if (designModeV2Layout_)
             refreshDesignModeV2ControlGroups();
-        setAlpha(ledActive_ ? 1.0f : 0.35f);
+        setAlpha(ledActive_ ? 1.0f : 0.5f);
         repaint();
     }
 
@@ -423,7 +486,7 @@ namespace pw8::plugin::ui
             return 0.5f;
         };
 
-        const float knobNorms[] = {readNorm("FrequencyRatio"), readNorm("PhaseBend")};
+        const float knobNorms[] = {readNorm("FreqRatio"), readNorm("PhaseBend")};
         for (std::size_t i = 0; i < playBoardKnobStubBounds_.size(); ++i)
         {
             const auto bounds = playBoardKnobStubBounds_[i];
@@ -448,9 +511,11 @@ namespace pw8::plugin::ui
     void EngineCard::paint(juce::Graphics& g)
     {
         auto bounds = getLocalBounds().toFloat().reduced(0.5f);
-        draw::fillRecessedRoundedRect(g, bounds, static_cast<float>(kEngineCardCornerRadius));
-        g.setColour(palette::kBorderBright.withAlpha(0.85f));
-        g.drawRoundedRectangle(bounds, static_cast<float>(kEngineCardCornerRadius), 1.0f);
+        const float cornerRadius = designModeV2Layout_ ? static_cast<float>(kDesignModeV2CardCornerRadius)
+                                                       : static_cast<float>(kEngineCardCornerRadius);
+        draw::fillRecessedRoundedRect(g, bounds, cornerRadius);
+        g.setColour(palette::kBorderBright.withAlpha(designModeV2Layout_ ? 0.65f : 0.85f));
+        g.drawRoundedRectangle(bounds, cornerRadius, 1.0f);
 
         const int headerHeight = playBoardCompactMode_
                                      ? kEngineCardPlayBoardHeaderHeight
@@ -488,9 +553,7 @@ namespace pw8::plugin::ui
 
         if (designModeV2Layout_)
         {
-            levelRow.removeFromTop(kDesignModeV2CardHeaderHeight + kDesignModeV2CardRowGap + kDesignModeV2OscillatorPickerHeight
-                                   + kDesignModeV2CardRowGap + kDesignModeV2KnobsEnvelopeRowHeight + kDesignModeV2CardRowGap);
-            paintLevelRow(g, levelRow.removeFromTop(kDesignModeV2LevelRowHeight));
+            paintLevelRow(g, levelSliderBounds_);
             return;
         }
 
@@ -538,7 +601,16 @@ namespace pw8::plugin::ui
             playBoardKnobStubBounds_[0] = {};
             playBoardKnobStubBounds_[1] = {};
 
-            auto header = bounds.removeFromTop(kDesignModeV2CardHeaderHeight);
+            auto inner = getLocalBounds().reduced(kDesignModeV2CardPadding);
+
+            auto levelRow = inner.removeFromBottom(kDesignModeV2LevelRowHeight);
+            auto knobsEnvRow = inner.removeFromBottom(kDesignModeV2KnobsEnvelopeRowHeight);
+
+            auto header = inner.removeFromTop(kDesignModeV2CardHeaderHeight);
+            inner.removeFromTop(kDesignModeV2CardRowGap);
+
+            oscillatorPicker_.setBounds(inner);
+
             titleLabel_.setBounds(header.withTrimmedLeft(kEngineCardLedSize + kEngineCardLedTitleGap).withTrimmedRight(64));
 
             auto mixRow = header.removeFromRight(64);
@@ -548,36 +620,22 @@ namespace pw8::plugin::ui
             mixRow.removeFromRight(4);
             onButton_.setBounds(mixRow.removeFromLeft(22).withHeight(14));
 
-            bounds.removeFromTop(kDesignModeV2CardRowGap);
-
-            oscillatorPicker_.setBounds(bounds.removeFromTop(kDesignModeV2OscillatorPickerHeight));
-
-            bounds.removeFromTop(kDesignModeV2CardRowGap);
-
-            auto knobsEnvRow = bounds.removeFromTop(kDesignModeV2KnobsEnvelopeRowHeight);
             auto knobStrip = knobsEnvRow.removeFromLeft(203);
-            constexpr int kDesignKnobW = 44;
-            constexpr int kDesignKnobH = 40;
-            constexpr int kDesignKnobGap = 4;
-            auto placeDesignKnob = [&](GlowKnob* knob) {
+            auto placeDesignKnob = [&](ConcentricGlowKnob* knob) {
                 if (knob != nullptr && knob->isVisible())
                 {
-                    knob->setBounds(knobStrip.removeFromLeft(kDesignKnobW).withHeight(kDesignKnobH));
-                    knobStrip.removeFromLeft(kDesignKnobGap);
+                    auto slot = knobStrip.removeFromLeft(kDesignModeV2CardKnobContainerWidth);
+                    knob->setBounds(slot.withTrimmedTop(1).withHeight(kDesignModeV2CardKnobContainerWidth + 2));
+                    knobStrip.removeFromLeft(kDesignModeV2CardKnobContainerGap);
                 }
             };
-            placeDesignKnob(coarseKnob_.get());
-            placeDesignKnob(fineKnob_.get());
-            placeDesignKnob(cutoffKnob_.get());
-            placeDesignKnob(resKnob_.get());
+            placeDesignKnob(pitchKnob_.get());
+            placeDesignKnob(filterKnob_.get());
 
             knobsEnvRow.removeFromLeft(8);
             adsrMini_.setBounds(knobsEnvRow.withSizeKeepingCentre(kDesignModeV2EnvelopeWidth, kDesignModeV2EnvelopeHeight)
                                     .withY(knobsEnvRow.getY() + kDesignModeV2EnvelopeYOffset));
 
-            bounds.removeFromTop(kDesignModeV2CardRowGap);
-
-            auto levelRow = bounds.removeFromTop(kDesignModeV2LevelRowHeight);
             levelCaption_.setBounds(levelRow.removeFromLeft(kEngineCardLevelCaptionWidth));
             levelRow.removeFromLeft(kEngineCardLevelCaptionGap);
             levelValueLabel_.setBounds(levelRow.removeFromRight(24));
@@ -608,18 +666,14 @@ namespace pw8::plugin::ui
         oscillatorPicker_.setBounds(pitchRow.removeFromLeft(kEngineCardOscPickerWidth).withHeight(kEngineCardOscPickerHeight));
         pitchRow.removeFromLeft(kEngineCardPitchKnobsGap);
         auto pitchKnobs = pitchRow.withTrimmedTop(kEngineCardPitchKnobsYOffset).withHeight(kEngineCardKnobHeight);
-        coarseKnob_->setBounds(pitchKnobs.removeFromLeft(kEngineCardKnobWidth));
-        pitchKnobs.removeFromLeft(kEngineCardKnobGap);
-        fineKnob_->setBounds(pitchKnobs.removeFromLeft(kEngineCardKnobWidth));
+        pitchKnob_->setBounds(pitchKnobs.removeFromLeft(kEngineCardKnobWidth * 2 + kEngineCardKnobGap));
 
         bounds.removeFromTop(kEngineCardRowGap);
 
         auto filterEnvRow = bounds.removeFromTop(kEngineCardFilterEnvRowHeight);
         auto filterGroup = filterEnvRow.removeFromLeft(filterEnvRow.getWidth() - kEngineCardEnvelopeWidth - kEngineCardFilterEnvGap);
         auto filterKnobs = filterGroup.removeFromTop(kEngineCardKnobHeight);
-        cutoffKnob_->setBounds(filterKnobs.removeFromLeft(kEngineCardKnobWidth));
-        filterKnobs.removeFromLeft(kEngineCardKnobGap);
-        resKnob_->setBounds(filterKnobs.removeFromLeft(kEngineCardKnobWidth));
+        filterKnob_->setBounds(filterKnobs.removeFromLeft(kEngineCardKnobWidth * 2 + kEngineCardKnobGap));
 
         filterGroup.removeFromTop(4);
         auto modeRow = filterGroup.removeFromTop(kEngineCardFilterModeRowHeight).reduced(kEngineCardFilterModePadding, 0);

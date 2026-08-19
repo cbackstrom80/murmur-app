@@ -1,16 +1,77 @@
 #include "DesignFxHeroViz.h"
 
+#include "../../PlayModeLayout.h"
 #include "../../theme/ObsidianFonts.h"
 #include "../../theme/ObsidianPalette.h"
 #include "../FxEffectPlayParams.h"
 #include "../DesignFxUiState.h"
 #include "WireframeProjection.h"
 #include "processor/PatchworkEightProcessor.h"
+#include "../../visualizer/FxAnimationAtlas.h"
+#include "../../visualizer/PreviewDraw.h"
+#include "../../visualizer/PreviewSurface.h"
+#include "../../visualizer/VisualPreviewCache.h"
 
 #include <juce_dsp/juce_dsp.h>
 
 namespace pw8::plugin::ui::wireframe
 {
+    namespace
+    {
+        void paintHeroMicroLabel(juce::Graphics& g, juce::Rectangle<float> area, const juce::String& text,
+                                 juce::Justification just = juce::Justification::centredLeft)
+        {
+            g.setColour(palette::kFigmaFxMutedText);
+            g.setFont(fonts::micro(7.0f));
+            g.drawText(text, area, just);
+        }
+
+        void paintHeroValueReadout(juce::Graphics& g, juce::Rectangle<float> area, const juce::String& text,
+                                   juce::Colour colour = palette::kAccent)
+        {
+            g.setColour(colour);
+            g.setFont(fonts::denseBold(8.0f));
+            g.drawText(text, area, juce::Justification::centredRight);
+        }
+
+        void paintHeroModeBadge(juce::Graphics& g, juce::Rectangle<float> plot, const juce::String& mode)
+        {
+            if (mode.isEmpty())
+                return;
+            auto badge = juce::Rectangle<float>(plot.getX() + 6.0f, plot.getY() + 4.0f, 72.0f, 14.0f);
+            g.setColour(palette::kAccent.withAlpha(0.16f));
+            g.fillRoundedRectangle(badge, 3.0f);
+            g.setColour(palette::kAccent.withAlpha(0.85f));
+            g.drawRoundedRectangle(badge.reduced(0.5f), 3.0f, 1.0f);
+            g.setFont(fonts::micro(7.0f));
+            g.drawText(mode, badge, juce::Justification::centred);
+        }
+
+        void paintTransferAxisLabels(juce::Graphics& g, juce::Rectangle<float> plot)
+        {
+            paintHeroMicroLabel(g, plot.removeFromBottom(12.0f).removeFromLeft(42.0f), "INPUT");
+            paintHeroMicroLabel(g, juce::Rectangle<float>(plot.getX() - 2.0f, plot.getY() + 4.0f, 36.0f, 10.0f),
+                                "OUTPUT", juce::Justification::centredLeft);
+        }
+
+        void paintReverbGlowParticles(juce::Graphics& g, juce::Rectangle<float> plot, float size, float damping,
+                                      float mix, float phase01)
+        {
+            for (int i = 0; i < 56; ++i)
+            {
+                const float seed = static_cast<float>(i) * 0.173f;
+                const float bx = plot.getX() + std::fmod(seed * 113.0f, 1.0f) * plot.getWidth();
+                const float by = plot.getY() + std::fmod(seed * 97.0f, 1.0f) * plot.getHeight();
+                const float age = std::fmod(phase01 + seed, 1.0f);
+                const float life = 1.0f - age;
+                const float radius = (2.0f + size * 5.0f) * (0.35f + life * 0.65f);
+                const float alpha = life * (0.12f + mix * 0.55f) * (1.0f - damping * 0.35f);
+                g.setColour((age < 0.5f ? palette::kAccent : juce::Colour(0xff8060e0)).withAlpha(alpha));
+                g.fillEllipse(bx - radius, by - radius, radius * 2.0f, radius * 2.0f);
+            }
+        }
+    } // namespace
+
     struct DesignFxHeroViz::EqAnalyzerState
     {
         static constexpr int kFftOrder = 9;
@@ -55,6 +116,11 @@ namespace pw8::plugin::ui::wireframe
         compGrPeakHoldDb_ = 0.0f;
         eqAnalyzerReady_ = false;
         timerCallback();
+    }
+
+    void DesignFxHeroViz::resized()
+    {
+        WireframeCanvas::resized();
     }
 
     void DesignFxHeroViz::setDesignModePill(const juce::String& pill)
@@ -125,6 +191,12 @@ namespace pw8::plugin::ui::wireframe
         vocoderBands_ = static_cast<int>(readParam("VocoderBandCount", 16.0f) + 0.5f);
         vocoderFormant_ = readParam("VocoderFormant", 0.5f);
         vocoderSibilance_ = readParam("VocoderSibilance", 0.0f);
+        cloudsDensity_ = readParam("CloudsDensity", 0.35f);
+        cloudsGrainSizeMs_ = readParam("CloudsGrainSizeMs", 80.0f);
+        cloudsPitch_ = readParam("CloudsPitch", 1.0f);
+        cloudsFreeze_ = readParam("CloudsFreeze", 0.0f);
+        if (auto* raw = apvts_.getRawParameterValue(paramPrefix_ + "CloudsMode"))
+            cloudsMode_ = static_cast<int>(raw->load() + 0.5f);
         compGrDb_ = readCompressorGrDb();
         compGrSmoothedDb_ += (compGrDb_ - compGrSmoothedDb_) * 0.38f;
         compGrPeakHoldDb_ = juce::jmax(compGrPeakHoldDb_ * 0.94f, -compGrDb_);
@@ -440,6 +512,9 @@ namespace pw8::plugin::ui::wireframe
             return;
 
         refreshCachedParams();
+        heroAnimPhase_ += 1.0f / 24.0f;
+        if (heroAnimPhase_ > 1.0f)
+            heroAnimPhase_ -= 1.0f;
         if (chipIndex_ == 10)
             updateLimiterAnimation();
         if (chipIndex_ == 8 && uiState_ != nullptr && uiState_->eqAnalyzerActive() && processor_ != nullptr)
@@ -465,140 +540,137 @@ namespace pw8::plugin::ui::wireframe
     void DesignFxHeroViz::paintSaturationTransfer(juce::Graphics& g, juce::Rectangle<float> plot) const
     {
         paintPlotGrid(g, plot);
+
+        const float midY = plot.getCentreY();
+        const float halfH = plot.getHeight() * 0.42f;
+        juce::Path linearRef;
+        linearRef.startNewSubPath(plot.getX() + 4.0f, midY + halfH);
+        linearRef.lineTo(plot.getRight() - 4.0f, midY - halfH);
+        g.setColour(palette::kFigmaFxMutedText.withAlpha(0.42f));
+        const float dashLens[] = {5.0f, 5.0f};
+        juce::Path dashedLinear;
+        juce::PathStrokeType stroke(1.2f);
+        stroke.createDashedStroke(dashedLinear, linearRef, dashLens, 2);
+        g.strokePath(dashedLinear, stroke);
+
         const float tone = uiKnob(1);
-        const float color = uiKnob(2);
-        const float output = uiKnob(4, 0.65f);
-        const float bias = uiKnob(5);
-        const float toneScale = 0.65f + tone * 0.75f;
-        const float colorMix = color * 0.4f;
-        const float biasShift = (bias - 0.5f) * 0.3f;
-        const float outputScale = 0.55f + output * 0.95f;
-        const float driveLinear = juce::Decibels::decibelsToGain(driveDb_, -48.0f) * toneScale;
+        const float driveLinear = juce::Decibels::decibelsToGain(driveDb_, -48.0f) * (0.65f + tone * 0.75f);
         const int character = designModePill_.isEmpty() ? saturationCharacter_
                                                         : saturationCharacterFromDesignPill(designModePill_);
-
-        juce::Path reference;
-        reference.startNewSubPath(plot.getX(), plot.getBottom());
-        reference.lineTo(plot.getRight(), plot.getY());
-        g.setColour(palette::kTextDim.withAlpha(0.35f));
-        g.strokePath(reference, juce::PathStrokeType(1.0f));
-
-        juce::Path curve;
-        const int steps = 96;
-        for (int i = 0; i <= steps; ++i)
-        {
-            const float t = static_cast<float>(i) / static_cast<float>(steps);
-            const float xNorm = t * 2.0f - 1.0f;
-            const float xBiased = juce::jlimit(-1.0f, 1.0f, xNorm + biasShift);
-            float yNorm = 0.0f;
-            switch (character)
+        const auto key = preview::hashCombine(0x5A700002ULL, preview::quantizeToKey(driveLinear, 32.0f));
+        const auto key2 = preview::hashCombine(key, static_cast<uint64_t>(character));
+        const auto& polyline = preview::VisualPreviewCache::instance().getOrBuild(
+            key2, preview::kDefaultPolylinePoints,
+            [&](int n, preview::PreviewPolyline& out)
             {
-                case 1:
-                    yNorm = std::tanh(xBiased * driveLinear * 0.38f) * 0.92f + xBiased * 0.04f;
-                    break;
-                case 2:
-                    yNorm = juce::jlimit(-1.0f, 1.0f, xBiased * (1.0f + driveLinear * 0.25f));
-                    break;
-                case 3:
-                    yNorm = std::sin(xBiased * driveLinear * 0.9f) * 0.75f;
-                    break;
-                case 4:
+                out.xNorm.clear();
+                out.yNorm.resize(static_cast<std::size_t>(n));
+                for (int i = 0; i < n; ++i)
                 {
-                    const float crushSteps = 2.0f + driveLinear * 0.15f;
-                    yNorm = std::round(xBiased * crushSteps) / crushSteps * 0.8f;
-                    break;
+                    const float t = static_cast<float>(i) / static_cast<float>(n - 1);
+                    const float x = t * 2.0f - 1.0f;
+                    switch (character)
+                    {
+                        case 1: out.yNorm[static_cast<std::size_t>(i)] = std::tanh(x * driveLinear * 0.38f) * 0.92f; break;
+                        case 2: out.yNorm[static_cast<std::size_t>(i)] = juce::jlimit(-1.0f, 1.0f, x * (1.0f + driveLinear * 0.25f)); break;
+                        case 3: out.yNorm[static_cast<std::size_t>(i)] = std::sin(x * driveLinear * 0.9f) * 0.75f; break;
+                        default: out.yNorm[static_cast<std::size_t>(i)] = std::tanh(x * driveLinear * 0.55f); break;
+                    }
                 }
-                default:
-                    yNorm = std::tanh(xBiased * driveLinear * 0.55f);
-                    break;
-            }
-            yNorm = yNorm * (1.0f - colorMix) + std::sin(xBiased * (2.0f + color * 4.0f)) * colorMix * 0.45f;
+            });
+        preview::PolylineDrawOptions opts;
+        opts.alpha = juce::jlimit(0.45f, 1.0f, mix_ + 0.25f);
+        opts.strokeWidth = 2.2f;
+        preview::paintPolylineCurve(g, plot, polyline, opts);
 
-            const float px = plot.getX() + t * plot.getWidth();
-            const float py = plot.getCentreY() - yNorm * plot.getHeight() * 0.42f * outputScale;
-            if (i == 0)
-                curve.startNewSubPath(px, py);
-            else
-                curve.lineTo(px, py);
+        juce::String modelLabel = "TUBE";
+        switch (character)
+        {
+            case 1: modelLabel = "TAPE"; break;
+            case 2: modelLabel = "DIODE"; break;
+            case 3: modelLabel = "FOLD"; break;
+            default: break;
         }
-        strokeGlowPath(g, curve, juce::jlimit(0.45f, 1.0f, mix_ + 0.25f), 2.2f, true);
+        paintHeroModeBadge(g, plot, modelLabel);
+        paintHeroValueReadout(g, plot.removeFromBottom(14.0f).reduced(6.0f, 0.0f),
+                              juce::String(driveDb_, 1) + " dB DRIVE");
+        paintTransferAxisLabels(g, plot);
     }
 
     void DesignFxHeroViz::paintChorusSpatializer(juce::Graphics& g, juce::Rectangle<float> plot) const
     {
+        paintPlotGrid(g, plot);
+
         const float depthNorm = juce::jlimit(0.0f, 1.0f, chorusDepthMs_ / 12.0f);
-        const float rateNorm = juce::jlimit(0.2f, 4.0f, chorusRateHz_);
-        const float spreadNorm = juce::jlimit(0.0f, 1.0f, chorusBaseDelayMs_ / 40.0f);
-        const float feedback = uiKnob(2, 0.35f);
-        const float voices = uiKnob(4, 0.5f);
-        const float phaseOffset = spreadNorm * 0.55f + feedback * 0.35f;
-        const float phase = static_cast<float>(juce::Time::getMillisecondCounterHiRes() * 0.001 * rateNorm);
-        const float voiceSpread = 0.15f + voices * 0.45f;
+        const float rate = juce::jlimit(0.2f, 4.0f, chorusRateHz_);
+        const float phase = heroAnimPhase_ * juce::MathConstants<float>::twoPi * rate;
 
-        const auto left = plot.removeFromLeft(plot.getWidth() * 0.48f).reduced(8.0f, 12.0f);
-        const auto right = plot.reduced(8.0f, 12.0f);
+        struct VoiceSpec
+        {
+            juce::Colour colour;
+            float phaseOff;
+            float spreadMul;
+        };
+        static const VoiceSpec kVoices[] = {
+            {juce::Colour(0xffd040e8), 0.0f, -1.0f},
+            {palette::kAccent, 0.42f, 0.0f},
+            {juce::Colour(0xff7090e8), -0.36f, 1.0f},
+        };
 
-        g.setColour(palette::kTextDim);
-        g.setFont(fonts::label(8.0f));
-        g.drawText("L", juce::Rectangle<float>(left.getX(), left.getY() - 12.0f, 16.0f, 10.0f),
-                   juce::Justification::centredLeft);
-        g.drawText("R", juce::Rectangle<float>(right.getX(), right.getY() - 12.0f, 16.0f, 10.0f),
-                   juce::Justification::centredLeft);
-
-        paintFlatWaveform(
-            g, left, 48,
-            [depthNorm, phase, feedback, voiceSpread](float t)
+        for (const auto& voice : kVoices)
+        {
+            const float spread = voice.spreadMul * depthNorm * 0.10f;
+            juce::Path path;
+            for (int i = 0; i <= 72; ++i)
             {
-                const float harmonic =
-                    std::sin(t * juce::MathConstants<float>::twoPi * (2.0f + voiceSpread * 2.0f) + phase) * feedback
-                    * 0.15f;
-                return std::sin(t * juce::MathConstants<float>::twoPi * 2.0f + phase) * (0.35f + depthNorm * 0.35f)
-                     + harmonic;
-            },
-            true);
-        paintFlatWaveform(
-            g, right, 48,
-            [depthNorm, phase, phaseOffset, feedback, voiceSpread](float t)
-            {
-                const float harmonic =
-                    std::sin(t * juce::MathConstants<float>::twoPi * (2.0f + voiceSpread * 2.0f) + phase + phaseOffset)
-                    * feedback * 0.12f;
-                return std::sin(t * juce::MathConstants<float>::twoPi * 2.0f + phase + phaseOffset + 0.35f)
-                         * (0.30f + depthNorm * 0.3f)
-                     + harmonic;
-            },
-            true);
+                const float t = static_cast<float>(i) / 72.0f;
+                const float v =
+                    std::sin(t * juce::MathConstants<float>::twoPi * 2.2f + phase + voice.phaseOff + spread)
+                    * (0.28f + depthNorm * 0.38f);
+                const float x = plot.getX() + t * plot.getWidth();
+                const float y = plot.getCentreY() - v * plot.getHeight() * 0.42f;
+                if (i == 0)
+                    path.startNewSubPath(x, y);
+                else
+                    path.lineTo(x, y);
+            }
+            g.setColour(voice.colour.withAlpha(0.32f + mix_ * 0.55f));
+            g.strokePath(path, juce::PathStrokeType(1.6f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+        }
+
+        paintHeroMicroLabel(g, plot.removeFromTop(12.0f).removeFromLeft(18.0f), "L");
+        paintHeroMicroLabel(g, plot.removeFromTop(12.0f).removeFromRight(18.0f), "R", juce::Justification::centredRight);
+        paintHeroValueReadout(g, plot.removeFromBottom(14.0f).reduced(6.0f, 0.0f),
+                              juce::String(chorusRateHz_, 2) + " Hz · " + juce::String(chorusDepthMs_, 1) + " ms");
     }
 
     void DesignFxHeroViz::paintTapeDrift(juce::Graphics& g, juce::Rectangle<float> plot) const
     {
         paintPlotGrid(g, plot);
-        const float wow = juce::jlimit(0.0f, 1.0f, tapeDriftDepth_ / 20.0f);
-        const float flutter = uiKnob(2, 0.35f);
-        const float rate = juce::jlimit(0.05f, 10.0f, tapeDriftRate_);
-        const float t0 = static_cast<float>(juce::Time::getMillisecondCounterHiRes() * 0.001 * rate);
+        preview::paintTapeAnimation(g, plot, tapeDriftRate_, tapeDriftDepth_, mix_, heroAnimPhase_);
 
-        juce::Path drift;
-        const int steps = 80;
-        for (int i = 0; i <= steps; ++i)
+        const float flutterPhase = heroAnimPhase_ * juce::MathConstants<float>::twoPi * tapeDriftRate_ * 3.2f;
+        juce::Path flutter;
+        for (int i = 0; i <= 56; ++i)
         {
-            const float t = static_cast<float>(i) / static_cast<float>(steps);
+            const float t = static_cast<float>(i) / 56.0f;
             const float x = plot.getX() + t * plot.getWidth();
-            const float wobble = std::sin(t * juce::MathConstants<float>::twoPi * 3.0f + t0) * wow * 0.18f
-                               + std::sin(t * juce::MathConstants<float>::twoPi * 11.0f + t0 * 2.3f)
-                                     * (wow * 0.06f + flutter * 0.12f);
-            const float y = plot.getCentreY() + wobble * plot.getHeight();
+            const float wow = std::sin(t * juce::MathConstants<float>::twoPi * 2.0f + flutterPhase)
+                              * tapeDriftDepth_ * 0.012f;
+            const float y = plot.getCentreY() + wow * plot.getHeight();
             if (i == 0)
-                drift.startNewSubPath(x, y);
+                flutter.startNewSubPath(x, y);
             else
-                drift.lineTo(x, y);
+                flutter.lineTo(x, y);
         }
-        strokeGlowPath(g, drift, juce::jlimit(0.45f, 1.0f, mix_ + 0.2f), 2.0f, true);
+        g.setColour(palette::kAccentWarm.withAlpha(0.45f + mix_ * 0.35f));
+        g.strokePath(flutter, juce::PathStrokeType(1.2f));
 
-        g.setColour(palette::kAccentWarm.withAlpha(0.75f));
-        g.setFont(fonts::label(8.0f));
-        g.drawText("DRIVE " + juce::String(tapeDriveDb_, 1) + " dB",
-                   plot.removeFromBottom(14.0f).removeFromRight(90.0f), juce::Justification::centredRight);
+        paintHeroMicroLabel(g, plot.removeFromTop(12.0f).removeFromLeft(36.0f), "WOW");
+        paintHeroMicroLabel(g, plot.removeFromTop(12.0f).removeFromRight(42.0f), "FLUTTER", juce::Justification::centredRight);
+        paintHeroValueReadout(g, plot.removeFromBottom(14.0f).reduced(6.0f, 0.0f),
+                              juce::String(tapeDriftRate_, 2) + " Hz · DRIVE " + juce::String(tapeDriveDb_, 1) + " dB",
+                              palette::kAccentWarm);
     }
 
     void DesignFxHeroViz::paintMoodResponse(juce::Graphics& g, juce::Rectangle<float> plot) const
@@ -613,6 +685,9 @@ namespace pw8::plugin::ui::wireframe
         const float freqShift = (filterT - 0.5f) * 0.35f;
         const float gainScale = 0.55f + intensity * 0.9f + drive * 0.35f;
         const float colorTilt = (colorKnob - 0.5f) * 0.4f;
+
+        paintPlotGrid(g, plot);
+        paintHeroModeBadge(g, plot, mode);
 
         paintFlatWaveform(
             g, plot, 72,
@@ -647,6 +722,12 @@ namespace pw8::plugin::ui::wireframe
                 return warm + mid + air;
             },
             true);
+
+        paintHeroMicroLabel(g, plot.removeFromBottom(12.0f).removeFromLeft(28.0f), "FREQ");
+        paintHeroMicroLabel(g, plot.removeFromLeft(12.0f).removeFromTop(28.0f), "GAIN", juce::Justification::centredLeft);
+        paintHeroValueReadout(g, plot.removeFromBottom(14.0f).reduced(6.0f, 0.0f),
+                              juce::String(juce::roundToInt(intensity * 100.0f)) + "% INT · RES "
+                                  + juce::String(juce::roundToInt(resonance * 100.0f)) + "%");
     }
 
     void DesignFxHeroViz::paintFreqShiftBode(juce::Graphics& g, juce::Rectangle<float> plot) const
@@ -674,89 +755,55 @@ namespace pw8::plugin::ui::wireframe
                 spiral.lineTo(x, y);
         }
         strokeGlowPath(g, spiral, juce::jlimit(0.45f, 1.0f, mix_ + freqShiftFeedback_ * 0.35f), 1.8f, true);
+
+        const float ringCount = 4.0f + freqShiftFeedback_ * 4.0f;
+        for (int ring = 1; ring <= static_cast<int>(ringCount); ++ring)
+        {
+            const float t = static_cast<float>(ring) / ringCount;
+            const float radius = t * plot.getWidth() * 0.18f * (1.0f + stereo * 0.08f);
+            g.setColour(palette::kAccent.withAlpha((1.0f - t) * 0.14f * mix_));
+            g.drawEllipse(plot.getCentreX() - radius, plot.getCentreY() - radius * 0.55f, radius * 2.0f,
+                          radius * 1.1f, 1.0f);
+        }
+
+        paintHeroValueReadout(g, plot.removeFromBottom(14.0f).reduced(6.0f, 0.0f),
+                              juce::String(freqShiftHz_, 1) + " Hz · FB "
+                                  + juce::String(juce::roundToInt(freqShiftFeedback_ * 100.0f)) + "%");
     }
 
     void DesignFxHeroViz::paintFractalCloud(juce::Graphics& g, juce::Rectangle<float> plot) const
     {
+        paintPlotGrid(g, plot);
+        const int seed = 0x0FAC7A1 ^ static_cast<int>(fractalMorph_ * 1000.0f);
+        preview::paintCloudsAnimation(g, plot, mix_, seed, heroAnimPhase_);
         const float position = uiKnob(4, 0.5f);
-        const int particles = 48 + static_cast<int>(fractalMorph_ * 40.0f);
-        juce::Random rng(0x0FAC7A1u ^ static_cast<int>(fractalMorph_ * 1000.0f));
         const float xBias = (position - 0.5f) * plot.getWidth() * 0.35f;
-        for (int i = 0; i < particles; ++i)
-        {
-            const float x = plot.getX() + plot.getWidth() * 0.5f + xBias + (rng.nextFloat() - 0.5f) * plot.getWidth();
-            const float y = plot.getY() + rng.nextFloat() * plot.getHeight();
-            const float r = 1.2f + rng.nextFloat() * 2.4f;
-            g.setColour((i % 3 == 0 ? palette::kAccent : palette::kAccentWarm)
-                            .withAlpha(0.25f + rng.nextFloat() * 0.55f));
-            g.fillEllipse(x - r, y - r, r * 2.0f, r * 2.0f);
-        }
-
         juce::Path stream;
         stream.startNewSubPath(plot.getX() + 8.0f + xBias * 0.25f, plot.getCentreY());
         stream.quadraticTo(plot.getCentreX() + xBias, plot.getY() + plot.getHeight() * 0.25f, plot.getRight() - 8.0f,
                            plot.getCentreY() - plot.getHeight() * 0.08f);
         strokeGlowPath(g, stream, juce::jlimit(0.4f, 1.0f, mix_ + 0.15f), 1.4f, true);
+        paintHeroValueReadout(g, plot.removeFromBottom(14.0f).reduced(6.0f, 0.0f),
+                              "GRAIN " + juce::String(fractalMorph_, 2) + " · SCATTER "
+                                  + juce::String(juce::roundToInt(mix_ * 100.0f)) + "%");
     }
 
     void DesignFxHeroViz::paintReverbDecay(juce::Graphics& g, juce::Rectangle<float> plot) const
     {
         paintPlotGrid(g, plot);
-        float decayNorm = juce::jlimit(0.05f, 20.0f, reverbDecaySec_) / 20.0f;
-        float damp = juce::jlimit(0.0f, 1.0f, reverbDamping_);
-        float preDelayFrac = juce::jlimit(0.0f, 0.35f, reverbPreDelayMs_ / 200.0f);
+        preview::paintReverbAnimation(g, plot, reverbDecaySec_, reverbSize_, reverbDamping_, mix_, heroAnimPhase_);
+        paintReverbGlowParticles(g, plot, reverbSize_, reverbDamping_, mix_, heroAnimPhase_);
 
-        const juce::String mode = designModePill_.isEmpty() ? reverbDesignPillFromCharacter(reverbCharacter_, 0.0f)
-                                                            : designModePill_;
-        if (mode == "PLATE")
+        juce::String modeLabel = designModePill_;
+        if (modeLabel.isEmpty())
         {
-            decayNorm = juce::jlimit(0.0f, 1.0f, decayNorm * 0.85f);
-            damp += 0.08f;
+            static constexpr const char* kChars[] = {"HALL", "PLATE", "ROOM", "SPRING", "SHIMMER"};
+            modeLabel = kChars[juce::jlimit(0, 4, reverbCharacter_)];
         }
-        else if (mode == "ROOM")
-        {
-            decayNorm *= 0.55f;
-            preDelayFrac *= 0.5f;
-        }
-        else if (mode == "SPRING")
-        {
-            decayNorm *= 0.7f;
-            damp = juce::jmin(1.0f, damp + 0.18f);
-        }
-        else if (mode == "SHIMMER")
-        {
-            damp = juce::jmin(1.0f, damp + 0.25f);
-            decayNorm = juce::jlimit(0.0f, 1.0f, decayNorm * 1.15f);
-        }
-
-        juce::Path envelope;
-        const int steps = 96;
-        for (int i = 0; i <= steps; ++i)
-        {
-            const float t = static_cast<float>(i) / static_cast<float>(steps);
-            float amp = 0.0f;
-            if (t > preDelayFrac)
-            {
-                const float decayT = (t - preDelayFrac) / juce::jmax(0.01f, 1.0f - preDelayFrac);
-                amp = std::exp(-decayT * (2.5f + (1.0f - decayNorm) * 4.0f + damp * 2.0f));
-            }
-            const float freqBias = 1.0f - damp * 0.35f * t;
-            const float x = plot.getX() + t * plot.getWidth();
-            const float y = plot.getY() + (1.0f - amp * freqBias * (0.7f + reverbSize_ * 0.3f)) * plot.getHeight();
-            if (i == 0)
-                envelope.startNewSubPath(x, y);
-            else
-                envelope.lineTo(x, y);
-        }
-        strokeGlowPath(g, envelope, juce::jlimit(0.45f, 1.0f, mix_ + 0.2f), 2.0f, true);
-
-        g.setColour(palette::kAccent.withAlpha(0.12f));
-        for (int band = 0; band < 6; ++band)
-        {
-            const float bx = plot.getX() + plot.getWidth() * (0.12f + static_cast<float>(band) * 0.14f);
-            g.fillRect(bx, plot.getBottom() - plot.getHeight() * (0.15f + damp * 0.25f), 6.0f,
-                       plot.getHeight() * (0.15f + damp * 0.25f));
-        }
+        paintHeroModeBadge(g, plot, modeLabel);
+        paintHeroValueReadout(g, plot.removeFromBottom(14.0f).reduced(6.0f, 0.0f),
+                              juce::String(reverbDecaySec_, 1) + " s · SIZE "
+                                  + juce::String(juce::roundToInt(reverbSize_ * 100.0f)) + "%");
     }
 
     void DesignFxHeroViz::paintEqHandles(juce::Graphics& g, juce::Rectangle<float> plot) const
@@ -817,37 +864,67 @@ namespace pw8::plugin::ui::wireframe
             paintEqAnalyzerSpectrum(g, plot);
         else
         {
-            const float phase = static_cast<float>(juce::Time::getMillisecondCounterHiRes() * 0.002);
-            for (int band = 0; band < 24; ++band)
-            {
-                const float t = static_cast<float>(band) / 23.0f;
-                const float anim = 0.55f + 0.45f * std::abs(std::sin(phase + t * 6.0f));
-                const float h = plot.getHeight() * 0.08f * anim;
-                g.setColour(palette::kAccent.withAlpha(0.08f));
-                g.fillRect(plot.getX() + t * plot.getWidth(), plot.getBottom() - h, plot.getWidth() / 24.0f, h);
-            }
+            const float lowT = eqFreqToT(eqLowFreqHz_);
+            const float midT = eqFreqToT(eqMidFreqHz_);
+            const float highT = eqFreqToT(eqHighFreqHz_);
+            const float midWidth = juce::jlimit(0.025f, 0.18f, 0.06f / juce::jmax(0.15f, eqMidQ_));
+            auto key = preview::hashCombine(0xE0000003ULL, preview::quantizeToKey(lowT, 32.0f));
+            key = preview::hashCombine(key, preview::quantizeToKey(midT, 32.0f));
+            key = preview::hashCombine(key, preview::quantizeToKey(highT, 32.0f));
+            key = preview::hashCombine(key, preview::quantizeToKey(eqLowDb_, 32.0f));
+            key = preview::hashCombine(key, preview::quantizeToKey(eqMidDb_, 32.0f));
+            key = preview::hashCombine(key, preview::quantizeToKey(eqHighDb_, 32.0f));
+            key = preview::hashCombine(key, preview::quantizeToKey(midWidth, 32.0f));
+            const auto& polyline = preview::VisualPreviewCache::instance().getOrBuild(
+                key, 96,
+                [lowT, midT, highT, midWidth, this](int n, preview::PreviewPolyline& out)
+                {
+                    out.xNorm.clear();
+                    out.yNorm.resize(static_cast<std::size_t>(n));
+                    const float low = juce::Decibels::decibelsToGain(eqLowDb_) - 1.0f;
+                    const float mid = juce::Decibels::decibelsToGain(eqMidDb_) - 1.0f;
+                    const float high = juce::Decibels::decibelsToGain(eqHighDb_) - 1.0f;
+                    for (int i = 0; i < n; ++i)
+                    {
+                        const float t = static_cast<float>(i) / static_cast<float>(n - 1);
+                        const float l = low * std::exp(-std::pow((t - lowT) / 0.10f, 2.0f));
+                        const float m = mid * std::exp(-std::pow((t - midT) / midWidth, 2.0f));
+                        const float h = high * std::exp(-std::pow((t - highT) / 0.12f, 2.0f));
+                        out.yNorm[static_cast<std::size_t>(i)] = (l + m + h) * 0.55f;
+                    }
+                });
+            preview::PolylineDrawOptions opts;
+            opts.alpha = juce::jlimit(0.45f, 1.0f, mix_ + 0.2f);
+            preview::paintPolylineCurve(g, plot, polyline, opts);
         }
 
-        const float lowT = eqFreqToT(eqLowFreqHz_);
-        const float midT = eqFreqToT(eqMidFreqHz_);
-        const float highT = eqFreqToT(eqHighFreqHz_);
-        const float midWidth = juce::jlimit(0.025f, 0.18f, 0.06f / juce::jmax(0.15f, eqMidQ_));
-
-        paintFlatWaveform(
-            g, plot, 96,
-            [this, lowT, midT, highT, midWidth](float t)
-            {
-                const float low = juce::Decibels::decibelsToGain(eqLowDb_) - 1.0f;
-                const float mid = juce::Decibels::decibelsToGain(eqMidDb_) - 1.0f;
-                const float high = juce::Decibels::decibelsToGain(eqHighDb_) - 1.0f;
-                const float l = low * std::exp(-std::pow((t - lowT) / 0.10f, 2.0f));
-                const float m = mid * std::exp(-std::pow((t - midT) / midWidth, 2.0f));
-                const float h = high * std::exp(-std::pow((t - highT) / 0.12f, 2.0f));
-                return (l + m + h) * 0.55f;
-            },
-            true);
-
         paintEqHandles(g, plot);
+    }
+
+    void DesignFxHeroViz::paintEqParamStrip(juce::Graphics& g, juce::Rectangle<float> strip) const
+    {
+        g.setColour(palette::kFigmaFxChipFill);
+        g.fillRoundedRectangle(strip, 6.0f);
+        g.setColour(palette::kFigmaFxChipBorder);
+        g.drawRoundedRectangle(strip.reduced(0.5f), 6.0f, 1.0f);
+
+        const float chipW = strip.getWidth() / 3.0f;
+        const auto drawBand = [&](float x, const char* label, float db)
+        {
+            auto cell = juce::Rectangle<float>(x, strip.getY(), chipW, strip.getHeight()).reduced(6.0f, 4.0f);
+            g.setColour(palette::kFigmaFxMutedText);
+            g.setFont(fonts::micro(7.0f));
+            g.drawText(label, cell.removeFromTop(10.0f), juce::Justification::centred);
+            g.setColour(palette::kAccent);
+            g.setFont(fonts::denseBold(8.0f));
+            const juce::String value =
+                (db >= 0.0f ? "+" : "") + juce::String(db, db >= 10.0f || db <= -10.0f ? 0 : 1) + " dB";
+            g.drawText(value, cell, juce::Justification::centred);
+        };
+
+        drawBand(strip.getX(), "LOW", eqLowDb_);
+        drawBand(strip.getX() + chipW, "MID", eqMidDb_);
+        drawBand(strip.getX() + chipW * 2.0f, "HIGH", eqHighDb_);
     }
 
     void DesignFxHeroViz::paintCompressorDynamics(juce::Graphics& g, juce::Rectangle<float> plot) const
@@ -855,32 +932,41 @@ namespace pw8::plugin::ui::wireframe
         paintPlotGrid(g, plot);
         const float threshNorm = juce::jmap(compThresholdDb_, -48.0f, 0.0f, 0.15f, 0.85f);
         const float ratioInv = 1.0f / juce::jmax(1.0f, compRatio_);
-        float knee = juce::jlimit(0.0f, 24.0f, compKneeDb_) / 24.0f;
-        if (compCharacter_ == 1)
-            knee *= 0.55f;
-        else if (compCharacter_ == 2)
-            knee = juce::jmin(1.0f, knee * 1.35f);
-
-        juce::Path transfer;
-        const int steps = 64;
-        for (int i = 0; i <= steps; ++i)
-        {
-            const float t = static_cast<float>(i) / static_cast<float>(steps);
-            const float x = t;
-            float y = x;
-            if (x > threshNorm)
+        const auto key = preview::hashCombine(0xC0000005ULL, preview::quantizeToKey(threshNorm, 32.0f));
+        const auto key2 = preview::hashCombine(key, preview::quantizeToKey(compRatio_, 16.0f));
+        const auto& polyline = preview::VisualPreviewCache::instance().getOrBuild(
+            key2, 64,
+            [&](int n, preview::PreviewPolyline& out)
             {
-                const float over = x - threshNorm;
-                y = threshNorm + over * ratioInv * (1.0f - knee * 0.35f);
-            }
-            const float px = plot.getX() + x * plot.getWidth();
-            const float py = plot.getBottom() - y * plot.getHeight() * 0.85f;
-            if (i == 0)
-                transfer.startNewSubPath(px, py);
-            else
-                transfer.lineTo(px, py);
-        }
-        strokeGlowPath(g, transfer, juce::jlimit(0.45f, 1.0f, mix_ + 0.15f), 2.0f, true);
+                out.xNorm.clear();
+                out.yNorm.resize(static_cast<std::size_t>(n));
+                for (int i = 0; i < n; ++i)
+                {
+                    const float x = static_cast<float>(i) / static_cast<float>(n - 1);
+                    float y = x;
+                    if (x > threshNorm)
+                        y = threshNorm + (x - threshNorm) * ratioInv;
+                    out.yNorm[static_cast<std::size_t>(i)] = y * 2.0f - 1.0f;
+                }
+            });
+        preview::PolylineDrawOptions opts;
+        opts.alpha = juce::jlimit(0.45f, 1.0f, mix_ + 0.15f);
+        preview::paintPolylineCurve(g, plot, polyline, opts);
+
+        const float inNorm = juce::jlimit(0.0f, 1.0f, 0.22f + (-compGrSmoothedDb_ / 20.0f) + mix_ * 0.18f);
+        const float inHoldNorm = juce::jlimit(0.0f, 1.0f, inNorm + compGrPeakHoldDb_ / 48.0f);
+        auto inBar = plot.removeFromLeft(18.0f).reduced(2.0f, 8.0f);
+        g.setColour(palette::kPanel);
+        g.fillRoundedRectangle(inBar, 2.0f);
+        g.setColour(palette::kAccent.withAlpha(0.35f));
+        g.fillRoundedRectangle(inBar.getX(), inBar.getBottom() - inBar.getHeight() * inHoldNorm, inBar.getWidth(),
+                               inBar.getHeight() * inHoldNorm, 2.0f);
+        g.setColour(palette::kAccent);
+        g.fillRoundedRectangle(inBar.getX(), inBar.getBottom() - inBar.getHeight() * inNorm, inBar.getWidth(),
+                               inBar.getHeight() * inNorm, 2.0f);
+        g.setColour(palette::kTextDim);
+        g.setFont(fonts::label(7.0f));
+        g.drawText("IN", inBar.translated(0.0f, -10.0f), juce::Justification::centred);
 
         const float grNorm = juce::jlimit(0.0f, 1.0f, -compGrSmoothedDb_ / 24.0f);
         const float grPeakNorm = juce::jlimit(0.0f, 1.0f, compGrPeakHoldDb_ / 24.0f);
@@ -896,6 +982,12 @@ namespace pw8::plugin::ui::wireframe
         g.drawText("GR", grBar.translated(0.0f, -10.0f), juce::Justification::centred);
         g.drawText(juce::String(compGrSmoothedDb_, 1), grBar.translated(0.0f, grBar.getHeight() + 2.0f),
                    juce::Justification::centred);
+
+        const float kneeX = plot.getX() + threshNorm * plot.getWidth();
+        g.setColour(palette::kAccentWarm.withAlpha(0.65f));
+        g.fillEllipse(kneeX - 3.0f, plot.getBottom() - threshNorm * plot.getHeight() * 0.88f - 3.0f, 6.0f, 6.0f);
+        paintHeroValueReadout(g, plot.removeFromBottom(14.0f).reduced(6.0f, 0.0f),
+                              juce::String(compThresholdDb_, 1) + " dB · " + juce::String(compRatio_, 1) + ":1");
     }
 
     void DesignFxHeroViz::paintLimiterCeiling(juce::Graphics& g, juce::Rectangle<float> plot) const
@@ -984,6 +1076,23 @@ namespace pw8::plugin::ui::wireframe
                    plot.removeFromBottom(14.0f), juce::Justification::centredRight);
     }
 
+    void DesignFxHeroViz::paintCloudsGranular(juce::Graphics& g, juce::Rectangle<float> plot) const
+    {
+        paintPlotGrid(g, plot);
+        preview::paintCloudsAnimation(g, plot, mix_, static_cast<int>(cloudsDensity_ * 1000.0f), heroAnimPhase_);
+        g.setColour(palette::kTextDim);
+        g.setFont(fonts::label(9.0f));
+        static constexpr const char* kModes[] = {"GRANULAR", "PITCH-SHIFT", "REVERB"};
+        const juce::String modeLabel = kModes[juce::jlimit(0, 2, cloudsMode_)];
+        g.drawText(modeLabel + " · pitch " + juce::String(cloudsPitch_, 2), plot.reduced(8.0f),
+                   juce::Justification::bottomLeft);
+        if (cloudsFreeze_ > 0.05f)
+        {
+            g.setColour(palette::kAccentWarm);
+            g.drawText("FREEZE", plot.reduced(8.0f), juce::Justification::topRight);
+        }
+    }
+
     void DesignFxHeroViz::paintBypassHero(juce::Graphics& g, juce::Rectangle<float> plot) const
     {
         juce::Path passthrough;
@@ -998,22 +1107,37 @@ namespace pw8::plugin::ui::wireframe
     void DesignFxHeroViz::paint(juce::Graphics& g)
     {
         auto bounds = getLocalBounds().toFloat();
-        g.setColour(palette::kPanel.withAlpha(0.35f));
+        g.setColour(palette::kFigmaFxChipFill.withAlpha(0.35f));
         g.fillRoundedRectangle(bounds, 6.0f);
-        g.setColour(palette::kBorder.withAlpha(0.45f));
+        g.setColour(palette::kFigmaFxChipBorder.withAlpha(0.65f));
         g.drawRoundedRectangle(bounds.reduced(0.5f), 6.0f, 1.0f);
 
         auto inner = bounds.reduced(12.0f, 10.0f);
-        g.setColour(palette::kTextDim);
-        g.setFont(fonts::label(9.0f));
+        g.setColour(palette::kFigmaFxMutedText);
+        g.setFont(fonts::micro(9.0f));
         const auto& spec = fxDesignSpecForChip(chipIndex_);
         g.drawText(spec.vizTitle, inner.removeFromTop(14.0f), juce::Justification::centredLeft);
         inner.removeFromTop(6.0f);
 
+        juce::Rectangle<float> paramStrip;
+        if (chipIndex_ == 8)
+        {
+            paramStrip = inner.removeFromBottom(static_cast<float>(layout::kDesignFxPageEqParamStripHeight));
+            inner.removeFromBottom(8.0f);
+        }
+
         auto plot = inner.reduced(4.0f, 2.0f);
+        plotBounds_ = plot.toNearestInt();
         eqPlotBounds_ = chipIndex_ == 8 ? plot : juce::Rectangle<float>();
-        g.setColour(palette::kBackgroundBottom.withAlpha(0.65f));
+
+        g.setColour(palette::kFigmaFxVizFill.withAlpha(0.85f));
         g.fillRoundedRectangle(plot, 4.0f);
+
+        if (effectType_ == 12)
+        {
+            paintCloudsGranular(g, plot);
+            return;
+        }
 
         if (effectType_ == 0 && chipIndex_ != 0 && chipIndex_ != 4)
         {
@@ -1037,6 +1161,9 @@ namespace pw8::plugin::ui::wireframe
             case 11: paintVocoderSpectrum(g, plot); break;
             default: paintBypassHero(g, plot); break;
         }
+
+        if (chipIndex_ == 8 && !paramStrip.isEmpty())
+            paintEqParamStrip(g, paramStrip);
     }
 
 } // namespace pw8::plugin::ui::wireframe

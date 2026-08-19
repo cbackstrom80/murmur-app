@@ -2,7 +2,9 @@
 
 #include <array>
 
+#include "pw8/effects/BinauralSpace.hpp"
 #include "pw8/effects/Chorus.hpp"
+#include "pw8/effects/CloudsTexture.hpp"
 #include "pw8/effects/Compressor.hpp"
 #include "pw8/effects/EffectTypes.hpp"
 #include "pw8/effects/Eq.hpp"
@@ -43,6 +45,8 @@ namespace pw8::effects
             compressor_.prepare(sampleRate);
             limiter_.prepare(sampleRate);
             vocoder_.prepare(sampleRate);
+            clouds_.prepare(sampleRate);
+            binaural_.prepare(sampleRate);
         }
 
         void reset() noexcept
@@ -58,6 +62,7 @@ namespace pw8::effects
             compressor_.reset();
             limiter_.reset();
             vocoder_.reset();
+            binaural_.reset();
         }
 
         void processStereo(float inL, float inR, float sidechainL, float sidechainR, const EffectSlotParams& p,
@@ -79,6 +84,16 @@ namespace pw8::effects
                 case EffectType::Vocoder:
                     vocoder_.processStereo(inL, inR, sidechainL, sidechainR, p, outL, outR, sidechainConnected);
                     return;
+                case EffectType::Clouds:
+                    clouds_.processStereo(inL, inR, p, outL, outR);
+                    return;
+                case EffectType::BinauralSpace:
+                {
+                    const auto bp = binauralParamsFromEffectSlot(p);
+                    const float qsr2Aux = sidechainConnected ? sidechainL : 0.0f;
+                    binaural_.processStereo(inL, inR, bp, outL, outR, bpm, qsr2Aux, sidechainConnected);
+                    return;
+                }
             }
             outL = inL;
             outR = inR;
@@ -101,6 +116,8 @@ namespace pw8::effects
         CompressorProcessor compressor_{};
         LimiterProcessor limiter_{};
         VocoderProcessor vocoder_{};
+        CloudsTexture clouds_{};
+        BinauralSpaceProcessor binaural_{};
     };
 
     /// `NumSlots` `EffectSlotProcessor`s run in series (slot 0's output feeds slot

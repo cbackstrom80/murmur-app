@@ -1,4 +1,4 @@
-// url=https://www.figma.com/design/pi5kUNcZWQGhqfRAVu3voh/MURMUR-Obsidian?node-id=9-3
+// url=https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/MURMUR-Obsidian?node-id=9-3
 // source=plugin/src/ui/components/ArpLauncherChip.h
 // component=ArpLauncherChip
 import figma from 'figma'

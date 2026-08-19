@@ -56,6 +56,8 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
+#include "pw8/effects/EffectTypes.hpp"
+
 namespace pw8::plugin
 {
     inline constexpr std::array<const char*, 8> kMacroParameterIds = {
@@ -73,12 +75,17 @@ namespace pw8::plugin
     inline constexpr std::size_t kNumOperatorFields = 39;
     inline constexpr std::size_t kNumOperatorMixFields = 3;
     inline constexpr std::size_t kNumOperatorFilterFields = 5;
-    inline constexpr std::size_t kNumFilterFields = 5;
-    inline constexpr std::size_t kNumFilter2Fields = 5;
+    inline constexpr std::size_t kNumFilterFields = 6;
+    inline constexpr std::size_t kNumFilter2Fields = 6;
     inline constexpr std::size_t kNumLfoFields = 5;
     inline constexpr std::size_t kNumEnvelopeFields = 8;
-    inline constexpr std::size_t kNumEffectSlotFields = 69;
+    inline constexpr std::size_t kNumEffectSlotFields = 99;
     inline constexpr std::size_t kNumArpFields = 9;
+    inline constexpr std::size_t kNumMasterDynamicsFields = 10;
+    inline constexpr std::size_t kNumGenerativeFields = 23;
+    inline constexpr std::size_t kNumPeaksUtilitySlots = 2;
+    inline constexpr std::size_t kNumPeaksUtilitySlotFields = 6;
+    inline constexpr std::size_t kNumPeaksUtilityFields = kNumPeaksUtilitySlots * kNumPeaksUtilitySlotFields;
 
     /// One automatable field's shape: a stable ID suffix, a human-readable label,
     /// its range, and its reset default. `discrete` means integer-stepped (bools,
@@ -112,6 +119,9 @@ namespace pw8::plugin
     extern const std::array<ParamFieldSpec, kNumEffectSlotFields> kEffectSlotFieldSpecs;
     // Field order matches sequencer::ArpeggiatorParams's scalar fields (excludes `steps[]`).
     extern const std::array<ParamFieldSpec, kNumArpFields> kArpFieldSpecs;
+    extern const std::array<ParamFieldSpec, kNumMasterDynamicsFields> kMasterDynamicsFieldSpecs;
+    extern const std::array<ParamFieldSpec, kNumGenerativeFields> kGenerativeFieldSpecs;
+    extern const std::array<ParamFieldSpec, kNumPeaksUtilitySlotFields> kPeaksUtilitySlotFieldSpecs;
 
     [[nodiscard]] juce::String operatorParamId(std::size_t opIndex, const char* fieldSuffix);
     [[nodiscard]] juce::String operatorMixParamId(std::size_t opIndex, const char* fieldSuffix);
@@ -121,8 +131,23 @@ namespace pw8::plugin
     [[nodiscard]] juce::String insertFxParamId(std::size_t slot, const char* fieldSuffix);
     [[nodiscard]] juce::String masterFxParamId(std::size_t slot, const char* fieldSuffix);
 
+    [[nodiscard]] std::array<float, kNumEffectSlotFields> effectSlotFieldValues(
+        const effects::EffectSlotParams& p) noexcept;
+    void applyEffectSlotFieldValues(effects::EffectSlotParams& p,
+                                    const std::array<float, kNumEffectSlotFields>& values) noexcept;
+
     inline constexpr const char* kFilterIdPrefix = "filter";
     inline constexpr const char* kFilter2IdPrefix = "filter2";
+    inline constexpr const char* kFilterRoutingId = "filterRouting";
+    inline constexpr const char* kFilterRoutingName = "Filter Routing Morph";
+    inline constexpr const char* kMasterDynamicsIdPrefix = "masterDynamics";
+    inline constexpr const char* kMasterDynamicsEnabledId = "masterDynamicsEnabled";
+    inline constexpr const char* kMasterDynamicsModeId = "masterDynamicsMode";
+    inline constexpr const char* kGenerativeIdPrefix = "generative";
+    inline constexpr const char* kGenerativeDejaVuId = "generativeDejaVu";
+    inline constexpr const char* kGenerativeSeedLockedId = "generativeSeedLocked";
+    inline constexpr const char* kPeaksUtilityIdPrefix = "peaksUtility";
+    [[nodiscard]] juce::String peaksUtilitySlotParamId(std::size_t slotIndex, const char* fieldSuffix);
     inline constexpr const char* kArpIdPrefix = "arp";
     inline constexpr const char* kModWheelId = "modWheel";
     inline constexpr const char* kModWheelName = "Mod Wheel (CC1)";
@@ -133,6 +158,8 @@ namespace pw8::plugin
     inline constexpr const char* kLayerGainId = "layerGain";
     inline constexpr const char* kLayerPanId = "layerPan";
     inline constexpr const char* kMasterGainId = "masterGain";
+    inline constexpr const char* kPortamentoId = "portamentoSeconds";
+    inline constexpr const char* kPortamentoName = "Portamento";
 
     inline constexpr const char* kUnisonVoicesId = "unisonVoices";
     inline constexpr const char* kUnisonVoicesName = "Unison Voices";

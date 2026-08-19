@@ -5,6 +5,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "DesignFxCardBrowser.h"
 #include "DesignFxPresetLibrary.h"
 #include "DesignFxSignalChain.h"
 #include "DesignFxUiState.h"
@@ -15,17 +16,27 @@
 
 namespace pw8::plugin::ui
 {
-    /// Figma `murmur-design-fx` (35:4) — standalone 12-slot FX rack for design sub-nav.
+    /// Design FX — card browser (152:4) default, chain editor (35:4), and murmur-fx-* detail.
     class DesignFxPanel : public juce::Component, private juce::Timer
     {
     public:
+        enum class FxViewMode
+        {
+            Cards,
+            Chain,
+            Detail,
+        };
+
         DesignFxPanel(PatchworkEightProcessor& processor, ModAssignmentController& modAssignmentController);
 
         std::function<void()> onClosed;
         std::function<void(std::size_t fxSlotIndex)> onVocoderLabRequested;
+        std::function<void(std::size_t fxSlotIndex)> onQuasarLabRequested;
 
         void setEmbeddedInDesignMode(bool embedded);
         void bindSelectedChip(std::size_t chipIndex);
+        void setFxViewMode(FxViewMode mode);
+        [[nodiscard]] FxViewMode getFxViewMode() const noexcept { return viewMode_; }
 
         void paint(juce::Graphics& g) override;
         void paintOverChildren(juce::Graphics& g) override;
@@ -33,11 +44,18 @@ namespace pw8::plugin::ui
 
     private:
         void timerCallback() override;
+        void applyViewVisibility();
+        void openCard(int cardIndex);
         void paintRoutingBar(juce::Graphics& g, juce::Rectangle<int> bounds) const;
         void paintFocusedHeader(juce::Graphics& g, juce::Rectangle<int> bounds) const;
+        void paintCardBrowserStatusBar(juce::Graphics& g, juce::Rectangle<int> bounds) const;
+        void paintCardBrowserModChips(juce::Graphics& g) const;
+        [[nodiscard]] bool modSourceActive(modulation::ModSource source) const;
+        void paintViewToggleGroup(juce::Graphics& g, juce::Rectangle<int> bounds) const;
         void mouseDown(const juce::MouseEvent& event) override;
         void mouseDrag(const juce::MouseEvent& event) override;
         [[nodiscard]] juce::String selectedChipTitle() const;
+        [[nodiscard]] juce::String focusedStatusLine() const;
         [[nodiscard]] int selectedEngineSlot() const;
         [[nodiscard]] juce::String selectedParamPrefix() const;
         void applyDesignPreset(std::size_t presetIndex);
@@ -48,18 +66,32 @@ namespace pw8::plugin::ui
         void syncPresetLabelFromChip();
         [[nodiscard]] juce::String currentModePillForChip() const;
         void syncStubKnobsToApvts();
+        void updateToggleButtons();
 
         PatchworkEightProcessor& processor_;
         bool embeddedInDesignMode_ = false;
+        FxViewMode viewMode_ = FxViewMode::Cards;
 
         juce::TextButton backButton_{"← DESIGN"};
         juce::Label titleLabel_;
         juce::Label presetLabel_;
 
+        juce::Label modulesLabel_;
+        juce::Label modulesHintLabel_;
+        juce::TextButton cardsToggle_{"CARDS"};
+        juce::TextButton chainToggle_{"CHAIN"};
+        juce::TextButton detailBackButton_{"← FX CARDS"};
+
+        DesignFxCardBrowser cardBrowser_;
         DesignFxSignalChain signalChain_;
         FxChainStrip detailStrip_;
         wireframe::DesignFxHeroViz heroViz_;
 
+        juce::Rectangle<int> subHeaderBounds_;
+        juce::Rectangle<int> statusBarBounds_;
+        juce::Rectangle<int> viewToggleBounds_;
+        std::array<juce::Rectangle<int>, 4> statusModChipBounds_{};
+        juce::TextButton statusPanicButton_{"PANIC RESET"};
         juce::Rectangle<int> routingBounds_;
         juce::Rectangle<int> detailChromeBounds_;
         juce::Rectangle<int> headerBounds_;

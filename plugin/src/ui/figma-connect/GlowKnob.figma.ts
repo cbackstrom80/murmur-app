@@ -1,4 +1,6 @@
-// url=https://www.figma.com/design/pi5kUNcZWQGhqfRAVu3voh/MURMUR-Obsidian?node-id=2-87
+// frame=glow-ring-knobs
+// url=https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=21-4
+// layoutJson=figma-connect/layouts/glow-ring-knobs.21-4.layout.json
 // source=plugin/src/ui/components/GlowKnob.h
 // component=GlowKnob
 import figma from 'figma'

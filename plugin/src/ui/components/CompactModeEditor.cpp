@@ -1,49 +1,32 @@
 #include "CompactModeEditor.h"
 
 #include "../PlayModeLayout.h"
+#include "../theme/FigmaKnobTokens.h"
+#include "../theme/ObsidianDraw.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
-#include "InterstellarHudDraw.h"
 #include "ModRoutingUi.h"
 
 namespace pw8::plugin::ui
 {
     CompactModeEditor::CompactModeEditor(PatchworkEightProcessor& processor)
         : processor_(processor),
-          circularScope_(processor),
+          scopeView_(processor),
           focusPanel_(processor)
     {
-        for (auto* btn : {&prevButton_, &nextButton_})
-        {
-            btn->setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
-            btn->setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
-            addAndMakeVisible(*btn);
-        }
-        prevButton_.onClick = [this] { stepPreset(-1); };
-        nextButton_.onClick = [this] { stepPreset(1); };
-
-        missionNameLabel_.setJustificationType(juce::Justification::centredLeft);
-        missionNameLabel_.setColour(juce::Label::textColourId, palette::kTextPrimary);
-        missionNameLabel_.setFont(fonts::title(13.0f));
-        addAndMakeVisible(missionNameLabel_);
-
-        missionCategoryLabel_.setJustificationType(juce::Justification::centredLeft);
-        missionCategoryLabel_.setColour(juce::Label::textColourId, palette::kAccentWarm);
-        missionCategoryLabel_.setFont(fonts::label(9.0f));
-        addAndMakeVisible(missionCategoryLabel_);
-
-        missionHintLabel_.setJustificationType(juce::Justification::centredLeft);
-        missionHintLabel_.setColour(juce::Label::textColourId, palette::kTextDim);
-        missionHintLabel_.setFont(fonts::value(10.0f));
-        addAndMakeVisible(missionHintLabel_);
-
-        addAndMakeVisible(circularScope_);
-        circularScope_.setViewMode(processor_.getScopeViewMode());
+        scopeView_.setCompactLayout(true);
+        addAndMakeVisible(scopeView_);
 
         focusPanel_.setCompactLayout(true);
         addAndMakeVisible(focusPanel_);
 
-        startTimerHz(2);
+        masterKnob_ = std::make_unique<GlowKnob>(processor_.apvts, kMasterGainId, "MASTER", [](float value) {
+            return juce::String(value, 1) + " dB";
+        }, palette::kAccentWarm);
+        masterKnob_->applyFigmaContext(figma::KnobContext::CompactMaster);
+        addAndMakeVisible(*masterKnob_);
+
+        startTimerHz(15);
         timerCallback();
     }
 
@@ -52,22 +35,100 @@ namespace pw8::plugin::ui
         stopTimer();
     }
 
+    void CompactModeEditor::paintCardBackground(juce::Graphics& g, juce::Rectangle<float> bounds) const
+    {
+        g.setColour(palette::kPanelRaised.withAlpha(0.92f));
+        g.fillRoundedRectangle(bounds, 8.0f);
+        g.setColour(palette::kBorder.withAlpha(0.55f));
+        g.drawRoundedRectangle(bounds.reduced(0.5f), 8.0f, 1.0f);
+    }
+
+    void CompactModeEditor::paintHorizontalMeter(juce::Graphics& g, juce::Rectangle<float> bounds,
+                                                 const scope::VuBallistics& vu) const
+    {
+        g.setColour(juce::Colour(0xff0d0f14));
+        g.fillRoundedRectangle(bounds, 3.0f);
+
+        const float fillNorm = juce::jlimit(0.0f, 1.0f, vu.rmsNorm());
+        const float peakNorm = juce::jlimit(fillNorm, 1.0f, vu.peakHoldNorm());
+        const float greenWidth = bounds.getWidth() * fillNorm;
+        const float amberWidth = bounds.getWidth() * (peakNorm - fillNorm);
+
+        if (greenWidth > 0.5f)
+        {
+            g.setColour(palette::kAccent.withAlpha(0.92f));
+            g.fillRoundedRectangle(bounds.withWidth(greenWidth), 3.0f);
+        }
+
+        if (amberWidth > 0.5f)
+        {
+            g.setColour(palette::kAccentWarm.withAlpha(0.95f));
+            g.fillRoundedRectangle(bounds.withX(bounds.getX() + greenWidth).withWidth(amberWidth), 3.0f);
+        }
+    }
+
+    void CompactModeEditor::paint(juce::Graphics& g)
+    {
+        if (!scopePanelBounds_.isEmpty())
+            paintCardBackground(g, scopePanelBounds_.toFloat());
+        if (!megaKnobDeckBounds_.isEmpty())
+            paintCardBackground(g, megaKnobDeckBounds_.toFloat());
+    }
+
+    void CompactModeEditor::paintOverChildren(juce::Graphics& g)
+    {
+        if (!megaKnobDeckBounds_.isEmpty())
+        {
+            auto header = megaKnobDeckBounds_.reduced(layout::kCompactMacroPanelPadding)
+                             .removeFromTop(layout::kCompactMacroHeaderHeight);
+            g.setFont(fonts::label(8.0f));
+            g.setColour(palette::kTextSecondary);
+            g.drawText("PERFORMANCE KOINS", header, juce::Justification::centredLeft, true);
+        }
+
+        if (!meterStatsBounds_.isEmpty())
+        {
+            auto stats = meterStatsBounds_;
+            auto meterGroup = stats.removeFromTop(16);
+            const int meterGap = layout::kCompactOutputMeterGap;
+            auto leftMeter = meterGroup.removeFromTop(layout::kCompactOutputMeterHeight);
+            meterGroup.removeFromTop(meterGap);
+            auto rightMeter = meterGroup.removeFromTop(layout::kCompactOutputMeterHeight);
+            paintHorizontalMeter(g, leftMeter.toFloat(), leftVu_);
+            paintHorizontalMeter(g, rightMeter.toFloat(), rightVu_);
+
+            g.setFont(fonts::label(8.0f));
+            g.setColour(palette::kTextSecondary);
+            auto statsText = stats;
+            g.drawText("CPU: " + formatCpuPercent(metrics_.cpuPercent), statsText.removeFromTop(10),
+                       juce::Justification::centredLeft, true);
+            g.drawText("VOICES: " + formatVoiceCount(metrics_.activeVoices, metrics_.maxVoices), statsText,
+                       juce::Justification::centredLeft, true);
+        }
+
+        if (!footerBounds_.isEmpty())
+        {
+            g.setFont(fonts::label(8.0f));
+            g.setColour(palette::kTextSecondary);
+            g.drawText(juce::String("MURMUR OBSIDIAN ") + juce::String(juce::CharPointer_UTF8("\xc2\xa9")) + " 2026",
+                       footerBounds_, juce::Justification::centred, true);
+        }
+    }
+
     void CompactModeEditor::updateMissionCard()
     {
         const auto& meta = processor_.getCurrentPatch().metadata;
         const auto name = juce::String(meta.name);
-        missionNameLabel_.setText(name.isEmpty() ? "INIT" : name, juce::dontSendNotification);
+        juce::ignoreUnused(name);
 
         juce::String category;
         if (const auto presetPath = processor_.getCurrentPresetPath(); presetPath.isNotEmpty())
             category = juce::File(presetPath).getParentDirectory().getFileName();
         if (category.isEmpty())
             category = "Factory";
-        missionCategoryLabel_.setText(category.toUpperCase(), juce::dontSendNotification);
 
         const auto hint = performanceHintForPatch(processor_.getCurrentPatch(), &processor_.apvts);
-        missionHintLabel_.setText(hint, juce::dontSendNotification);
-        missionHintLabel_.setVisible(hint.isNotEmpty());
+        juce::ignoreUnused(hint);
 
         if (category != lastCategory_ || hint != lastHint_)
         {
@@ -80,65 +141,46 @@ namespace pw8::plugin::ui
     void CompactModeEditor::timerCallback()
     {
         updateMissionCard();
-    }
+        metrics_ = readPerformanceMetrics(processor_);
 
-    void CompactModeEditor::stepPreset(int direction)
-    {
-        if (presetIndex_ == nullptr)
-            return;
+        const float masterPeak = processor_.getMasterOutPeakLinear();
+        leftVu_.processFrame(masterPeak * 0.86f, masterPeak);
+        rightVu_.processFrame(masterPeak * 0.78f, masterPeak * 0.94f);
 
-        const auto current = processor_.getCurrentPresetPath();
-        const juce::StringArray* favoritesOnly =
-            browseFilter_.favoritesOnly && favoritesStore_ != nullptr ? &favoritesStore_->paths() : nullptr;
-        std::optional<content::PresetEntry> entry;
-        if (direction > 0)
-            entry = presetIndex_->nextAfter(current, browseFilter_, favoritesOnly);
-        else
-            entry = presetIndex_->prevBefore(current, browseFilter_, favoritesOnly);
-
-        if (!entry.has_value())
-            return;
-
-        processor_.loadPatchFromFile(entry->absolutePath);
-        timerCallback();
-        focusPanel_.refreshFromPatch();
-    }
-
-    void CompactModeEditor::paint(juce::Graphics& g)
-    {
-        auto card = juce::Rectangle<int>(8, 4, getWidth() - 16, layout::kCompactMissionCardHeight).toFloat();
-        g.setColour(palette::kPanel.withAlpha(0.55f));
-        g.fillRoundedRectangle(card, 6.0f);
-        g.setColour(palette::kAccentWarm.withAlpha(0.28f));
-        g.drawRoundedRectangle(card, 6.0f, 1.2f);
-
-        if (interstellar::isInterstellarCategory(lastCategory_))
-            interstellar::paintHudBadge(g, card.expanded(2.0f), true);
+        repaint(meterStatsBounds_);
+        repaint(footerBounds_);
     }
 
     void CompactModeEditor::resized()
     {
-        auto bounds = getLocalBounds().reduced(layout::kCompactOuterMargin);
+        auto bounds = getLocalBounds();
 
-        auto missionCard = bounds.removeFromTop(layout::kCompactMissionCardHeight);
-        auto navRow = missionCard.removeFromTop(layout::kCompactHeaderHeight);
-        prevButton_.setBounds(navRow.removeFromLeft(26).reduced(1, 4));
-        nextButton_.setBounds(navRow.removeFromRight(26).reduced(1, 4));
+        footerBounds_ = bounds.removeFromBottom(layout::kCompactFooterSystemHeight);
+        bounds.removeFromBottom(layout::kCompactBlockGap);
 
-        auto textCol = navRow.reduced(4, 0);
-        missionNameLabel_.setBounds(textCol.removeFromTop(16));
-        missionCategoryLabel_.setBounds(textCol.removeFromTop(12));
-        if (missionHintLabel_.isVisible())
-            missionHintLabel_.setBounds(textCol.removeFromTop(14));
+        megaKnobDeckBounds_ = bounds.removeFromBottom(layout::kCompactMegaKnobDeckHeight);
+        bounds.removeFromBottom(layout::kCompactBlockGap);
 
-        bounds.removeFromTop(layout::kCompactBlockGap);
+        scopePanelBounds_ = bounds;
+        scopeView_.setBounds(scopePanelBounds_);
 
-        const int scopeSize = juce::jmin(layout::kCompactScopeSize, bounds.getHeight() - 140);
-        auto scopeBounds = bounds.removeFromTop(scopeSize).withSizeKeepingCentre(scopeSize, scopeSize);
-        circularScope_.setBounds(scopeBounds);
+        const int deckPad = layout::kCompactMacroPanelPadding;
+        const int headerSkip = layout::kCompactMacroHeaderHeight + layout::kCompactMacroHeaderGap;
+        auto deck = megaKnobDeckBounds_.reduced(deckPad).withTrimmedTop(headerSkip);
 
-        focusPanel_.setOrbitHole(scopeBounds);
-        focusPanel_.setBounds(bounds);
+        const int colGap = layout::kCompactMacroKnobGap;
+        const int colW = (deck.getWidth() - 2 * colGap) / 3;
+
+        masterKnobBounds_ = deck.removeFromLeft(colW);
+        deck.removeFromLeft(colGap);
+        koinKnobBounds_ = deck;
+
+        const int dialPad = 18;
+        masterKnob_->setBounds(masterKnobBounds_.withSizeKeepingCentre(layout::kCompactMegaKnobSize + dialPad,
+                                                                       layout::kCompactMegaKnobSize + dialPad));
+        focusPanel_.setBounds(koinKnobBounds_);
+
+        meterStatsBounds_ = scopePanelBounds_.removeFromBottom(52).reduced(12, 6);
     }
 
 } // namespace pw8::plugin::ui

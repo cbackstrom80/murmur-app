@@ -1,5 +1,6 @@
 #include "AmpEnvelopePanel.h"
 
+#include "../theme/FigmaKnobTokens.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "state/PluginState.h"
@@ -11,6 +12,7 @@ namespace pw8::plugin::ui
     {
         auto& apvts = processor.apvts;
         addAndMakeVisible(panel_);
+        visualizer_.attachVisualizerBus(processor.getVisualizerBus());
         panel_.addAndMakeVisible(visualizer_);
 
         delay_ = std::make_unique<GlowKnob>(apvts, envelopeParamId(0, "Delay"), "Delay");
@@ -23,7 +25,10 @@ namespace pw8::plugin::ui
 
         for (auto* k :
              {delay_.get(), attack_.get(), hold_.get(), decay_.get(), sustain_.get(), release_.get(), curve_.get()})
+        {
+            k->applyFigmaContext(figma::KnobContext::PlayBlades);
             panel_.addAndMakeVisible(*k);
+        }
 
         legatoAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
             apvts, envelopeParamId(0, "Legato"), legato_);

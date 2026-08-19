@@ -1,6 +1,9 @@
 #include "ObsidianEnvelopeVisualizer.h"
 
 #include "../theme/ObsidianDraw.h"
+#include "../visualizer/PreviewDraw.h"
+#include "../visualizer/VisualPreviewCache.h"
+#include "../visualizer/VisualizerGpu.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "state/PluginState.h"
@@ -29,6 +32,43 @@ namespace pw8::plugin::ui
     {
         stopTimer();
         endActiveGestures();
+    }
+
+    void ObsidianEnvelopeVisualizer::attachVisualizerBus(murmur8::AudioVisualizerBus& bus)
+    {
+        if (!murmur8::visualizerGpuEnabled())
+            return;
+
+        glPlot_ = std::make_unique<murmur8::MurmurVisualizerComponent>(bus);
+        glPlot_->setMode(murmur8::MurmurVisualizerComponent::Mode::EnvelopeCurve);
+        addAndMakeVisible(*glPlot_);
+        syncGlPreview();
+        resized();
+    }
+
+    void ObsidianEnvelopeVisualizer::syncGlPreview()
+    {
+        if (glPlot_ == nullptr)
+            return;
+
+        constexpr float kPlateau = 0.35f;
+        const float attack = juce::jmax(params_.attackSeconds, 0.05f);
+        const float decay = juce::jmax(params_.decaySeconds, 0.05f);
+        const float release = juce::jmax(params_.releaseSeconds, 0.05f);
+        const float total = attack + decay + kPlateau + release;
+
+        murmur8::EnvelopeCurveParams curve;
+        curve.attackNorm = attack / total;
+        curve.decayNorm = decay / total;
+        curve.sustain = params_.sustainLevel;
+        curve.releaseNorm = release / total;
+        glPlot_->setEnvelopeCurveParams(curve);
+    }
+
+    void ObsidianEnvelopeVisualizer::resized()
+    {
+        if (glPlot_ != nullptr)
+            glPlot_->setBounds(graphBounds().toNearestInt());
     }
 
     juce::String ObsidianEnvelopeVisualizer::paramId(const char* suffix) const
@@ -219,6 +259,7 @@ namespace pw8::plugin::ui
 
         refreshFromApvts();
         rebuildLayout();
+        syncGlPreview();
         repaint();
     }
 
@@ -366,14 +407,33 @@ namespace pw8::plugin::ui
         draw::fillRecessedRoundedRect(g, bounds, 6.0f);
         paintGrid(g, bounds);
 
-        juce::Path outline;
-        juce::Path fillPath;
-        float sustainEndX = bounds.getX();
-        wireframe::buildEnvelopePath(params_, bounds, outline, fillPath, sustainEndX);
+        if (glPlot_ != nullptr && murmur8::visualizerGpuEnabled())
+        {
+            glPlot_->setBounds(bounds.toNearestInt());
+            paintStageLabels(g);
+            paintHandles(g);
 
-        g.setColour(palette::kAccent.withAlpha(0.10f));
-        g.fillPath(fillPath);
-        draw::strokeGlowPath(g, outline, 1.0f, 2.0f, true);
+            g.setColour(palette::kAccentWarm.withAlpha(0.85f));
+            g.drawVerticalLine(static_cast<int>(layout_.releaseEndX), bounds.getY(), bounds.getBottom());
+            g.setFont(fonts::label(8.0f));
+            g.setColour(palette::kTextDim);
+            g.drawText("note off", juce::Rectangle<float>(layout_.releaseEndX + 3.0f, bounds.getY(), 48.0f, 12.0f),
+                       juce::Justification::centredLeft);
+            return;
+        }
+
+        float sustainEndX = bounds.getX();
+
+        const auto key = preview::envelopePreviewKey(
+            params_.delaySeconds, params_.attackSeconds, params_.holdSeconds, params_.decaySeconds, params_.sustainLevel,
+            params_.releaseSeconds, params_.curveShape);
+        const auto& polyline = preview::VisualPreviewCache::instance().getOrBuild(
+            key, preview::kDefaultPolylinePoints,
+            [&](int n, preview::PreviewPolyline& out) { preview::buildEnvelopePolyline(params_, n, out); });
+        preview::PolylineDrawOptions opts;
+        opts.yScale = 0.88f;
+        preview::paintPolylineCurve(g, bounds, polyline, opts);
+        sustainEndX = bounds.getX() + polyline.sustainEndNorm * bounds.getWidth();
 
         g.setColour(palette::kBorderBright.withAlpha(0.55f));
         g.drawHorizontalLine(static_cast<int>(layout_.baselineY), bounds.getX(), bounds.getRight());

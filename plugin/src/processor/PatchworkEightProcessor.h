@@ -28,12 +28,17 @@
 #include "pw8/algorithm/AlgorithmGraphCompiler.hpp"
 #include "pw8/render/Engine.hpp"
 #include "processor/ScopeAudioTap.h"
+#include "ui/visualizer/AudioVisualizerBus.h"
 #include "state/ParamChangeQueue.hpp"
 #include "state/PluginState.h"
 #include "ui/ScopeViewMode.h"
 
 namespace pw8::plugin
 {
+#if JucePlugin_Build_Standalone
+    class StandaloneMcpBridge;
+#endif
+
     struct GraphEditResult
     {
         bool ok = false;
@@ -73,10 +78,29 @@ namespace pw8::plugin
 
         /// Loads a new patch. Safe to call from the message thread only -- compiles a
         /// new Engine off-thread and atomically publishes it for processBlock() to pick up.
-        bool loadPatch(const patch::Patch& newPatch);
+        enum class PatchReloadIntent
+        {
+            /// User structural edit — marks patch dirty for save.
+            UserEdit,
+            /// Preset/session/init load — clears dirty flag.
+            ExternalLoad,
+        };
+
+        bool loadPatch(const patch::Patch& newPatch, PatchReloadIntent intent = PatchReloadIntent::UserEdit);
 
         /// Message-thread only: invoked after a successful `loadPatch()` / preset reload.
         std::function<void()> onPatchLoaded;
+
+        /// Message-thread only: patch dirty flag changed (unsaved edits).
+        std::function<void()> onPatchDirtyChanged;
+
+        [[nodiscard]] bool isPatchDirty() const noexcept { return patchDirty_; }
+
+        /// Message-thread only: write current patch to disk and update preset path.
+        bool saveCurrentPatchToFile(const juce::String& filePath);
+
+        [[nodiscard]] static juce::File userPresetsDirectory();
+        [[nodiscard]] static bool isUserPresetPath(const juce::String& filePath);
 
         /// Message-thread only: lightweight UI refresh after patch metadata edits that do
         /// not require a full engine reload (e.g. operator engine pill, graph output flags).
@@ -84,6 +108,9 @@ namespace pw8::plugin
 
         /// Message-thread only: load a `.pw8` from disk and remember its path for preset browsing.
         bool loadPatchFromFile(const juce::String& filePath);
+
+        /// Message-thread only: load patch JSON already in memory (MCP bridge / agents).
+        bool loadPatchFromJsonString(const juce::String& jsonUtf8);
 
         [[nodiscard]] juce::String getCurrentPresetPath() const noexcept { return currentPresetPath_; }
 
@@ -128,6 +155,19 @@ namespace pw8::plugin
         /// Apply Design FX signal-chain display order to engine insert/master process permutations.
         bool applyFxProcessOrderFromChipDisplay(const std::array<std::size_t, 12>& chipDisplayOrder);
 
+        /// Morph KOIN editor (Track A-M4): capture/add/remove keyframes and morph settings.
+        bool addMorphKeyframeAt(float position, const std::string& name = {});
+        bool removeMorphKeyframe(std::size_t index);
+        bool recaptureMorphKeyframe(std::size_t index);
+        bool setMorphKeyframeColor(std::size_t index, const std::string& color);
+        bool setMorphKeyframeParamEasing(std::size_t index, const std::string& path, const std::string& easing);
+        bool setMorphKoinSettings(const std::string& curve, bool wrap, const std::string& autoplaySource,
+                                  bool morphDissemination);
+
+        /// Segment envelope chains (Track D): per-env slot Stages-style chains.
+        [[nodiscard]] pw8::envelope::SegmentEnvelopeChain getSegmentEnvelopeChain(std::size_t envIndex) const noexcept;
+        bool setSegmentEnvelopeChain(std::size_t envIndex, const pw8::envelope::SegmentEnvelopeChain& chain);
+
         /// Message-thread only (JUCE guarantees editor construction/paint/resize all
         /// run on the message thread, the same thread every currentPatch_ mutation
         /// already runs on per the class-level threading contract above) -- read-only
@@ -167,6 +207,10 @@ namespace pw8::plugin
                                        std::uint8_t targetIndex, float amount,
                                        modulation::ModScope scope = modulation::ModScope::Voice);
 
+        /// Message-thread only. Updates the curve shaping on an existing Layer A route.
+        void setModRouteCurveLive(modulation::ModSource source, modulation::ModDestination destination,
+                                   std::uint8_t targetIndex, modulation::ModCurve curve);
+
         /// Message-thread only. Removes the Layer A route matching (source,
         /// destination, targetIndex) exactly, if one exists. A no-op otherwise.
         /// Takes `source` too (not just destination/targetIndex) so it can
@@ -188,10 +232,32 @@ namespace pw8::plugin
         void toggleArpStepEnabled(std::size_t stepIndex) noexcept;
         void toggleArpStepAccent(std::size_t stepIndex) noexcept;
         void cycleArpStepRatchet(std::size_t stepIndex) noexcept;
+        void toggleArpStepTie(std::size_t stepIndex) noexcept;
+        void cycleArpStepProbability(std::size_t stepIndex) noexcept;
+        void cycleArpStepOctaveOffset(std::size_t stepIndex) noexcept;
+        void setArpStepVelocity(std::size_t stepIndex, float velocity01) noexcept;
         void setAllArpStepsGate(float gate01) noexcept;
+        void setAllArpStepsEnabled(bool enabled) noexcept;
+        void randomizeArpPattern(float activeDensity01) noexcept;
+        void applyEuclideanArpPattern(int pulses) noexcept;
+
+        /// Live arp pattern length (1..64) — reads APVTS so UI stays in sync with knobs/automation.
+        [[nodiscard]] std::size_t getArpNumSteps() const noexcept;
+        void setArpNumSteps(int steps) noexcept;
+
+        [[nodiscard]] bool getHostIsPlaying() const noexcept;
 
         /// Message-thread only: pull mono mix samples for header spectrum scope.
         [[nodiscard]] int readScopeSamples(float* dest, int maxSamples) noexcept { return scopeAudioTap_.readMono(dest, maxSamples); }
+
+        [[nodiscard]] float getScopeLeftPeakLinear() const noexcept { return scopeAudioTap_.getLeftPeakLinear(); }
+
+        [[nodiscard]] float getScopeRightPeakLinear() const noexcept { return scopeAudioTap_.getRightPeakLinear(); }
+
+        /// Lock-free hub for OpenGL visualizer modules (audio thread writes, GUI reads).
+        [[nodiscard]] murmur8::AudioVisualizerBus& getVisualizerBus() noexcept { return visualizerBus_; }
+
+        [[nodiscard]] bool isSustainPedalHeld(int channel = 0) const noexcept;
 
         [[nodiscard]] double getScopeSampleRate() const noexcept { return currentSampleRate_; }
 
@@ -212,6 +278,12 @@ namespace pw8::plugin
             return sidechainLevel_.load(std::memory_order_relaxed);
         }
 
+        /// Audio thread: stash the latest MIDI CC for UI learn flows (message thread consumes).
+        void noteMidiLearnCc(int controller, int value7) noexcept;
+
+        /// Message thread: returns true when a CC was received since the last consume.
+        [[nodiscard]] bool consumeMidiLearnCc(int& controller, int& value7) noexcept;
+
         [[nodiscard]] float getMasterCompressorGainReductionDb(std::size_t slot) const noexcept
         {
             if (slot >= kNumMasterFxSlots)
@@ -225,6 +297,21 @@ namespace pw8::plugin
                 return 0.0f;
             return insertCompressorGrDb_[slot].load(std::memory_order_relaxed);
         }
+
+        [[nodiscard]] float getMasterDynamicsGainReductionDb() const noexcept
+        {
+            const auto* engine = activeEngine_.load(std::memory_order_acquire);
+            return engine != nullptr ? engine->getMasterDynamicsGainReductionDb() : 0.0f;
+        }
+
+        [[nodiscard]] float getMasterDynamicsSidechainEnvelope() const noexcept
+        {
+            const auto* engine = activeEngine_.load(std::memory_order_acquire);
+            return engine != nullptr ? engine->getMasterDynamicsSidechainEnvelope() : 0.0f;
+        }
+
+        void triggerPeaksUtilitySlot(std::size_t slotIndex) noexcept;
+        [[nodiscard]] std::array<float, 2> getPeaksUtilityLevels() const noexcept;
 
         /// Message-thread read of audio-thread CPU estimate (0..100, smoothed block time ratio).
         [[nodiscard]] float getCpuLoadPercent() const noexcept
@@ -265,6 +352,18 @@ namespace pw8::plugin
         [[nodiscard]] bool hasModRouteTo(modulation::ModDestination destination,
                                          std::uint8_t targetIndex) const noexcept;
         [[nodiscard]] bool macroHasActiveRoutes(std::size_t macroIndex) const noexcept;
+
+        /// FR.STEP: keyframe index crossed on last morph timeline tick (-1 = none).
+        [[nodiscard]] int getMorphKeyframeCrossedIndex() const noexcept
+        {
+            return morphKeyframeCrossedIndex_.load(std::memory_order_relaxed);
+        }
+
+        /// Returns true once per crossing; clears the flash flag when consumed.
+        [[nodiscard]] bool consumeMorphKeyframeCrossFlash() noexcept
+        {
+            return morphKeyframeCrossedFlash_.exchange(false, std::memory_order_relaxed);
+        }
 
         [[nodiscard]] ui::ScopeViewMode getScopeViewMode() const noexcept { return scopeViewMode_; }
 
@@ -339,9 +438,14 @@ namespace pw8::plugin
         void publishModRoutesLive(const core::FixedVector<modulation::ModRoute, core::kMaxModRoutes>& routes);
 
         void applyMorphFromPosition(float position) noexcept;
+        void updateMorphTimelineModulation(render::Engine& engine, float bpm, int numSamples) noexcept;
+        [[nodiscard]] bool morphTimelineIsModulated() const noexcept;
 
         patch::Patch currentPatch_ = patch::Patch::makeInit();
         juce::String currentPresetPath_;
+        bool patchDirty_ = false;
+
+        void setPatchDirty(bool dirty) noexcept;
 
         // Cached once in the constructor: audio-thread-safe raw pointers into the
         // APVTS's atomic parameter storage. Organized to mirror the field-spec tables
@@ -350,6 +454,11 @@ namespace pw8::plugin
         std::array<std::atomic<float>*, 8> macroParamPointers_{};
         std::array<std::atomic<float>*, kNumFilterFields> filterParamPointers_{};
         std::array<std::atomic<float>*, kNumFilter2Fields> filter2ParamPointers_{};
+        std::atomic<float>* filterRoutingPointer_ = nullptr;
+        std::array<std::atomic<float>*, kNumMasterDynamicsFields> masterDynamicsParamPointers_{};
+        std::array<std::atomic<float>*, kNumGenerativeFields> generativeParamPointers_{};
+        std::array<std::array<std::atomic<float>*, kNumPeaksUtilitySlotFields>, kNumPeaksUtilitySlots>
+            peaksUtilityParamPointers_{};
         std::array<std::array<std::atomic<float>*, kNumLfoFields>, kNumLfos> lfoParamPointers_{};
         std::array<std::array<std::atomic<float>*, kNumOperatorFields>, kNumOperators> operatorParamPointers_{};
         std::array<std::array<std::atomic<float>*, kNumOperatorFilterFields>, kNumOperators> operatorFilterParamPointers_{};
@@ -358,6 +467,7 @@ namespace pw8::plugin
         std::atomic<float>* layerGainPointer_ = nullptr;
         std::atomic<float>* layerPanPointer_ = nullptr;
         std::atomic<float>* masterGainPointer_ = nullptr;
+        std::atomic<float>* portamentoPointer_ = nullptr;
         std::array<std::array<std::atomic<float>*, kNumEffectSlotFields>, kNumInsertFxSlots> insertFxParamPointers_{};
         std::array<std::array<std::atomic<float>*, kNumEffectSlotFields>, kNumMasterFxSlots> masterFxParamPointers_{};
         std::array<std::atomic<float>*, kNumArpFields> arpParamPointers_{};
@@ -375,6 +485,9 @@ namespace pw8::plugin
         std::atomic<float>* expressionParamPointer_ = nullptr;
         std::atomic<float> mirroredExpression_{0.0f};
         std::atomic<float>* morphPositionPointer_ = nullptr;
+        float lastMorphTimelinePos_ = -1.0f;
+        std::atomic<int> morphKeyframeCrossedIndex_{-1};
+        std::atomic<bool> morphKeyframeCrossedFlash_{false};
 
         ::pw8::dsp::SidechainFollower sidechainFollower_{};
         /// Sidechain bus samples copied here before `buffer.clear()` — AU/VST3 synths
@@ -383,6 +496,7 @@ namespace pw8::plugin
         juce::AudioBuffer<float> sidechainScratch_;
         std::atomic<bool> sidechainActive_{false};
         std::atomic<float> sidechainLevel_{0.0f};
+        std::atomic<uint32_t> midiLearnCcEvent_{0};
         std::array<std::atomic<float>, kNumInsertFxSlots> insertCompressorGrDb_{};
         std::array<std::atomic<float>, kNumMasterFxSlots> masterCompressorGrDb_{};
         std::atomic<float> cpuLoadPercent_{0.0f};
@@ -414,9 +528,14 @@ namespace pw8::plugin
 
         ParamChangeQueue paramChangeQueue_{};
         ScopeAudioTap scopeAudioTap_{};
+        murmur8::AudioVisualizerBus visualizerBus_{};
         ui::ScopeViewMode scopeViewMode_ = ui::ScopeViewMode::Fft;
         double currentSampleRate_ = 48000.0;
         render::QualityMode qualityMode_ = render::QualityMode::Normal;
+
+#if JucePlugin_Build_Standalone
+        std::unique_ptr<StandaloneMcpBridge> standaloneMcpBridge_;
+#endif
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PatchworkEightProcessor)
     };

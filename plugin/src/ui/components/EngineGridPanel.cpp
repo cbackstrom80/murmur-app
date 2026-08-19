@@ -3,11 +3,13 @@
 #include "../PlayModeLayout.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
+#include "ModAssignmentController.h"
 #include "pw8/core/Types.hpp"
 
 namespace pw8::plugin::ui
 {
-    EngineGridPanel::EngineGridPanel(PatchworkEightProcessor& processor) : processor_(processor)
+    EngineGridPanel::EngineGridPanel(PatchworkEightProcessor& processor, ModAssignmentController& assignmentController)
+        : processor_(processor), assignmentController_(assignmentController)
     {
         headerLabel_.setText("ACTIVE PLAY ENGINES", juce::dontSendNotification);
         headerLabel_.setFont(fonts::label(10.0f));
@@ -22,7 +24,7 @@ namespace pw8::plugin::ui
 
         for (int i = 0; i < 8; ++i)
         {
-            cards_[static_cast<std::size_t>(i)] = std::make_unique<EngineCard>(processor_, i);
+            cards_[static_cast<std::size_t>(i)] = std::make_unique<EngineCard>(processor_, assignmentController_, i);
             cards_[static_cast<std::size_t>(i)]->setPlayBoardCompactMode(true);
             cards_[static_cast<std::size_t>(i)]->onDoubleClicked = [this](int index) {
                 if (onEngineDoubleClicked)

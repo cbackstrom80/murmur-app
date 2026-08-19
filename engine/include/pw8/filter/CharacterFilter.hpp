@@ -17,6 +17,8 @@ namespace pw8::filter
         float resonance = 0.3f;
         /// 0 (clean) .. 1 (tanh saturation on input).
         float drive = 0.0f;
+        /// Semitone offset from modulated Filter 1 cutoff when F1 is enabled (Blades F2 tracking).
+        float cutoffOffsetSemitones = 0.0f;
         /// Same semantics as Filter 1 keyTrack.
         float keyTrack = 0.0f;
     };

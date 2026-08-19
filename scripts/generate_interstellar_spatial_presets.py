@@ -48,6 +48,16 @@ DST_MASTER_REVERB_DECAY = 16
 DST_MASTER_REVERB_PREDELAY = 17
 DST_MASTER_REVERB_DIFFUSION = 18
 
+DST_QUASAR_QSR1_ANGLE = 30
+DST_QUASAR_QSR2_ANGLE = 31
+DST_QUASAR_ROOM = 32
+DST_QUASAR_CROSSFEED = 33
+DST_QUASAR_DELAY_VOL = 34
+DST_QUASAR_QSR1_DIST = 35
+DST_QUASAR_QSR2_DIST = 36
+DST_QUASAR_DELAY_TIME = 37
+DST_QUASAR_DELAY_FB = 38
+
 SCOPE_VOICE = 0
 SCOPE_GLOBAL = 2
 
@@ -236,7 +246,7 @@ def binaural_space(variant: int, rng: random.Random) -> dict:
     room2 = room1 + 0.05 + rng.uniform(-0.02, 0.04)
     delay_ms = 420.0 + variant * 18.0 + rng.uniform(-40, 80)
     return {
-        "type": 11,
+        "type": 13,
         "mix": 0.68 + (variant % 4) * 0.04,
         "qsr1Level": 0.62 + rng.uniform(-0.05, 0.08),
         "qsr2Level": 0.52 + rng.uniform(-0.05, 0.08),
@@ -273,10 +283,10 @@ def space_macro_routes(macro_idx: int = 3) -> list:
     src = SRC_MACRO1 + macro_idx
     return [
         global_route(src, DST_MASTER_FX_MIX, 0.35),
-        global_route(src, DST_MASTER_REVERB_SIZE, 0.52),
-        global_route(src, DST_MASTER_REVERB_DECAY, 1.15),
-        global_route(src, DST_MASTER_REVERB_PREDELAY, 16.0),
-        global_route(src, DST_MASTER_REVERB_DIFFUSION, 0.26),
+        global_route(src, DST_QUASAR_ROOM, 0.52),
+        global_route(src, DST_QUASAR_DELAY_FB, 0.32),
+        global_route(src, DST_QUASAR_DELAY_TIME, 120.0),
+        global_route(src, DST_QUASAR_CROSSFEED, 0.26),
     ]
 
 
@@ -294,9 +304,9 @@ def bloom_macro_routes(macro_idx: int, wt_op: int = 1) -> list:
 def drift_macro_routes(macro_idx: int, wt_op: int = 1) -> list:
     src = SRC_MACRO1 + macro_idx
     return [
-        global_route(src, DST_MASTER_REVERB_SIZE, 0.38),
-        global_route(src, DST_MASTER_REVERB_PREDELAY, 20.0),
-        global_route(src, DST_MASTER_REVERB_DIFFUSION, 0.22),
+        global_route(src, DST_QUASAR_ROOM, 0.38),
+        global_route(src, DST_QUASAR_DELAY_TIME, 80.0),
+        global_route(src, DST_QUASAR_CROSSFEED, 0.22),
         {"source": src, "destination": DST_PAN, "targetIndex": 0, "amount": 0.42, "scope": SCOPE_VOICE},
         {"source": src, "destination": DST_WT_BEND, "targetIndex": wt_op, "amount": 0.35, "scope": 1},
     ]
@@ -306,10 +316,10 @@ def void_macro_routes(macro_idx: int) -> list:
     src = SRC_MACRO1 + macro_idx
     return [
         global_route(src, DST_MASTER_FX_MIX, 0.32),
-        global_route(src, DST_MASTER_REVERB_DECAY, 1.0),
-        global_route(src, DST_MASTER_REVERB_PREDELAY, 24.0),
+        global_route(src, DST_QUASAR_DELAY_FB, 0.45),
+        global_route(src, DST_QUASAR_DELAY_TIME, 160.0),
         {"source": src, "destination": DST_FILTER_CUTOFF, "targetIndex": 0, "amount": -12.0, "scope": SCOPE_VOICE},
-        global_route(src, DST_MASTER_REVERB_SIZE, 0.45),
+        global_route(src, DST_QUASAR_ROOM, 0.45),
     ]
 
 

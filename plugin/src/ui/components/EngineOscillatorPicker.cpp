@@ -101,6 +101,7 @@ namespace pw8::plugin::ui
         : processor_(processor), engineIndex_(engineIndex), contextThumb_(processor, engineIndex)
     {
         addChildComponent(contextThumb_);
+        setWantsKeyboardFocus(true);
 
         startTimerHz(30);
         refreshPreviews();
@@ -229,7 +230,9 @@ namespace pw8::plugin::ui
                 const float pos = loadParam(processor_.apvts, operatorParamId(op, "WavetablePos"));
                 activeContextCell_ = juce::jlimit(0, 3, static_cast<int>(pos * 3.0f + 0.5f));
                 activeSubPickerIndex_ = engine == algorithm::EngineType::Wavetable
-                                            ? juce::jlimit(0, 2, static_cast<int>(loadParam(processor_.apvts, operatorParamId(op, "WtBend")) * 2.0f + 0.5f))
+                                            ? juce::jlimit(0, 2, static_cast<int>(
+                                                                  loadParam(processor_.apvts, operatorParamId(op, "WtMorphMode"))
+                                                                      + 0.5f))
                                             : 0;
                 break;
             }
@@ -292,7 +295,7 @@ namespace pw8::plugin::ui
         }
 
         const auto idx = static_cast<std::size_t>(engineIndex_);
-        float ratio = loadParam(processor_.apvts, operatorParamId(idx, "FrequencyRatio"), 1.0f);
+        float ratio = loadParam(processor_.apvts, operatorParamId(idx, "FreqRatio"), 1.0f);
         ratio = juce::jlimit(0.25f, 8.0f, ratio);
         animPhase_ += 0.014f * ratio;
         if (animPhase_ >= 1.0f)
@@ -353,6 +356,8 @@ namespace pw8::plugin::ui
             processor_.ensureOperatorWavetableLoaded(idx);
         processor_.notifyPatchMetadataChanged();
         refreshPreviews();
+        if (designModeV2Layout_)
+            resized();
         repaint();
     }
 
@@ -440,8 +445,118 @@ namespace pw8::plugin::ui
         return -1;
     }
 
+    bool EngineOscillatorPicker::usesWavetablePositionControls() const
+    {
+        const auto engine = currentEngineType();
+        return engine == algorithm::EngineType::Wavetable || engine == algorithm::EngineType::Granular;
+    }
+
+    void EngineOscillatorPicker::setWavetablePositionNormalized(float pos01)
+    {
+        const auto op = static_cast<std::size_t>(engineIndex_);
+        if (auto* param = processor_.apvts.getParameter(operatorParamId(op, "WavetablePos")))
+        {
+            const float next = juce::jlimit(0.0f, 1.0f, pos01);
+            param->setValueNotifyingHost(next);
+            activeContextCell_ = juce::jlimit(0, 3, static_cast<int>(next * 3.0f + 0.5f));
+        }
+        refreshPreviews();
+        repaint();
+    }
+
+    void EngineOscillatorPicker::stepWavetablePosition(int delta)
+    {
+        if (delta == 0)
+            return;
+
+        const auto op = static_cast<std::size_t>(engineIndex_);
+        if (auto* param = processor_.apvts.getParameter(operatorParamId(op, "WavetablePos")))
+        {
+            const float step = currentEngineType() == algorithm::EngineType::Granular ? (1.0f / 31.0f)
+                                                                                      : (1.0f / 255.0f);
+            const float next =
+                juce::jlimit(0.0f, 1.0f, param->getValue() + static_cast<float>(delta) * step);
+            param->setValueNotifyingHost(next);
+            activeContextCell_ = juce::jlimit(0, 3, static_cast<int>(next * 3.0f + 0.5f));
+        }
+
+        refreshPreviews();
+        repaint();
+    }
+
+    void EngineOscillatorPicker::loadGranularSampleFromFile()
+    {
+        if (currentEngineType() != algorithm::EngineType::Granular)
+            return;
+
+        fileChooser_ = std::make_unique<juce::FileChooser>(
+            "Load a wavetable JSON for granular playback...", juce::File(), "*.json");
+        const auto flags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
+
+        const juce::Component::SafePointer<EngineOscillatorPicker> safeThis(this);
+        const int nodeAtRequestTime = engineIndex_;
+        fileChooser_->launchAsync(flags, [safeThis, nodeAtRequestTime](const juce::FileChooser& chooser) {
+            auto* self = safeThis.getComponent();
+            if (self == nullptr)
+                return;
+
+            const auto file = chooser.getResult();
+            if (!file.existsAsFile())
+                return;
+
+            self->processor_.setOperatorWavetableFile(static_cast<std::size_t>(nodeAtRequestTime),
+                                                      file.getFullPathName());
+            self->refreshPreviews();
+            self->repaint();
+        });
+    }
+
+    void EngineOscillatorPicker::paintContextPositionArrows(juce::Graphics& g)
+    {
+        if (!designModeV2Layout_ || !contextUsesPositionArrows_)
+            return;
+
+        auto paintArrow = [&](juce::Rectangle<int> bounds, bool left) {
+            g.setColour(palette::kPanelRaised);
+            g.fillRoundedRectangle(bounds.toFloat(), 3.0f);
+            g.setColour(palette::kBorder.withAlpha(0.65f));
+            g.drawRoundedRectangle(bounds.toFloat().reduced(0.5f), 3.0f, 1.0f);
+            g.setColour(palette::kTextSecondary);
+            g.setFont(fonts::label(9.0f));
+            g.drawText(left ? juce::String(juce::CharPointer_UTF8("\xe2\x97\x80"))
+                            : juce::String(juce::CharPointer_UTF8("\xe2\x96\xb6")),
+                       bounds, juce::Justification::centred);
+        };
+
+        if (!contextLeftArrow_.isEmpty())
+            paintArrow(contextLeftArrow_, true);
+        if (!contextRightArrow_.isEmpty())
+            paintArrow(contextRightArrow_, false);
+    }
+
+    bool EngineOscillatorPicker::keyPressed(const juce::KeyPress& key)
+    {
+        if (!designModeV2Layout_ || !usesWavetablePositionControls())
+            return false;
+
+        if (key == juce::KeyPress::leftKey || key == juce::KeyPress::upKey)
+        {
+            stepWavetablePosition(-1);
+            return true;
+        }
+        if (key == juce::KeyPress::rightKey || key == juce::KeyPress::downKey)
+        {
+            stepWavetablePosition(1);
+            return true;
+        }
+
+        return false;
+    }
+
     void EngineOscillatorPicker::mouseDown(const juce::MouseEvent& event)
     {
+        grabKeyboardFocus();
+
         if (const int pill = pillIndexAt(event.getPosition()); pill >= 0)
         {
             setEngineType(engineForPill(pill));
@@ -467,6 +582,29 @@ namespace pw8::plugin::ui
             {
                 activateSubPickerPill(subPill);
                 return;
+            }
+
+            if (contextUsesPositionArrows_)
+            {
+                if (contextLeftArrow_.contains(event.getPosition()))
+                {
+                    stepWavetablePosition(-1);
+                    return;
+                }
+                if (contextRightArrow_.contains(event.getPosition()))
+                {
+                    stepWavetablePosition(1);
+                    return;
+                }
+                const auto thumbBounds = contextThumb_.getBounds();
+                if (thumbBounds.contains(event.getPosition()))
+                {
+                    const float norm =
+                        static_cast<float>(event.getPosition().x - thumbBounds.getX())
+                        / static_cast<float>(juce::jmax(1, thumbBounds.getWidth()));
+                    setWavetablePositionNormalized(norm);
+                    return;
+                }
             }
         }
 
@@ -578,7 +716,52 @@ namespace pw8::plugin::ui
 
     void EngineOscillatorPicker::paintTypeStrip(juce::Graphics& g)
     {
+        if (typePillLayout_.empty())
+            return;
+
         const auto current = currentEngineType();
+
+        if (designModeV2Layout_)
+        {
+            auto strip = typePillLayout_.front();
+            strip = strip.getUnion(typePillLayout_.back());
+            const auto stripBounds = strip.toFloat();
+
+            g.setColour(palette::kPanelRaised);
+            g.fillRoundedRectangle(stripBounds, 3.0f);
+            g.setColour(palette::kBorder.withAlpha(0.65f));
+            g.drawRoundedRectangle(stripBounds.reduced(0.5f), 3.0f, 1.0f);
+
+            for (int i = 0; i < static_cast<int>(typePillLayout_.size()); ++i)
+            {
+                const auto engine = engineForPill(i);
+                const bool selected = engine == current;
+                const bool implemented = algorithm::isEngineImplemented(engine);
+                const auto bounds = typePillLayout_[static_cast<std::size_t>(i)].toFloat().reduced(0.5f, 1.0f);
+
+                if (selected)
+                {
+                    g.setColour(palette::kFigmaTeal.withAlpha(0.22f));
+                    g.fillRoundedRectangle(bounds, 2.0f);
+                    g.setColour(palette::kFigmaTeal.withAlpha(0.85f));
+                    g.drawRoundedRectangle(bounds.reduced(0.5f), 2.0f, 1.0f);
+                }
+
+                if (i > 0)
+                {
+                    const float x = bounds.getX();
+                    g.setColour(palette::kBorder.withAlpha(0.45f));
+                    g.drawVerticalLine(static_cast<int>(x), stripBounds.getY() + 2.0f, stripBounds.getBottom() - 2.0f);
+                }
+
+                g.setColour(!implemented ? palette::kFigmaTextDim.withAlpha(0.45f)
+                                       : (selected ? palette::kFigmaTextPrimary : palette::kFigmaTextDim));
+                g.setFont(fonts::label(8.0f));
+                g.drawText(typePillLabel(engine), bounds.toNearestInt(), juce::Justification::centred);
+            }
+            return;
+        }
+
         for (int i = 0; i < static_cast<int>(typePillLayout_.size()); ++i)
         {
             const auto engine = engineForPill(i);
@@ -668,8 +851,15 @@ namespace pw8::plugin::ui
 
         if (designModeV2Layout_)
         {
+            if (!contextPreviewBounds_.isEmpty())
+            {
+                draw::fillRecessedRoundedRect(g, contextPreviewBounds_.toFloat(), 6.0f);
+                g.setColour(palette::kBorder.withAlpha(0.55f));
+                g.drawRoundedRectangle(contextPreviewBounds_.toFloat().reduced(0.5f), 6.0f, 1.0f);
+            }
             paintTypeStrip(g);
             paintSubPicker(g);
+            paintContextPositionArrows(g);
             return;
         }
 
@@ -701,6 +891,7 @@ namespace pw8::plugin::ui
         if (designMode)
             playBoardCompactMode_ = false;
 
+        contextThumb_.setSkipChrome(designMode);
         contextThumb_.setVisible(designMode);
         resized();
         repaint();
@@ -734,9 +925,11 @@ namespace pw8::plugin::ui
             subPillLayout_.push_back(bounds);
 
             const bool selected = static_cast<int>(i) == activeIndex;
-            g.setColour(selected ? palette::kAccentDim : palette::kPanel);
+            const bool design = designModeV2Layout_;
+            g.setColour(selected ? (design ? palette::kFigmaTeal.withAlpha(0.22f) : palette::kAccentDim) : palette::kPanel);
             g.fillRoundedRectangle(bounds.toFloat(), 3.0f);
-            g.setColour(selected ? palette::kAccent : palette::kBorder.withAlpha(0.7f));
+            g.setColour(selected ? (design ? palette::kFigmaTeal.withAlpha(0.85f) : palette::kAccent)
+                                 : palette::kBorder.withAlpha(0.7f));
             g.drawRoundedRectangle(bounds.toFloat().reduced(0.5f), 3.0f, 1.0f);
             g.setColour(selected ? palette::kTextPrimary : palette::kTextSecondary);
             g.setFont(juce::Font(juce::FontOptions(7.0f)));
@@ -915,10 +1108,11 @@ namespace pw8::plugin::ui
                 break;
             }
             case algorithm::EngineType::Wavetable:
-                setParam("WtBend", static_cast<float>(pillIndex) / 2.0f);
+                setParam("WtMorphMode", static_cast<float>(pillIndex));
                 break;
             case algorithm::EngineType::Granular:
-                break; // LOAD... display-only
+                loadGranularSampleFromFile();
+                break;
             case algorithm::EngineType::FmPm:
                 setParam("FmModulatorWaveform", static_cast<float>(pillIndex));
                 activeContextCell_ = juce::jlimit(0, 3, pillIndex);
@@ -966,18 +1160,6 @@ namespace pw8::plugin::ui
                 if (auto* param = apvts.getParameter(operatorParamId(op, "FmModulatorWaveform")))
                     param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(activeSubPickerIndex_)));
                 activeContextCell_ = juce::jlimit(0, 3, activeSubPickerIndex_);
-                break;
-            }
-            case algorithm::EngineType::Wavetable:
-            case algorithm::EngineType::Granular:
-            {
-                if (auto* param = apvts.getParameter(operatorParamId(op, "WavetablePos")))
-                {
-                    const float step = currentEngineType() == algorithm::EngineType::Granular ? (1.0f / 31.0f) : (1.0f / 255.0f);
-                    const float next = juce::jlimit(0.0f, 1.0f, param->getValue() + static_cast<float>(delta) * step);
-                    param->setValueNotifyingHost(next);
-                    activeContextCell_ = juce::jlimit(0, 3, static_cast<int>(next * 3.0f + 0.5f));
-                }
                 break;
             }
             default:
@@ -1056,9 +1238,25 @@ namespace pw8::plugin::ui
         {
             bounds.removeFromTop(kDesignModeV2CardRowGap);
             subPickerBounds_ = bounds.removeFromTop(kDesignModeV2SubPickerHeight);
-            bounds.removeFromTop(kDesignModeV2CardRowGap);
-            contextPreviewBounds_ = bounds.removeFromTop(kDesignModeV2ContextVisualizerHeight);
-            contextThumb_.setBounds(contextPreviewBounds_);
+            bounds.removeFromTop(layout::kDesignModeV2CardRowGapAfterSubPicker);
+            contextPreviewBounds_ = bounds;
+
+            contextLeftArrow_ = {};
+            contextRightArrow_ = {};
+            contextUsesPositionArrows_ = usesWavetablePositionControls();
+            if (contextUsesPositionArrows_)
+            {
+                auto contextArea = contextPreviewBounds_.reduced(1);
+                contextLeftArrow_ = contextArea.removeFromLeft(kDesignModeV2SubPickerArrowWidth)
+                                        .withSizeKeepingCentre(kDesignModeV2SubPickerArrowWidth, 28);
+                contextRightArrow_ = contextArea.removeFromRight(kDesignModeV2SubPickerArrowWidth)
+                                         .withSizeKeepingCentre(kDesignModeV2SubPickerArrowWidth, 28);
+                contextThumb_.setBounds(contextArea);
+            }
+            else
+            {
+                contextThumb_.setBounds(contextPreviewBounds_.reduced(1));
+            }
         }
         else
         {

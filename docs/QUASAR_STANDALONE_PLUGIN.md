@@ -1,8 +1,9 @@
 # QUASAR Standalone Plugin — Product Spec (MVP)
 
-**Status:** MVP scaffold — buildable VST3/AU/Standalone effect wrapping `effects::BinauralSpaceProcessor`  
-**Build:** `cmake --preset quasar-release && cmake --build --preset quasar-release`  
-**Install AU (macOS):** `scripts/install_quasar_au_local.sh`
+**Status:** **SUPERSEDED (2026-08-17)** — QUASAR returns **in-MURMUR only** per [`QUASAR_RETURN_PLAN.md`](QUASAR_RETURN_PLAN.md) and Figma `102:4`. Do not ship this target. Kept for historical reference and DSP/UI salvage only.
+
+~~**Build:** `cmake --preset quasar-release && cmake --build --preset quasar-release`~~  
+~~**Install AU (macOS):** `scripts/install_quasar_au_local.sh`~~
 
 ---
 

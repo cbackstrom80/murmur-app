@@ -1,4 +1,4 @@
-// url=https://www.figma.com/design/pi5kUNcZWQGhqfRAVu3voh/MURMUR-Obsidian?node-id=12-34
+// url=https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/MURMUR-Obsidian?node-id=12-34
 // source=plugin/src/ui/components/WireframePanel.h
 // component=WireframePanel
 import figma from 'figma'

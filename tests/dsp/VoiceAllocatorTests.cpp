@@ -76,7 +76,8 @@ TEST_CASE("VoiceAllocator steals a released voice over an actively-gated one", "
     for (int i = 0; i < 10; ++i)
     {
         float l = 0.0f, r = 0.0f;
-        pool[alloc0.index].renderSample(compiled, tables, 120.0f, layerLfoValues, modRoutes, metaRoutes,
+        pool[alloc0.index].renderSample(compiled, tables, 120.0f, layerLfoValues,
+                                         pw8::modulation::GenerativeOutputValues{}, modRoutes, metaRoutes,
                                          render::QualityMode::Normal, 0.0f, 0.0f, l, r);
     }
 

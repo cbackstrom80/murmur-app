@@ -2,6 +2,7 @@
 
 #include <optional>
 
+#include "../theme/FigmaKnobTokens.h"
 #include "../theme/BrandingAssets.h"
 #include "../theme/ObsidianDraw.h"
 #include "../theme/ObsidianFonts.h"
@@ -31,7 +32,7 @@ namespace pw8::plugin::ui
 
         masterVolumeKnob_ = std::make_unique<GlowKnob>(processor_.apvts, kMasterGainId, "MASTER");
         masterVolumeKnob_->setHeaderCompactMode(true);
-        masterVolumeKnob_->setMaxDialDiameter(layout::kDesignModeV2MasterKnobSize);
+        masterVolumeKnob_->applyFigmaContext(figma::KnobContext::ChromeMaster);
         addAndMakeVisible(*masterVolumeKnob_);
 
         refreshPresetIndex();

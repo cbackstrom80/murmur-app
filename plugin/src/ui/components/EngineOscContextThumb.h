@@ -37,10 +37,11 @@ namespace pw8::plugin::ui
         EngineOscContextThumb(PatchworkEightProcessor& processor, int engineIndex);
 
         void setPreviewData(const EngineOscContextPreviewData& data);
+        void setSkipChrome(bool skip);
         void paint(juce::Graphics& g) override;
 
     private:
-        static void paintFrame(juce::Graphics& g, juce::Rectangle<int> bounds);
+        static void paintFrame(juce::Graphics& g, juce::Rectangle<int> bounds, bool skipChrome);
         [[nodiscard]] float previewSample(const std::array<float, wireframe::kPreviewPoints>& buf, float t,
                                           float phaseOffset, float amp) const;
 
@@ -58,6 +59,7 @@ namespace pw8::plugin::ui
         PatchworkEightProcessor& processor_;
         const int engineIndex_;
         EngineOscContextPreviewData preview_;
+        bool skipChrome_ = false;
     };
 
 } // namespace pw8::plugin::ui

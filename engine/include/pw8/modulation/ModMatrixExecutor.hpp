@@ -4,6 +4,7 @@
 
 #include "pw8/core/Types.hpp"
 #include "pw8/effects/EffectTypes.hpp"
+#include "pw8/modulation/ModCurveShaping.hpp"
 #include "pw8/modulation/ModMatrixTypes.hpp"
 
 // Mod matrix execution (docs/MODULATION.md). Runs once per voice per sample inside
@@ -59,12 +60,19 @@ namespace pw8::modulation
         float expression = 0.0f;       ///< 0..1, MIDI CC11
         float sidechain = 0.0f;        ///< 0..1, AU sidechain envelope follower
         std::array<float, 8> macros{}; ///< 0..1 each
+        /// Marbles generative outputs (layer-wide tick, -1..1).
+        float randomT = 0.0f;
+        float randomX = 0.0f;
+        std::array<float, 4> randomOutputs{};
     };
 
     struct ModOutputs
     {
         float filterCutoffSemitones = 0.0f;
         float filterResonanceOffset = 0.0f;
+        float filterModeMorphOffset = 0.0f;
+        float filterRoutingOffset = 0.0f;
+        float filterDriveOffset = 0.0f;
         std::array<float, core::kNodesPerLayer> operatorFilterCutoffSemitones{};
         std::array<float, core::kNodesPerLayer> operatorFilterResonanceOffset{};
         std::array<float, core::kNodesPerLayer> operatorLevelMultiplier{};
@@ -74,6 +82,29 @@ namespace pw8::modulation
         std::array<float, core::kNodesPerLayer> operatorWavetableSyncRatioOffset{};
         std::array<float, core::kNodesPerLayer> operatorWavetableFormantOffset{};
         std::array<float, core::kNodesPerLayer> operatorWavetableSyncAmountOffset{};
+        std::array<float, core::kNodesPerLayer> operatorFmModulatorRatioOffset{};
+        std::array<float, core::kNodesPerLayer> operatorFmModulatorIndexOffset{};
+        std::array<float, core::kNodesPerLayer> operatorFmModulatorFeedbackOffset{};
+        std::array<float, core::kNodesPerLayer> operatorFreqRatioOffset{};
+        std::array<float, core::kNodesPerLayer> operatorPhaseBendOffset{};
+        std::array<float, core::kNodesPerLayer> operatorPhaseFoldOffset{};
+        std::array<float, core::kNodesPerLayer> operatorPhaseAsymmetryOffset{};
+        std::array<float, core::kNodesPerLayer> operatorAdditivePartialCountOffset{};
+        std::array<float, core::kNodesPerLayer> operatorAdditiveTiltOffset{};
+        std::array<float, core::kNodesPerLayer> operatorAdditiveOddEvenOffset{};
+        std::array<float, core::kNodesPerLayer> operatorAdditiveStretchOffset{};
+        std::array<float, core::kNodesPerLayer> operatorResonatorStructureOffset{};
+        std::array<float, core::kNodesPerLayer> operatorResonatorDecayOffset{};
+        std::array<float, core::kNodesPerLayer> operatorResonatorDampingOffset{};
+        std::array<float, core::kNodesPerLayer> operatorResonatorBrightnessOffset{};
+        std::array<float, core::kNodesPerLayer> operatorResonatorModeCountOffset{};
+        std::array<float, core::kNodesPerLayer> operatorGrainDensityOffset{};
+        std::array<float, core::kNodesPerLayer> operatorGrainSizeMsOffset{};
+        std::array<float, core::kNodesPerLayer> operatorGrainPositionJitterOffset{};
+        std::array<float, core::kNodesPerLayer> operatorGrainPitchJitterOffset{};
+        float unisonVoicesOffset = 0.0f;
+        float unisonDetuneOffset = 0.0f;
+        float unisonSpreadOffset = 0.0f;
         float panOffset = 0.0f;
 
         ModOutputs() noexcept { operatorLevelMultiplier.fill(1.0f); }
@@ -93,6 +124,22 @@ namespace pw8::modulation
         std::array<float, effects::kNumMasterSlots> masterVocoderMixOffset{};
         std::array<float, effects::kNumMasterSlots> masterVocoderFormantOffset{};
         std::array<float, effects::kNumMasterSlots> compThresholdOffset{};
+        std::array<float, effects::kNumMasterSlots> quasarQsr1AngleOffset{};
+        std::array<float, effects::kNumMasterSlots> quasarQsr2AngleOffset{};
+        std::array<float, effects::kNumMasterSlots> quasarRoomAmountOffset{};
+        std::array<float, effects::kNumMasterSlots> quasarCrossfeedOffset{};
+        std::array<float, effects::kNumMasterSlots> quasarDelayVolumeOffset{};
+        std::array<float, effects::kNumMasterSlots> quasarQsr1DistanceOffset{};
+        std::array<float, effects::kNumMasterSlots> quasarQsr2DistanceOffset{};
+        std::array<float, effects::kNumMasterSlots> quasarDelayTimeOffset{};
+        std::array<float, effects::kNumMasterSlots> quasarDelayFeedbackOffset{};
+        std::array<float, effects::kNumMasterSlots> quasarQsr1HeightOffset{};
+        std::array<float, effects::kNumMasterSlots> quasarQsr2HeightOffset{};
+        std::array<float, effects::kNumMasterSlots> quasarCntrLevelOffset{};
+        std::array<float, effects::kNumMasterSlots> quasarQsr1LevelOffset{};
+        std::array<float, effects::kNumMasterSlots> quasarQsr2LevelOffset{};
+        float masterDynamicsMixOffset = 0.0f;
+        float sidechainDepthOffset = 0.0f;
     };
 
     class ModMatrixExecutor
@@ -119,6 +166,19 @@ namespace pw8::modulation
                 if (!route.isActive() || route.scope == ModScope::Voice)
                     continue;
                 if (route.source >= ModSource::Lfo1 && route.source <= ModSource::Lfo8)
+                    return true;
+            }
+            return false;
+        }
+
+        template <typename RouteContainer>
+        [[nodiscard]] static bool hasActiveGenerativeRoutes(const RouteContainer& routes) noexcept
+        {
+            for (const auto& route : routes)
+            {
+                if (!route.isActive())
+                    continue;
+                if (route.source >= ModSource::Random1 && route.source <= ModSource::RandomX)
                     return true;
             }
             return false;
@@ -163,7 +223,8 @@ namespace pw8::modulation
                     amount += resolveSource(meta.source, meta.scope, sources) * meta.amount;
                 }
 
-                const float sourceValue = resolveSource(route.source, route.scope, sources);
+                const float sourceValue =
+                    shapeModSource(resolveSource(route.source, route.scope, sources), route.curve);
                 applyRouteContribution(out, route.destination, route.targetIndex, sourceValue, amount);
                 ++routeIndex;
             }
@@ -178,7 +239,8 @@ namespace pw8::modulation
             {
                 if (!route.isActive())
                     continue;
-                const float sourceValue = resolveSource(route.source, route.scope, sources);
+                const float sourceValue =
+                    shapeModSource(resolveSource(route.source, route.scope, sources), route.curve);
                 applyRouteContribution(out, route.destination, route.targetIndex, sourceValue, route.amount);
             }
             return out;
@@ -196,6 +258,9 @@ namespace pw8::modulation
             controlRateSources.modWheel = sources.modWheel;
             controlRateSources.expression = sources.expression;
             controlRateSources.macros = sources.macros;
+            controlRateSources.randomT = sources.randomT;
+            controlRateSources.randomX = sources.randomX;
+            controlRateSources.randomOutputs = sources.randomOutputs;
             return apply(routes, controlRateSources);
         }
 
@@ -212,7 +277,50 @@ namespace pw8::modulation
             controlRateSources.modWheel = sources.modWheel;
             controlRateSources.expression = sources.expression;
             controlRateSources.macros = sources.macros;
+            controlRateSources.randomT = sources.randomT;
+            controlRateSources.randomX = sources.randomX;
+            controlRateSources.randomOutputs = sources.randomOutputs;
             return apply(routes, controlRateSources, metaRoutes);
+        }
+
+        template <typename RouteContainer>
+        [[nodiscard]] static float computeMorphPositionOffset(const RouteContainer& routes,
+                                                              const ModSourceValues& sources) noexcept
+        {
+            float offset = 0.0f;
+            for (const auto& route : routes)
+            {
+                if (!route.isActive() || route.destination != ModDestination::MorphPosition)
+                    continue;
+                if (route.scope == ModScope::Voice)
+                    continue;
+                const float sourceValue =
+                    shapeModSource(resolveSource(route.source, route.scope, sources), route.curve);
+                offset += sourceValue * route.amount;
+            }
+            return offset;
+        }
+
+        template <typename RouteContainer>
+        [[nodiscard]] static ModOutputs computeLayerUnisonMod(const RouteContainer& routes,
+                                                              const ModSourceValues& sources) noexcept
+        {
+            ModOutputs out;
+            for (const auto& route : routes)
+            {
+                if (!route.isActive())
+                    continue;
+                if (route.scope == ModScope::Voice)
+                    continue;
+                if (route.destination != ModDestination::UnisonVoices &&
+                    route.destination != ModDestination::UnisonDetune &&
+                    route.destination != ModDestination::UnisonSpread)
+                    continue;
+                const float sourceValue =
+                    shapeModSource(resolveSource(route.source, route.scope, sources), route.curve);
+                applyRouteContribution(out, route.destination, route.targetIndex, sourceValue, route.amount);
+            }
+            return out;
         }
 
     private:
@@ -226,6 +334,15 @@ namespace pw8::modulation
                     break;
                 case ModDestination::FilterResonance:
                     out.filterResonanceOffset += sourceValue * amount;
+                    break;
+                case ModDestination::FilterModeMorph:
+                    out.filterModeMorphOffset += sourceValue * amount;
+                    break;
+                case ModDestination::FilterRouting:
+                    out.filterRoutingOffset += sourceValue * amount;
+                    break;
+                case ModDestination::FilterDrive:
+                    out.filterDriveOffset += sourceValue * amount;
                     break;
                 case ModDestination::OperatorFilterCutoff:
                 {
@@ -284,6 +401,135 @@ namespace pw8::modulation
                     out.operatorWavetableSyncAmountOffset[idx] += sourceValue * amount;
                     break;
                 }
+                case ModDestination::OperatorFmModulatorRatio:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorFmModulatorRatioOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorFmModulatorIndex:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorFmModulatorIndexOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorFmModulatorFeedback:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorFmModulatorFeedbackOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorFreqRatio:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorFreqRatioOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorPhaseBend:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorPhaseBendOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorPhaseFold:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorPhaseFoldOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorPhaseAsymmetry:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorPhaseAsymmetryOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorAdditivePartialCount:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorAdditivePartialCountOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorAdditiveTilt:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorAdditiveTiltOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorAdditiveOddEven:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorAdditiveOddEvenOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorAdditiveStretch:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorAdditiveStretchOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorResonatorStructure:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorResonatorStructureOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorResonatorDecay:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorResonatorDecayOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorResonatorDamping:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorResonatorDampingOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorResonatorBrightness:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorResonatorBrightnessOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorResonatorModeCount:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorResonatorModeCountOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorGrainDensity:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorGrainDensityOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorGrainSizeMs:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorGrainSizeMsOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorGrainPositionJitter:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorGrainPositionJitterOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::OperatorGrainPitchJitter:
+                {
+                    const std::uint8_t idx = targetIndex < core::kNodesPerLayer ? targetIndex : std::uint8_t{0};
+                    out.operatorGrainPitchJitterOffset[idx] += sourceValue * amount;
+                    break;
+                }
+                case ModDestination::UnisonVoices:
+                    out.unisonVoicesOffset += sourceValue * amount;
+                    break;
+                case ModDestination::UnisonDetune:
+                    out.unisonDetuneOffset += sourceValue * amount;
+                    break;
+                case ModDestination::UnisonSpread:
+                    out.unisonSpreadOffset += sourceValue * amount;
+                    break;
                 case ModDestination::MasterFxMix:
                 case ModDestination::MasterReverbMix:
                 case ModDestination::MasterReverbSize:
@@ -292,9 +538,26 @@ namespace pw8::modulation
                 case ModDestination::MasterReverbDiffusion:
                 case ModDestination::MasterReverbModDepth:
                 case ModDestination::MasterGain:
+                case ModDestination::MasterDynamicsMix:
+                case ModDestination::SidechainDepth:
                 case ModDestination::VocoderMix:
                 case ModDestination::VocoderFormant:
+                case ModDestination::QuasarQsr1Angle:
+                case ModDestination::QuasarQsr2Angle:
+                case ModDestination::QuasarRoomAmount:
+                case ModDestination::QuasarCrossfeed:
+                case ModDestination::QuasarDelayVolume:
+                case ModDestination::QuasarQsr1Distance:
+                case ModDestination::QuasarQsr2Distance:
+                case ModDestination::QuasarDelayTime:
+                case ModDestination::QuasarDelayFeedback:
+                case ModDestination::QuasarQsr1Height:
+                case ModDestination::QuasarQsr2Height:
+                case ModDestination::QuasarCntrLevel:
+                case ModDestination::QuasarQsr1Level:
+                case ModDestination::QuasarQsr2Level:
                 case ModDestination::ModRouteDepth:
+                case ModDestination::MorphPosition:
                     break;
                 case ModDestination::None:
                     break;
@@ -320,8 +583,25 @@ namespace pw8::modulation
                     case ModDestination::MasterReverbModDepth:
                     case ModDestination::MasterGain:
                         return true;
+                    case ModDestination::MasterDynamicsMix:
+                    case ModDestination::SidechainDepth:
+                        return true;
                     case ModDestination::VocoderMix:
                     case ModDestination::VocoderFormant:
+                    case ModDestination::QuasarQsr1Angle:
+                    case ModDestination::QuasarQsr2Angle:
+                    case ModDestination::QuasarRoomAmount:
+                    case ModDestination::QuasarCrossfeed:
+                    case ModDestination::QuasarDelayVolume:
+                    case ModDestination::QuasarQsr1Distance:
+                    case ModDestination::QuasarQsr2Distance:
+                    case ModDestination::QuasarDelayTime:
+                    case ModDestination::QuasarDelayFeedback:
+                    case ModDestination::QuasarQsr1Height:
+                    case ModDestination::QuasarQsr2Height:
+                    case ModDestination::QuasarCntrLevel:
+                    case ModDestination::QuasarQsr1Level:
+                    case ModDestination::QuasarQsr2Level:
                         return true;
                     default:
                         break;
@@ -342,7 +622,8 @@ namespace pw8::modulation
 
                 const std::uint8_t slot =
                     route.targetIndex < effects::kNumMasterSlots ? route.targetIndex : std::uint8_t{0};
-                const float sourceValue = resolveSource(route.source, route.scope, sources);
+                const float sourceValue =
+                    shapeModSource(resolveSource(route.source, route.scope, sources), route.curve);
 
                 switch (route.destination)
                 {
@@ -368,6 +649,12 @@ namespace pw8::modulation
                     case ModDestination::MasterGain:
                         out.masterGainOffset += sourceValue * route.amount;
                         break;
+                    case ModDestination::MasterDynamicsMix:
+                        out.masterDynamicsMixOffset += sourceValue * route.amount;
+                        break;
+                    case ModDestination::SidechainDepth:
+                        out.sidechainDepthOffset += sourceValue * route.amount;
+                        break;
                     case ModDestination::VocoderMix:
                         out.masterVocoderMixOffset[slot] += sourceValue * route.amount;
                         if (slot < effects::kNumLayerInsertSlots)
@@ -377,6 +664,48 @@ namespace pw8::modulation
                         out.masterVocoderFormantOffset[slot] += sourceValue * route.amount;
                         if (slot < effects::kNumLayerInsertSlots)
                             out.vocoderFormantOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::QuasarQsr1Angle:
+                        out.quasarQsr1AngleOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::QuasarQsr2Angle:
+                        out.quasarQsr2AngleOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::QuasarRoomAmount:
+                        out.quasarRoomAmountOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::QuasarCrossfeed:
+                        out.quasarCrossfeedOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::QuasarDelayVolume:
+                        out.quasarDelayVolumeOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::QuasarQsr1Distance:
+                        out.quasarQsr1DistanceOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::QuasarQsr2Distance:
+                        out.quasarQsr2DistanceOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::QuasarDelayTime:
+                        out.quasarDelayTimeOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::QuasarDelayFeedback:
+                        out.quasarDelayFeedbackOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::QuasarQsr1Height:
+                        out.quasarQsr1HeightOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::QuasarQsr2Height:
+                        out.quasarQsr2HeightOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::QuasarCntrLevel:
+                        out.quasarCntrLevelOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::QuasarQsr1Level:
+                        out.quasarQsr1LevelOffset[slot] += sourceValue * route.amount;
+                        break;
+                    case ModDestination::QuasarQsr2Level:
+                        out.quasarQsr2LevelOffset[slot] += sourceValue * route.amount;
                         break;
                     default:
                         break;
@@ -423,6 +752,12 @@ namespace pw8::modulation
                 case ModSource::Macro6: return s.macros[5];
                 case ModSource::Macro7: return s.macros[6];
                 case ModSource::Macro8: return s.macros[7];
+                case ModSource::Random1: return s.randomOutputs[0];
+                case ModSource::Random2: return s.randomOutputs[1];
+                case ModSource::Random3: return s.randomOutputs[2];
+                case ModSource::Random4: return s.randomOutputs[3];
+                case ModSource::RandomT: return s.randomT;
+                case ModSource::RandomX: return s.randomX;
                 case ModSource::None: return 0.0f;
             }
             return 0.0f;

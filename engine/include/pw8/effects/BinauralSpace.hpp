@@ -5,10 +5,11 @@
 #include "pw8/dsp/Math.hpp"
 #include "pw8/dsp/TempoSync.hpp"
 #include "pw8/effects/BinauralPanner.hpp"
+#include "pw8/effects/EffectTypes.hpp"
 #include "pw8/effects/RoomEngine.hpp"
 
-// Standalone Quasar binaural spatial mixer (see docs/GLOBAL_QUASAR_FX_PLAN.md).
-// Not part of MURMUR's EffectType enum — consumed by the standalone Quasar plugin.
+// QUASAR binaural spatial mixer (see docs/QUASAR_RETURN_PLAN.md, docs/GLOBAL_QUASAR_FX_PLAN.md).
+// Master-bus EffectType::BinauralSpace in MURMUR; legacy reference in quasar_plugin/.
 namespace pw8::effects
 {
     inline constexpr float kMaxQuasarDelaySeconds = 20.0f;
@@ -224,5 +225,37 @@ namespace pw8::effects
         dsp::Biquad delayLpfL_{};
         dsp::Biquad delayLpfR_{};
     };
+
+    [[nodiscard]] inline BinauralSpaceParams binauralParamsFromEffectSlot(const EffectSlotParams& e) noexcept
+    {
+        BinauralSpaceParams p;
+        p.mix = e.mix;
+        p.qsr1Level = e.qsr1Level;
+        p.qsr2Level = e.qsr2Level;
+        p.cntrLevel = e.cntrLevel;
+        p.inputSplitHpfHz = e.inputSplitHpfHz;
+        p.cntrHpfHz = e.cntrHpfHz;
+        p.qsr1Height = e.qsr1Height;
+        p.qsr1AngleDeg = e.qsr1AngleDeg;
+        p.qsr1Distance = e.qsr1Distance;
+        p.qsr2Height = e.qsr2Height;
+        p.qsr2AngleDeg = e.qsr2AngleDeg;
+        p.qsr2Distance = e.qsr2Distance;
+        p.qsr1RoomAmount = e.qsr1RoomAmount;
+        p.qsr1RoomSize = e.qsr1RoomSize;
+        p.qsr1RoomDamping = e.qsr1RoomDamping;
+        p.qsr2RoomAmount = e.qsr2RoomAmount;
+        p.qsr2RoomSize = e.qsr2RoomSize;
+        p.qsr2RoomDamping = e.qsr2RoomDamping;
+        p.quasarDelayTimeMs = e.quasarDelayTimeMs;
+        p.quasarDelayFeedback = e.quasarDelayFeedback;
+        p.quasarDelayVolume = e.quasarDelayVolume;
+        p.quasarOutputMode = e.quasarOutputMode;
+        p.quasarCrossfeed = e.quasarCrossfeed;
+        p.quasarDelaySync = e.quasarDelaySync;
+        p.quasarDelaySyncDivisionIndex = e.quasarDelaySyncDivisionIndex;
+        p.qsrStereoSplit = e.qsrStereoSplit;
+        return p;
+    }
 
 } // namespace pw8::effects

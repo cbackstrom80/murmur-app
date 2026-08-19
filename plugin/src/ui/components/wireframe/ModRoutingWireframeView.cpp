@@ -3,8 +3,9 @@
 #include "../../theme/ObsidianFonts.h"
 #include "../../theme/ObsidianPalette.h"
 #include "../ModRoutingUi.h"
-#include "EnvelopePathBuilder.h"
-#include "WireframeProjection.h"
+#include "../../visualizer/PreviewDraw.h"
+#include "../../visualizer/VisualPreviewCache.h"
+#include "LfoPreviewSampler.h"
 #include "state/PluginState.h"
 
 namespace pw8::plugin::ui::wireframe
@@ -17,12 +18,6 @@ namespace pw8::plugin::ui::wireframe
             if (auto* raw = apvts.getRawParameterValue(id))
                 return raw->load();
             return fallback;
-        }
-
-        void appendEnvSegment(juce::Path& path, float x0, float x1, float y0, float y1, float curveShape, bool shapeUp,
-                               int steps)
-        {
-            wireframe::appendCurvedSegment(path, x0, x1, y0, y1, curveShape, shapeUp, steps);
         }
 
         [[nodiscard]] juce::Point<float> sourceAnchor(int sourceIndex, juce::Rectangle<float> area) noexcept
@@ -108,25 +103,42 @@ namespace pw8::plugin::ui::wireframe
         g.setFont(fonts::label(8.0f));
         g.setColour(palette::kTextDim);
         g.drawText("LFO 1", lfoArea.removeFromTop(10.0f), juce::Justification::centredLeft);
-        paintFlatWaveform(g, lfoArea, 64,
-                          [&](float t)
-                          {
-                              const float phase = std::fmod(t * 2.0f + lfoAnimPhase_, 1.0f);
-                              if (lfoWaveform_ == lfo::LfoWaveform::SampleHold)
-                                  return sampleLfoSampleHold(phase);
-                              if (lfoWaveform_ == lfo::LfoWaveform::SmoothRandom)
-                                  return sampleLfoSmoothRandom(phase, static_cast<int>(lfoAnimPhase_ * 6.0f));
-                              return sampleLfoWaveform(lfoWaveform_, phase);
-                          },
-                          true);
+        const auto lfoKey = preview::lfoPreviewKey(static_cast<int>(lfoWaveform_), 2, lfoAnimPhase_);
+        const auto& lfoPoly = preview::VisualPreviewCache::instance().getOrBuild(
+            lfoKey, preview::kDefaultPolylinePoints,
+            [&](int n, preview::PreviewPolyline& out)
+            {
+                out.xNorm.clear();
+                out.yNorm.resize(static_cast<std::size_t>(n));
+                for (int i = 0; i < n; ++i)
+                {
+                    const float t = static_cast<float>(i) / static_cast<float>(n - 1);
+                    const float phase = std::fmod(t * 2.0f + lfoAnimPhase_, 1.0f);
+                    if (lfoWaveform_ == lfo::LfoWaveform::SampleHold)
+                        out.yNorm[static_cast<std::size_t>(i)] = sampleLfoSampleHold(phase);
+                    else if (lfoWaveform_ == lfo::LfoWaveform::SmoothRandom)
+                        out.yNorm[static_cast<std::size_t>(i)] =
+                            sampleLfoSmoothRandom(phase, static_cast<int>(lfoAnimPhase_ * 6.0f));
+                    else
+                        out.yNorm[static_cast<std::size_t>(i)] = sampleLfoWaveform(lfoWaveform_, phase);
+                }
+            });
+        preview::paintPolylineCurve(g, lfoArea, lfoPoly);
 
         g.setColour(palette::kTextDim);
         g.drawText("AMP ENV", envArea.removeFromTop(10.0f), juce::Justification::centredLeft);
-        juce::Path envPath;
-        juce::Path envFill;
-        float sustainEndX = 0.0f;
-        buildEnvelopePath(envParams_, envArea, envPath, envFill, sustainEndX);
-        strokeGlowPath(g, envPath, 0.85f, 1.6f, false);
+        const auto envKey = preview::envelopePreviewKey(
+            envParams_.delaySeconds, envParams_.attackSeconds, envParams_.holdSeconds, envParams_.decaySeconds,
+            envParams_.sustainLevel, envParams_.releaseSeconds, envParams_.curveShape);
+        const auto& envPoly = preview::VisualPreviewCache::instance().getOrBuild(
+            envKey, preview::kDefaultPolylinePoints,
+            [&](int n, preview::PreviewPolyline& out) { preview::buildEnvelopePolyline(envParams_, n, out); });
+        preview::PolylineDrawOptions envOpts;
+        envOpts.liveGlow = false;
+        envOpts.alpha = 0.85f;
+        envOpts.strokeWidth = 1.6f;
+        envOpts.yScale = 0.88f;
+        preview::paintPolylineCurve(g, envArea, envPoly, envOpts);
 
         g.setColour(palette::kTextDim);
         g.drawText("ROUTES", routeArea.removeFromTop(10.0f), juce::Justification::centredLeft);

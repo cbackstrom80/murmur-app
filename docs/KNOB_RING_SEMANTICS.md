@@ -54,7 +54,8 @@ From `palette::modSourceColour()` — same as MOD tab chips:
 | Component | Mod route ring | Live ghost | Notes |
 |-----------|----------------|------------|-------|
 | **GlowKnob** | Yes (opt-in via `enableModulationTarget`) | Yes | Filter, OSC level, standard PLAY knobs with APVTS↔mod dest mapping |
-| **ConcentricGlowKnob** | Yes (inner/outer targets) | Not yet | Filter cutoff/reso dual dial |
+| **ConcentricGlowKnob** | Yes (inner/outer targets) | Yes | Filter cutoff/reso dual dial |
+| **TripleGlowKnob** | Yes (outer/middle/inner targets) | Yes | FM, phase, unison triplets |
 | **MacroStrip / PatchFocusPanel** | Activity ring when macro routes out | N/A | Not a mod destination ring |
 
 ---

@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 
+#include <juce_dsp/juce_dsp.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "GlowKnob.h"
@@ -42,6 +43,11 @@ namespace pw8::plugin::ui
         void paintSignalDiagram(juce::Graphics& g, juce::Rectangle<int> bounds) const;
         void paintBandAnalyzer(juce::Graphics& g, juce::Rectangle<int> bounds) const;
         void paintPanelCard(juce::Graphics& g, juce::Rectangle<int> bounds) const;
+        void rebuildFftWindow() noexcept;
+        void updateBandSpectrumFromScope() noexcept;
+
+        static constexpr int kFftOrder = 10;
+        static constexpr int kFftSize = 1 << kFftOrder;
 
         PatchworkEightProcessor& processor_;
         juce::AudioProcessorValueTreeState& apvts_;
@@ -68,6 +74,12 @@ namespace pw8::plugin::ui
         std::array<float, layout::kDesignVocoderBandCount> modulatorBandHeights_{};
         float animPhase_ = 0.0f;
         bool embeddedInDesignMode_ = false;
+        bool fftReady_ = false;
+        juce::dsp::FFT fft_{kFftOrder};
+        std::array<float, static_cast<std::size_t>(kFftSize * 2)> fftData_{};
+        std::array<float, static_cast<std::size_t>(kFftSize)> fftCapture_{};
+        std::array<float, static_cast<std::size_t>(kFftSize)> fftWindow_{};
+        float fftWindowSum_ = 1.0f;
     };
 
 } // namespace pw8::plugin::ui

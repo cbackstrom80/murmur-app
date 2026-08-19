@@ -147,6 +147,7 @@ namespace
         filter::FilterParams f;
         f.enabled = rng.nextFloat() < 0.6f;
         f.mode = static_cast<filter::FilterMode>(static_cast<int>(rng.nextRange(0.0f, 4.999f)));
+        f.modeMorph = filter::modeMorphFromMode(f.mode);
         f.cutoffHz = rng.nextRange(20.0f, 19000.0f);
         f.resonance = rng.nextRange(0.0f, 1.0f); // includes the near-self-oscillation extreme deliberately.
         f.keyTrack = rng.nextRange(-1.0f, 1.0f);

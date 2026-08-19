@@ -17,6 +17,7 @@
 #include "WireframePanel.h"
 #include "processor/PatchworkEightProcessor.h"
 #include "wireframe/FilterWireframeView.h"
+#include "wireframe/FilterRoutingWireframeView.h"
 #include "wireframe/LfoWireframeView.h"
 
 namespace pw8::plugin::ui
@@ -79,13 +80,17 @@ namespace pw8::plugin::ui
         std::unique_ptr<ConcentricGlowKnob> lfoMotionKnob_;
 
         ModSourcePalette modSourcePalette_;
-        SectionPanel filter2Panel_{"Filter 2"};
+        SectionPanel filter2Panel_{"Blades Dual Filter"};
+        wireframe::FilterRoutingWireframeView filterRoutingWireframe_;
+        std::unique_ptr<GlowKnob> filterRouting_;
+        std::unique_ptr<GlowKnob> filterModeMorph_;
         std::unique_ptr<GlowRingButton> filter2EnabledButton_;
         juce::Label filter2EnabledLabel_;
         std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> filter2EnabledAttachment_;
         std::unique_ptr<GlowKnob> filter2Cutoff_;
         std::unique_ptr<GlowKnob> filter2Resonance_;
         std::unique_ptr<GlowKnob> filter2Drive_;
+        std::unique_ptr<GlowKnob> filter2CutoffOffset_;
         std::unique_ptr<GlowKnob> filter2KeyTrack_;
         WireframePanel scopeFrame_{"SCOPE"};
         FilterPanelScopeView filterScope_;

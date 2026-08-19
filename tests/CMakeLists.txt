@@ -15,6 +15,7 @@ add_executable(pw8_tests
     dsp/DahdsrEnvelopeTests.cpp
     dsp/VoiceAllocatorTests.cpp
     dsp/StateVariableFilterTests.cpp
+    dsp/FilterRoutingTests.cpp
     dsp/CharacterFilterTests.cpp
     dsp/LfoTests.cpp
     dsp/NoiseChaosOperatorTests.cpp
@@ -26,12 +27,17 @@ add_executable(pw8_tests
     dsp/GranularOscillatorTests.cpp
     dsp/SyncEdgeTests.cpp
     dsp/SidechainFollowerTests.cpp
+    dsp/MasterDynamicsProcessorTests.cpp
+    unit/GenerativeSourcesTests.cpp
     unit/AlgorithmGraphCompilerTests.cpp
     unit/AlgorithmGraphCommitTests.cpp
     unit/ContentPathsTests.cpp
+    unit/PresetMetadataFilterLogicTests.cpp
     unit/DeterministicRngTests.cpp
     unit/ModMatrixTests.cpp
     unit/MorphKoinTests.cpp
+    unit/MorphEasingTests.cpp
+    unit/SegmentEnvelopeTests.cpp
     unit/WavetableWarpParamTests.cpp
     unit/FftTests.cpp
     unit/WavetableTableTests.cpp
@@ -56,7 +62,7 @@ add_executable(pw8_tests
 
 target_link_libraries(pw8_tests PRIVATE pw8::core nlohmann_json::nlohmann_json Catch2::Catch2WithMain)
 target_compile_definitions(pw8_tests PRIVATE PW8_REPO_ROOT="${CMAKE_SOURCE_DIR}")
-target_include_directories(pw8_tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+target_include_directories(pw8_tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_SOURCE_DIR}/plugin/src")
 target_compile_features(pw8_tests PRIVATE cxx_std_20)
 pw8_set_warnings(pw8_tests)
 pw8_apply_sanitizers(pw8_tests)

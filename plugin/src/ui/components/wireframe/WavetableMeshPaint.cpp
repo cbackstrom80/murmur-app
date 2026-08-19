@@ -2,8 +2,12 @@
 
 #include <cmath>
 #include <limits>
+#include <mutex>
+#include <unordered_map>
 
 #include "../../theme/ObsidianPalette.h"
+#include "../../visualizer/PreviewDraw.h"
+#include "../../visualizer/VisualPreviewCache.h"
 #include "pw8/dsp/Math.hpp"
 
 namespace pw8::plugin::ui::wireframe
@@ -30,6 +34,45 @@ namespace pw8::plugin::ui::wireframe
             }
             return liveRowIndex;
         }
+
+        [[nodiscard]] uint64_t wavetableMeshSampleKey(const oscillator::WavetableTable* table,
+                                                       const oscillator::WtWarpParams& warp, int meshRows,
+                                                       int pointsPerRow) noexcept
+        {
+            uint64_t h = reinterpret_cast<uint64_t>(table);
+            h = preview::hashCombine(h, static_cast<uint64_t>(table != nullptr ? table->numFrames : 0));
+            h = preview::hashCombine(h, static_cast<uint64_t>(table != nullptr ? table->samplesPerFrame : 0));
+            h = preview::hashCombine(h, preview::quantizeToKey(warp.bend, 32.0f));
+            h = preview::hashCombine(h, preview::quantizeToKey(warp.asymmetry, 32.0f));
+            h = preview::hashCombine(h, preview::quantizeToKey(warp.syncAmount, 32.0f));
+            h = preview::hashCombine(h, preview::quantizeToKey(warp.formantShift, 32.0f));
+            h = preview::hashCombine(h, static_cast<uint64_t>(meshRows));
+            h = preview::hashCombine(h, static_cast<uint64_t>(pointsPerRow));
+            return h;
+        }
+
+        [[nodiscard]] uint64_t wavetableFrameKey(const oscillator::WavetableTable* table, float framePos01,
+                                                  const oscillator::WtWarpParams& warp, int points) noexcept
+        {
+            uint64_t h = reinterpret_cast<uint64_t>(table);
+            h = preview::hashCombine(h, preview::quantizeToKey(framePos01, 128.0f));
+            h = preview::hashCombine(h, preview::quantizeToKey(warp.bend, 32.0f));
+            h = preview::hashCombine(h, preview::quantizeToKey(warp.asymmetry, 32.0f));
+            h = preview::hashCombine(h, preview::quantizeToKey(warp.syncAmount, 32.0f));
+            h = preview::hashCombine(h, preview::quantizeToKey(warp.formantShift, 32.0f));
+            h = preview::hashCombine(h, static_cast<uint64_t>(points));
+            return h;
+        }
+
+        struct MeshSampleCacheEntry
+        {
+            int meshRows = 0;
+            int pointsPerRow = 0;
+            std::vector<std::vector<float>> samples;
+        };
+
+        std::mutex meshSampleCacheMutex;
+        std::unordered_map<uint64_t, MeshSampleCacheEntry> meshSampleCache;
     } // namespace
 
     WavetableMeshPaintOptions labHeroMeshOptions()
@@ -79,29 +122,59 @@ namespace pw8::plugin::ui::wireframe
 
         const int liveRowIndex = liveRowForPosition(livePos01, numFrames, options.meshRows);
 
+        const auto cacheKey =
+            wavetableMeshSampleKey(table, warpParams, options.meshRows, options.pointsPerRow);
+        MeshSampleCacheEntry* cached = nullptr;
+        {
+            const std::lock_guard lock(meshSampleCacheMutex);
+            auto& entry = meshSampleCache[cacheKey];
+            if (entry.samples.empty())
+            {
+                entry.meshRows = options.meshRows;
+                entry.pointsPerRow = options.pointsPerRow;
+                entry.samples.resize(static_cast<std::size_t>(options.meshRows));
+                for (int r = 0; r < options.meshRows; ++r)
+                {
+                    entry.samples[static_cast<std::size_t>(r)].resize(static_cast<std::size_t>(options.pointsPerRow));
+                    const float depthT = options.meshRows > 1 ? static_cast<float>(r) / static_cast<float>(options.meshRows - 1)
+                                                              : 0.0f;
+                    for (int p = 0; p < options.pointsPerRow; ++p)
+                    {
+                        const float framePos = depthT * static_cast<float>(numFrames - 1);
+                        const int f0 = static_cast<int>(framePos);
+                        const int f1 = juce::jmin(f0 + 1, numFrames - 1);
+                        const float frameFrac = framePos - static_cast<float>(f0);
+
+                        const float tp = options.pointsPerRow > 1
+                                             ? static_cast<float>(p) / static_cast<float>(options.pointsPerRow - 1)
+                                             : 0.0f;
+                        const float readPhase = oscillator::warpReadPhase(tp, warpParams);
+                        const float srcPos = readPhase * static_cast<float>(samplesPerFrame - 1);
+                        const int s0 = static_cast<int>(srcPos);
+                        const int s1 = juce::jmin(s0 + 1, samplesPerFrame - 1);
+                        const float sampleFrac = srcPos - static_cast<float>(s0);
+
+                        const std::size_t off0 =
+                            static_cast<std::size_t>(f0) * static_cast<std::size_t>(samplesPerFrame);
+                        const std::size_t off1 =
+                            static_cast<std::size_t>(f1) * static_cast<std::size_t>(samplesPerFrame);
+                        const float v0 = pw8::dsp::lerp(mip.samples[off0 + static_cast<std::size_t>(s0)],
+                                                          mip.samples[off0 + static_cast<std::size_t>(s1)], sampleFrac);
+                        const float v1 = pw8::dsp::lerp(mip.samples[off1 + static_cast<std::size_t>(s0)],
+                                                          mip.samples[off1 + static_cast<std::size_t>(s1)], sampleFrac);
+                        entry.samples[static_cast<std::size_t>(r)][static_cast<std::size_t>(p)] =
+                            pw8::dsp::lerp(v0, v1, frameFrac);
+                    }
+                }
+            }
+            cached = &entry;
+        }
+
         const auto sampleAt = [&](float depthT, int p) -> float
         {
-            const float framePos = depthT * static_cast<float>(numFrames - 1);
-            const int f0 = static_cast<int>(framePos);
-            const int f1 = juce::jmin(f0 + 1, numFrames - 1);
-            const float frameFrac = framePos - static_cast<float>(f0);
-
-            const float tp = options.pointsPerRow > 1
-                                 ? static_cast<float>(p) / static_cast<float>(options.pointsPerRow - 1)
-                                 : 0.0f;
-            const float readPhase = oscillator::warpReadPhase(tp, warpParams);
-            const float srcPos = readPhase * static_cast<float>(samplesPerFrame - 1);
-            const int s0 = static_cast<int>(srcPos);
-            const int s1 = juce::jmin(s0 + 1, samplesPerFrame - 1);
-            const float sampleFrac = srcPos - static_cast<float>(s0);
-
-            const std::size_t off0 = static_cast<std::size_t>(f0) * static_cast<std::size_t>(samplesPerFrame);
-            const std::size_t off1 = static_cast<std::size_t>(f1) * static_cast<std::size_t>(samplesPerFrame);
-            const float v0 = pw8::dsp::lerp(mip.samples[off0 + static_cast<std::size_t>(s0)],
-                                             mip.samples[off0 + static_cast<std::size_t>(s1)], sampleFrac);
-            const float v1 = pw8::dsp::lerp(mip.samples[off1 + static_cast<std::size_t>(s0)],
-                                             mip.samples[off1 + static_cast<std::size_t>(s1)], sampleFrac);
-            return pw8::dsp::lerp(v0, v1, frameFrac);
+            const int r = juce::jlimit(0, cached->meshRows - 1,
+                                       static_cast<int>(depthT * static_cast<float>(cached->meshRows - 1) + 0.5f));
+            return cached->samples[static_cast<std::size_t>(r)][static_cast<std::size_t>(p)];
         };
 
         MeshDrawConfig config;
@@ -153,9 +226,25 @@ namespace pw8::plugin::ui::wireframe
         if (table == nullptr || !table->isValid() || bounds.isEmpty())
             return;
 
-        paintFlatWaveform(
-            g, bounds, juce::jmax(8, points),
-            [&](float t) { return sampleWavetableAt(table, framePos01, t, warpParams); }, liveGlow);
+        const int sampleCount = juce::jmax(8, points);
+        const auto key = wavetableFrameKey(table, framePos01, warpParams, sampleCount);
+        const auto& polyline = preview::VisualPreviewCache::instance().getOrBuild(
+            key, sampleCount,
+            [&](int n, preview::PreviewPolyline& out)
+            {
+                out.xNorm.clear();
+                out.yNorm.resize(static_cast<std::size_t>(n));
+                for (int i = 0; i < n; ++i)
+                {
+                    const float t = static_cast<float>(i) / static_cast<float>(n - 1);
+                    out.yNorm[static_cast<std::size_t>(i)] = sampleWavetableAt(table, framePos01, t, warpParams);
+                }
+            });
+
+        preview::PolylineDrawOptions opts;
+        opts.liveGlow = liveGlow;
+        opts.alpha = liveGlow ? 1.0f : 0.65f;
+        preview::paintPolylineCurve(g, bounds, polyline, opts);
     }
 
     void computeWavetableHarmonicMagnitudes(const oscillator::WavetableTable* table, float framePos01,

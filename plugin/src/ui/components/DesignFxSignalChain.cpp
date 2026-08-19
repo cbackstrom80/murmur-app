@@ -197,11 +197,11 @@ namespace pw8::plugin::ui
         const bool active = moodUiActive || moodActive || (!def.disabled && liveType != 0 && !bypassed);
         const bool dim = def.disabled || (bypassed && !moodUiActive && !moodActive);
 
-        g.setColour(dim ? palette::kPanelRaised.withAlpha(0.65f)
-                        : (active ? palette::kPanelRaised : palette::kPanelRaised.withAlpha(0.8f)));
+        g.setColour(dim ? palette::kFigmaFxChipFill.withAlpha(0.65f)
+                        : palette::kFigmaFxChipFill);
         g.fillRoundedRectangle(tile, 6.0f);
-        g.setColour(selected ? palette::kAccent : palette::kBorderBright.withAlpha(dim ? 0.35f : 0.65f));
-        g.drawRoundedRectangle(tile.reduced(0.5f), 6.0f, selected ? 2.0f : 1.0f);
+        g.setColour(selected ? palette::kAccent : palette::kFigmaFxChipBorder.withAlpha(dim ? 0.35f : 1.0f));
+        g.drawRoundedRectangle(tile.reduced(0.5f), 6.0f, selected ? 1.5f : 1.0f);
 
         auto inner = tile.reduced(static_cast<float>(layout::kDesignFxPageChipPadding));
 
@@ -255,26 +255,16 @@ namespace pw8::plugin::ui
         g.drawText("SYSTEM FX ROUTING PIPELINE (DRAG TO REORDER)", labelRow.removeFromLeft(labelRow.getWidth() / 2),
                    juce::Justification::centredLeft);
 
-        auto statusArea = labelRow;
-        g.setColour(palette::kTextDim);
-        g.setFont(fonts::label(8.0f));
-        g.drawText("FX LOAD", statusArea.removeFromLeft(42), juce::Justification::centredRight);
-        auto loadTrack = statusArea.removeFromLeft(52).reduced(0, 3);
-        g.setColour(palette::kBackgroundTop);
-        g.fillRoundedRectangle(loadTrack.toFloat(), 2.0f);
-        g.setColour(palette::kAccentWarm);
-        g.fillRoundedRectangle(loadTrack.getX() + 1, loadTrack.getY() + 1,
-                               static_cast<int>((loadTrack.getWidth() - 2) * cpuBarFillRatio(fxLoadPercent_)),
-                               loadTrack.getHeight() - 2, 1.5f);
         g.setColour(palette::kAccent);
-        g.drawText(formatFxLoadPercent(fxLoadPercent_), statusArea, juce::Justification::centredRight);
+        g.setFont(fonts::micro(8.0f));
+        g.drawText("LATENCY FLUID SYNC ACTIVE", labelRow, juce::Justification::centredRight);
 
         bounds.removeFromTop(layout::kDesignFxPageSignalChainLabelGap);
         auto pipeline = bounds.removeFromTop(layout::kDesignFxPageSignalChainPipelineHeight);
 
-        g.setColour(palette::kPanelRaised);
+        g.setColour(palette::kFigmaFxStatusBarFill);
         g.fillRoundedRectangle(pipeline.toFloat(), 8.0f);
-        g.setColour(palette::kBorderBright.withAlpha(0.45f));
+        g.setColour(palette::kFigmaFxCardBorderDim);
         g.drawRoundedRectangle(pipeline.toFloat().reduced(0.5f), 8.0f, 1.0f);
 
         auto flow = pipeline.reduced(8, 6);

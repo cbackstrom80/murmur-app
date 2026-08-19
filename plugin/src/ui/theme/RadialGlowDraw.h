@@ -7,6 +7,7 @@
 #include "ObsidianDraw.h"
 #include "ObsidianPalette.h"
 #include "ObsidianRotary.h"
+#include "FigmaKnobTokens.h"
 
 namespace pw8::plugin::ui::radialglow
 {
@@ -24,7 +25,7 @@ namespace pw8::plugin::ui::radialglow
         float innerStroke = 4.5f;
     };
 
-    [[nodiscard]] inline Layout computeLayout(juce::Rectangle<float> bounds) noexcept
+    [[nodiscard]] inline Layout computeDualLayout(juce::Rectangle<float> bounds) noexcept
     {
         const float diameter = juce::jmin(bounds.getWidth(), bounds.getHeight());
         const float dialRadius = diameter * 0.5f;
@@ -32,14 +33,37 @@ namespace pw8::plugin::ui::radialglow
         Layout layout;
         layout.centre = centre;
         layout.dialRadius = dialRadius;
-        layout.outerRingRadius = dialRadius * 0.889f;
-        layout.middleRingRadius = dialRadius * 0.722f;
-        layout.innerRingRadius = dialRadius * 0.556f;
-        layout.capRadius = dialRadius * 0.444f;
-        layout.outerStroke = juce::jmax(3.5f, dialRadius * 0.067f);
-        layout.middleStroke = juce::jmax(3.0f, dialRadius * 0.058f);
-        layout.innerStroke = juce::jmax(2.6f, dialRadius * 0.050f);
+        layout.outerRingRadius = dialRadius * figma::DualRingRatios::outer;
+        layout.middleRingRadius = dialRadius * figma::DualRingRatios::middle;
+        layout.innerRingRadius = dialRadius * figma::DualRingRatios::middle;
+        layout.capRadius = dialRadius * figma::DualRingRatios::cap;
+        layout.outerStroke = figma::scaledHeroStroke(figma::HeroStrokeAt180::dualOuter, diameter);
+        layout.middleStroke = figma::scaledHeroStroke(figma::HeroStrokeAt180::dualMiddle, diameter);
+        layout.innerStroke = figma::scaledHeroStroke(figma::HeroStrokeAt180::dualMiddle, diameter);
         return layout;
+    }
+
+    [[nodiscard]] inline Layout computeTripleLayout(juce::Rectangle<float> bounds) noexcept
+    {
+        const float diameter = juce::jmin(bounds.getWidth(), bounds.getHeight());
+        const float dialRadius = diameter * 0.5f;
+        const auto centre = bounds.getCentre();
+        Layout layout;
+        layout.centre = centre;
+        layout.dialRadius = dialRadius;
+        layout.outerRingRadius = dialRadius * figma::TripleRingRatios::outer;
+        layout.middleRingRadius = dialRadius * figma::TripleRingRatios::middle;
+        layout.innerRingRadius = dialRadius * figma::TripleRingRatios::inner;
+        layout.capRadius = dialRadius * figma::TripleRingRatios::cap;
+        layout.outerStroke = figma::scaledHeroStroke(figma::HeroStrokeAt180::tripleOuter, diameter);
+        layout.middleStroke = figma::scaledHeroStroke(figma::HeroStrokeAt180::tripleMiddle, diameter);
+        layout.innerStroke = figma::scaledHeroStroke(figma::HeroStrokeAt180::tripleInner, diameter);
+        return layout;
+    }
+
+    [[nodiscard]] inline Layout computeLayout(juce::Rectangle<float> bounds) noexcept
+    {
+        return computeDualLayout(bounds);
     }
 
     inline void strokeGlowValueArc(juce::Graphics& g, juce::Point<float> centre, float radius, float strokeWidth,
@@ -51,8 +75,8 @@ namespace pw8::plugin::ui::radialglow
         juce::Path arc;
         arc.addCentredArc(centre.x, centre.y, radius, radius, 0.0f, startAngle, endAngle, true);
 
-        g.setColour(colour.withAlpha(0.18f * dimAlpha));
-        g.strokePath(arc, juce::PathStrokeType(strokeWidth * 2.1f, juce::PathStrokeType::curved,
+        g.setColour(colour.withAlpha(0.16f * dimAlpha));
+        g.strokePath(arc, juce::PathStrokeType(strokeWidth * 1.55f, juce::PathStrokeType::curved,
                                                juce::PathStrokeType::rounded));
         g.setColour(colour.withAlpha(0.95f * dimAlpha));
         g.strokePath(arc, juce::PathStrokeType(strokeWidth, juce::PathStrokeType::curved,
@@ -85,10 +109,14 @@ namespace pw8::plugin::ui::radialglow
         const auto& c = layout.centre;
         const float r = layout.capRadius;
 
-        g.setColour(palette::kBackgroundTop);
+        juce::ColourGradient capGradient(juce::Colour(0xff0c1014), c.x - r * 0.25f, c.y - r * 0.35f,
+                                         juce::Colour(0xff06080b), c.x + r * 0.35f, c.y + r * 0.45f, false);
+        capGradient.addColour(0.55, juce::Colour(0xff10151a));
+        g.setGradientFill(capGradient);
         g.fillEllipse(c.x - r, c.y - r, r * 2.0f, r * 2.0f);
-        g.setColour(palette::kBorder.withAlpha(0.85f));
-        g.drawEllipse(c.x - r, c.y - r, r * 2.0f, r * 2.0f, juce::jmax(1.0f, r * 0.04f));
+
+        g.setColour(palette::kBorder.withAlpha(0.55f));
+        g.drawEllipse(c.x - r, c.y - r, r * 2.0f, r * 2.0f, juce::jmax(0.8f, r * 0.025f));
     }
 
     inline void drawCenterReadout(juce::Graphics& g, const Layout& layout, const juce::String& title,
@@ -98,12 +126,12 @@ namespace pw8::plugin::ui::radialglow
         auto cap = juce::Rectangle<float>(layout.centre.x - layout.capRadius, layout.centre.y - layout.capRadius,
                                           layout.capRadius * 2.0f, layout.capRadius * 2.0f);
 
-        g.setColour(accent);
-        g.setFont(juce::Font(juce::FontOptions(juce::jmax(8.0f, layout.capRadius * 0.22f))).boldened());
-        g.drawText(title.toUpperCase(), cap.removeFromTop(cap.getHeight() * 0.38f), juce::Justification::centred);
+        g.setColour(accent.withAlpha(0.88f));
+        g.setFont(juce::Font(juce::FontOptions(juce::jmax(7.0f, layout.capRadius * 0.16f))).boldened());
+        g.drawText(title.toUpperCase(), cap.removeFromTop(cap.getHeight() * 0.32f), juce::Justification::centred);
 
         g.setColour(palette::kTextPrimary);
-        g.setFont(juce::Font(juce::FontOptions(juce::jmax(11.0f, layout.capRadius * 0.38f))).boldened());
+        g.setFont(juce::Font(juce::FontOptions(juce::jmax(12.0f, layout.capRadius * 0.44f))).boldened());
         g.drawText(value, cap, juce::Justification::centred);
     }
 
@@ -132,13 +160,47 @@ namespace pw8::plugin::ui::radialglow
         g.fillEllipse(centre.x - radius * 1.08f, centre.y - radius * 1.08f, radius * 2.16f, radius * 2.16f);
     }
 
+    /// Figma `21:4` single-ring performance KOIN (desktop PLAY macros @ 92px).
+    inline void drawSinglePerformanceKnob(juce::Graphics& g, juce::Rectangle<float> bounds, float proportional,
+                                            float rotaryStartAngle, float rotaryEndAngle, juce::Colour accent,
+                                            bool featured, const juce::String& valueText, bool active)
+    {
+        const float diameter = juce::jmax(16.0f, juce::jmin(bounds.getWidth(), bounds.getHeight()));
+        const auto layout = computeLayout(bounds.withSizeKeepingCentre(diameter, diameter));
+        juce::Colour ringColour = accent.isTransparent()
+                                      ? (featured ? palette::kAccentWarm : figma::kKoinRingOuter)
+                                      : accent;
+        if (featured)
+            drawBackgroundHalo(g, layout.centre, layout.outerRingRadius, ringColour);
+
+        drawRingChannel(g, layout, layout.outerRingRadius, layout.outerStroke, proportional, ringColour,
+                        active ? 1.0f : 0.92f);
+        fillCenterCap(g, layout);
+
+        auto cap = juce::Rectangle<float>(layout.centre.x - layout.capRadius, layout.centre.y - layout.capRadius,
+                                          layout.capRadius * 2.0f, layout.capRadius * 2.0f);
+        g.setColour(palette::kTextPrimary);
+        g.setFont(juce::Font(juce::FontOptions(juce::jmax(11.0f, layout.capRadius * 0.34f))).boldened());
+        g.drawText(valueText, cap, juce::Justification::centred);
+
+        const float angle = rotary::proportionalToAngle(proportional, rotaryStartAngle, rotaryEndAngle);
+        const juce::Point<float> direction = rotary::unitDirectionAtAngle(angle);
+        const auto dotCentre = layout.centre + direction * layout.outerRingRadius;
+        const float dotRadius = juce::jmax(2.0f, layout.outerStroke * 0.34f);
+        g.setColour(ringColour.withAlpha(0.35f));
+        g.fillEllipse(dotCentre.x - dotRadius * 1.35f, dotCentre.y - dotRadius * 1.35f, dotRadius * 2.7f,
+                      dotRadius * 2.7f);
+        g.setColour(juce::Colour(0xffeee8ff));
+        g.fillEllipse(dotCentre.x - dotRadius, dotCentre.y - dotRadius, dotRadius * 2.0f, dotRadius * 2.0f);
+    }
+
     inline void drawDoubleRadialFrame(juce::Graphics& g, juce::Rectangle<float> bounds, float outerProportional,
                                       float innerProportional, juce::Colour outerColour, juce::Colour innerColour,
                                       int focusedChannel, bool expandedReadout, const juce::String& outerValueText,
                                       const juce::String& innerValueText, const juce::String& outerShort,
                                       const juce::String& innerShort)
     {
-        const auto layout = computeLayout(bounds);
+        const auto layout = computeDualLayout(bounds);
         drawBackgroundHalo(g, layout.centre, layout.outerRingRadius, outerColour);
 
         const float outerDim = (focusedChannel == 1) ? 0.35f : 1.0f;
@@ -163,10 +225,10 @@ namespace pw8::plugin::ui::radialglow
                                       const juce::String& v3, const juce::String& s1, const juce::String& s2,
                                       const juce::String& s3)
     {
-        const auto layout = computeLayout(bounds);
-        const juce::Colour cOuter{0xff00ffd2};
-        const juce::Colour cMiddle{0xff9f80ff};
-        const juce::Colour cInner{0xffff9d00};
+        const auto layout = computeTripleLayout(bounds);
+        const juce::Colour cOuter = figma::kKoinRingOuter;
+        const juce::Colour cMiddle = figma::kKoinRingMiddle;
+        const juce::Colour cInner = figma::kKoinRingInner;
 
         drawBackgroundHalo(g, layout.centre, layout.outerRingRadius, cOuter);
 
@@ -189,7 +251,7 @@ namespace pw8::plugin::ui::radialglow
 
     [[nodiscard]] inline int hitTestRingChannel(juce::Point<float> localPos, juce::Rectangle<float> bounds) noexcept
     {
-        const auto layout = computeLayout(bounds);
+        const auto layout = computeDualLayout(bounds);
         const float dist = localPos.getDistanceFrom(layout.centre);
         if (dist <= layout.capRadius)
             return -1;
@@ -200,7 +262,7 @@ namespace pw8::plugin::ui::radialglow
 
     [[nodiscard]] inline int hitTestTripleRingChannel(juce::Point<float> localPos, juce::Rectangle<float> bounds) noexcept
     {
-        const auto layout = computeLayout(bounds);
+        const auto layout = computeTripleLayout(bounds);
         const float dist = localPos.getDistanceFrom(layout.centre);
         if (dist <= layout.capRadius)
             return -1;

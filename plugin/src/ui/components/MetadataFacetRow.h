@@ -15,6 +15,7 @@ namespace pw8::plugin::ui
 
         void setValues(const juce::StringArray& values);
         void setSelectedValue(const juce::String& value);
+        void setCompactFxMode(bool compact) noexcept;
         [[nodiscard]] juce::String getSelectedValue() const { return selectedValue_; }
         [[nodiscard]] bool hasFacetValues() const noexcept { return !values_.isEmpty(); }
 
@@ -32,6 +33,7 @@ namespace pw8::plugin::ui
         juce::String rowLabel_;
         juce::StringArray values_;
         juce::String selectedValue_;
+        bool compactFxMode_ = false;
         std::vector<std::unique_ptr<juce::TextButton>> chips_;
     };
 

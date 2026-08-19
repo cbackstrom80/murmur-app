@@ -4,7 +4,7 @@
 **Audit date:** 2026-08-17  
 **Mode:** Figma-as-spec (numbers copied from `get_metadata` / `get_design_context`, not interpreted)
 
-**Build map & status cross-reference:** [`OBSIDIAN_BUILD_MAP.md`](OBSIDIAN_BUILD_MAP.md) — dependency-first Phases 1–5, C++ component owners, and `DONE | PARTIAL | NOT STARTED | DESIGN-ONLY` per item.
+**Build map & status cross-reference:** [`OBSIDIAN_BUILD_MAP.md`](OBSIDIAN_BUILD_MAP.md) — dependency-first Phases 1–5, C++ component owners, and `DONE | PARTIAL | NOT STARTED | DESIGN-ONLY` per item. **Implementation sprints:** [`MI_IMPLEMENTATION_SPRINT.md`](MI_IMPLEMENTATION_SPRINT.md) — 7-sprint C++ checklist with Figma node IDs.
 
 **Navigation status (2026-08-17):**
 
@@ -21,6 +21,33 @@ Excluded from inventory per user request: `ipad-*` frames, theme variant frames 
 
 Maps [`OBSIDIAN_BUILD_MAP.md`](OBSIDIAN_BUILD_MAP.md) Phase 3 desktop surfaces to this audit. Advanced PLAY (`22:2`) is implemented in code but not in the original phase list.
 
+### Core views (canonical registry)
+
+All core Figma frames verified **DONE** (2026-08-17). Full node registry: **Part 6**.
+
+| Canonical name | Figma frame name | Node ID | C++ owner(s) | figma-connect | Figma | Code |
+|----------------|------------------|---------|--------------|---------------|-------|------|
+| **murmur-desktop-play-mode** | `murmur-play-view` | `36:4` | `PlayModeEditor` Basic, `OscilloscopeView`, `PatchFocusPanel`, `MurmurChromeBar` | `PlayModeEditor.figma.ts` | **DONE** | **PARTIAL** |
+| **murmur-design-engine** | `murmur-design-engine` | `37:787` | `DesignModeEditor`, `MasterEnvelopePanel`, `EngineGridPanel`, `MurmurChromeBar` | `DesignModeEditor.figma.ts` | **DONE** | **PARTIAL** |
+| **murmur-design-fx** | `murmur-design-fx` | `35:4` | `DesignFxPanel`, `DesignFxSignalChain`, `FxChainStrip` | `DesignFxPanel.figma.ts` | **DONE** | **PARTIAL** |
+| **murmur-mod-matrix** | `murmur-design-mod-matrix` | `27:265` | `DesignModMatrixPanel`, `ModRoutingOverlay` (PLAY) | `DesignModMatrixPanel.figma.ts` | **DONE** | **PARTIAL** |
+| **murmur-play-compact** | `murmur-compact-view` | `4:1134` | `CompactModeEditor`, `MurmurChromeBar` | `CompactModeEditor.figma.ts` | **DONE** | **PARTIAL** |
+| **murmur-preset-explorer-overlay** | `murmur-preset-explorer-overlay` | `74:959` | `PresetBrowserOverlay` (modal) | `PresetBrowserOverlay.figma.ts` | **DONE** | **PARTIAL** |
+| **murmur-basic-view** | `murmur-basic-view` | `86:4` | `PlayModeEditor` (Basic view mode) | `MurmurBasicView.figma.ts` | **DONE** | **PARTIAL** *(S3)* |
+
+### Reference atoms (canonical registry)
+
+| Canonical name | Figma frame name | Node ID | C++ owner(s) | figma-connect | Figma | Code |
+|----------------|------------------|---------|--------------|---------------|-------|------|
+| **glow-ring-knobs** | `glow-ring-knobs` | `21:4` | `GlowKnob`, `GlowRingButton`, `ConcentricGlowKnob`, `TripleGlowKnob` | `GlowKnob.figma.ts` (+ variants) | **DONE** | **PARTIAL** |
+
+### Master Envelope additions (canonical registry)
+
+| Frame name | Node ID | Parent frame | C++ owner | figma-connect | Figma | Code |
+|------------|---------|--------------|-----------|---------------|-------|------|
+| **master-envelope-panel** | `82:4` | `37:787` | `MasterEnvelopePanel` | `MasterEnvelopePanel.figma.ts` | **DONE** | **PARTIAL** |
+| **master-envelope-section** | `82:83` | `89:641` | `MasterEnvelopePanel` (compact) | `MasterEnvelopeSection.figma.ts` | **DONE** | **PARTIAL** |
+
 | Build map | Figma frame | Node ID | C++ owner(s) | Status |
 |-----------|-------------|---------|--------------|--------|
 | **3a** COMPACT | `murmur-play-compact` | `4:1134` | `CompactModeEditor` | **PARTIAL** — rectangular scope + stereo meters, footer mod chips + CPU/voices wired; 14px margin / 565px / 152px scope / 32px chrome aligned |
@@ -36,9 +63,41 @@ Maps [`OBSIDIAN_BUILD_MAP.md`](OBSIDIAN_BUILD_MAP.md) Phase 3 desktop surfaces t
 | **3i** WAVETABLE EDITOR | `murmur-wavetable-editor` | `27:709` | `WavetableLabPanel`, `WavetableStackView` | **PARTIAL** — frame strip (8 minis) + morph pills wired; unison VOICES/DETUNE/WIDTH read-only from patch (no APVTS) |
 | **3j** DUAL LFO | `murmur-dual-lfo-lab` | `15:247` | `DualLfoLabPanel` | **PARTIAL** — 5·8 tab shows 4-column LFO 5–8; footer LF01–08 chips switch pair tab + highlight active LFO |
 
-**Recent work (2026-08-17):** Milestone B session — COMPACT (`4:1134`) literals aligned (14px margin, 565px default height, 152px scope); duplicate mission-card chrome removed from `CompactModeEditor`. Basic PLAY (`36:4`) vertical budget verified with unified 44px `MurmurChromeBar` (preset + BPM + MASTER OUT label); `PatchBrowserBar` desktop path remains hidden. Design lab panels use `← DESIGN` back copy and 56px header when embedded. Design FX page (`35:4`) now uses `DesignFxPanel` with 12-slot `DesignFxSignalChain`, detail editor via `FxChainStrip::setDesignFxPageMode`, rack overview meters, and routing bar. Design MOD MATRIX page (`27:265`) now uses `DesignModMatrixPanel` with full-width 11×8 interconnect grid (70/105px columns), active routing paths list, quick-config sidebar, and status bar; PLAY overlay (`ModRoutingOverlay`, `m` key) unchanged.
+### Phase 3 MI integration surfaces (`murmur-mi-ui-*`)
 
-**Recent work (2026-08-17, design FX push):** `DesignFxPresetLibrary` loads `content/design-fx/*.json` (37 chip presets). Interactive EQ graph with band ordering + Shift+Q. Live FFT analyzer when ANALYZER ACTIVE. Limiter hero PK meter + CLIP animation. `DesignFxStubKnob` + `DesignFxUiState` for ui-only knobs feeding `DesignFxHeroViz`. MOOD maps ui knobs → Eq DSP on insert slot I3. APVTS wired: COMP MAKEUP, FRAC SCATTER/PITCH, CHR SPREAD, TAPE HISS/AGE, FSHF SCALE, VOC SIBILANCE. User preset save/delete/rename under `content/design-fx/user/`. Optional `pw8Ref` sidecars merge factory `.pw8` slot params without full patch load. Signal-chain drag-to-reorder (BYP fixed at head). Fixed `TapeDrive` param id (was invalid `TapeDriveDb`).
+Canonical naming: `murmur-mi-ui-{surface}-{feature}`. All frames live on **Page 1** unless noted. Full registry: **Part 6**.
+
+| Track | Figma frame | Node ID | C++ owner(s) | figma-connect | Figma | Code |
+|-------|-------------|---------|--------------|---------------|-------|------|
+| **A** Frames | `murmur-mi-ui-play-morph-timeline` | `89:641` | `MasterMotionLabPanel`, `MorphTimelineStrip` | `MiPlayMorphTimeline.figma.ts` | **DONE** | **PARTIAL** *(S2)* |
+| **A** | `murmur-mi-ui-design-morph-editor` | `89:953` | `DesignMorphEditorPanel` | `DesignMorphEditorPanel.figma.ts` | **DONE** | **PARTIAL** *(S2)* |
+| **A** | `murmur-mi-ui-mod-matrix-morph-extensions` | `89:1259` | `DesignModMatrixPanel` | `MiModMatrixMorphExtensions.figma.ts` | **DONE** | **PARTIAL** *(S2)* |
+| **A** | `murmur-mi-ui-chrome-fr-step-badge` | `89:1763` | `MurmurChromeBar` | `MurmurChromeBarFrStep.figma.ts` | **DONE** | **PARTIAL** *(S2)* |
+| **B** Blades | `murmur-mi-ui-play-filter-blades` | `89:5` | `FilterLfoPanel` | `MiPlayFilterBlades.figma.ts` | **DONE** | **PARTIAL** |
+| **B** | `murmur-mi-ui-component-blades-routing-diagram` | `89:246` | `FilterRoutingWireframeView` | `FilterRoutingWireframeView.figma.ts` | **DONE** | **PARTIAL** |
+| **B** | `murmur-mi-ui-design-filter-lab` | `89:313` | `DesignFilterLabPanel` | `DesignFilterLabPanel.figma.ts` | **DONE** | **PARTIAL** |
+| **C** Streams | `murmur-mi-ui-play-master-dynamics` | `89:1798` | `MasterOutputDeck` | `MiPlayMasterDynamics.figma.ts` | **DONE** | **PARTIAL** *(S4)* |
+| **C** | `murmur-mi-ui-design-dynamics-lab` | `89:2059` | `DesignDynamicsLabPanel` | `DesignDynamicsLabPanel.figma.ts` | **DONE** | **PARTIAL** *(S4)* |
+| **D** Stages | `murmur-mi-ui-master-motion-segments` | `89:2381` | `MasterMotionLabPanel`, `MasterEnvelopePanel` | `MiMasterMotionSegments.figma.ts` | **DONE** | **PARTIAL** *(S5)* |
+| **D** | `murmur-mi-ui-design-envelope-segments` | `89:2712` | `DesignEnvelopeSegmentsPanel` | `DesignEnvelopeSegmentsPanel.figma.ts` | **DONE** | **PARTIAL** *(S5)* |
+| **E** Marbles | `murmur-mi-ui-design-generative-lab` | `89:3479` | `DesignGenerativeLabPanel` | `DesignGenerativeLabPanel.figma.ts` | **DONE** | **PARTIAL** *(S6)* |
+| **E** | `murmur-mi-ui-mod-matrix-random-sources` | `89:3911` | `DesignModMatrixPanel` sidebar | `MiModMatrixRandomSources.figma.ts` | **DONE** | **PARTIAL** *(S6)* |
+| **F** Peaks | `murmur-mi-ui-design-utility-peaks` | `89:4076` | `DesignUtilityPeaksPanel` | `DesignUtilityPeaksPanel.figma.ts` | **DONE** | **PARTIAL** *(S6)* |
+| **G** Clouds | `murmur-mi-ui-master-clouds-fx` | `89:4435` | `DesignFxPanel`, `DesignFxHeroViz` | `MiMasterCloudsFx.figma.ts` | **DONE** | **PARTIAL** *(S6)* |
+| **A/D** Motion | `murmur-master-motion-lab` | `94:4715` | `MasterMotionLabPanel` | `MasterMotionLabPanel.figma.ts` | **DONE** | **PARTIAL** |
+| **A** Focus | `murmur-mi-ui-play-focus-morph-hub` | `94:5038` | `PatchFocusPanel` | `MiPlayFocusMorphHub.figma.ts` | **DONE** | **PARTIAL** *(S2)* |
+| **H** QUASAR | `murmur-master-quasar-binaural` | `102:4` | `MasterQuasarPanel` + `quasar/*` | `MurmurMasterQuasarBinaural.figma.ts` | **DONE** | **PARTIAL** *(S8 Q1–Q4 shipped; Figma pixel QA pending)* |
+| **—** Index | `murmur-mi-ui-index` | — | — | `MiUiIndex.figma.ts` *(placeholder → `27:1115` cover)* | **PENDING NAME** | **DESIGN-ONLY** |
+
+**MI Figma status (2026-08-17):** **All canonical frames DONE** — 7 core views + 1 reference atom + 2 master-envelope sub-panels + 18 MI frames (+ Ben `murmur-master-motion-lab` `94:4715`, focus hub `94:5038`, QUASAR `102:4`). **30** canonical-registry Code Connect stubs in `plugin/src/ui/figma-connect/` (see **Part 6**). **Track A Sprint 2 + Track B Sprint 1** pixel-match shipped in C++; code status remains **PARTIAL** until host visual QA. Tracks C–G panels **NOT STARTED**; **Sprint 8 QUASAR** queued ([QUASAR_RETURN_PLAN.md](QUASAR_RETURN_PLAN.md)). Canonical generative lab is **`89:3479`** — duplicate **`89:3002`** archived to `— Archive (MI deprecated)`. Only `murmur-mi-ui-index` remains unnamed (placeholder → cover `27:1115`).
+
+**Sprint 2 shipped (2026-08-17, Track A):** `MorphTimelineStrip` + `MasterMotionLabPanel` (`89:641`/`89:736`), `DesignMorphEditorPanel` (`89:953`), FR.STEP badge (`89:1763`), mod-matrix morph columns (`89:1259`), `PatchFocusPanel` morph hub (`94:5038`); `MorphEasingTests.cpp` (10/10); MCP `add_morph_keyframe` / `remove_morph_keyframe`; Spatial easing migration **applied** to all 75 Interstellar/Spatial presets (`scripts/migrate_spatial_morph_easing.py`).
+
+**Master Envelope additions (2026-08-17):** `master-envelope-panel` (`82:4`) on design engine; `master-envelope-section` (`82:83`) embedded in play-morph-timeline (`89:641`). C++ owner: `MasterEnvelopePanel` — wired on `DesignModeEditor` + `MasterMotionLabPanel`.
+
+**Recent work (2026-08-17, MI registry sync):** Resolved Figma names for `74:959` (`murmur-preset-explorer-overlay`), `86:4` (`murmur-basic-view`), `82:4` (`master-envelope-panel`), `82:83` (`master-envelope-section`). Updated `DesignGenerativeLabPanel.figma.ts` → canonical `89:3479`. Added core-view + master-envelope Code Connect stubs; migrated `PresetBrowserOverlay`, `DesignFxPanel`, `GlowKnob` URLs to `PFt0LG6XmOiZWcSoUXIWIg`.
+
+**Recent work (2026-08-17, design FX push):** `DesignFxPresetLibrary` loads `content/design-fx/*.json` (37 chip presets). Interactive EQ graph with band ordering + Shift+Q. Live FFT analyzer when ANALYZER ACTIVE. Limiter hero PK meter + CLIP animation. `GlowKnob` + `DesignFxUiState` for ui-only knobs feeding `DesignFxHeroViz`. MOOD maps ui knobs → Eq DSP on insert slot I3. APVTS wired: COMP MAKEUP, FRAC SCATTER/PITCH, CHR SPREAD, TAPE HISS/AGE, FSHF SCALE, VOC SIBILANCE. User preset save/delete/rename under `content/design-fx/user/`. Optional `pw8Ref` sidecars merge factory `.pw8` slot params without full patch load. Signal-chain drag-to-reorder (BYP fixed at head). Fixed `TapeDrive` param id (was invalid `TapeDriveDb`).
 
 **Recent work (2026-08-17, Figma-as-spec batch 3):** COMPACT (`4:1134`) — `OscilloscopeView::paintCompactMode` rectangular scope panel (grid, waveform, SIGNAL IN LED); stereo output meters via `ScopeVuMeter`; footer LFO1/ENV/SEQ/RAND mod chips with route highlight; live CPU/voices in footer. WAVETABLE (`27:709`) — center-column frame strip (8×70×50 minis, `WavetablePos` APVTS); morph type pills SPECTRAL/FORMANT/CROSSFADE (UI-only, subtitle). DUAL LFO (`15:247`) — 5·8 pair tab 4-column layout (LFO 5–8); footer LF01–08 `TextButton` chips wired via `selectFooterLfo`. DESIGN FX (`35:4`) — overview OUT/GR meters from slot Mix + scope peak; routing bar global wet mix averaged from active FX Mix params; sidechain chip uses `getSidechainActive()`.
 
@@ -50,29 +109,62 @@ Maps [`OBSIDIAN_BUILD_MAP.md`](OBSIDIAN_BUILD_MAP.md) Phase 3 desktop surfaces t
 
 **Recent work (2026-08-17, engine + UI push):** `WtMorphMode` DSP — Spectral (nearest frame), Formant (equal-power crossfade), Crossfade (linear) in `WavetableOscillator`. Preset browser LIST view scroll for long tables. Vocoder band analyzer uses frequency-weighted sidechain envelope. Advanced PLAY mod-assignment banner reserves layout space (no grid overlap). Build map completion revised to ~68% overall (~75% Phase 3).
 
+**Recent work (2026-08-17, MI integration complete):** All **19** MI prompt frames + **7** core views verified on Page 1. Full registry synced in **Part 6** with canvas layout. **28** canonical-registry Code Connect stubs (core + MI + master envelope); legacy atom stubs retain `pi5kUNcZWQGhqfRAVu3voh` URLs until migrated.
+
 ---
 
 ## Part 1 — Frame inventory
 
 | Frame | Node ID | Size (Figma) | C++ owner(s) | figma-connect stub | Status | Top 3 spec gaps |
 |-------|---------|--------------|--------------|-------------------|--------|-----------------|
-| **murmur-design-engine** | `37:787` | 1280×720 | `DesignModeEditor`, `MurmurChromeBar`, `EngineGridPanel`, `EngineCard`, `EngineOscillatorPicker`, `EngineAdsrMini`, `VstBottomBar`; mode switch via `MurmurRootEditor` | — | **Figma DONE** / **Code PARTIAL** | Renamed from `murmur-design-mode-v2`; 270px cards + 22px sub-picker + 80px context viz; chrome 62px via `MurmurChromeBar` |
+| **murmur-design-engine** | `37:787` | 1280×1048 | `DesignModeEditor`, `MasterEnvelopePanel`, `MurmurChromeBar`, `EngineGridPanel`, `EngineCard` | `DesignModeEditor.figma.ts` | **Figma DONE** / **Code PARTIAL** | Frame 1048px tall incl. master envelope; 270px cards + sub-picker aligned |
+| **murmur-mod-matrix** | `27:265` | 1280×720 | `DesignModMatrixPanel`, `ModRoutingOverlay` (PLAY), `ModRoutingUi` | `DesignModMatrixPanel.figma.ts` | **Figma DONE** / **Code PARTIAL** | Grid 11×8 literal columns; KEY TRACK/RANDOM rows display-only |
 | **obsidian-play-board** | `22:2` | 1280×720 | `PlayModeEditor`, `EngineGridPanel`, `DashboardStrip`, `VstBottomBar`; chrome via `MurmurRootEditor` → `PatchBrowserBar`, `VstTopBar` | — (board-level); `EngineCard.figma.ts` maps cards | **PARTIAL** | play-board stub knobs reflect live coarse/fine; FX flow shows PRE/POST tap |
-| **murmur-desktop-play-mode** | `36:4` | 1280×720 | `PlayModeEditor` Basic view, `OscilloscopeView`, `PatchFocusPanel`, `MurmurChromeBar`, `VstBottomBar` | — | **PARTIAL** | Scope bar viz vs waveform path; stage latch not wired |
+| **murmur-desktop-play-mode** | `36:4` | 1280×720 | `PlayModeEditor` Basic view, `OscilloscopeView`, `PatchFocusPanel`, `MurmurChromeBar`, `VstBottomBar` | `PlayModeEditor.figma.ts` | **Figma DONE** / **Code PARTIAL** | Scope bar viz vs waveform path; stage latch not wired |
 | **murmur-8-engine-vst** | `4:4` | 1440×1024 | `EngineGridPanel`, `EngineCard`, `FxChainStrip`, `FilterLfoPanel` | `EngineCard.figma.ts` | **PARTIAL** | Reference is 1440×1024 not 1280×720; card anatomy constants in `PlayModeLayout.h` |
 | **murmur-design-arp** | `4:1267` | 1280×720 | `ArpPanelOverlay`, `ArpStepStrip` | `ArpPanelOverlay.figma.ts` | **PARTIAL** | Design embed uses 56px lab header + `← DESIGN`; Figma frame uses unified 62px chrome only |
 | **murmur-vocoder-lab** | `15:4` | 1280×720 | `VocoderLabPanel` | `VocoderLabPanel.figma.ts` | **PARTIAL** | Sidechain node labels static; band analyzer uses animated placeholder not live FFT |
 | **murmur-dual-lfo-lab** | `15:247` | 1280×720 | `DualLfoLabPanel` | `DualLfoLabPanel.figma.ts` | **PARTIAL** | 5·8 tab 4-column layout done; narrow columns may need horizontal scroll polish vs Figma |
-| **murmur-mod-matrix** | `27:265` | 1280×720 | `DesignModMatrixPanel`, `ModRoutingOverlay` (PLAY), `ModRoutingUi` | `ModRoutingOverlay.figma.ts` (legacy file ref) | **PARTIAL** | Grid 11×8 literal columns; KEY TRACK/RANDOM rows display-only; curve/MIDI learn display-only |
-| **murmur-preset-browser** | `27:6` | 1280×720 | `PresetBrowserOverlay`, `PatchBrowserBar` | `PresetBrowserOverlay.figma.ts` (legacy node) | **PARTIAL** | 3-column 240/696/300 aligned; AUTHOR from preset metadata JSON; GRID scroll wired; LIST scroll TBD; EXPORT display-only |
+| **murmur-preset-browser** | `27:6` | 1280×720 | `PresetBrowserOverlay`, `PatchBrowserBar` | `PresetBrowserOverlay.figma.ts` | **PARTIAL** | Full-page 240/696/300 layout; modal variant at `74:959` |
 | **murmur-engine-deep-editor** | `28:4` | 1440×1024 | `EngineDetailOverlay`, `OperatorEditorPanel`, `FilterLfoPanel`, `EngineAdsrMini` | `EngineCard.figma.ts` (partial) | **PARTIAL** | 3-column OSC/Filter/Amp; level/pan APVTS; live mod routes; unison voices/detune/spread APVTS wired |
-| **murmur-play-compact** | `4:1134` | 320×565 | `CompactModeEditor`, `MurmurChromeBar` | — | **PARTIAL** | Mod chip route detection is heuristic (LFO1/ENV only); SEQ/RAND display-only |
-| **murmur-design-fx** | `35:4` | 1280×720 | `DesignFxPanel`, `DesignFxSignalChain`, `FxChainStrip` | — | **PARTIAL** | SAT stub APVTS wired; insert pre/post + send A/B engine buses **DONE** |
+| **murmur-play-compact** | `4:1134` | 320×565 | `CompactModeEditor`, `MurmurChromeBar` | `CompactModeEditor.figma.ts` | **Figma DONE** / **Code PARTIAL** | Mod chip route detection is heuristic (LFO1/ENV only); SEQ/RAND display-only |
+| **murmur-design-fx** | `35:4` | 1280×720 | `DesignFxPanel`, `DesignFxSignalChain`, `FxChainStrip` | `DesignFxPanel.figma.ts` | **PARTIAL** | SAT stub APVTS wired; insert pre/post + send A/B engine buses **DONE** |
+| **murmur-preset-explorer-overlay** | `74:959` | 1040×620 | `PresetBrowserOverlay` (modal) | `PresetBrowserOverlay.figma.ts` | **Figma DONE** / **Code PARTIAL** | Centered modal vs full-page `27:6`; ratings + A/B compare display-only |
+| **murmur-basic-view** | `86:4` | 1280×720 | `PlayModeEditor` (Basic) | `MurmurBasicView.figma.ts` | **Figma DONE** / **Code PARTIAL** *(S3)* | Master envelope hero 680px + performance sidebar 556px |
+| **master-envelope-panel** | `82:4` | 1248×320 | `MasterEnvelopePanel` | `MasterEnvelopePanel.figma.ts` | **Figma DONE** / **Code PARTIAL** *(S3)* | Slope pills LINEAR/EXP/LOG; ADSR curve + 4 knobs |
+| **master-envelope-section** | `82:83` | 1240×220 | `MasterEnvelopePanel` (compact) | `MasterEnvelopeSection.figma.ts` | **Figma DONE** / **Code PARTIAL** | Child of `89:641`; compact hero above morph timeline |
 | **murmur-play-fx-rack** | `15:478` | *(sub-frame)* | `DashboardStrip`, `FxChainStrip`, `FilterLfoPanel` | `FxChainStrip.figma.ts`, `FilterLfoPanel.figma.ts` | **PARTIAL** | Vocoder slot editor content density at 94px; sidechain CTA chip layout |
 | **murmur-wavetable-editor** | `27:709` | 1280×720 | `WavetableLabPanel`, `WavetableStackView` | `WavetableLabPanel.figma.ts` | **PARTIAL** | Morph type + unison knobs APVTS wired; harmonic editor paint-only; **WtMorphMode DSP wired** (Spectral/Formant/Crossfade) |
 | **glow-ring-knobs** | `21:4` | — | `GlowKnob`, `GlowRingButton`, `ConcentricGlowKnob`, `TripleGlowKnob` | `GlowKnob.figma.ts`, `GlowRingButton.figma.ts`, `ConcentricGlowKnob.figma.ts`, `TripleGlowKnob.figma.ts` | **PARTIAL** | Knob sizes vary by context (28/30/36/44px); glow arc stroke weights not tokenized |
 | **glow-knob-interaction-concepts** | `21:172` | — | — | — | **DESIGN-ONLY** | Interaction/motion reference only; no C++ surface |
 | **murmur-8-engine-cover** | `27:1115` | 1440×900 | — | — | **DESIGN-ONLY** | File index / navigation; not a runtime screen |
+
+### MI integration frames (`murmur-mi-ui-*`, Page 1)
+
+| Frame | Node ID | Size (Figma) | C++ owner(s) | figma-connect stub | Figma | Code | Top 3 spec gaps |
+|-------|---------|--------------|--------------|-------------------|-------|------|-----------------|
+| **murmur-mi-ui-play-morph-timeline** | `89:641` | 1280×720 | `MasterMotionLabPanel`, `MorphTimelineStrip`, `MasterEnvelopePanel` | `MiPlayMorphTimeline.figma.ts` | **DONE** | **PARTIAL** *(S2)* | Hue ring timeline; autoplay chip; FR.STEP tick flash; compact `82:83` embed |
+| **murmur-mi-ui-design-morph-editor** | `89:953` | 1280×720 | `DesignMorphEditorPanel` | `DesignMorphEditorPanel.figma.ts` | **DONE** | **PARTIAL** *(S2)* | Per-path override table; color picker; 16-keyframe cap; ADD/DEL |
+| **murmur-mi-ui-mod-matrix-morph-extensions** | `89:1259` | 1280×720 | `DesignModMatrixPanel` | `MiModMatrixMorphExtensions.figma.ts` | **DONE** | **PARTIAL** *(S2)* | MORPH POS / FILT ROUTE / FILT MORPH / F2 DRIVE columns |
+| **murmur-mi-ui-chrome-fr-step-badge** | `89:1763` | 400×120 | `MurmurChromeBar` | `MurmurChromeBarFrStep.figma.ts` | **DONE** | **PARTIAL** *(S2)* | 300ms fade spec; keyframe name flash; badge collision rules |
+| **murmur-mi-ui-play-filter-blades** | `89:5` | 1280×720 | `FilterLfoPanel` | `MiPlayFilterBlades.figma.ts` | **DONE** | **PARTIAL** | 7-knob Blades row; mod rings on ROUTE/MORPH/DRIVE |
+| **murmur-mi-ui-component-blades-routing-diagram** | `89:246` | 360×200 | `FilterRoutingWireframeView` | `FilterRoutingWireframeView.figma.ts` | **DONE** | **PARTIAL** | 3 routing variants; path opacity morph |
+| **murmur-mi-ui-design-filter-lab** | `89:313` | 1280×720 | `DesignFilterLabPanel` | `DesignFilterLabPanel.figma.ts` | **DONE** | **PARTIAL** | 420/524/280 columns; DESIGN sub-nav FILTER tab |
+| **murmur-mi-ui-play-master-dynamics** | `89:1798` | 1280×720 | `MasterOutputDeck` | `MiPlayMasterDynamics.figma.ts` | **DONE** | **NOT STARTED** | 4 mode pills; GR meter; sidechain viz |
+| **murmur-mi-ui-design-dynamics-lab** | `89:2059` | 1280×720 | `DesignDynamicsLabPanel` *(planned)* | `DesignDynamicsLabPanel.figma.ts` | **DONE** | **NOT STARTED** | Transfer curves per mode; signal diagram |
+| **murmur-mi-ui-master-motion-segments** | `89:2381` | 1280×766 | `MasterMotionLabPanel`, `MasterEnvelopePanel` | `MiMasterMotionSegments.figma.ts` | **DONE** | **PARTIAL** *(S5)* | Segment dot chain ≤6; per-segment easing |
+| **murmur-mi-ui-design-envelope-segments** | `89:2712` | 1280×720 | `DesignEnvelopeSegmentsPanel` | `DesignEnvelopeSegmentsPanel.figma.ts` | **DONE** | **PARTIAL** *(S5)* | ENV 1–8 picker; loop markers |
+| **murmur-mi-ui-design-generative-lab** | `89:3479` | 1280×720 | `DesignGenerativeLabPanel` *(planned)* | `DesignGenerativeLabPanel.figma.ts` | **DONE** | **NOT STARTED** | T/X random sources; deja-vu; seed locker; 6-out routing |
+| **murmur-mi-ui-mod-matrix-random-sources** | `89:3911` | 320×720 | `DesignModMatrixPanel` sidebar | `MiModMatrixRandomSources.figma.ts` | **DONE** | **NOT STARTED** | deja-vu / T / X sections; RANDOM chips |
+| **murmur-mi-ui-design-utility-peaks** | `89:4076` | 1280×734 | `DesignUtilityPeaksPanel` *(planned)* | `DesignUtilityPeaksPanel.figma.ts` | **DONE** | **NOT STARTED** | Mini env + mini LFO cards; no drums |
+| **murmur-mi-ui-master-clouds-fx** | `89:4435` | 1280×720 | `DesignFxPanel` | `MiMasterCloudsFx.figma.ts` | **DONE** | **NOT STARTED** | Granular hero; master FX slots only |
+| **murmur-master-motion-lab** | `94:4715` | 1280×720 | `MasterMotionLabPanel` | `MasterMotionLabPanel.figma.ts` | **DONE** | **PARTIAL** | Ben spec base; env0 + 4 master LFOs |
+| **murmur-mi-ui-play-focus-morph-hub** | `94:5038` | 400×600 | `PatchFocusPanel` | `MiPlayFocusMorphHub.figma.ts` | **DONE** | **PARTIAL** *(S2)* | EVOLVE KOIN card; mini keyframe strip |
+| **murmur-master-quasar-binaural** | `102:4` | 1280×720 | `MasterQuasarPanel` + `quasar/*` | `MurmurMasterQuasarBinaural.figma.ts` | **DONE** | **PARTIAL** *(S8)* | In-MURMUR binaural hero; master FX slot — [QUASAR_RETURN_PLAN.md](QUASAR_RETURN_PLAN.md) |
+
+**Index:** dedicated `murmur-mi-ui-index` frame not yet in file — placeholder stub maps to `murmur-8-engine-cover` (`27:1115` on `— Cover` page).
+
+**Archived duplicate:** `murmur-mi-ui-design-generative-lab` at `89:3002` — moved to `— Archive (MI deprecated)` (2026-08-17); canonical is **`89:3479`** (x=14580).
 
 ### Component atoms (supporting frames, not full screens)
 
@@ -92,8 +184,11 @@ Maps [`OBSIDIAN_BUILD_MAP.md`](OBSIDIAN_BUILD_MAP.md) Phase 3 desktop surfaces t
 | `ModSourceChip` | *(legacy pi5k file)* | `ModSourceChip` | `ModSourceChip.figma.ts` | PARTIAL |
 | `GlobalPanel` | *(legacy pi5k file)* | `GlobalPanel` | `GlobalPanel.figma.ts` | PARTIAL |
 | `WireframePanel` | *(legacy pi5k file)* | `WireframePanel` | `WireframePanel.figma.ts` | PARTIAL |
+| `blades-section-panel` | `89:131` | `FilterLfoPanel` (Blades row) | `MiBladesSectionPanel.figma.ts` | PARTIAL |
+| `morph-timeline-panel` | `89:736` | `MorphTimelineStrip` | `MiMorphTimelinePanel.figma.ts` | PARTIAL |
+| `FilterRoutingWireframeView` | `89:246` | `FilterRoutingWireframeView` | `FilterRoutingWireframeView.figma.ts` | PARTIAL |
 
-**Note:** Several figma-connect stubs still point at legacy file `pi5kUNcZWQGhqfRAVu3voh`; canonical frames live in `PFt0LG6XmOiZWcSoUXIWIg`. Update URLs when running Code Connect publish.
+**Note:** Several figma-connect stubs still point at legacy file `pi5kUNcZWQGhqfRAVu3voh`; canonical frames live in `PFt0LG6XmOiZWcSoUXIWIg`. MI stubs use `PFt0LG6XmOiZWcSoUXIWIg` URLs directly.
 
 ---
 
@@ -135,7 +230,7 @@ Figma vertical budget at 1280×720 (from metadata node `37:787`):
 | Design sub-nav tabs | ENGINE/ARP/VOC/FX/MOD | wired via `MurmurChromeBar` | `MurmurRootEditor.cpp` | N |
 | Per-engine sub-picker variants | 8 engine-specific layouts | 9 variants wired in `EngineOscillatorPicker.cpp` | `EngineOscillatorPicker.cpp` | N (2026-08-17) |
 | Per-engine context visualizer | 9 engine-specific 80px layouts | painted per engine type | `EngineOscillatorPicker.cpp` | N (2026-08-17) |
-| Sub-picker display-only gaps | — | EXT input, GRN sample load, WT morph proxy via WtBend | `EngineOscillatorPicker.cpp` | **Y** (3 display-only) |
+| Sub-picker display-only gaps | — | EXT input, GRN sample load (WT morph + position wired 2026-08-17) | `EngineOscillatorPicker.cpp` | **Y** (2 display-only) |
 | FX rack / dashboard | absent in frame | excluded from `DesignModeEditor` | `DesignModeEditor.cpp` | N |
 
 ### Child tree (Figma metadata)
@@ -296,7 +391,7 @@ murmur-fx-* (1280×720)
 | **Preset dropdown** in focused header | `DesignFxPresetLibrary` + `content/design-fx/*.json` + user save/rename/delete | **DONE** |
 | Signal chain chip → **prototype navigation** | In-place `bindSelectedChip()` + drag-to-reorder display | **DONE** |
 | EQ **unique layout** (graph-first) | 134px band sidebar + interactive graph + live FFT analyzer | **DONE** |
-| Stub knobs (TONE, MOOD INTENSITY, SAT OUTPUT, etc.) | `DesignFxStubKnob` + `DesignFxUiState` → hero viz + APVTS (`applySat/Chr/Tape/Fshf/Frac` stubs) | **DONE** |
+| Stub knobs (TONE, MOOD INTENSITY, SAT OUTPUT, etc.) | `GlowKnob` + `DesignFxUiState` → hero viz + APVTS (`applySat/Chr/Tape/Fshf/Frac` stubs) | **DONE** |
 | VOC design page | Full knob row incl. SIBILANCE; animated band hero; `pw8Ref` factory sidecars | **DONE** |
 
 ### Recommended code structure
@@ -422,33 +517,34 @@ Figma layout at 1440×1024 (from `get_metadata` node `28:4`). Letterboxed into 1
 
 ## Part 2a — `murmur-play-compact` (4:1134) delta table
 
-Figma vertical budget at 320×565 (from `get_design_context` node `4:1134`):
+**Machine-readable spec:** [`plugin/src/ui/figma-connect/layouts/murmur-compact-view.4-1134.layout.json`](../plugin/src/ui/figma-connect/layouts/murmur-compact-view.4-1134.layout.json)  
+**Pipeline doc:** [`FIGMA_LAYOUT_EXPORT.md`](FIGMA_LAYOUT_EXPORT.md)
 
-| Region | Figma (px) | Code value | File:line | Fix? |
-|--------|------------|------------|-----------|------|
-| Frame size | 320×565 | `kCompactWidth`, `kCompactDefaultHeight` | `PlayModeLayout.h`, `MurmurRootEditor.cpp` | N (2026-08-17) |
-| Outer padding | 14 | `kCompactOuterMargin = 14` | `PlayModeLayout.h`, `MurmurRootEditor.cpp` | N (2026-08-17) |
-| Section gap | 12 | `kCompactBlockGap = 12` | `PlayModeLayout.h`, `CompactModeEditor.cpp` | N (2026-08-17) |
-| **Chrome: header-bar** | 32 (`39:158`) | `kChromeBarHeightCompact = 32` | `PlayModeLayout.h`, `MurmurRootEditor.cpp` | N (2026-08-17) |
-| Mission / preset card | absent | removed from `CompactModeEditor` | `CompactModeEditor.cpp` | N (2026-08-17) |
-| **Scope hub** | 152 (panel target) | `kCompactScopeSize = 152` | `PlayModeLayout.h`, `CompactModeEditor.cpp` | N (2026-08-17) |
-| Macro grid knob | 36 | `kCompactMacroKnobSize = 36` | `PlayModeLayout.h`, `PatchFocusPanel.cpp` | N (2026-08-17) |
-| Macro grid gap | 8 | `kCompactMacroKnobGap = 8` | `PlayModeLayout.h`, `PatchFocusPanel.cpp` | N (2026-08-17) |
-| Master out knob | 48 | `kCompactMasterKnobSize = 48` | `PlayModeLayout.h`, `CompactModeEditor.cpp` | N (2026-08-17) |
-| Output block height | 72 | `kCompactOutputBlockHeight = 72` | `PlayModeLayout.h`, `CompactModeEditor.cpp` | N (2026-08-17) |
-| Footer mod chips / CPU | present in Figma | LFO1/ENV/SEQ/RAND chips + CPU/voices + stereo meters | `CompactModeEditor.cpp`, `OscilloscopeView.cpp` | N (2026-08-17 batch 3) |
-| Scope panel style | rectangular + grid | `OscilloscopeView::paintCompactMode` | `OscilloscopeView.cpp` | N (2026-08-17 batch 3) |
-| Stereo output meters | 6px bars in output block | `ScopeVuMeter` L/R in footer paint | `CompactModeEditor.cpp` | N (2026-08-17 batch 3) |
+Figma vertical budget at **320×560** (from `get_metadata` node `4:1134`, 2026-08-18):
 
-### Child tree (Figma reference)
+| Region | Figma (px) | Code value | File | Fix? |
+|--------|------------|------------|------|------|
+| Frame size | 320×560 | `kCompactWidth`, `kCompactDefaultHeight` | `PlayModeLayout.h` | N (2026-08-18) |
+| Insets | top/left/right 14, bottom **30** | `kCompactOuterMargin`, `kCompactBottomMargin` | `PlayModeLayout.h`, `MurmurRootEditor.cpp` | N (2026-08-18) |
+| Section gap | 12 | `kCompactBlockGap = 12` | `PlayModeLayout.h` | N |
+| **Chrome: header-bar** | **28** (`50:252`) | `kChromeBarHeightCompact = 28` | `PlayModeLayout.h` | N (2026-08-18) |
+| Scope panel | 152 | `kCompactScopePanelHeight = 152` | `PlayModeLayout.h` | N |
+| Scope header | 10 | `kCompactScopeHeaderHeight = 10` | `PlayModeLayout.h` | N (2026-08-18) |
+| Macro panel | **158** fixed | `kCompactMacroPanelHeight = 158` | `PlayModeLayout.h`, `CompactModeEditor.cpp` | N (2026-08-18) |
+| Macro grid | 3×2, cell 84×52, gap 8/10 | `kCompactMacroCount=6`, cell constants | `PatchFocusPanel.cpp` | N (2026-08-18) |
+| Output block | 100 | `kCompactOutputBlockHeight = 100` | `PlayModeLayout.h` | N |
+| Footer chips | 12px tall, widths 28/25/25/31 | `kCompactModChipWidths` | `PlayModeLayout.h` | N (2026-08-18) |
+| Meters | green + amber segments | dual-segment paint | `CompactModeEditor.cpp` | N (2026-08-18) |
+
+### Child tree (Figma metadata — verbatim)
 
 ```
-murmur-play-compact (4:1134) 320×565
-├── header-bar (39:158) 304×32 @ (14,14)  → MurmurChromeBar
-├── scope-panel (4:1146)
-├── performance-macros (4:1172)
-├── output-control-block (4:1224)
-└── footer-system (4:1245)
+murmur-compact-view (4:1134) 320×560
+├── header-bar (50:252) 296×28 @ (14,14)  → MurmurChromeBar
+├── scope-panel (4:1146) 292×152 @ (14,54)
+├── performance-macros (4:1172) 292×158 @ (14,218)
+├── output-control-block (4:1224) 292×100 @ (14,388)
+└── footer-system (4:1245) 292×30 @ (14,500)
 ```
 
 ---
@@ -470,7 +566,7 @@ Figma vertical budget at 1280×720 (from `get_design_context` node `36:4`):
 | **Oscilloscope** | 180 | `kDesktopPlayModeOscilloscopeHeight = 180` | `PlayModeLayout.h`, `PlayModeEditor.cpp` | N (2026-08-17) |
 | Scope metadata inset | 16, 12 | `kDesktopPlayModeScopeMetadataInsetX/Y` | `OscilloscopeView.cpp` | N (2026-08-17) |
 | Scope wave padding X | 48 | `kDesktopPlayModeScopeWavePaddingX` | `OscilloscopeView.cpp` | N (2026-08-17) |
-| Scope bar visualizer | 20× stereo bars | decorative metadata + waveform path | `OscilloscopeView.cpp` | **Y** (bars are mock; live path is waveform; CPU/VOICES wired via `PerformanceMetricsUi.h`) |
+| Scope bar visualizer | 20× stereo bars | live L/R peaks from scope tap + waveform path | `OscilloscopeView.cpp` | N (2026-08-18) |
 | **Performance macros deck** | 280 | `kDesktopPlayModePerformanceDeckHeight = 280` | `PlayModeLayout.h`, `PlayModeEditor.cpp` | N (2026-08-17) |
 | Deck inner padding | 24 | `kDesktopPlayModePerformanceDeckPadding = 24` | `PatchFocusPanel.cpp` | N (2026-08-17) |
 | Macros header | 13 | `kDesktopPlayModeMacrosHeaderHeight = 13` | `PatchFocusPanel.cpp` | N (2026-08-17) |
@@ -482,7 +578,7 @@ Figma vertical budget at 1280×720 (from `get_design_context` node `36:4`):
 | Bottom bar padding X | 24 | `kDesktopPlayModeBottomBarPaddingX = 24` | `VstBottomBar.cpp` | N (2026-08-17) |
 | Engine indicators | 8×48, gap 6 | painted in `VstBottomBar::paint` | `VstBottomBar.cpp` | N (2026-08-17) |
 | Latch / panic buttons | 127 / 101 × 33 | `kDesktopPlayModeLatchButtonWidth`, etc. | `VstBottomBar.cpp` | N (2026-08-17) |
-| Sustain / MIDI / route | right cluster 235×24 | `sustainLabel_`, `midiLabel_`, `routeLabel_` | `VstBottomBar.cpp` | **Y** (labels only; latch not wired; view-mode strip hidden in Basic — double-click brand returns to Advanced) |
+| Sustain / MIDI / route | right cluster 235×24 | `sustainLabel_`, `midiLabel_`, `routeLabel_` | `VstBottomBar.cpp` | N (2026-08-18) |
 
 ### Child tree (Figma metadata)
 
@@ -701,6 +797,171 @@ Figma MCP metadata proves play-board cards (`22:44`) are **intentionally simplif
 
 ---
 
+## Part 6 — Full node registry (core views + MI + master envelope)
+
+**File:** `PFt0LG6XmOiZWcSoUXIWIg` · **Page:** Page 1 (MI + core); reference atoms on Page 1 / `— Cover`  
+**Audit date:** 2026-08-17  
+**Related:** [`MUTABLE_INSTRUMENTS_INTEGRATION_PLAN.md`](MUTABLE_INSTRUMENTS_INTEGRATION_PLAN.md)
+
+### 6.1 Core views (canonical registry)
+
+| Canonical name | Figma frame name | Node | Size | Position (x,y) | Figma URL | figma-connect | Code |
+|----------------|------------------|------|------|----------------|-----------|---------------|------|
+| `murmur-play-compact` | `murmur-compact-view` | `4:1134` | 320×560 | 0, 0 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=4-1134) | `CompactModeEditor.figma.ts` | PARTIAL |
+| `murmur-desktop-play-mode` | `murmur-play-view` | `36:4` | 1280×960 | 500, 0 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=36-4) | `PlayModeEditor.figma.ts` | PARTIAL |
+| `murmur-design-engine` | `murmur-design-engine` | `37:787` | 1280×1048 | 1860, 0 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=37-787) | `DesignModeEditor.figma.ts` | PARTIAL |
+| `murmur-design-fx` | `murmur-design-fx` | `35:4` | 1280×720 | 2720, 820 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=35-4) | `DesignFxPanel.figma.ts` | PARTIAL |
+| `murmur-mod-matrix` | `murmur-design-mod-matrix` | `27:265` | 1280×720 | 4080, 820 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=27-265) | `DesignModMatrixPanel.figma.ts` | PARTIAL |
+| `murmur-preset-explorer-overlay` | `murmur-preset-explorer-overlay` | `74:959` | 1040×620 | 120, 50 *(modal)* | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=74-959) | `PresetBrowserOverlay.figma.ts` | PARTIAL |
+| `murmur-basic-view` | `murmur-basic-view` | `86:4` | 1280×720 | 3180, 0 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=86-4) | `MurmurBasicView.figma.ts` | PARTIAL |
+
+**Child tree — `37:787` design-engine:**
+
+```
+murmur-design-engine (37:787) 1280×1048
+├── header-bar (39:2) 1248×62
+├── master-envelope-panel (82:4) 1248×320     → MasterEnvelopePanel
+├── grid-section (37:830) 1248×560            → EngineGridPanel
+└── status-bar (37:1507) 1248×40              → VstBottomBar
+```
+
+**Child tree — `86:4` basic-view:**
+
+```
+murmur-basic-view (86:4) 1280×720
+├── header-bar (86:5) 1248×60                 → MurmurChromeBar (+ BASIC LED)
+├── main-body (86:31) 1248×564
+│   ├── envelope-shaping-panel (86:32) 680×564
+│   └── performance-sidebar (86:107) 556×564    → portamento + 4 macros + VU
+└── bottom-bar (86:225) 1248×40               → VstBottomBar
+```
+
+**Child tree — `74:959` preset-explorer:**
+
+```
+murmur-preset-explorer-overlay (74:959) 1040×620
+├── top-bar (74:960) 1040×44                  → search + close
+├── workspace (74:969) 1040×548
+│   ├── left-column (74:970) 200×548            → bank pills + categories
+│   ├── center-column (74:1034) 520×548         → sort bar + preset rows
+│   └── right-column (74:1236) 280×548          → profile + waveform + LOAD
+└── bottom-bar (74:1331) 1040×28                → count + pagination
+```
+
+### 6.2 Reference atoms
+
+| Frame | Node | Figma URL | figma-connect | Code |
+|-------|------|-----------|---------------|------|
+| `glow-ring-knobs` | `21:4` | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=21-4) | `GlowKnob.figma.ts` (+ ring variants) | PARTIAL |
+
+### 6.3 MI integration frames (`murmur-mi-ui-*`) — all **DONE**
+
+| Track | Frame name | Node | Size | Position (x,y) | Figma URL | figma-connect | Code |
+|-------|------------|------|------|----------------|-----------|---------------|------|
+| **B** | `murmur-mi-ui-play-filter-blades` | `89:5` | 1280×720 | 5400, 820 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=89-5) | `MiPlayFilterBlades.figma.ts` | PARTIAL |
+| **B** | `murmur-mi-ui-component-blades-routing-diagram` | `89:246` | 360×200 | 4500, 0 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=89-246) | `FilterRoutingWireframeView.figma.ts` | PARTIAL |
+| **B** | `murmur-mi-ui-design-filter-lab` | `89:313` | 1280×720 | 6720, 820 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=89-313) | `DesignFilterLabPanel.figma.ts` | PARTIAL |
+| **A** | `murmur-mi-ui-play-morph-timeline` | `89:641` | 1280×720 | 4900, 0 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=89-641) | `MiPlayMorphTimeline.figma.ts` | PARTIAL *(S2)* |
+| **A** | `murmur-mi-ui-design-morph-editor` | `89:953` | 1280×720 | 6220, 0 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=89-953) | `DesignMorphEditorPanel.figma.ts` | PARTIAL *(S2)* |
+| **A** | `murmur-mi-ui-mod-matrix-morph-extensions` | `89:1259` | 1280×720 | 8040, 820 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=89-1259) | `MiModMatrixMorphExtensions.figma.ts` | PARTIAL *(S2)* |
+| **A** | `murmur-mi-ui-chrome-fr-step-badge` | `89:1763` | 400×120 | 7540, 0 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=89-1763) | `MurmurChromeBarFrStep.figma.ts` | PARTIAL *(S2)* |
+| **C** | `murmur-mi-ui-play-master-dynamics` | `89:1798` | 1280×720 | 7980, 0 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=89-1798) | `MiPlayMasterDynamics.figma.ts` | PARTIAL *(S4)* |
+| **C** | `murmur-mi-ui-design-dynamics-lab` | `89:2059` | 1280×720 | 9300, 0 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=89-2059) | `DesignDynamicsLabPanel.figma.ts` | PARTIAL *(S4)* |
+| **D** | `murmur-mi-ui-master-motion-segments` | `89:2381` | 1280×766 | 10620, 0 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=89-2381) | `MiMasterMotionSegments.figma.ts` | PARTIAL *(S5)* |
+| **D** | `murmur-mi-ui-design-envelope-segments` | `89:2712` | 1280×720 | 11940, 0 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=89-2712) | `DesignEnvelopeSegmentsPanel.figma.ts` | PARTIAL *(S5)* |
+| **E** | `murmur-mi-ui-design-generative-lab` **(canonical)** | `89:3479` | 1280×720 | 14580, 0 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=89-3479) | `DesignGenerativeLabPanel.figma.ts` | NOT STARTED |
+| **E** | `murmur-mi-ui-mod-matrix-random-sources` | `89:3911` | 320×720 | 15900, 0 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=89-3911) | `MiModMatrixRandomSources.figma.ts` | NOT STARTED |
+| **F** | `murmur-mi-ui-design-utility-peaks` | `89:4076` | 1280×734 | 16260, 0 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=89-4076) | `DesignUtilityPeaksPanel.figma.ts` | NOT STARTED |
+| **G** | `murmur-mi-ui-master-clouds-fx` | `89:4435` | 1280×720 | 9360, 820 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=89-4435) | `MiMasterCloudsFx.figma.ts` | NOT STARTED |
+| **A/D** | `murmur-master-motion-lab` | `94:4715` | 1280×720 | 17580, 0 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=94-4715) | `MasterMotionLabPanel.figma.ts` | PARTIAL |
+| **A** | `murmur-mi-ui-play-focus-morph-hub` | `94:5038` | 400×600 | 18900, 0 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=94-5038) | `MiPlayFocusMorphHub.figma.ts` | PARTIAL *(S2)* |
+| **H** QUASAR | `murmur-master-quasar-binaural` | `102:4` | 1280×720 | 20220, 0 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=102-4) | `MurmurMasterQuasarBinaural.figma.ts` | PARTIAL *(S8)* |
+
+**Archived duplicate:** `murmur-mi-ui-design-generative-lab` at `89:3002` — moved to `— Archive (MI deprecated)` on 2026-08-17; canonical is `89:3479`.
+
+### 6.4 Master Envelope sub-panels
+
+| Frame name | Node | Parent | Size | Figma URL | figma-connect | Code |
+|------------|------|--------|------|-----------|---------------|------|
+| `master-envelope-panel` | `82:4` | `37:787` | 1248×320 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=82-4) | `MasterEnvelopePanel.figma.ts` | PARTIAL |
+| `master-envelope-section` | `82:83` | `89:641` | 1240×220 | [open](https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/?node-id=82-83) | `MasterEnvelopeSection.figma.ts` | PARTIAL |
+
+**Child tree — `82:4` master-envelope-panel:** `header` · `content` → `adsr-curve-display` + `controls` (A/D/S/R rows)
+
+**Child tree — `82:83` master-envelope-section:** same anatomy, compact 220px height for morph timeline embed
+
+### 6.5 Nested MI sub-panels (Code Connect)
+
+| Name | Node | Parent frame | figma-connect | C++ owner |
+|------|------|--------------|---------------|-----------|
+| `morph-timeline-panel` | `89:736` | `89:641` | `MiMorphTimelinePanel.figma.ts` | `MorphTimelineStrip` |
+| `blades-section-panel` | `89:131` | `89:5` | `MiBladesSectionPanel.figma.ts` | `FilterLfoPanel` |
+
+### 6.6 Top-level child trees (for `get_design_context` scoping)
+
+**`89:641` play-morph-timeline:** `header-bar` · `master-envelope-section` (`82:83`) · `morph-timeline-panel` · `master-lfos-section` · `status-bar`
+
+**`89:953` design-morph-editor:** `header-bar` · `workspace-row` (3 cols) · `footer-bar`
+
+**`89:5` play-filter-blades:** `header-bar` · `mod-source-palette` · `middle-panels` · `blades-section-panel` · `scope-strip` · `footer-bar`
+
+**`89:313` design-filter-lab:** `left-column` · `center-column` · `right-column`
+
+**`89:3479` design-generative-lab:** `header` · `workspace` (T/X random, clock, correlation, outputs, quantizer, history/seed) · `footer`
+
+**`89:3911` mod-matrix-random-sources:** deja-vu / T / X generator sidebar slices
+
+**`94:4715` master-motion-lab:** Ben spec — env0 hero + 4 master LFOs + morph timeline strip
+
+### 6.7 Archived frames
+
+**Archive page:** `— Archive (MI deprecated)` (`99:2`) · **Archive date:** 2026-08-17
+
+| Original name | Node | From page | Reason |
+|---------------|------|-----------|--------|
+| `murmur-mi-ui-design-generative-lab` | `89:3002` | Page 1 | Deprecated duplicate — canonical is `89:3479` |
+
+Renamed on archive: `[ARCHIVED] murmur-mi-ui-design-generative-lab` (`89:3002`).
+
+**Not found (already absent):** `89:3909` — old empty `murmur-mi-ui-mod-matrix-random-sources` shell documented as replaced by `89:3911`.
+
+### 6.8 Canvas layout (Page 1)
+
+```
+Core row y=0:     4:1134 (0) → 36:4 (500) → 37:787 (1860) → 86:4 (3180)
+Core row y=820:   4:1267 (0) → 15:4 (1360) → 35:4 (2720) → 27:265 (4080)
+
+MI row y=0:       89:246 (4500) → 89:641 (4900) → 89:953 (6220) → 89:1763 (7540)
+                  → 89:1798 (7980) → 89:2059 (9300) → 89:2381 (10620) → 89:2712 (11940)
+                  → 89:3479 (14580) [canonical generative] → 89:3911 (15900)
+                  → 89:4076 (16260) → 94:4715 (17580) → 94:5038 (18900)
+
+MI row y=820:     89:5 (5400) → 89:313 (6720) → 89:1259 (8040) → 89:4435 (9360)
+
+Reference y=7700: 21:4 glow-ring-knobs
+Modal (nested): 74:959 preset-explorer @ (120, 50) inside explorer section
+```
+
+### 6.9 Pending / design-only
+
+| Frame name | Node | Notes |
+|------------|------|-------|
+| `murmur-mi-ui-index` | — | Placeholder stub → `27:1115` cover |
+
+### 6.10 MCP fetch cheat sheet
+
+```
+get_design_context  fileKey=PFt0LG6XmOiZWcSoUXIWIg  nodeId=36:4    # play-view (basic PLAY)
+get_design_context  fileKey=PFt0LG6XmOiZWcSoUXIWIg  nodeId=37:787  # design-engine (+ 82:4 envelope)
+get_design_context  fileKey=PFt0LG6XmOiZWcSoUXIWIg  nodeId=74:959  # preset-explorer modal
+get_design_context  fileKey=PFt0LG6XmOiZWcSoUXIWIg  nodeId=86:4    # basic-view
+get_design_context  fileKey=PFt0LG6XmOiZWcSoUXIWIg  nodeId=89:641  # play-morph-timeline
+get_design_context  fileKey=PFt0LG6XmOiZWcSoUXIWIg  nodeId=89:3479 # generative lab (canonical)
+get_design_context  fileKey=PFt0LG6XmOiZWcSoUXIWIg  nodeId=94:4715 # master-motion-lab
+```
+
+---
+
 ## Appendix — MCP measurement sources
 
 - `obsidian-play-board`: `get_metadata` + `get_design_context` node `22:2`  
@@ -710,4 +971,5 @@ Figma MCP metadata proves play-board cards (`22:44`) are **intentionally simplif
 - `murmur-arp-view`: `get_metadata` + `get_design_context` node `4:1267`  
 - Per-FX hero editors: `get_metadata` nodes `63:8`, `63:368`, `63:724`, `63:1090`, `63:1451`, `63:1836`, `63:2227`, `63:2590`, `63:2934`, `63:3309`  
 - All other frames: `get_metadata` on listed node IDs  
+- **MI + core registry:** `get_metadata` on all nodes in **Part 6** — core views `4:1134` … `86:4`, MI `89:5` … `94:5038`, master envelope `82:4` / `82:83`
 - Code layout: `PlayModeLayout.h`, `MurmurRootEditor.cpp`, `PlayModeEditor.cpp`, `EngineGridPanel.cpp`, `DashboardStrip.cpp`, `VstBottomBar.cpp`

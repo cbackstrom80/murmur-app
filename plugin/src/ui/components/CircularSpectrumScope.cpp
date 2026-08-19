@@ -103,7 +103,17 @@ namespace pw8::plugin::ui
 
         const int pulled = processor_.readScopeSamples(captureBuffer_.data(), kFftSize);
         if (pulled < kFftSize / 2)
+        {
+            const float masterPeak = processor_.getMasterOutPeakLinear();
+            if (masterPeak > 0.001f)
+            {
+                runningRms_ = runningRms_ * (1.0f - kRmsSmooth) + masterPeak * 0.707f * kRmsSmooth;
+                rmsEnvelope_ = juce::jmax(rmsEnvelope_ * 0.997f, runningRms_);
+                if (runningRms_ > rmsEnvelope_ * 0.88f + kBeatThreshold)
+                    pulseGlow_ = juce::jmin(kMaxPulseGlow, pulseGlow_ + 0.16f);
+            }
             return false;
+        }
 
         float sumSq = 0.0f;
         for (int i = 0; i < pulled; ++i)
@@ -152,7 +162,18 @@ namespace pw8::plugin::ui
     {
         const int pulled = processor_.readScopeSamples(vuCaptureBuffer_.data(), kVuCaptureSize);
         if (pulled < 32)
-            return false;
+        {
+            const float masterPeak = processor_.getMasterOutPeakLinear();
+            if (masterPeak <= 0.001f)
+                return false;
+
+            vu_.processFrame(masterPeak * 0.707f, masterPeak);
+            if (vu_.rmsNorm() > 0.02f)
+                pulseGlow_ = juce::jmin(kMaxPulseGlow, pulseGlow_ + 0.08f);
+            pulseGlow_ *= kPulseDecay;
+            hasFreshData_ = true;
+            return true;
+        }
 
         const auto [rms, peak] = scope::measureMonoBlock(vuCaptureBuffer_.data(), pulled);
         vu_.processFrame(rms, peak);
@@ -219,6 +240,13 @@ namespace pw8::plugin::ui
             return;
 
         const auto outlinePath = buildOutlinePath(centre, innerR, outerR);
+
+        juce::Path fillPath = outlinePath;
+        fillPath.lineTo(centre.x, centre.y);
+        fillPath.closeSubPath();
+        g.setColour(palette::kAccent.withAlpha(0.05f + pulseGlow_ * 0.14f));
+        g.fillPath(fillPath);
+
         draw::strokeGlowPath(g, outlinePath, 0.88f + pulseGlow_ * 0.10f, 2.0f, true);
     }
 
@@ -279,6 +307,10 @@ namespace pw8::plugin::ui
         g.setColour(palette::kBorder.withAlpha(0.35f));
         g.drawEllipse(centre.x - innerR, centre.y - innerR, innerR * 2.0f, innerR * 2.0f, 1.0f);
 
+        g.setColour(branding::glowColour().withAlpha(0.03f + pulseGlow_ * 0.10f));
+        g.fillEllipse(centre.x - innerR + 4.0f, centre.y - innerR + 4.0f, (innerR - 4.0f) * 2.0f,
+                      (innerR - 4.0f) * 2.0f);
+
         if (viewMode_ == ScopeViewMode::Fft)
         {
             paintSpectrumRing(g, centre, innerR, outerR);
@@ -297,7 +329,10 @@ namespace pw8::plugin::ui
     void CircularSpectrumScope::timerCallback()
     {
         const bool updated = viewMode_ == ScopeViewMode::Fft ? pullAndAnalyseFft() : pullAndAnalyseVu();
-        if (updated)
+        if (!updated)
+            pulseGlow_ *= kPulseDecay;
+
+        if (updated || pulseGlow_ > 0.002f)
             repaint();
     }
 

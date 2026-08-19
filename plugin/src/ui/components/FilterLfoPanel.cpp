@@ -2,6 +2,7 @@
 
 #include "../PlayModeLayout.h"
 #include "../theme/BrandingAssets.h"
+#include "../theme/FigmaKnobTokens.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "LabLauncherChip.h"
@@ -70,12 +71,16 @@ namespace pw8::plugin::ui
           filterWireframe_(processor.apvts),
           lfoWireframe_(processor.apvts, 0),
           modSourcePalette_(assignmentController),
-          filterScope_(processor)
+          filterScope_(processor),
+          filterRoutingWireframe_(processor.apvts)
     {
         addAndMakeVisible(filterPanel_);
         addAndMakeVisible(lfoPanel_);
         addAndMakeVisible(modSourcePalette_);
         modSourcePalette_.setCompactLayout(true);
+
+        filterWireframe_.attachVisualizerBus(processor.getVisualizerBus());
+        lfoWireframe_.attachVisualizerBus(processor.getVisualizerBus());
 
         filterEnabledButton_ = std::make_unique<GlowRingButton>("Filter Enable");
         filterEnabledLabel_.setText("FILTER", juce::dontSendNotification);
@@ -94,7 +99,7 @@ namespace pw8::plugin::ui
         lfoPanel_.addAndMakeVisible(lfoWireframe_);
 
         filter2EnabledButton_ = std::make_unique<GlowRingButton>("Filter 2 Enable");
-        filter2EnabledLabel_.setText("FILTER 2", juce::dontSendNotification);
+        filter2EnabledLabel_.setText("BLADES DUAL FILTER", juce::dontSendNotification);
         filter2EnabledLabel_.setFont(fonts::label(9.5f));
         filter2EnabledLabel_.setColour(juce::Label::textColourId, palette::kTextSecondary);
         filter2EnabledLabel_.setJustificationType(juce::Justification::centredLeft);
@@ -230,24 +235,51 @@ namespace pw8::plugin::ui
         filterPanel_.addAndMakeVisible(*filterKeyTrack_);
 
         filter2EnabledAttachment_.reset();
+        filterRouting_.reset();
+        filterModeMorph_.reset();
         filter2Cutoff_.reset();
         filter2Resonance_.reset();
         filter2Drive_.reset();
+        filter2CutoffOffset_.reset();
         filter2KeyTrack_.reset();
         filter2Panel_.removeAllChildren();
         filter2Panel_.addAndMakeVisible(*filter2EnabledButton_);
         filter2Panel_.addAndMakeVisible(filter2EnabledLabel_);
+        filter2Panel_.addAndMakeVisible(filterRoutingWireframe_);
 
         if (scope_ == FilterPanelScope::Global)
         {
-            const juce::String prefix = juce::String(kFilter2IdPrefix);
+            const juce::String f2Prefix = juce::String(kFilter2IdPrefix);
             filter2EnabledAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
-                apvts, prefix + "Enabled", *filter2EnabledButton_);
-            filter2Cutoff_ = std::make_unique<GlowKnob>(apvts, prefix + "CutoffHz", "Cutoff");
-            filter2Resonance_ = std::make_unique<GlowKnob>(apvts, prefix + "Resonance", "Reso");
-            filter2Drive_ = std::make_unique<GlowKnob>(apvts, prefix + "Drive", "Drive");
-            filter2KeyTrack_ = std::make_unique<GlowKnob>(apvts, prefix + "KeyTrack", "Key Trk");
-            for (auto* k : {filter2Cutoff_.get(), filter2Resonance_.get(), filter2Drive_.get(), filter2KeyTrack_.get()})
+                apvts, f2Prefix + "Enabled", *filter2EnabledButton_);
+            filterRouting_ = std::make_unique<GlowKnob>(apvts, kFilterRoutingId, "Route");
+            filterModeMorph_ =
+                std::make_unique<GlowKnob>(apvts, juce::String(kFilterIdPrefix) + "ModeMorph", "Morph");
+            filter2Cutoff_ = std::make_unique<GlowKnob>(apvts, f2Prefix + "CutoffHz", "Cutoff");
+            filter2Resonance_ = std::make_unique<GlowKnob>(apvts, f2Prefix + "Resonance", "Reso");
+            filter2Drive_ = std::make_unique<GlowKnob>(apvts, f2Prefix + "Drive", "Drive");
+            filter2CutoffOffset_ =
+                std::make_unique<GlowKnob>(apvts, f2Prefix + "CutoffOffsetSemis", "F2 Off");
+            filter2KeyTrack_ = std::make_unique<GlowKnob>(apvts, f2Prefix + "KeyTrack", "Key Trk");
+
+            filterRouting_->enableModulationTarget(processor_, modulation::ModDestination::FilterRouting, 0);
+            filterRouting_->setModAssignmentController(&assignmentController_);
+            filterModeMorph_->enableModulationTarget(processor_, modulation::ModDestination::FilterModeMorph, 0);
+            filterModeMorph_->setModAssignmentController(&assignmentController_);
+            filter2Drive_->enableModulationTarget(processor_, modulation::ModDestination::FilterDrive, 0);
+            filter2Drive_->setModAssignmentController(&assignmentController_);
+
+            filterRouting_->applyFigmaContext(figma::KnobContext::PlayBlades);
+            filterModeMorph_->applyFigmaContext(figma::KnobContext::PlayBlades);
+            filter2Cutoff_->applyFigmaContext(figma::KnobContext::PlayBlades);
+            filter2Resonance_->applyFigmaContext(figma::KnobContext::PlayBlades);
+            filter2Drive_->applyFigmaContext(figma::KnobContext::PlayBlades);
+            filter2Drive_->setDeckedStyle(true, GlowKnob::DeckedKnobSize::Medium);
+            filter2CutoffOffset_->applyFigmaContext(figma::KnobContext::PlayBlades);
+            filter2KeyTrack_->applyFigmaContext(figma::KnobContext::PlayBlades);
+
+            for (auto* k : {filterRouting_.get(), filterModeMorph_.get(), filter2Cutoff_.get(), filter2Resonance_.get(),
+                            filter2Drive_.get(), filter2CutoffOffset_.get(), filter2KeyTrack_.get()})
                 filter2Panel_.addAndMakeVisible(*k);
         }
     }
@@ -298,23 +330,33 @@ namespace pw8::plugin::ui
         {
             if (!dashboardMode_)
             {
-                auto filter2Row = bounds.removeFromBottom(88);
+                auto filter2Row = bounds.removeFromBottom(layout::kPlayBladesSectionHeight);
                 filter2Panel_.setBounds(filter2Row.reduced(4, 0));
                 {
-                    auto content = filter2Panel_.getContentBounds().reduced(4, 0);
-                    auto enableRow = content.removeFromTop(32);
-                    const int ringSize = 28;
-                    filter2EnabledButton_->setBounds(enableRow.removeFromLeft(ringSize + 6).withSizeKeepingCentre(ringSize, ringSize));
-                    filter2EnabledLabel_.setBounds(enableRow.removeFromLeft(72));
-                    const int knobWidth = content.getWidth() / 4;
+                    auto content = filter2Panel_.getContentBounds().reduced(layout::kPlayBladesSectionPadding / 2, 0);
+                    auto headerRow = content.removeFromTop(layout::kPlayBladesHeaderRowHeight);
+                    const int ringSize = 22;
+                    filter2EnabledButton_->setBounds(
+                        headerRow.removeFromRight(ringSize + 4).withSizeKeepingCentre(ringSize, ringSize));
+                    filter2EnabledLabel_.setBounds(headerRow);
+                    content.removeFromTop(layout::kPlayBladesSectionGap);
+
+                    filterRoutingWireframe_.setVisible(false);
+                    const int knobSlotW = content.getWidth() / layout::kPlayBladesKnobCount;
+                    if (filterRouting_)
+                        filterRouting_->setBounds(content.removeFromLeft(knobSlotW).reduced(2));
+                    if (filterModeMorph_)
+                        filterModeMorph_->setBounds(content.removeFromLeft(knobSlotW).reduced(2));
                     if (filter2Cutoff_)
-                        filter2Cutoff_->setBounds(content.removeFromLeft(knobWidth).reduced(4));
+                        filter2Cutoff_->setBounds(content.removeFromLeft(knobSlotW).reduced(2));
                     if (filter2Resonance_)
-                        filter2Resonance_->setBounds(content.removeFromLeft(knobWidth).reduced(4));
+                        filter2Resonance_->setBounds(content.removeFromLeft(knobSlotW).reduced(2));
                     if (filter2Drive_)
-                        filter2Drive_->setBounds(content.removeFromLeft(knobWidth).reduced(4));
+                        filter2Drive_->setBounds(content.removeFromLeft(knobSlotW).reduced(2));
+                    if (filter2CutoffOffset_)
+                        filter2CutoffOffset_->setBounds(content.removeFromLeft(knobSlotW).reduced(2));
                     if (filter2KeyTrack_)
-                        filter2KeyTrack_->setBounds(content.removeFromLeft(knobWidth).reduced(4));
+                        filter2KeyTrack_->setBounds(content.removeFromLeft(knobSlotW).reduced(2));
                 }
                 bounds.removeFromBottom(4);
             }
@@ -353,9 +395,9 @@ namespace pw8::plugin::ui
             {
                 content = content.reduced(4, 0);
                 const int knobWidth = content.getWidth() / 3;
-                filterToneKnob_->setMaxDialDiameter(layout::kDashboardGlobalFilterKnobSize);
-                filterKeyTrack_->setMaxDialDiameter(layout::kDashboardGlobalFilterKnobSize);
-                filterMode_->setMaxDialDiameter(layout::kDashboardGlobalFilterKnobSize);
+                filterToneKnob_->applyFigmaContext(figma::KnobContext::DashboardFilter);
+                filterKeyTrack_->applyFigmaContext(figma::KnobContext::DashboardFilter);
+                filterMode_->applyFigmaContext(figma::KnobContext::DashboardFilter);
                 filterToneKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(4));
                 filterKeyTrack_->setBounds(content.removeFromLeft(knobWidth).reduced(4));
                 filterMode_->setBounds(content.removeFromLeft(knobWidth).reduced(4));

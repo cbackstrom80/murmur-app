@@ -8,6 +8,7 @@
 
 #include "ConcentricGlowKnob.h"
 #include "GlowKnob.h"
+#include "TripleGlowKnob.h"
 #include "ModAssignmentController.h"
 #include "SectionPanel.h"
 #include "wireframe/OscWireframeHost.h"
@@ -160,29 +161,19 @@ namespace pw8::plugin::ui
         OscWireframeHost oscWireframeHost_; // Engine-specific wireframe previews (always visible).
         // Engine Type 3 (FM/PM) only -- same "always constructed, visibility
         // toggled" pattern as the Wavetable-only knobs above.
-        std::unique_ptr<GlowKnob> fmModRatioKnob_;
-        std::unique_ptr<GlowKnob> fmModIndexKnob_;
-        std::unique_ptr<GlowKnob> fmModFeedbackKnob_;
+        std::unique_ptr<TripleGlowKnob> fmModTripleKnob_;
         std::unique_ptr<GlowKnob> fmModWaveformKnob_;
-        std::unique_ptr<GlowKnob> noiseVariantKnob_; // Only visible for the NoiseChaos engine.
-        std::unique_ptr<GlowKnob> noiseRateKnob_;    // Only visible for the NoiseChaos engine.
-        std::unique_ptr<GlowKnob> phaseBendKnob_;       // Only visible for the PhaseShape engine.
-        std::unique_ptr<GlowKnob> phaseFoldKnob_;       // Only visible for the PhaseShape engine.
-        std::unique_ptr<GlowKnob> phaseAsymmetryKnob_;  // Only visible for the PhaseShape engine.
-        std::unique_ptr<GlowKnob> phaseShapeKnob_;      // Only visible for the PhaseShape engine.
-        std::unique_ptr<GlowKnob> additivePartialsKnob_; // Only visible for the Additive engine.
-        std::unique_ptr<GlowKnob> additiveTiltKnob_;     // Only visible for the Additive engine.
-        std::unique_ptr<GlowKnob> additiveOddEvenKnob_;  // Only visible for the Additive engine.
-        std::unique_ptr<GlowKnob> additiveStretchKnob_;  // Only visible for the Additive engine.
-        std::unique_ptr<GlowKnob> resonatorStructureKnob_;  // Only visible for the Resonator engine.
-        std::unique_ptr<GlowKnob> resonatorDecayKnob_;      // Only visible for the Resonator engine.
-        std::unique_ptr<GlowKnob> resonatorDampingKnob_;    // Only visible for the Resonator engine.
-        std::unique_ptr<GlowKnob> resonatorBrightnessKnob_; // Only visible for the Resonator engine.
-        std::unique_ptr<GlowKnob> resonatorModesKnob_;      // Only visible for the Resonator engine.
-        std::unique_ptr<GlowKnob> grainDensityKnob_;   // Only visible for the Granular engine.
-        std::unique_ptr<GlowKnob> grainSizeKnob_;      // Only visible for the Granular engine.
-        std::unique_ptr<GlowKnob> grainPosJitterKnob_; // Only visible for the Granular engine.
-        std::unique_ptr<GlowKnob> grainPitchJitterKnob_; // Only visible for the Granular engine.
+        std::unique_ptr<GlowKnob> noiseVariantKnob_;
+        std::unique_ptr<GlowKnob> noiseRateKnob_;
+        std::unique_ptr<TripleGlowKnob> phaseTripleKnob_;
+        std::unique_ptr<GlowKnob> phaseShapeKnob_;
+        std::unique_ptr<TripleGlowKnob> additiveTripleKnob_;
+        std::unique_ptr<GlowKnob> additiveStretchKnob_;
+        std::unique_ptr<TripleGlowKnob> resonatorTripleKnob_;
+        std::unique_ptr<GlowKnob> resonatorBrightnessKnob_;
+        std::unique_ptr<GlowKnob> resonatorModesKnob_;
+        std::unique_ptr<TripleGlowKnob> grainTripleKnob_;
+        std::unique_ptr<GlowKnob> grainPitchJitterKnob_;
         std::unique_ptr<ConcentricGlowKnob> wtWarpKnob_; // Wavetable: outer Bend + inner Asym.
         std::unique_ptr<ConcentricGlowKnob> wtSyncFormantKnob_; // Wavetable: outer Sync Amt + inner Formant.
 

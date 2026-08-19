@@ -6,6 +6,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 
 #include "WireframeCanvas.h"
+#include "../../visualizer/PreviewSurface.h"
 
 namespace pw8::plugin::ui
 {
@@ -33,6 +34,7 @@ namespace pw8::plugin::ui::wireframe
         std::function<void()> onUiPreferenceChanged;
         void setDesignModePill(const juce::String& pill);
         void paint(juce::Graphics& g) override;
+        void resized() override;
 
         void mouseDown(const juce::MouseEvent& event) override;
         void mouseDrag(const juce::MouseEvent& event) override;
@@ -64,6 +66,7 @@ namespace pw8::plugin::ui::wireframe
         void updateEqAnalyzerSpectrum();
         void paintEqAnalyzerSpectrum(juce::Graphics& g, juce::Rectangle<float> plot) const;
         void paintEqHandles(juce::Graphics& g, juce::Rectangle<float> plot) const;
+        void paintEqParamStrip(juce::Graphics& g, juce::Rectangle<float> strip) const;
 
         struct EqAnalyzerState;
         std::unique_ptr<EqAnalyzerState> eqAnalyzer_;
@@ -115,6 +118,14 @@ namespace pw8::plugin::ui::wireframe
         int vocoderBands_ = 16;
         float vocoderFormant_ = 0.5f;
         float vocoderSibilance_ = 0.0f;
+        float cloudsDensity_ = 0.35f;
+        float cloudsGrainSizeMs_ = 80.0f;
+        float cloudsPitch_ = 1.0f;
+        float cloudsFreeze_ = 0.0f;
+        int cloudsMode_ = 0;
+        mutable float cloudsAnimPhase_ = 0.0f;
+        float heroAnimPhase_ = 0.0f;
+        preview::PreviewSurface heroSurface_;
         juce::String designModePill_;
         int reverbCharacter_ = 0;
         int saturationCharacter_ = 0;
@@ -124,6 +135,7 @@ namespace pw8::plugin::ui::wireframe
         juce::Rectangle<float> eqPlotBounds_;
         mutable juce::Rectangle<float> eqAnalyzerToggleBounds_;
         mutable juce::Rectangle<float> limTruePeakToggleBounds_;
+        juce::Rectangle<int> plotBounds_;
 
         [[nodiscard]] float uiKnob(std::size_t index, float fallback = 0.5f) const;
         [[nodiscard]] float readParam(const char* suffix, float fallback = 0.0f) const;
@@ -141,6 +153,7 @@ namespace pw8::plugin::ui::wireframe
         void paintCompressorDynamics(juce::Graphics& g, juce::Rectangle<float> plot) const;
         void paintLimiterCeiling(juce::Graphics& g, juce::Rectangle<float> plot) const;
         void paintVocoderSpectrum(juce::Graphics& g, juce::Rectangle<float> plot) const;
+        void paintCloudsGranular(juce::Graphics& g, juce::Rectangle<float> plot) const;
         void paintBypassHero(juce::Graphics& g, juce::Rectangle<float> plot) const;
     };
 

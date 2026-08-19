@@ -33,7 +33,7 @@ namespace pw8::plugin::ui
           chrome_(chrome),
           nodeSelectorRow_(processor),
           liveTopologyStrip_(processor),
-          engineGridPanel_(processor),
+          engineGridPanel_(processor, modAssignmentController_),
           dashboardStrip_(processor, modAssignmentController_),
           vstBottomBar_(processor),
           engineDetailOverlay_(processor, modAssignmentController_),
@@ -41,6 +41,9 @@ namespace pw8::plugin::ui
           contextStrip_(processor),
           desktopScope_(processor),
           masterOutputDeck_(processor),
+          ipadPlayMasterStrip_(processor),
+          masterEnvelopePanel_(processor),
+          basicPerformanceSidebar_(processor),
           patchFocusPanel_(processor),
           compactEditor_(processor),
           operatorEditorPanel_(processor, modAssignmentController_),
@@ -53,7 +56,9 @@ namespace pw8::plugin::ui
           arpPanelOverlay_(processor),
           vocoderLabPanel_(processor),
           dualLfoLabPanel_(processor),
-          wavetableLabPanel_(processor)
+          masterMotionLabPanel_(processor),
+          masterQuasarPanel_(processor),
+          wavetableLabPanel_(processor, modAssignmentController_)
     {
         setLookAndFeel(&lookAndFeel_);
 
@@ -71,13 +76,16 @@ namespace pw8::plugin::ui
             filterLfoPanel_.repaintModAssignmentState();
         };
 
-        modLauncherPanel_.onOpenAdvanced = [this] { openModRoutingOverlay(); };
+        modLauncherPanel_.onOpenAdvanced = [this] { requestDesignSubPage(layout::DesignSubPage::ModMatrix); };
 
         addChildComponent(modRoutingOverlay_);
         modRoutingOverlay_.onClosed = [this] { closeModRoutingOverlay(); };
 
         addChildComponent(arpPanelOverlay_);
-        arpPanelOverlay_.onClosed = [this] { closeArpPanel(); };
+        arpPanelOverlay_.onClosed = [this] {
+            closeArpPanel();
+            syncIpadFooterPill();
+        };
 
         addChildComponent(vocoderLabPanel_);
         vocoderLabPanel_.onClosed = [this] { closeVocoderLab(); };
@@ -86,22 +94,50 @@ namespace pw8::plugin::ui
         dualLfoLabPanel_.onClosed = [this] { closeDualLfoLab(); };
         dualLfoLabPanel_.onOpenModMatrix = [this] {
             closeDualLfoLab();
-            openModRoutingOverlay();
+            requestDesignSubPage(layout::DesignSubPage::ModMatrix);
+        };
+
+        addChildComponent(masterMotionLabPanel_);
+        masterMotionLabPanel_.onClosed = [this] { closeMasterMotionLab(); };
+        masterMotionLabPanel_.onOpenModMatrix = [this] {
+            closeMasterMotionLab();
+            requestDesignSubPage(layout::DesignSubPage::ModMatrix);
+        };
+        masterMotionLabPanel_.onOpenMorphEditor = [this] {
+            closeMasterMotionLab();
+            requestDesignSubPage(layout::DesignSubPage::Morph);
+        };
+        masterMotionLabPanel_.onOpenEnvelopeSegments = [this] {
+            closeMasterMotionLab();
+            requestDesignSubPage(layout::DesignSubPage::EnvelopeSegments);
+        };
+
+        addChildComponent(masterQuasarPanel_);
+        masterQuasarPanel_.onClosed = [this] { closeMasterQuasarLab(); };
+        masterQuasarPanel_.onOpenFxChain = [this] {
+            closeMasterQuasarLab();
+            requestDesignSubPage(layout::DesignSubPage::Fx);
         };
 
         addChildComponent(wavetableLabPanel_);
         wavetableLabPanel_.onClosed = [this] { closeWavetableLab(); };
 
-        dashboardStrip_.onVocoderLabRequested = [this](std::size_t slotIndex) { openVocoderLab(slotIndex); };
-        dashboardStrip_.onLfoLabRequested = [this] { openDualLfoLab(); };
+        dashboardStrip_.onVocoderLabRequested = [this](std::size_t) {
+            requestDesignSubPage(layout::DesignSubPage::Vocoder);
+        };
+        dashboardStrip_.onLfoLabRequested = [this] { requestDesignSubPage(layout::DesignSubPage::DualLfo); };
+        fxChainStrip_.onQuasarLabRequested = [this](std::size_t slotIndex) {
+            openMasterQuasarLab(slotIndex >= 3 ? slotIndex : preferredQuasarFxSlotIndex());
+        };
 
-        vstBottomBar_.onVocoderLabRequested = [this] { openVocoderLab(preferredVocoderFxSlotIndex()); };
-        vstBottomBar_.onLfoLabRequested = [this] { openDualLfoLab(); };
-        vstBottomBar_.onModMatrixRequested = [this] { openModRoutingOverlay(); };
+        vstBottomBar_.onVocoderLabRequested = [this] { requestDesignSubPage(layout::DesignSubPage::Vocoder); };
+        vstBottomBar_.onQuasarLabRequested = [this] { openMasterQuasarLab(preferredQuasarFxSlotIndex()); };
+        vstBottomBar_.onLfoLabRequested = [this] { requestDesignSubPage(layout::DesignSubPage::DualLfo); };
+        vstBottomBar_.onMotionLabRequested = [this] { requestDesignSubPage(layout::DesignSubPage::Morph); };
+        vstBottomBar_.onModMatrixRequested = [this] { requestDesignSubPage(layout::DesignSubPage::ModMatrix); };
+        vstBottomBar_.onIpadFooterPillSelected = [this](layout::IpadFooterPill pill) { handleIpadFooterPill(pill); };
 
         addChildComponent(compactEditor_);
-        compactEditor_.setPresetIndex(&chrome_.patchBrowserBar.getPresetIndex());
-        compactEditor_.setFavoritesStore(&chrome_.favoritesStore);
 
         addChildComponent(topologyGraphOverlay_);
         topologyGraphOverlay_.onDismissed = [this] { closeGraphOverlay(); };
@@ -109,10 +145,13 @@ namespace pw8::plugin::ui
 
         advancedGridPage_.addAndMakeVisible(engineGridPanel_);
         advancedGridPage_.addAndMakeVisible(dashboardStrip_);
-        advancedGridPage_.addAndMakeVisible(vstBottomBar_);
+        addAndMakeVisible(vstBottomBar_);
         addChildComponent(advancedGridPage_);
         vstBottomBar_.setVisible(false);
-        engineGridPanel_.onEngineDoubleClicked = [this](int engine) { openEngineDetail(engine); };
+        engineGridPanel_.onEngineDoubleClicked = [this](int engine) {
+            requestDesignSubPage(layout::DesignSubPage::Engine);
+            juce::ignoreUnused(engine);
+        };
 
         addChildComponent(engineDetailOverlay_);
         engineDetailOverlay_.onClosed = [this] { closeEngineDetail(); };
@@ -122,6 +161,15 @@ namespace pw8::plugin::ui
 
         addAndMakeVisible(masterOutputDeck_);
         masterOutputDeck_.setVisible(false);
+
+        addAndMakeVisible(ipadPlayMasterStrip_);
+        ipadPlayMasterStrip_.setVisible(false);
+
+        addAndMakeVisible(masterEnvelopePanel_);
+        masterEnvelopePanel_.setVisible(false);
+
+        addAndMakeVisible(basicPerformanceSidebar_);
+        basicPerformanceSidebar_.setVisible(false);
 
         addAndMakeVisible(liveTopologyStrip_);
         liveTopologyStrip_.onExpandRequested = [this] { openGraphOverlay(); };
@@ -138,6 +186,7 @@ namespace pw8::plugin::ui
         addChildComponent(contextStrip_);
 
         addAndMakeVisible(patchFocusPanel_);
+        patchFocusPanel_.onAdvancedClicked = [this] { requestDesignSubPage(layout::DesignSubPage::ModMatrix); };
 
         for (std::size_t i = 0; i < tabButtons_.size(); ++i)
         {
@@ -148,9 +197,27 @@ namespace pw8::plugin::ui
             btn.setColour(juce::TextButton::buttonOnColourId, branding::glowColour().withAlpha(0.28f));
             btn.setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
             btn.setColour(juce::TextButton::textColourOnId, palette::kTextPrimary);
-            btn.onClick = [this, page = static_cast<Page>(i)] { showPage(page); };
+            btn.onClick = [this, page = static_cast<Page>(i)] {
+                juce::ignoreUnused(page);
+                requestDesignSubPage(layout::DesignSubPage::Engine);
+            };
             addChildComponent(btn);
         }
+
+        boardTabButton_.setClickingTogglesState(true);
+        boardTabButton_.setRadioGroupId(9001);
+        boardTabButton_.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
+        boardTabButton_.setColour(juce::TextButton::buttonOnColourId, branding::glowColour().withAlpha(0.28f));
+        boardTabButton_.setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
+        boardTabButton_.setColour(juce::TextButton::textColourOnId, palette::kTextPrimary);
+        boardTabButton_.onClick = [this] { requestDesignSubPage(layout::DesignSubPage::Engine); };
+        addChildComponent(boardTabButton_);
+
+        motionTabButton_.setClickingTogglesState(false);
+        motionTabButton_.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
+        motionTabButton_.setColour(juce::TextButton::textColourOffId, palette::kAccent);
+        motionTabButton_.onClick = [this] { requestDesignSubPage(layout::DesignSubPage::Morph); };
+        addChildComponent(motionTabButton_);
 
         addChildComponent(oscPage_);
         addChildComponent(filterPage_);
@@ -172,7 +239,16 @@ namespace pw8::plugin::ui
 
     void PlayModeEditor::setPlayViewMode(layout::PlayViewMode mode)
     {
-        if (viewMode_ == mode || settingPlayViewMode_)
+        if (mode == layout::PlayViewMode::Advanced)
+        {
+            requestDesignSubPage(layout::DesignSubPage::Engine);
+            return;
+        }
+
+        if (settingPlayViewMode_)
+            return;
+
+        if (viewMode_ == mode && playViewLayoutApplied_)
             return;
 
         const juce::ScopedValueSetter<bool> guard(settingPlayViewMode_, true);
@@ -181,31 +257,40 @@ namespace pw8::plugin::ui
             closeArpPanel();
 
         viewMode_ = mode;
+        playViewLayoutApplied_ = true;
 
         const bool compact = mode == layout::PlayViewMode::Compact;
         const bool advanced = mode == layout::PlayViewMode::Advanced;
-        const bool basic = mode == layout::PlayViewMode::Basic;
+        const bool desktopPlay = layout::isDesktopPlayLayout(mode);
 
         compactEditor_.setVisible(compact);
         if (compact)
-        {
-            compactEditor_.setBrowseFilter(chrome_.patchBrowserBar.browseFilter());
             compactEditor_.setBounds(getLocalBounds());
-        }
 
         nodeSelectorRow_.setVisible(false);
         liveTopologyStrip_.setVisible(false);
         contextStrip_.setVisible(false);
         advancedGridPage_.setVisible(advanced);
-        desktopScope_.setVisible(basic);
-        desktopScope_.setDesktopPlayModeLayout(basic);
-        desktopScope_.setIpadPlayLayout(basic);
-        masterOutputDeck_.setVisible(basic);
-        vstBottomBar_.setVisible(advanced || basic);
+        desktopScope_.setVisible(desktopPlay);
+        desktopScope_.setDesktopPlayModeLayout(desktopPlay);
+        desktopScope_.setIpadPlayLayout(false);
+        masterOutputDeck_.setVisible(false);
+        ipadPlayMasterStrip_.setVisible(false);
+        masterEnvelopePanel_.setVisible(false);
+        masterEnvelopePanel_.setCompactSectionMode(false);
+        basicPerformanceSidebar_.setVisible(false);
+        if (desktopPlay)
+        {
+            masterEnvelopePanel_.setCompactSectionMode(true);
+            masterEnvelopePanel_.setVisible(true);
+        }
+        vstBottomBar_.setVisible(advanced || desktopPlay);
         vstBottomBar_.setPlayBoardMode(advanced);
-        vstBottomBar_.setDesktopPlayMode(basic);
-        patchFocusPanel_.setDesktopPlayModeLayout(basic);
-        patchFocusPanel_.setIpadPlayLayout(basic);
+        vstBottomBar_.setDesktopPlayMode(desktopPlay);
+        vstBottomBar_.setIpadPlayMode(false);
+        vstBottomBar_.setMurmurBasicViewMode(false);
+        patchFocusPanel_.setDesktopPlayModeLayout(desktopPlay);
+        patchFocusPanel_.setIpadPlayLayout(false);
 
         if (!advanced)
         {
@@ -213,16 +298,19 @@ namespace pw8::plugin::ui
             closeEngineDetail();
             closeVocoderLab();
             closeDualLfoLab();
+            closeMasterMotionLab();
             closeWavetableLab();
         }
 
+        boardTabButton_.setVisible(advanced);
+        motionTabButton_.setVisible(advanced);
         for (auto& btn : tabButtons_)
-            btn.setVisible(false);
+            btn.setVisible(advanced);
 
-        patchFocusPanel_.setBasicPerformanceLayout(basic);
-        patchFocusPanel_.setVisible(basic);
+        patchFocusPanel_.setBasicPerformanceLayout(desktopPlay);
+        patchFocusPanel_.setVisible(desktopPlay);
 
-        if (compact || basic)
+        if (compact || desktopPlay)
         {
             closeModRoutingOverlay();
             modAssignmentController_.disarm();
@@ -238,19 +326,76 @@ namespace pw8::plugin::ui
         {
             closeModRoutingOverlay();
             modAssignmentController_.disarm();
-            oscPage_.setVisible(false);
-            filterPage_.setVisible(false);
-            envPage_.setVisible(false);
-            modPage_.setVisible(false);
-            fxPage_.setVisible(false);
-            globalPage_.setVisible(false);
-            modAssignmentBanner_.setVisible(false);
+            advancedSubview_ = AdvancedSubview::Board;
+            nodeSelectorRow_.setVisible(false);
+            contextStrip_.setVisible(false);
+            liveTopologyStrip_.setVisible(false);
+            showBoard();
         }
 
         if (onLayoutOrViewModeChanged)
             onLayoutOrViewModeChanged();
         else
             resized();
+
+        syncIpadFooterPill();
+    }
+
+    void PlayModeEditor::syncIpadFooterPill()
+    {
+        if (viewMode_ != layout::PlayViewMode::Basic)
+            return;
+
+        if (arpPanelOverlay_.isVisible())
+            vstBottomBar_.setIpadFooterPillActive(layout::IpadFooterPill::Arp);
+        else
+            vstBottomBar_.setIpadFooterPillActive(layout::IpadFooterPill::Play);
+    }
+
+    void PlayModeEditor::requestDesignSubPage(layout::DesignSubPage page)
+    {
+        closeModRoutingOverlay();
+        closeVocoderLab();
+        closeDualLfoLab();
+        closeMasterMotionLab();
+        closeMasterQuasarLab();
+        closeWavetableLab();
+        closeEngineDetail();
+        closeGraphOverlay();
+        modAssignmentController_.disarm();
+
+        if (onEditorModeChangeRequested)
+            onEditorModeChangeRequested(layout::EditorMode::Design);
+        if (onDesignSubPageChangeRequested)
+            onDesignSubPageChangeRequested(page);
+    }
+
+    void PlayModeEditor::handleIpadFooterPill(layout::IpadFooterPill pill)
+    {
+        switch (pill)
+        {
+            case layout::IpadFooterPill::Play:
+                closeArpPanel();
+                if (onEditorModeChangeRequested)
+                    onEditorModeChangeRequested(layout::EditorMode::Play);
+                syncIpadFooterPill();
+                break;
+            case layout::IpadFooterPill::Design:
+                requestDesignSubPage(layout::DesignSubPage::Engine);
+                break;
+            case layout::IpadFooterPill::Voc:
+                requestDesignSubPage(layout::DesignSubPage::Vocoder);
+                break;
+            case layout::IpadFooterPill::Arp:
+                if (onEditorModeChangeRequested)
+                    onEditorModeChangeRequested(layout::EditorMode::Play);
+                openArpPanel();
+                vstBottomBar_.setIpadFooterPillActive(layout::IpadFooterPill::Arp);
+                break;
+            case layout::IpadFooterPill::Lfo:
+                requestDesignSubPage(layout::DesignSubPage::DualLfo);
+                break;
+        }
     }
 
     void PlayModeEditor::openArpDrawer() { openArpPanel(); }
@@ -261,6 +406,7 @@ namespace pw8::plugin::ui
         if (viewMode_ == layout::PlayViewMode::Advanced)
             liveTopologyStrip_.repaint();
         patchFocusPanel_.refreshFromPatch();
+        basicPerformanceSidebar_.refreshFromPatch();
         compactEditor_.refreshFromPatch();
     }
 
@@ -293,7 +439,7 @@ namespace pw8::plugin::ui
 
     void PlayModeEditor::setBrowseFilter(const content::PresetMetadataFilter& filter)
     {
-        compactEditor_.setBrowseFilter(filter);
+        juce::ignoreUnused(filter);
     }
 
     bool PlayModeEditor::isCompactView() const noexcept { return viewMode_ == layout::PlayViewMode::Compact; }
@@ -305,6 +451,9 @@ namespace pw8::plugin::ui
 
         if (dualLfoLabPanel_.isVisible())
             return dualLfoLabPanel_.keyPressed(key);
+
+        if (masterMotionLabPanel_.isVisible())
+            return masterMotionLabPanel_.keyPressed(key);
 
         if (wavetableLabPanel_.isVisible())
             return wavetableLabPanel_.keyPressed(key);
@@ -327,27 +476,27 @@ namespace pw8::plugin::ui
             return true;
         }
 
-        if (viewMode_ == layout::PlayViewMode::Advanced && key == juce::KeyPress('m', juce::ModifierKeys::noModifiers, 0))
+        if (key == juce::KeyPress('m', juce::ModifierKeys::noModifiers, 0))
         {
-            openModRoutingOverlay();
+            requestDesignSubPage(layout::DesignSubPage::ModMatrix);
             return true;
         }
 
-        if (viewMode_ == layout::PlayViewMode::Advanced && key == juce::KeyPress('v', juce::ModifierKeys::noModifiers, 0))
+        if (key == juce::KeyPress('v', juce::ModifierKeys::noModifiers, 0))
         {
-            openVocoderLab(preferredVocoderFxSlotIndex());
+            requestDesignSubPage(layout::DesignSubPage::Vocoder);
             return true;
         }
 
-        if (viewMode_ == layout::PlayViewMode::Advanced && key == juce::KeyPress('l', juce::ModifierKeys::noModifiers, 0))
+        if (key == juce::KeyPress('l', juce::ModifierKeys::noModifiers, 0))
         {
-            openDualLfoLab();
+            requestDesignSubPage(layout::DesignSubPage::DualLfo);
             return true;
         }
 
-        if (viewMode_ == layout::PlayViewMode::Advanced && key == juce::KeyPress('t', juce::ModifierKeys::noModifiers, 0))
+        if (key == juce::KeyPress('t', juce::ModifierKeys::noModifiers, 0))
         {
-            openWavetableLab(nodeSelectorRow_.getSelectedNode());
+            requestDesignSubPage(layout::DesignSubPage::Wavetable);
             return true;
         }
 
@@ -383,6 +532,17 @@ namespace pw8::plugin::ui
         return 2;
     }
 
+    std::size_t PlayModeEditor::preferredQuasarFxSlotIndex() const
+    {
+        auto& apvts = processor_.apvts;
+        for (std::size_t i = 3; i < 7; ++i)
+        {
+            if (readFxType(apvts, fxSlotParamPrefix(i)) == 13)
+                return i;
+        }
+        return 5;
+    }
+
     void PlayModeEditor::openVocoderLab(std::size_t fxSlotIndex)
     {
         if (viewMode_ != layout::PlayViewMode::Advanced)
@@ -391,17 +551,21 @@ namespace pw8::plugin::ui
         closeDualLfoLab();
         closeEngineDetail();
         closeGraphOverlay();
+        closeMasterQuasarLab();
 
         addAndMakeVisible(vocoderLabPanel_);
         vocoderLabPanel_.setBounds(getLocalBounds());
         vocoderLabPanel_.showForFxSlot(fxSlotIndex);
         vocoderLabPanel_.toFront(false);
+        playLabOverlay_ = layout::PlayLabOverlay::Vocoder;
     }
 
     void PlayModeEditor::closeVocoderLab()
     {
         vocoderLabPanel_.dismiss();
         removeChildComponent(&vocoderLabPanel_);
+        if (playLabOverlay_ == layout::PlayLabOverlay::Vocoder)
+            playLabOverlay_ = layout::PlayLabOverlay::None;
     }
 
     void PlayModeEditor::openDualLfoLab()
@@ -423,6 +587,57 @@ namespace pw8::plugin::ui
     {
         dualLfoLabPanel_.dismiss();
         removeChildComponent(&dualLfoLabPanel_);
+    }
+
+    void PlayModeEditor::openMasterMotionLab()
+    {
+        if (viewMode_ != layout::PlayViewMode::Advanced && viewMode_ != layout::PlayViewMode::Basic)
+            return;
+
+        closeVocoderLab();
+        closeDualLfoLab();
+        closeEngineDetail();
+        closeGraphOverlay();
+        closeWavetableLab();
+        closeMasterQuasarLab();
+
+        addAndMakeVisible(masterMotionLabPanel_);
+        masterMotionLabPanel_.setBounds(getLocalBounds());
+        masterMotionLabPanel_.showOverlay();
+        masterMotionLabPanel_.toFront(false);
+    }
+
+    void PlayModeEditor::closeMasterMotionLab()
+    {
+        masterMotionLabPanel_.dismiss();
+        removeChildComponent(&masterMotionLabPanel_);
+    }
+
+    void PlayModeEditor::openMasterQuasarLab(std::size_t fxSlotIndex)
+    {
+        if (viewMode_ != layout::PlayViewMode::Advanced)
+            return;
+
+        closeVocoderLab();
+        closeDualLfoLab();
+        closeEngineDetail();
+        closeGraphOverlay();
+        closeMasterMotionLab();
+        closeWavetableLab();
+
+        addAndMakeVisible(masterQuasarPanel_);
+        masterQuasarPanel_.setBounds(getLocalBounds());
+        masterQuasarPanel_.showForFxSlot(fxSlotIndex);
+        masterQuasarPanel_.toFront(false);
+        playLabOverlay_ = layout::PlayLabOverlay::Quasar;
+    }
+
+    void PlayModeEditor::closeMasterQuasarLab()
+    {
+        masterQuasarPanel_.dismiss();
+        removeChildComponent(&masterQuasarPanel_);
+        if (playLabOverlay_ == layout::PlayLabOverlay::Quasar)
+            playLabOverlay_ = layout::PlayLabOverlay::None;
     }
 
     void PlayModeEditor::openWavetableLab(int engineIndex)
@@ -465,6 +680,8 @@ namespace pw8::plugin::ui
         addAndMakeVisible(arpPanelOverlay_);
         arpPanelOverlay_.setBounds(getLocalBounds());
         arpPanelOverlay_.showDrawer();
+        if (viewMode_ == layout::PlayViewMode::Basic)
+            vstBottomBar_.setIpadFooterPillActive(layout::IpadFooterPill::Arp);
     }
 
     void PlayModeEditor::closeArpPanel()
@@ -526,6 +743,49 @@ namespace pw8::plugin::ui
         resized();
     }
 
+    void PlayModeEditor::showBoard()
+    {
+        if (viewMode_ != layout::PlayViewMode::Advanced)
+            return;
+
+        advancedSubview_ = AdvancedSubview::Board;
+        advancedGridPage_.setVisible(true);
+        nodeSelectorRow_.setVisible(false);
+        contextStrip_.setVisible(false);
+        liveTopologyStrip_.setVisible(false);
+
+        oscPage_.setVisible(false);
+        filterPage_.setVisible(false);
+        envPage_.setVisible(false);
+        modPage_.setVisible(false);
+        fxPage_.setVisible(false);
+        globalPage_.setVisible(false);
+
+        boardTabButton_.setToggleState(true, juce::dontSendNotification);
+        for (auto& btn : tabButtons_)
+            btn.setToggleState(false, juce::dontSendNotification);
+
+        resized();
+    }
+
+    void PlayModeEditor::layoutAdvancedTabRow(juce::Rectangle<int> tabRow)
+    {
+        const int motionW = 64;
+        motionTabButton_.setBounds(tabRow.removeFromRight(motionW));
+        tabRow.removeFromRight(4);
+
+        const int boardW = 56;
+        boardTabButton_.setBounds(tabRow.removeFromLeft(boardW));
+        tabRow.removeFromLeft(4);
+
+        const int tabW = juce::jmax(44, tabRow.getWidth() / static_cast<int>(tabButtons_.size()));
+        for (auto& btn : tabButtons_)
+        {
+            btn.setBounds(tabRow.removeFromLeft(tabW).reduced(0, 2));
+            tabRow.removeFromLeft(2);
+        }
+    }
+
     void PlayModeEditor::showPage(Page page)
     {
         if (viewMode_ != layout::PlayViewMode::Advanced)
@@ -533,6 +793,12 @@ namespace pw8::plugin::ui
 
         if (nodeSelectorRow_.isGlobalScope() && page == Page::Osc)
             page = Page::Filter;
+
+        advancedSubview_ = AdvancedSubview::Paged;
+        advancedGridPage_.setVisible(false);
+        nodeSelectorRow_.setVisible(true);
+        contextStrip_.setVisible(true);
+        liveTopologyStrip_.setVisible(false);
 
         currentPage_ = page;
         oscPage_.setVisible(page == Page::Osc);
@@ -542,13 +808,20 @@ namespace pw8::plugin::ui
         fxPage_.setVisible(page == Page::Fx);
         globalPage_.setVisible(page == Page::Global);
 
+        boardTabButton_.setToggleState(false, juce::dontSendNotification);
         for (std::size_t i = 0; i < tabButtons_.size(); ++i)
             tabButtons_[i].setToggleState(static_cast<Page>(i) == page, juce::dontSendNotification);
 
         if (page == Page::Filter)
             refreshFilterPanelScope();
 
+        updateScopeUi();
         resized();
+    }
+
+    void PlayModeEditor::openFilterPage()
+    {
+        requestDesignSubPage(layout::DesignSubPage::FilterLab);
     }
 
     void PlayModeEditor::paint(juce::Graphics& g)
@@ -598,20 +871,32 @@ namespace pw8::plugin::ui
         }
 
         const bool advanced = viewMode_ == layout::PlayViewMode::Advanced;
-        const bool basic = viewMode_ == layout::PlayViewMode::Basic;
+        const bool desktopPlay = layout::isDesktopPlayLayout(viewMode_);
 
-        if (basic)
+        if (desktopPlay)
         {
-            auto upperDeck = bounds.removeFromTop(layout::kIpadPlayUpperDeckHeight);
-            auto masterDeck = upperDeck.removeFromRight(layout::kIpadPlayMasterDeckWidth);
-            upperDeck.removeFromRight(layout::kIpadPlayUpperDeckGap);
-            desktopScope_.setBounds(upperDeck);
-            masterOutputDeck_.setBounds(masterDeck);
+            auto body = bounds.reduced(layout::kDesktopPlayModeOuterMargin, 0);
 
-            bounds.removeFromTop(layout::kDesktopPlayModeSectionGap);
-            patchFocusPanel_.setBounds(bounds.removeFromTop(layout::kIpadPlayMacrosDeckHeight));
-            bounds.removeFromTop(layout::kDesktopPlayModeSectionGap);
-            vstBottomBar_.setBounds(bounds.removeFromTop(layout::kDesktopPlayModeBottomBarHeight));
+            vstBottomBar_.setBounds(body.removeFromBottom(layout::kDesktopPlayModeBottomBarHeight));
+            body.removeFromBottom(layout::kDesktopPlayModeSectionGap);
+
+            const int macroMin = layout::kDesktopPlayModePerformanceDeckHeight;
+            const int envelopeMin = layout::kDesktopPlayModeMasterEnvelopePlayHeight;
+            const int scopeMin = layout::kDesktopPlayModeOscilloscopeHeight;
+            const int gapCount = 3;
+            const int fixedGaps = layout::kDesktopPlayModeSectionGap * gapCount;
+            const int minStack = scopeMin + envelopeMin + macroMin;
+            const int flexExtra = juce::jmax(0, body.getHeight() - minStack - fixedGaps);
+
+            const int scopeH = scopeMin + flexExtra;
+
+            desktopScope_.setBounds(body.removeFromTop(scopeH));
+            body.removeFromTop(layout::kDesktopPlayModeSectionGap);
+
+            masterEnvelopePanel_.setBounds(body.removeFromTop(envelopeMin));
+            body.removeFromTop(layout::kDesktopPlayModeSectionGap);
+
+            patchFocusPanel_.setBounds(body);
         }
         else if (advanced)
         {
@@ -621,25 +906,59 @@ namespace pw8::plugin::ui
                 bounds.removeFromTop(layout::kSectionGap);
             }
 
-            advancedGridPage_.setBounds(bounds);
-            auto gridBounds = advancedGridPage_.getLocalBounds();
-            vstBottomBar_.setBounds(gridBounds.removeFromBottom(layout::kVstBottomBarHeight));
-            gridBounds.removeFromBottom(layout::kSectionGap);
-            dashboardStrip_.setBounds(gridBounds.removeFromBottom(layout::kDashboardStripHeight));
-            gridBounds.removeFromBottom(layout::kSectionGap);
-            engineGridPanel_.setBounds(gridBounds);
+            if (advancedSubview_ == AdvancedSubview::Paged)
+            {
+                auto tabRow = bounds.removeFromTop(layout::kTabRowHeight);
+                layoutAdvancedTabRow(tabRow);
+                bounds.removeFromTop(layout::kSectionGap);
+
+                nodeSelectorRow_.setBounds(bounds.removeFromTop(36));
+                bounds.removeFromTop(4);
+                contextStrip_.setBounds(bounds.removeFromTop(layout::kContextRowHeight));
+                bounds.removeFromTop(layout::kSectionGap);
+            }
+            else
+            {
+                auto tabRow = bounds.removeFromTop(layout::kTabRowHeight);
+                layoutAdvancedTabRow(tabRow);
+                bounds.removeFromTop(layout::kSectionGap);
+            }
+
+            vstBottomBar_.setBounds(bounds.removeFromBottom(layout::kVstBottomBarHeight));
+            bounds.removeFromBottom(layout::kSectionGap);
+
+            if (advancedSubview_ == AdvancedSubview::Board)
+            {
+                advancedGridPage_.setBounds(bounds);
+                auto gridBounds = advancedGridPage_.getLocalBounds();
+                dashboardStrip_.setBounds(gridBounds.removeFromBottom(layout::kDashboardStripHeight));
+                gridBounds.removeFromBottom(layout::kSectionGap);
+                engineGridPanel_.setBounds(gridBounds);
+            }
         }
 
         if (advanced)
         {
-            oscPage_.setBounds(bounds);
-            filterPage_.setBounds(bounds);
-            envPage_.setBounds(bounds);
-            modPage_.setBounds(bounds);
-            fxPage_.setBounds(bounds);
-            globalPage_.setBounds(bounds);
+            if (advancedSubview_ == AdvancedSubview::Paged)
+            {
+                oscPage_.setBounds(bounds);
+                filterPage_.setBounds(bounds);
+                envPage_.setBounds(bounds);
+                modPage_.setBounds(bounds);
+                fxPage_.setBounds(bounds);
+                globalPage_.setBounds(bounds);
+            }
+            else
+            {
+                oscPage_.setBounds(0, 0, 0, 0);
+                filterPage_.setBounds(0, 0, 0, 0);
+                envPage_.setBounds(0, 0, 0, 0);
+                modPage_.setBounds(0, 0, 0, 0);
+                fxPage_.setBounds(0, 0, 0, 0);
+                globalPage_.setBounds(0, 0, 0, 0);
+            }
         }
-        else if (!basic)
+        else if (!desktopPlay)
         {
             patchFocusPanel_.setBounds(bounds);
             oscPage_.setBounds(0, 0, 0, 0);
@@ -664,6 +983,8 @@ namespace pw8::plugin::ui
         engineDetailOverlay_.setBounds(getLocalBounds());
         vocoderLabPanel_.setBounds(getLocalBounds());
         dualLfoLabPanel_.setBounds(getLocalBounds());
+        masterMotionLabPanel_.setBounds(getLocalBounds());
+        masterQuasarPanel_.setBounds(getLocalBounds());
         wavetableLabPanel_.setBounds(getLocalBounds());
     }
 

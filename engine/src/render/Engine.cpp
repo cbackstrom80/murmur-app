@@ -6,6 +6,8 @@
 #include "pw8/dsp/Math.hpp"
 #include "pw8/dsp/Random.hpp"
 #include "pw8/modulation/ModMatrixExecutor.hpp"
+#include "pw8/modulation/MorphKoinExecutor.hpp"
+#include "pw8/effects/QuasarSpatialMacros.hpp"
 #include "pw8/oscillator/WavetableTableLoader.hpp"
 
 #include <cmath>
@@ -35,12 +37,14 @@ namespace pw8::render
         void assignVoicePerformanceSnapshot(voice::Voice& voice, const patch::Patch& patch, std::uint64_t voiceSeed,
                                             std::uint64_t noteGenerationId) noexcept
         {
+            const float defaultMorph = patch.morphKoin.keyframes.size() >= 2 ? patch.morphKoin.position
+                                                                             : patch.morphKoin.defaultPosition;
+
             if (!patch.voiceSettings.macroDissemination)
             {
                 for (std::size_t i = 0; i < voice.macroValues.size(); ++i)
                     voice.macroValues[i] = patch.macros[i].value;
-                voice.morphPosition = patch.morphKoin.keyframes.size() >= 2 ? patch.morphKoin.position
-                                                                            : patch.morphKoin.defaultPosition;
+                voice.morphPosition = defaultMorph;
                 return;
             }
 
@@ -61,14 +65,14 @@ namespace pw8::render
                     voice.macroValues[i] = base;
             }
 
-            if (patch.morphKoin.keyframes.size() >= 2)
+            if (patch.voiceSettings.morphDissemination && patch.morphKoin.keyframes.size() >= 2)
             {
                 const float baseMorph = patch.morphKoin.position;
                 const float morphOffset = spread > 0.0f ? (rng.nextFloat() * 2.0f - 1.0f) * spread * 0.35f : 0.0f;
                 voice.morphPosition = dsp::clamp(baseMorph + morphOffset, 0.0f, 1.0f);
             }
             else
-                voice.morphPosition = patch.morphKoin.defaultPosition;
+                voice.morphPosition = defaultMorph;
         }
 
         float layerOutputGain(const patch::LayerPatch& layer, float masterGain) noexcept
@@ -76,6 +80,22 @@ namespace pw8::render
             const int unisonVoices = effectiveUnisonVoices(layer.unison);
             const float gainScale = layer.unison.blend / static_cast<float>(unisonVoices);
             return layer.gain * masterGain * gainScale;
+        }
+
+        patch::UnisonSettings applyUnisonModOffsets(const patch::UnisonSettings& base,
+                                                      const modulation::ModOutputs& mod) noexcept
+        {
+            patch::UnisonSettings out = base;
+            const int modulatedVoices = static_cast<int>(std::lround(static_cast<float>(out.voices) +
+                                                                     mod.unisonVoicesOffset));
+            out.voices = modulatedVoices;
+            if (out.voices < 1)
+                out.voices = 1;
+            if (out.voices > static_cast<int>(core::kMaxUnisonVoices))
+                out.voices = static_cast<int>(core::kMaxUnisonVoices);
+            out.detuneCents = dsp::clamp(out.detuneCents + mod.unisonDetuneOffset, 0.0f, 100.0f);
+            out.spread = dsp::clamp(out.spread + mod.unisonSpreadOffset, 0.0f, 1.0f);
+            return out;
         }
 
         /// Voice-bus summation sub-block size (Sprint 4 prototype). Per-voice FM/sync
@@ -106,16 +126,18 @@ namespace pw8::render
             panOut = norm * uni.spread;
         }
 
-        modulation::ModSourceValues buildMasterBusModSources(const patch::Patch& patch,
-                                                             const std::array<float, core::kNumLfosPerLayer>& layerLfoValues,
-                                                             float modWheel, float expression,
-                                                             float sidechain) noexcept
+        modulation::ModSourceValues buildMasterBusModSources(
+            const patch::Patch& patch, const std::array<float, core::kNumLfosPerLayer>& layerLfoValues, float modWheel,
+            float expression, float sidechain, const modulation::GenerativeOutputValues& generative) noexcept
         {
             modulation::ModSourceValues sources;
             sources.layerLfos = layerLfoValues;
             sources.modWheel = modWheel;
             sources.expression = expression;
             sources.sidechain = sidechain;
+            sources.randomT = generative.randomT;
+            sources.randomX = generative.randomX;
+            sources.randomOutputs = generative.outputs;
             for (std::size_t i = 0; i < sources.macros.size() && i < patch.macros.size(); ++i)
                 sources.macros[i] = patch.macros[i].value;
             return sources;
@@ -146,6 +168,46 @@ namespace pw8::render
                 {
                     e.compThresholdDb = dsp::clamp(e.compThresholdDb + mod.compThresholdOffset[i], -60.0f, 0.0f);
                 }
+                else if (e.type == effects::EffectType::BinauralSpace)
+                {
+                    e.qsr1AngleDeg = effects::wrapDegrees360(e.qsr1AngleDeg + mod.quasarQsr1AngleOffset[i]);
+                    e.qsr2AngleDeg = effects::wrapDegrees360(e.qsr2AngleDeg + mod.quasarQsr2AngleOffset[i]);
+                    e.qsr1RoomAmount = dsp::clamp(e.qsr1RoomAmount + mod.quasarRoomAmountOffset[i], 0.0f, 1.0f);
+                    e.quasarCrossfeed = dsp::clamp(e.quasarCrossfeed + mod.quasarCrossfeedOffset[i], 0.0f, 1.0f);
+                    e.quasarDelayVolume = dsp::clamp(e.quasarDelayVolume + mod.quasarDelayVolumeOffset[i], 0.0f, 1.0f);
+                    e.qsr1Distance = dsp::clamp(e.qsr1Distance + mod.quasarQsr1DistanceOffset[i], 0.0f, 1.0f);
+                    e.qsr2Distance = dsp::clamp(e.qsr2Distance + mod.quasarQsr2DistanceOffset[i], 0.0f, 1.0f);
+                    e.quasarDelayTimeMs =
+                        dsp::clamp(e.quasarDelayTimeMs + mod.quasarDelayTimeOffset[i], 3.0f, 20000.0f);
+                    e.quasarDelayFeedback =
+                        dsp::clamp(e.quasarDelayFeedback + mod.quasarDelayFeedbackOffset[i], 0.0f, 0.95f);
+                    e.qsr1Height = dsp::clamp(e.qsr1Height + mod.quasarQsr1HeightOffset[i], -1.0f, 1.0f);
+                    e.qsr2Height = dsp::clamp(e.qsr2Height + mod.quasarQsr2HeightOffset[i], -1.0f, 1.0f);
+                    e.cntrLevel = dsp::clamp(e.cntrLevel + mod.quasarCntrLevelOffset[i], 0.0f, 1.0f);
+                    e.qsr1Level = dsp::clamp(e.qsr1Level + mod.quasarQsr1LevelOffset[i], 0.0f, 1.0f);
+                    e.qsr2Level = dsp::clamp(e.qsr2Level + mod.quasarQsr2LevelOffset[i], 0.0f, 1.0f);
+                }
+            }
+        }
+
+        void applyQuasarMacroKoinsToMasterEffects(std::array<effects::EffectSlotParams, effects::kNumMasterSlots>& slots,
+                                                  float orbitMacro, float spreadMacro) noexcept
+        {
+            const effects::QuasarMacroKoinValues macros{orbitMacro, spreadMacro};
+            for (auto& e : slots)
+            {
+                if (e.type != effects::EffectType::BinauralSpace)
+                    continue;
+
+                const effects::QuasarSpatialTargets base{e.qsr1AngleDeg, e.qsr2AngleDeg, e.qsr1Distance, e.qsr2Distance,
+                                                         e.qsr1Height, e.qsr2Height};
+                const auto out = effects::applyQuasarMacroKoins(base, macros);
+                e.qsr1AngleDeg = out.qsr1AngleDeg;
+                e.qsr2AngleDeg = out.qsr2AngleDeg;
+                e.qsr1Distance = out.qsr1Distance;
+                e.qsr2Distance = out.qsr2Distance;
+                e.qsr1Height = out.qsr1Height;
+                e.qsr2Height = out.qsr2Height;
             }
         }
 
@@ -184,6 +246,9 @@ namespace pw8::render
         layerAInsertChain_.prepare(sampleRate_);
         layerBInsertChain_.prepare(sampleRate_);
         masterChain_.prepare(sampleRate_);
+        masterDynamicsProcessor_.prepare(sampleRate_);
+        generativeProcessor_.prepare(sampleRate_);
+        peaksUtilityProcessor_.prepare(sampleRate_);
         sendReturnA_.prepare(sampleRate_);
         sendReturnB_.prepare(sampleRate_);
         synthBusPeak_.store(0.0f, std::memory_order_relaxed);
@@ -311,9 +376,11 @@ namespace pw8::render
             v.operatorParams = templatesOut;
             v.filterParams = layer.filter1;
             v.filter2Params = layer.filter2;
+            v.filterRouting = layer.filterRouting;
             for (std::size_t i = 0; i < core::kNodesPerLayer; ++i)
                 v.operatorFilterParams_[i] = layer.operators[i].filter1;
             v.lfoParams = layer.lfos;
+            v.segmentEnvelopeChains = layer.segmentEnvelopeChains;
             v.macroValues = macroValues;
         }
     }
@@ -357,6 +424,9 @@ namespace pw8::render
         layerAInsertChain_.reset();
         layerBInsertChain_.reset();
         masterChain_.reset();
+        masterDynamicsProcessor_.reset();
+        generativeProcessor_.reset(patch_.generative, patch_.seed);
+        dynamicsGatePrev_ = false;
 
         return lastCompileStatus_ == algorithm::CompileStatus::Ok;
     }
@@ -404,9 +474,11 @@ namespace pw8::render
             v.operatorParams = templates;
             v.filterParams = layer.filter1;
             v.filter2Params = layer.filter2;
+            v.filterRouting = layer.filterRouting;
             for (std::size_t i = 0; i < core::kNodesPerLayer; ++i)
                 v.operatorFilterParams_[i] = layer.operators[i].filter1;
             v.lfoParams = layer.lfos;
+            v.segmentEnvelopeChains = layer.segmentEnvelopeChains;
             const auto age = allocator.nextAge();
             const auto noteGen = ++noteGenerationCounter_;
             const auto voiceSeed = patch_.seed ^ static_cast<std::uint64_t>(u + 1);
@@ -471,12 +543,28 @@ namespace pw8::render
             return;
         }
 
-        triggerLayerNoteOn(patch_.layerA, patch_.layerA.unison, operatorParamsTemplateA_, voices_, allocator_, note,
-                           channel, velocity7);
+        triggerLayerNoteOn(patch_.layerA, modulatedUnisonForNoteOn(patch_.layerA, layerLfosA_, channel),
+                           operatorParamsTemplateA_, voices_, allocator_, note, channel, velocity7);
 
         if (isStackModeActive())
-            triggerLayerNoteOn(patch_.layerB, patch_.layerB.unison, operatorParamsTemplateB_, voicesB_, allocatorB_,
-                               note, channel, velocity7);
+            triggerLayerNoteOn(patch_.layerB, modulatedUnisonForNoteOn(patch_.layerB, layerLfosB_, channel),
+                               operatorParamsTemplateB_, voicesB_, allocatorB_, note, channel, velocity7);
+    }
+
+    patch::UnisonSettings Engine::modulatedUnisonForNoteOn(
+        const patch::LayerPatch& layer, std::array<lfo::Lfo, core::kNumLfosPerLayer>& lfos, int channel) noexcept
+    {
+        std::array<float, core::kNumLfosPerLayer> lfoValues{};
+        for (std::size_t i = 0; i < core::kNumLfosPerLayer; ++i)
+            lfoValues[i] = lfos[i].renderSample(layer.lfos[i], bpm_);
+
+        const int ch = channel < 0 ? 0 : (channel > 15 ? 15 : channel);
+        modulation::GenerativeOutputValues gen{};
+        const auto sources =
+            buildMasterBusModSources(patch_, lfoValues, channelModWheel_[static_cast<std::size_t>(ch)],
+                                     channelExpression_[static_cast<std::size_t>(ch)], sidechainLevel_, gen);
+        const auto mod = modulation::ModMatrixExecutor::computeLayerUnisonMod(layer.modRoutes, sources);
+        return applyUnisonModOffsets(layer.unison, mod);
     }
 
     void Engine::triggerNoteOffDirect(int note, int channel, int velocity7) noexcept
@@ -783,6 +871,39 @@ namespace pw8::render
                 v.macroValues[index] = value;
     }
 
+    void Engine::applyMorphPositionLive(float position) noexcept
+    {
+        if (patch_.morphKoin.keyframes.size() < 2)
+            return;
+
+        float pos = dsp::clamp(position, 0.0f, 1.0f);
+        if (patch_.morphKoin.wrap)
+            pos = std::fmod(pos, 1.0f);
+
+        modulation::applyMorphKoin(patch_, pos);
+        patch_.morphKoin.position = pos;
+
+        if (!patch_.voiceSettings.macroDissemination)
+        {
+            for (std::size_t i = 0; i < patch_.macros.size(); ++i)
+                setMacroValue(i, patch_.macros[i].value);
+        }
+
+        setFilterLive(patch_.layerA.filter1);
+        setFilter2Live(patch_.layerA.filter2);
+
+        for (std::size_t slot = 0; slot < effects::kNumMasterSlots; ++slot)
+            setMasterEffectLive(slot, patch_.masterEffects[slot]);
+
+        if (!patch_.voiceSettings.morphDissemination)
+        {
+            for (auto& v : voices_)
+                v.morphPosition = pos;
+            for (auto& v : voicesB_)
+                v.morphPosition = pos;
+        }
+    }
+
     void Engine::setFilterLive(const filter::FilterParams& params) noexcept
     {
         patch_.layerA.filter1 = params;
@@ -795,6 +916,13 @@ namespace pw8::render
         patch_.layerA.filter2 = params;
         for (auto& v : voices_)
             v.filter2Params = params;
+    }
+
+    void Engine::setFilterRoutingLive(float routing) noexcept
+    {
+        patch_.layerA.filterRouting = dsp::clamp(routing, 0.0f, 1.0f);
+        for (auto& v : voices_)
+            v.filterRouting = patch_.layerA.filterRouting;
     }
 
     void Engine::setOperatorFilterLive(std::size_t opIndex, const filter::FilterParams& params) noexcept
@@ -856,6 +984,20 @@ namespace pw8::render
         for (auto& v : voices_)
             if (v.isSounding())
                 v.envelopes[envIndex].retargetParams(params);
+    }
+
+    void Engine::setSegmentEnvelopeChainLive(std::size_t envIndex,
+                                              const envelope::SegmentEnvelopeChain& chain) noexcept
+    {
+        if (envIndex >= core::kNumEnvelopesPerLayer)
+            return;
+        patch_.layerA.segmentEnvelopeChains[envIndex] = chain;
+        for (auto& v : voices_)
+        {
+            v.segmentEnvelopeChains[envIndex] = chain;
+            if (v.isSounding() && chain.isActive())
+                v.segmentEnvelopes_[envIndex].noteOn(chain, patch_.layerA.envelopes[envIndex].releaseSeconds);
+        }
     }
 
     void Engine::setOperatorWavetableLive(std::size_t opIndex,
@@ -933,6 +1075,27 @@ namespace pw8::render
             v.outputGain = layerOutputGain(patch_.layerB, masterGain);
     }
 
+    void Engine::setMasterDynamicsLive(const patch::MasterDynamics& params) noexcept
+    {
+        patch_.masterDynamics = params;
+    }
+
+    void Engine::setGenerativeLive(const modulation::GenerativeParams& params) noexcept
+    {
+        patch_.generative = params;
+        generativeProcessor_.reset(params, patch_.seed);
+    }
+
+    void Engine::setUtilityPeaksLive(const modulation::PeaksUtilityParams& params) noexcept
+    {
+        patch_.utilityPeaks = params;
+    }
+
+    void Engine::setPortamentoLive(float portamentoSeconds) noexcept
+    {
+        patch_.voiceSettings.portamentoSeconds = portamentoSeconds;
+    }
+
     void Engine::setInsertEffectLive(std::size_t slot, const effects::EffectSlotParams& params) noexcept
     {
         if (slot < patch_.layerA.insertEffects.size())
@@ -989,7 +1152,8 @@ namespace pw8::render
                 std::min(subBlockStart + kVoiceSumSubBlockSize, numFrames);
 
             const bool masterBusModActive =
-                modulation::ModMatrixExecutor::hasActiveMasterBusRoutes(patch_.layerA.modRoutes);
+                modulation::ModMatrixExecutor::hasActiveMasterBusRoutes(patch_.layerA.modRoutes)
+                || patch_.masterDynamics.enabled;
             std::array<effects::EffectSlotParams, effects::kNumMasterSlots> moddedMasterEffects =
                 patch_.masterEffects;
             std::array<effects::EffectSlotParams, effects::kNumLayerInsertSlots> moddedInsertEffects =
@@ -997,6 +1161,22 @@ namespace pw8::render
             std::array<effects::EffectSlotParams, effects::kNumLayerInsertSlots> moddedInsertEffectsB =
                 patch_.layerB.insertEffects;
             float masterGainMul = 1.0f;
+            float masterDynamicsMixMod = 0.0f;
+            float sidechainDepthMod = 0.0f;
+
+            modulation::GenerativeOutputValues subBlockGenerative{};
+            const bool generativeRoutesActive =
+                modulation::ModMatrixExecutor::hasActiveGenerativeRoutes(patch_.layerA.modRoutes);
+            if (generativeRoutesActive)
+                subBlockGenerative = generativeProcessor_.processSample(patch_.generative, patch_.seed);
+
+            const bool gateHigh = [&]() {
+                for (std::size_t i = 0; i < allocator_.getPolyphony(); ++i)
+                    if (voices_[i].envelopeIsActive(0))
+                        return true;
+                return false;
+            }();
+            peaksUtilityValues_ = peaksUtilityProcessor_.processSample(patch_.utilityPeaks, gateHigh);
 
             if (masterBusModActive)
             {
@@ -1005,14 +1185,16 @@ namespace pw8::render
                     masterModLfoValues[i] = layerLfosA_[i].renderSample(patch_.layerA.lfos[i], bpm_);
 
                 const auto modSources =
-                    buildMasterBusModSources(patch_, masterModLfoValues, channelModWheel_[0],
-                                             channelExpression_[0], sidechainLevel_);
+                    buildMasterBusModSources(patch_, masterModLfoValues, channelModWheel_[0], channelExpression_[0],
+                                             sidechainLevel_, subBlockGenerative);
                 const auto masterMod =
                     modulation::ModMatrixExecutor::applyMasterBus(patch_.layerA.modRoutes, modSources);
                 applyMasterModToEffects(moddedMasterEffects, masterMod);
                 applyInsertModToEffects(moddedInsertEffects, masterMod);
                 applyInsertModToEffects(moddedInsertEffectsB, masterMod);
                 masterGainMul = masterGainMultiplier(patch_.voiceSettings.masterGain, masterMod.masterGainOffset);
+                masterDynamicsMixMod = masterMod.masterDynamicsMixOffset;
+                sidechainDepthMod = masterMod.sidechainDepthOffset;
             }
 
             float subBlockSynthPeak = 0.0f;
@@ -1065,7 +1247,7 @@ namespace pw8::render
                 {
                     float vl = 0.0f, vr = 0.0f;
                     std::array<float, core::kNodesPerLayer> voiceOperatorPeaks{};
-                    voices_[i].renderSample(compiledLayerA_, wavetableTablesA_, bpm_, layerLfoValues,
+                    voices_[i].renderSample(compiledLayerA_, wavetableTablesA_, bpm_, layerLfoValues, subBlockGenerative,
                                              patch_.layerA.modRoutes, patch_.layerA.metaRoutes, qualityMode_,
                                              sidechainSampleL, sidechainSampleR, vl, vr, &voiceOperatorPeaks);
                     for (std::size_t op = 0; op < core::kNodesPerLayer; ++op)
@@ -1129,8 +1311,9 @@ namespace pw8::render
                         float vl = 0.0f, vr = 0.0f;
                         std::array<float, core::kNodesPerLayer> voiceOperatorPeaks{};
                         voicesB_[i].renderSample(compiledLayerB_, wavetableTablesB_, bpm_, layerLfoValuesB,
-                                                  patch_.layerB.modRoutes, patch_.layerB.metaRoutes, qualityMode_,
-                                                  sidechainSampleL, sidechainSampleR, vl, vr, &voiceOperatorPeaks);
+                                                  subBlockGenerative, patch_.layerB.modRoutes, patch_.layerB.metaRoutes,
+                                                  qualityMode_, sidechainSampleL, sidechainSampleR, vl, vr,
+                                                  &voiceOperatorPeaks);
                         for (std::size_t op = 0; op < core::kNodesPerLayer; ++op)
                             subBlockOperatorPeaks[op] = std::max(subBlockOperatorPeaks[op], voiceOperatorPeaks[op]);
                         kahanAdd(sumBL, kahanBL, vl);
@@ -1187,12 +1370,69 @@ namespace pw8::render
                     sendMixR += wetR;
                 }
 
+                if (patch_.masterDynamics.enabled)
+                {
+                    bool gateNow = false;
+                    for (std::size_t vi = 0; vi < allocator_.getPolyphony(); ++vi)
+                    {
+                        if (voices_[vi].gateOn)
+                        {
+                            gateNow = true;
+                            break;
+                        }
+                    }
+                    if (!gateNow && isStackModeActive())
+                    {
+                        for (std::size_t vi = 0; vi < allocatorB_.getPolyphony(); ++vi)
+                        {
+                            if (voicesB_[vi].gateOn)
+                            {
+                                gateNow = true;
+                                break;
+                            }
+                        }
+                    }
+                    const bool triggerGate = gateNow && !dynamicsGatePrev_;
+                    dynamicsGatePrev_ = gateNow;
+
+                    dynamics::MasterDynamicsParams dynParams{};
+                    dynParams.enabled = patch_.masterDynamics.enabled;
+                    dynParams.mode = static_cast<dynamics::MasterDynamicsMode>(patch_.masterDynamics.mode);
+                    dynParams.thresholdDb = patch_.masterDynamics.thresholdDb;
+                    dynParams.ratio = patch_.masterDynamics.ratio;
+                    dynParams.attackMs = patch_.masterDynamics.attackMs;
+                    dynParams.releaseMs = patch_.masterDynamics.releaseMs;
+                    dynParams.sidechainGain = patch_.masterDynamics.sidechainGain;
+                    dynParams.vactrolSlewMs = patch_.masterDynamics.vactrolSlewMs;
+                    dynParams.makeupDb = patch_.masterDynamics.makeupDb;
+                    dynParams.mix = patch_.masterDynamics.mix;
+
+                    masterDynamicsProcessor_.processSample(sumL, sumR, sidechainSampleL, sidechainSampleR, triggerGate,
+                                                             dynParams, masterDynamicsMixMod, sidechainDepthMod);
+                }
+                else
+                {
+                    dynamicsGatePrev_ = false;
+                }
+
                 if (masterBusModActive)
+                {
+                    const float orbitMacro = 0.5f + patch_.macros[3].value * 0.5f;
+                    const float spreadMacro = 0.5f + patch_.macros[6].value * 0.5f;
+                    applyQuasarMacroKoinsToMasterEffects(moddedMasterEffects, orbitMacro, spreadMacro);
                     masterChain_.process(moddedMasterEffects, patch_.fxProcessOrder.master, sumL, sumR, sidechainSampleL,
                                          sidechainSampleR, sidechainConnected, bpm_);
+                }
                 else
-                    masterChain_.process(patch_.masterEffects, patch_.fxProcessOrder.master, sumL, sumR,
+                {
+                    std::array<effects::EffectSlotParams, effects::kNumMasterSlots> macroMasterEffects =
+                        patch_.masterEffects;
+                    const float orbitMacro = 0.5f + patch_.macros[3].value * 0.5f;
+                    const float spreadMacro = 0.5f + patch_.macros[6].value * 0.5f;
+                    applyQuasarMacroKoinsToMasterEffects(macroMasterEffects, orbitMacro, spreadMacro);
+                    masterChain_.process(macroMasterEffects, patch_.fxProcessOrder.master, sumL, sumR,
                                          sidechainSampleL, sidechainSampleR, sidechainConnected, bpm_);
+                }
 
                 sumL += sendMixL;
                 sumR += sendMixR;

@@ -40,6 +40,8 @@ namespace pw8::filter
     {
         bool enabled = false;
         FilterMode mode = FilterMode::Lowpass;
+        /// Blades-style LP→BP→HP morph (0 = LP, 0.5 = BP, 1 = HP). Ignored for Notch/Peak.
+        float modeMorph = 0.0f;
         float cutoffHz = 8000.0f;
         /// 0 (no resonance, Butterworth-ish) .. 1 (near self-oscillation).
         float resonance = 0.2f;
@@ -47,6 +49,30 @@ namespace pw8::filter
         /// (0 = no tracking, 1 = fully tracks 1:1 with pitch).
         float keyTrack = 0.0f;
     };
+
+    [[nodiscard]] inline bool usesModeMorph(FilterMode mode) noexcept
+    {
+        return mode == FilterMode::Lowpass || mode == FilterMode::Highpass || mode == FilterMode::Bandpass;
+    }
+
+    [[nodiscard]] inline float modeMorphFromMode(FilterMode mode) noexcept
+    {
+        switch (mode)
+        {
+            case FilterMode::Lowpass: return 0.0f;
+            case FilterMode::Bandpass: return 0.5f;
+            case FilterMode::Highpass: return 1.0f;
+            default: return 0.0f;
+        }
+    }
+
+    [[nodiscard]] inline float blendLpBpHp(float lowpass, float bandpass, float highpass, float modeMorph) noexcept
+    {
+        const float t = dsp::clamp(modeMorph, 0.0f, 1.0f);
+        if (t <= 0.5f)
+            return lowpass + (bandpass - lowpass) * (t * 2.0f);
+        return bandpass + (highpass - bandpass) * ((t - 0.5f) * 2.0f);
+    }
 
     class StateVariableFilter
     {
@@ -67,7 +93,8 @@ namespace pw8::filter
         /// (a handful of multiplies plus one tan()) relative to what a per-sample
         /// cutoff sweep costs anywhere else in the graph, and avoids zipper noise
         /// from stale coefficients far more reliably than a smoothed-parameter cache.
-        [[nodiscard]] float renderSample(float input, FilterMode mode, float cutoffHz, float resonance01) noexcept
+        [[nodiscard]] float renderSample(float input, FilterMode mode, float modeMorph, float cutoffHz,
+                                         float resonance01) noexcept
         {
             const float nyquist = static_cast<float>(sampleRate_) * 0.5f;
             const float fc = dsp::clamp(cutoffHz, 10.0f, nyquist * 0.98f);
@@ -96,13 +123,18 @@ namespace pw8::filter
 
             switch (mode)
             {
-                case FilterMode::Lowpass: return lowpass;
-                case FilterMode::Highpass: return highpass;
-                case FilterMode::Bandpass: return bandpass;
                 case FilterMode::Notch: return notch;
                 case FilterMode::Peak: return peak;
+                default: break;
             }
-            return lowpass;
+
+            return blendLpBpHp(lowpass, bandpass, highpass, modeMorph);
+        }
+
+        /// Legacy entry point — derives morph from discrete mode (LP/BP/HP endpoints).
+        [[nodiscard]] float renderSample(float input, FilterMode mode, float cutoffHz, float resonance01) noexcept
+        {
+            return renderSample(input, mode, modeMorphFromMode(mode), cutoffHz, resonance01);
         }
 
     private:

@@ -30,9 +30,13 @@ namespace pw8::plugin::ui
         /// currently-selected node.
         void setTitle(const juce::String& title);
 
+        /// When false, skips recessed card paint (content-only host for Figma deck shells).
+        void setShowChrome(bool show);
+
     private:
         juce::String title_;
         juce::Colour accentColour_;
+        bool showChrome_ = true;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SectionPanel)
     };

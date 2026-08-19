@@ -1,8 +1,11 @@
 #pragma once
 
+#include <memory>
+
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "../visualizer/MurmurVisualizerComponent.h"
 #include "wireframe/EnvelopePathBuilder.h"
 
 namespace pw8::plugin::ui
@@ -13,7 +16,10 @@ namespace pw8::plugin::ui
         ObsidianEnvelopeVisualizer(juce::AudioProcessorValueTreeState& apvts, std::size_t envIndex = 0);
         ~ObsidianEnvelopeVisualizer() override;
 
+        void attachVisualizerBus(murmur8::AudioVisualizerBus& bus);
+
         void paint(juce::Graphics& g) override;
+        void resized() override;
         void mouseMove(const juce::MouseEvent& event) override;
         void mouseDown(const juce::MouseEvent& event) override;
         void mouseDrag(const juce::MouseEvent& event) override;
@@ -46,8 +52,10 @@ namespace pw8::plugin::ui
         void paintGrid(juce::Graphics& g, juce::Rectangle<float> bounds) const;
         void paintHandles(juce::Graphics& g) const;
         void paintStageLabels(juce::Graphics& g) const;
+        void syncGlPreview();
 
         juce::AudioProcessorValueTreeState& apvts_;
+        std::unique_ptr<murmur8::MurmurVisualizerComponent> glPlot_;
         std::size_t envIndex_;
         wireframe::EnvelopePreviewParams params_{};
         wireframe::EnvelopeLayout layout_{};

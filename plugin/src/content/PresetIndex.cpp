@@ -1,5 +1,6 @@
 #include "content/PresetIndex.h"
 
+#include "content/PresetMetadataFilterLogic.hpp"
 #include "pw8/content/ContentPaths.hpp"
 
 namespace pw8::plugin::content
@@ -27,17 +28,33 @@ namespace pw8::plugin::content
             return out;
         }
 
-        [[nodiscard]] bool isContextCrossoverMood(const juce::String& mood) noexcept
+        [[nodiscard]] detail::MetadataFields toMetadataFields(const PresetEntry& entry)
         {
-            static const char* kContextTokens[] = {"cinematic", "score", "trailer", "game",      "worship",
-                                                   "sleep",     "demo",  "ambient", "sound-design", nullptr};
-            const auto lower = mood.trim().toLowerCase();
-            for (std::size_t i = 0; kContextTokens[i] != nullptr; ++i)
-            {
-                if (lower == kContextTokens[i])
-                    return true;
-            }
-            return false;
+            detail::MetadataFields fields;
+            fields.name = entry.name.toStdString();
+            fields.category = entry.category.toStdString();
+            fields.description = entry.description.toStdString();
+            fields.author = entry.author.toStdString();
+            fields.enginesSummary = entry.enginesSummary.toStdString();
+            for (const auto& mood : entry.moods)
+                fields.moods.push_back(mood.toStdString());
+            for (const auto& genre : entry.genres)
+                fields.genres.push_back(genre.toStdString());
+            for (const auto& tag : entry.tags)
+                fields.tags.push_back(tag.toStdString());
+            return fields;
+        }
+
+        [[nodiscard]] detail::FilterFields toFilterFields(const PresetMetadataFilter& filter)
+        {
+            detail::FilterFields fields;
+            fields.query = filter.query.toStdString();
+            fields.category = filter.category.toStdString();
+            fields.mood = filter.mood.toStdString();
+            fields.genre = filter.genre.toStdString();
+            fields.tag = filter.tag.toStdString();
+            fields.favoritesOnly = filter.favoritesOnly;
+            return fields;
         }
 
         [[nodiscard]] juce::String displayDedupKey(const PresetEntry& entry)
@@ -153,15 +170,11 @@ namespace pw8::plugin::content
 
     bool PresetIndex::arrayContainsIgnoreCase(const juce::StringArray& arr, const juce::String& value)
     {
-        const auto needle = value.trim().toLowerCase();
-        if (needle.isEmpty())
-            return false;
+        std::vector<std::string> items;
+        items.reserve(static_cast<std::size_t>(arr.size()));
         for (const auto& item : arr)
-        {
-            if (item.trim().toLowerCase() == needle)
-                return true;
-        }
-        return false;
+            items.push_back(item.toStdString());
+        return detail::arrayContainsIgnoreCase(items, value.toStdString());
     }
 
     bool PresetIndex::entryMatchesFilter(const PresetEntry& entry, const PresetMetadataFilter& filter,
@@ -170,37 +183,9 @@ namespace pw8::plugin::content
         if (favoritePathsOnly != nullptr && !favoritePathsOnly->contains(entry.absolutePath))
             return false;
 
-        const auto cat = filter.category.trim().toLowerCase();
-        if (cat.isNotEmpty() && entry.category.trim().toLowerCase() != cat)
-            return false;
-
-        const auto mood = filter.mood.trim().toLowerCase();
-        if (mood.isNotEmpty() && !arrayContainsIgnoreCase(entry.moods, mood))
-            return false;
-
-        const auto genre = filter.genre.trim().toLowerCase();
-        if (genre.isNotEmpty() && !arrayContainsIgnoreCase(entry.genres, genre)
-            && !arrayContainsIgnoreCase(entry.moods, genre)
-            && !arrayContainsIgnoreCase(entry.tags, genre))
-            return false;
-
-        const auto tag = filter.tag.trim().toLowerCase();
-        if (tag.isNotEmpty() && !arrayContainsIgnoreCase(entry.tags, tag)
-            && !arrayContainsIgnoreCase(entry.genres, tag))
-            return false;
-
-        const auto q = filter.query.trim().toLowerCase();
-        if (q.isNotEmpty())
-        {
-            const auto haystack = (entry.name + " " + entry.description + " " + entry.category + " "
-                                   + entry.moods.joinIntoString(" ") + " " + entry.genres.joinIntoString(" ") + " "
-                                   + entry.tags.joinIntoString(" "))
-                                      .toLowerCase();
-            if (!haystack.contains(q))
-                return false;
-        }
-
-        return true;
+        const bool isFavorite =
+            favoritePathsOnly != nullptr && favoritePathsOnly->contains(entry.absolutePath);
+        return detail::entryMatchesFilter(toMetadataFields(entry), toFilterFields(filter), isFavorite);
     }
 
     PresetMetadataFilter PresetIndex::filterWithFacetCleared(PresetMetadataFilter filter, PresetFacet facet)
@@ -233,20 +218,13 @@ namespace pw8::plugin::content
                     addUnique(mood);
                 break;
             case PresetFacet::Genre:
-                for (const auto& genre : entry.genres)
-                    addUnique(genre);
-                for (const auto& mood : entry.moods)
-                {
-                    if (isContextCrossoverMood(mood))
-                        addUnique(mood);
-                }
-                for (const auto& tag : entry.tags)
-                {
-                    const auto lower = tag.trim().toLowerCase();
-                    if (lower.containsChar('-') || lower == "interstellar" || lower.contains("hoover"))
-                        addUnique(tag);
-                }
+            {
+                std::vector<std::string> values;
+                detail::collectGenreFacetValues(toMetadataFields(entry), values);
+                for (const auto& value : values)
+                    addUnique(juce::String(value));
                 break;
+            }
             case PresetFacet::Tag:
                 for (const auto& tag : entry.tags)
                     addUnique(tag);
@@ -269,7 +247,8 @@ namespace pw8::plugin::content
     }
 
     juce::StringArray PresetIndex::uniqueFacetValues(PresetFacet facet, const PresetMetadataFilter& filter,
-                                                      const juce::StringArray* favoritePathsOnly) const
+                                                      const juce::StringArray* favoritePathsOnly,
+                                                      const EntryPredicate& entryPredicate) const
     {
         const auto facetFilter = filterWithFacetCleared(filter, facet);
         const juce::StringArray* fav = facetFilter.favoritesOnly ? favoritePathsOnly : nullptr;
@@ -277,6 +256,8 @@ namespace pw8::plugin::content
         juce::StringArray values;
         for (const auto& entry : entries_)
         {
+            if (entryPredicate && !entryPredicate(entry))
+                continue;
             if (!entryMatchesFilter(entry, facetFilter, fav))
                 continue;
             collectFacetValue(facet, entry, values);

@@ -9,7 +9,8 @@
 
 #include "EngineAdsrMini.h"
 #include "EngineOscillatorPicker.h"
-#include "GlowKnob.h"
+#include "ConcentricGlowKnob.h"
+#include "ModAssignmentController.h"
 #include "processor/PatchworkEightProcessor.h"
 #include "ui/ScopeVuMeter.h"
 
@@ -19,7 +20,7 @@ namespace pw8::plugin::ui
     class EngineCard : public juce::Component, private juce::Timer
     {
     public:
-        EngineCard(PatchworkEightProcessor& processor, int engineIndex);
+        EngineCard(PatchworkEightProcessor& processor, ModAssignmentController& assignmentController, int engineIndex);
         ~EngineCard() override;
 
         void paint(juce::Graphics& g) override;
@@ -44,10 +45,12 @@ namespace pw8::plugin::ui
         void applyPlayBoardCompactVisibility();
         void applyDesignModeV2Visibility();
         void refreshDesignModeV2ControlGroups();
+        void wireModTargets();
         void paintLevelRow(juce::Graphics& g, juce::Rectangle<int> rowBounds);
         void paintPlayBoardKnobStubs(juce::Graphics& g) const;
 
         PatchworkEightProcessor& processor_;
+        ModAssignmentController& assignmentController_;
         const int engineIndex_;
 
         juce::Label titleLabel_;
@@ -59,10 +62,8 @@ namespace pw8::plugin::ui
         EngineOscillatorPicker oscillatorPicker_;
         EngineAdsrMini adsrMini_;
 
-        std::unique_ptr<GlowKnob> coarseKnob_;
-        std::unique_ptr<GlowKnob> fineKnob_;
-        std::unique_ptr<GlowKnob> cutoffKnob_;
-        std::unique_ptr<GlowKnob> resKnob_;
+        std::unique_ptr<ConcentricGlowKnob> pitchKnob_;
+        std::unique_ptr<ConcentricGlowKnob> filterKnob_;
 
         juce::Label levelCaption_{"LVL", "LVL"};
         juce::Slider levelSlider_;

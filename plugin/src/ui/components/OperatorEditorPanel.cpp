@@ -1,6 +1,7 @@
 #include "OperatorEditorPanel.h"
 
 #include "AlgorithmGraphView.h"
+#include "../theme/FigmaKnobTokens.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "ModRoutingUi.h"
@@ -136,59 +137,49 @@ namespace pw8::plugin::ui
         // Engine Type 3 (FM/PM) only -- the self-contained internal modulator's
         // controls. Same "always constructed, visibility toggled by
         // updateEngineVisibility()" pattern as wavetablePosKnob_ above.
-        fmModRatioKnob_ = std::make_unique<GlowKnob>(
-            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "FmModulatorRatio"), "Mod Ratio");
-        fmModIndexKnob_ = std::make_unique<GlowKnob>(
-            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "FmModulatorIndex"), "Mod Index");
-        fmModFeedbackKnob_ = std::make_unique<GlowKnob>(
-            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "FmModulatorFeedback"), "Mod Fdbk");
+        fmModTripleKnob_ = std::make_unique<TripleGlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "FmModulatorRatio"),
+            operatorParamId(static_cast<std::size_t>(selectedNode_), "FmModulatorIndex"),
+            operatorParamId(static_cast<std::size_t>(selectedNode_), "FmModulatorFeedback"), "RATIO", "INDEX",
+            "FDBK");
+        fmModTripleKnob_->applyFigmaContext(figma::KnobContext::OperatorHero);
         fmModWaveformKnob_ = std::make_unique<GlowKnob>(
             apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "FmModulatorWaveform"), "Mod Wave",
             waveformToText);
 
         // Engine 5 (PhaseShape) -- see the header doc comment. No UI existed for
         // these four fields before this pass.
-        phaseBendKnob_ = std::make_unique<GlowKnob>(
-            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "PhaseBend"), "Bend");
-        phaseFoldKnob_ = std::make_unique<GlowKnob>(
-            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "PhaseFold"), "Fold");
-        phaseAsymmetryKnob_ = std::make_unique<GlowKnob>(
-            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "PhaseAsymmetry"), "Asym");
+        phaseTripleKnob_ = std::make_unique<TripleGlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "PhaseBend"),
+            operatorParamId(static_cast<std::size_t>(selectedNode_), "PhaseFold"),
+            operatorParamId(static_cast<std::size_t>(selectedNode_), "PhaseAsymmetry"), "BEND", "FOLD", "ASYM");
+        phaseTripleKnob_->applyFigmaContext(figma::KnobContext::OperatorHero);
         phaseShapeKnob_ = std::make_unique<GlowKnob>(
             apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "PhaseShape"), "Shape");
 
-        // Engine 4 (Additive) -- see the header doc comment. No UI existed for
-        // these four fields before this pass.
-        additivePartialsKnob_ = std::make_unique<GlowKnob>(
-            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "AdditivePartialCount"), "Partials");
-        additiveTiltKnob_ = std::make_unique<GlowKnob>(
-            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "AdditiveTilt"), "Tilt");
-        additiveOddEvenKnob_ = std::make_unique<GlowKnob>(
-            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "AdditiveOddEven"), "Odd/Even");
+        additiveTripleKnob_ = std::make_unique<TripleGlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "AdditivePartialCount"),
+            operatorParamId(static_cast<std::size_t>(selectedNode_), "AdditiveTilt"),
+            operatorParamId(static_cast<std::size_t>(selectedNode_), "AdditiveOddEven"), "PART", "TILT", "ODD");
+        additiveTripleKnob_->applyFigmaContext(figma::KnobContext::OperatorHero);
         additiveStretchKnob_ = std::make_unique<GlowKnob>(
             apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "AdditiveStretch"), "Stretch");
 
-        // Engine 8 (Resonator) -- see the header doc comment. No UI existed for
-        // these five fields before this pass.
-        resonatorStructureKnob_ = std::make_unique<GlowKnob>(
-            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "ResonatorStructure"), "Structure");
-        resonatorDecayKnob_ = std::make_unique<GlowKnob>(
-            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "ResonatorDecay"), "Decay");
-        resonatorDampingKnob_ = std::make_unique<GlowKnob>(
-            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "ResonatorDamping"), "Damping");
+        resonatorTripleKnob_ = std::make_unique<TripleGlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "ResonatorStructure"),
+            operatorParamId(static_cast<std::size_t>(selectedNode_), "ResonatorDecay"),
+            operatorParamId(static_cast<std::size_t>(selectedNode_), "ResonatorDamping"), "STR", "DEC", "DAMP");
+        resonatorTripleKnob_->applyFigmaContext(figma::KnobContext::OperatorHero);
         resonatorBrightnessKnob_ = std::make_unique<GlowKnob>(
-            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "ResonatorBrightness"), "Brightness");
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "ResonatorBrightness"), "Bright");
         resonatorModesKnob_ = std::make_unique<GlowKnob>(
             apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "ResonatorModeCount"), "Modes");
 
-        // Engine 6 (Granular) -- see the header doc comment. No UI existed for
-        // these four fields before this pass.
-        grainDensityKnob_ = std::make_unique<GlowKnob>(
-            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "GrainDensity"), "Density");
-        grainSizeKnob_ = std::make_unique<GlowKnob>(
-            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "GrainSizeMs"), "Size");
-        grainPosJitterKnob_ = std::make_unique<GlowKnob>(
-            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "GrainPositionJitter"), "Pos Jit");
+        grainTripleKnob_ = std::make_unique<TripleGlowKnob>(
+            apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "GrainDensity"),
+            operatorParamId(static_cast<std::size_t>(selectedNode_), "GrainSizeMs"),
+            operatorParamId(static_cast<std::size_t>(selectedNode_), "GrainPositionJitter"), "DENS", "SIZE", "POS");
+        grainTripleKnob_->applyFigmaContext(figma::KnobContext::OperatorHero);
         grainPitchJitterKnob_ = std::make_unique<GlowKnob>(
             apvts, operatorParamId(static_cast<std::size_t>(selectedNode_), "GrainPitchJitter"), "Pitch Jit");
         wtWarpKnob_ = std::make_unique<ConcentricGlowKnob>(
@@ -201,24 +192,33 @@ namespace pw8::plugin::ui
         wtSyncFormantKnob_->setInnerAccentColour(palette::kAccentWarm);
 
         for (auto* k : {waveformKnob_.get(), levelKnob_.get(), panKnob_.get(), ratioKnob_.get(), wavetablePosKnob_.get(),
-                         fmModRatioKnob_.get(), fmModIndexKnob_.get(), fmModFeedbackKnob_.get(), fmModWaveformKnob_.get(),
-                         noiseVariantKnob_.get(), noiseRateKnob_.get(),
-                         phaseBendKnob_.get(), phaseFoldKnob_.get(), phaseAsymmetryKnob_.get(), phaseShapeKnob_.get(),
-                         additivePartialsKnob_.get(), additiveTiltKnob_.get(), additiveOddEvenKnob_.get(),
-                         additiveStretchKnob_.get(),
-                         resonatorStructureKnob_.get(), resonatorDecayKnob_.get(), resonatorDampingKnob_.get(),
-                         resonatorBrightnessKnob_.get(), resonatorModesKnob_.get(),
-                         grainDensityKnob_.get(), grainSizeKnob_.get(), grainPosJitterKnob_.get(),
+                         fmModWaveformKnob_.get(), noiseVariantKnob_.get(), noiseRateKnob_.get(), phaseShapeKnob_.get(),
+                         additiveStretchKnob_.get(), resonatorBrightnessKnob_.get(), resonatorModesKnob_.get(),
                          grainPitchJitterKnob_.get()})
         {
             panel_.addAndMakeVisible(*k);
             if (k != nullptr)
+            {
                 k->setDeckedStyle(true, GlowKnob::DeckedKnobSize::Medium);
+                k->applyFigmaContext(figma::KnobContext::OperatorHero);
+            }
         }
         if (wtWarpKnob_ != nullptr)
+        {
+            wtWarpKnob_->applyFigmaContext(figma::KnobContext::OperatorHero);
             panel_.addAndMakeVisible(*wtWarpKnob_);
+        }
         if (wtSyncFormantKnob_ != nullptr)
+        {
+            wtSyncFormantKnob_->applyFigmaContext(figma::KnobContext::OperatorHero);
             panel_.addAndMakeVisible(*wtSyncFormantKnob_);
+        }
+        if (fmModTripleKnob_ != nullptr)
+            panel_.addAndMakeVisible(*fmModTripleKnob_);
+        for (auto* triple :
+             {phaseTripleKnob_.get(), additiveTripleKnob_.get(), resonatorTripleKnob_.get(), grainTripleKnob_.get()})
+            if (triple != nullptr)
+                panel_.addAndMakeVisible(*triple);
         wireModTargets();
     }
 
@@ -259,6 +259,58 @@ namespace pw8::plugin::ui
             panKnob_->enableModulationTarget(processor_, modulation::ModDestination::Pan, 0);
             panKnob_->setModAssignmentController(&assignmentController_);
         }
+        if (ratioKnob_ != nullptr)
+        {
+            ratioKnob_->enableModulationTarget(processor_, modulation::ModDestination::OperatorFreqRatio, targetIndex);
+            ratioKnob_->setModAssignmentController(&assignmentController_);
+        }
+        if (additiveStretchKnob_ != nullptr)
+        {
+            additiveStretchKnob_->enableModulationTarget(processor_, modulation::ModDestination::OperatorAdditiveStretch,
+                                                          targetIndex);
+            additiveStretchKnob_->setModAssignmentController(&assignmentController_);
+        }
+        if (resonatorBrightnessKnob_ != nullptr)
+        {
+            resonatorBrightnessKnob_->enableModulationTarget(processor_,
+                                                             modulation::ModDestination::OperatorResonatorBrightness,
+                                                             targetIndex);
+            resonatorBrightnessKnob_->setModAssignmentController(&assignmentController_);
+        }
+        if (resonatorModesKnob_ != nullptr)
+        {
+            resonatorModesKnob_->enableModulationTarget(processor_, modulation::ModDestination::OperatorResonatorModeCount,
+                                                        targetIndex);
+            resonatorModesKnob_->setModAssignmentController(&assignmentController_);
+        }
+        if (grainPitchJitterKnob_ != nullptr)
+        {
+            grainPitchJitterKnob_->enableModulationTarget(processor_, modulation::ModDestination::OperatorGrainPitchJitter,
+                                                          targetIndex);
+            grainPitchJitterKnob_->setModAssignmentController(&assignmentController_);
+        }
+        const auto wireTriple = [&](TripleGlowKnob* triple, modulation::ModDestination outer,
+                                    modulation::ModDestination middle, modulation::ModDestination inner) {
+            if (triple == nullptr)
+                return;
+            triple->enableOuterModulationTarget(processor_, outer, targetIndex);
+            triple->enableMiddleModulationTarget(processor_, middle, targetIndex);
+            triple->enableInnerModulationTarget(processor_, inner, targetIndex);
+            triple->setModAssignmentController(&assignmentController_);
+        };
+        wireTriple(fmModTripleKnob_.get(), modulation::ModDestination::OperatorFmModulatorRatio,
+                   modulation::ModDestination::OperatorFmModulatorIndex,
+                   modulation::ModDestination::OperatorFmModulatorFeedback);
+        wireTriple(phaseTripleKnob_.get(), modulation::ModDestination::OperatorPhaseBend,
+                   modulation::ModDestination::OperatorPhaseFold, modulation::ModDestination::OperatorPhaseAsymmetry);
+        wireTriple(additiveTripleKnob_.get(), modulation::ModDestination::OperatorAdditivePartialCount,
+                   modulation::ModDestination::OperatorAdditiveTilt, modulation::ModDestination::OperatorAdditiveOddEven);
+        wireTriple(resonatorTripleKnob_.get(), modulation::ModDestination::OperatorResonatorStructure,
+                   modulation::ModDestination::OperatorResonatorDecay,
+                   modulation::ModDestination::OperatorResonatorDamping);
+        wireTriple(grainTripleKnob_.get(), modulation::ModDestination::OperatorGrainDensity,
+                   modulation::ModDestination::OperatorGrainSizeMs,
+                   modulation::ModDestination::OperatorGrainPositionJitter);
     }
 
     void OperatorEditorPanel::updateEngineVisibility()
@@ -312,30 +364,24 @@ namespace pw8::plugin::ui
             oscWireframeHost_.ensureDefaultWavetableLoaded();
         noiseVariantKnob_->setVisible(isNoiseChaos);
         noiseRateKnob_->setVisible(isNoiseChaos);
-        phaseBendKnob_->setVisible(isPhaseShape);
-        phaseFoldKnob_->setVisible(isPhaseShape);
-        phaseAsymmetryKnob_->setVisible(isPhaseShape);
+        phaseTripleKnob_->setVisible(isPhaseShape);
         phaseShapeKnob_->setVisible(isPhaseShape);
-        additivePartialsKnob_->setVisible(isAdditive);
-        additiveTiltKnob_->setVisible(isAdditive);
-        additiveOddEvenKnob_->setVisible(isAdditive);
+        additiveTripleKnob_->setVisible(isAdditive);
         additiveStretchKnob_->setVisible(isAdditive);
-        resonatorStructureKnob_->setVisible(isResonator);
-        resonatorDecayKnob_->setVisible(isResonator);
-        resonatorDampingKnob_->setVisible(isResonator);
+        resonatorTripleKnob_->setVisible(isResonator);
         resonatorBrightnessKnob_->setVisible(isResonator);
         resonatorModesKnob_->setVisible(isResonator);
-        grainDensityKnob_->setVisible(isGranular);
-        grainSizeKnob_->setVisible(isGranular);
-        grainPosJitterKnob_->setVisible(isGranular);
+        grainTripleKnob_->setVisible(isGranular);
         grainPitchJitterKnob_->setVisible(isGranular);
         wtWarpKnob_->setVisible(isWavetable);
         wtSyncFormantKnob_->setVisible(isWavetable);
         levelKnob_->setVisible(true);
         panKnob_->setVisible(true);
 
-        for (auto* k : {fmModRatioKnob_.get(), fmModIndexKnob_.get(), fmModFeedbackKnob_.get(), fmModWaveformKnob_.get()})
-            k->setVisible(isFmPm);
+        if (fmModTripleKnob_ != nullptr)
+            fmModTripleKnob_->setVisible(isFmPm);
+        if (fmModWaveformKnob_ != nullptr)
+            fmModWaveformKnob_->setVisible(isFmPm);
 
         resized();
         repaint();
@@ -401,14 +447,14 @@ namespace pw8::plugin::ui
         content.removeFromTop(kPillRowHeight);
         content.removeFromBottom(kNoteHeight);
 
-        const bool isGranular = grainDensityKnob_ && grainDensityKnob_->isVisible();
+        const bool isGranular = grainTripleKnob_ && grainTripleKnob_->isVisible();
         const float wireframeFrac = isGranular ? 0.40f : 0.45f;
         auto wireframeArea = content.removeFromLeft(static_cast<int>(static_cast<float>(content.getWidth()) * wireframeFrac));
         oscWireframeHost_.setBounds(wireframeArea.reduced(5));
 
         if (isGranular)
         {
-            const int knobWidth = content.getWidth() / 8;
+            const int knobWidth = content.getWidth() / 6;
             if (levelKnob_)
                 levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (panKnob_)
@@ -417,22 +463,21 @@ namespace pw8::plugin::ui
                 ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (wavetablePosKnob_)
                 wavetablePosKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
-            if (grainDensityKnob_)
-                grainDensityKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
-            if (grainSizeKnob_)
-                grainSizeKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
-            if (grainPosJitterKnob_)
-                grainPosJitterKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            if (grainTripleKnob_)
+                grainTripleKnob_->setBounds(content.removeFromLeft(knobWidth * 2).reduced(5));
             if (grainPitchJitterKnob_)
                 grainPitchJitterKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
         }
-        else if (fmModRatioKnob_ && fmModRatioKnob_->isVisible())
+        else if (fmModTripleKnob_ && fmModTripleKnob_->isVisible())
         {
-            const int knobWidth = content.getWidth() / 8;
-            for (auto* k : {waveformKnob_.get(), levelKnob_.get(), panKnob_.get(), ratioKnob_.get(), fmModRatioKnob_.get(),
-                             fmModIndexKnob_.get(), fmModFeedbackKnob_.get(), fmModWaveformKnob_.get()})
+            const int knobWidth = content.getWidth() / 6;
+            for (auto* k : {waveformKnob_.get(), levelKnob_.get(), panKnob_.get(), ratioKnob_.get()})
                 if (k != nullptr)
                     k->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            if (fmModTripleKnob_ != nullptr)
+                fmModTripleKnob_->setBounds(content.removeFromLeft(knobWidth * 2).reduced(5));
+            if (fmModWaveformKnob_ != nullptr)
+                fmModWaveformKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
         }
         else if (noiseVariantKnob_ && noiseVariantKnob_->isVisible())
         {
@@ -448,61 +493,49 @@ namespace pw8::plugin::ui
             if (noiseRateKnob_)
                 noiseRateKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
         }
-        else if (phaseBendKnob_ && phaseBendKnob_->isVisible())
+        else if (phaseTripleKnob_ && phaseTripleKnob_->isVisible())
         {
-            const int knobWidth = content.getWidth() / 7;
+            const int knobWidth = content.getWidth() / 6;
             if (ratioKnob_)
                 ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (levelKnob_)
                 levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (panKnob_)
                 panKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
-            if (phaseBendKnob_)
-                phaseBendKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
-            if (phaseFoldKnob_)
-                phaseFoldKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
-            if (phaseAsymmetryKnob_)
-                phaseAsymmetryKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            if (phaseTripleKnob_)
+                phaseTripleKnob_->setBounds(content.removeFromLeft(knobWidth * 2).reduced(5));
             if (phaseShapeKnob_)
                 phaseShapeKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
         }
-        else if (additivePartialsKnob_ && additivePartialsKnob_->isVisible())
+        else if (additiveTripleKnob_ && additiveTripleKnob_->isVisible())
         {
-            const int knobWidth = content.getWidth() / 7;
+            const int knobWidth = content.getWidth() / 6;
             if (ratioKnob_)
                 ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (levelKnob_)
                 levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (panKnob_)
                 panKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
-            if (additivePartialsKnob_)
-                additivePartialsKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
-            if (additiveTiltKnob_)
-                additiveTiltKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
-            if (additiveOddEvenKnob_)
-                additiveOddEvenKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            if (additiveTripleKnob_)
+                additiveTripleKnob_->setBounds(content.removeFromLeft(knobWidth * 2).reduced(5));
             if (additiveStretchKnob_)
                 additiveStretchKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
         }
-        else if (resonatorStructureKnob_ && resonatorStructureKnob_->isVisible())
+        else if (resonatorTripleKnob_ && resonatorTripleKnob_->isVisible())
         {
-            const int knobWidth = content.getWidth() / 8;
+            const int knobWidth = content.getWidth() / 6;
             if (ratioKnob_)
                 ratioKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (levelKnob_)
                 levelKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (panKnob_)
                 panKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
-            if (resonatorStructureKnob_)
-                resonatorStructureKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
-            if (resonatorDecayKnob_)
-                resonatorDecayKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
-            if (resonatorDampingKnob_)
-                resonatorDampingKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+            if (resonatorTripleKnob_)
+                resonatorTripleKnob_->setBounds(content.removeFromLeft(knobWidth * 2).reduced(5));
             if (resonatorBrightnessKnob_)
                 resonatorBrightnessKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
             if (resonatorModesKnob_)
-                resonatorModesKnob_->setBounds(content.removeFromLeft(knobWidth).reduced(5));
+                resonatorModesKnob_->setBounds(content.reduced(5));
         }
         else if (wtWarpKnob_ && wtWarpKnob_->isVisible())
         {

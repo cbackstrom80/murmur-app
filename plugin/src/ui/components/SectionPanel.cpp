@@ -28,8 +28,17 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
+    void SectionPanel::setShowChrome(bool show)
+    {
+        showChrome_ = show;
+        repaint();
+    }
+
     void SectionPanel::paint(juce::Graphics& g)
     {
+        if (!showChrome_)
+            return;
+
         auto cardBounds = getLocalBounds().reduced(kShadowMargin).toFloat();
 
         // Soft drop shadow: three decreasing-alpha passes offset downward, wider
@@ -96,6 +105,9 @@ namespace pw8::plugin::ui
 
     juce::Rectangle<int> SectionPanel::getContentBounds() const
     {
+        if (!showChrome_)
+            return getLocalBounds();
+
         auto bounds = getLocalBounds().reduced(kShadowMargin);
         if (title_.isNotEmpty())
             bounds.removeFromTop(kTitleHeight);

@@ -180,13 +180,34 @@ TEST_CASE("Def Leppard Love Bites vocoder preset loads rock stack", "[patch][ser
     REQUIRE(static_cast<int>(patch.layerA.operators[0].classicWaveform) == 2);
 }
 
-TEST_CASE("Interstellar legacy type-11 Quasar master slot loads as Bypass", "[patch][serialization][factory]")
+TEST_CASE("Interstellar Spatial preset embeds inline Quasar on master M3", "[patch][serialization][factory][quasar]")
+{
+    const auto path = repoRoot() / "content/presets/factory/Interstellar/Spatial/001-nebula-drift.pw8";
+    if (!fs::is_regular_file(path))
+        SKIP("Missing Interstellar/Spatial/001-nebula-drift.pw8");
+
+    std::ifstream in(path);
+    REQUIRE(in.good());
+    std::ostringstream ss;
+    ss << in.rdbuf();
+    const auto loaded = patch::loadPatchFromJson(ss.str());
+    INFO("load error: " << loaded.error);
+    REQUIRE(loaded.ok);
+    const auto& patch = loaded.patch;
+    REQUIRE(patch.masterEffects[2].type == effects::EffectType::BinauralSpace);
+    REQUIRE(patch.masterEffects[2].mix > 0.5f);
+    REQUIRE(patch.masterEffects[2].qsr1Level > 0.0f);
+    REQUIRE(patch.metadata.description.find("inline QUASAR") != std::string::npos);
+}
+
+TEST_CASE("Interstellar legacy type-11 Quasar master slot loads as BinauralSpace", "[patch][serialization][factory]")
 {
     const auto path = repoRoot() / "content/presets/factory/Interstellar/001-cathedral-nebula.pw8";
     if (!fs::is_regular_file(path))
         SKIP("Missing Interstellar/001-cathedral-nebula.pw8");
 
     const auto patch = loadPresetFile(path);
-    REQUIRE(patch.masterEffects[2].type == effects::EffectType::Bypass);
+    REQUIRE(patch.masterEffects[2].type == effects::EffectType::BinauralSpace);
     REQUIRE(patch.masterEffects[2].mix == Catch::Approx(0.72f));
+    REQUIRE(patch.masterEffects[2].qsr1Level == Catch::Approx(0.65f));
 }

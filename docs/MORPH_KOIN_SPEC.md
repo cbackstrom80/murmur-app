@@ -69,7 +69,7 @@ Keyframe contents live in a dedicated top-level block — parallel to `macros[]`
 |-------|----------|-------|
 | `label` | Yes | PLAY display name (≤32 chars), e.g. `EVOLVE`, `SCENE` |
 | `description` | Recommended | Mission card / agent hint |
-| `keyframes` | Yes | **2–4** entries; each must have `name` |
+| `keyframes` | Yes | **2–16** entries (DESIGN cap); **2–4** typical for PLAY KOIN |
 | `defaultPosition` | Yes | Initial timeline position `0..1` (patch default) |
 | `position` | Optional | Current performance position; defaults to `defaultPosition` on load if omitted |
 | `curve` | Optional | Segment easing: `linear` (default), `smooth` (raised cosine), `step` |
@@ -158,7 +158,8 @@ Compact teleprompter: morph at **scope hub center**; Macro1/2 in **cardinal orbi
 
 - Using macro KOINS alone to simulate morph (two presets in a bank, manual A/B) — OK for factory demos, not agent default.
 - Putting morph keyframes only in `metadata.description` without `morphKoin` JSON.
-- More than 4 keyframes (cap enforced by MCP + spec).
+- More than **16** keyframes (cap enforced by serializer + MCP).
+- More than **4** keyframes on PLAY surface without DESIGN editor (PLAY shows first/last + neighbors only — UI policy TBD in Morph Editor milestone).
 - Using `layerMorph` for multi-param performance morph — `layerMorph` remains **2-layer signal-path crossfade** (PLANNED DSP), separate from morph KOIN.
 
 ---
@@ -279,7 +280,11 @@ Serializer: round-trip `morphKoin` JSON (Horizon 2); executor **TODO Horizon 3**
 ## 8. MCP
 
 - **Tool:** `set_morph_koin(patch_id, label, keyframes, default_position, …)` — see `mcp_server/patch_builder.py`
+- **Tool:** `add_morph_keyframe(patch_id, position, macro_values, param_overrides, …)` — append or insert keyframe (16-cap enforced)
+- **Tool:** `remove_morph_keyframe(patch_id, index)` — remove keyframe by index
 - Writes `morphKoin` + `uiFocus` morph entry; optional paired macro KOINS via separate `set_macro_koin` calls.
+
+**Preset migration:** `scripts/migrate_spatial_morph_easing.py` — dry-run by default; pass `--write` to apply per-path easing overrides to Spatial factory presets.
 
 ---
 

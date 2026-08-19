@@ -1,10 +1,13 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include "pw8/envelope/SegmentEnvelope.hpp"
+#include "pw8/core/Types.hpp"
 #include "pw8/modulation/ModMatrixTypes.hpp"
 #include "pw8/patch/PatchSerializer.hpp"
 
 using namespace pw8::patch;
+using namespace pw8::envelope;
 
 TEST_CASE("Patch roundtrips through JSON", "[patch][serialization]")
 {
@@ -74,7 +77,7 @@ TEST_CASE("morphKoin and uiFocus morph kind roundtrip through JSON", "[patch][se
     kf0.position = 0.0f;
     kf0.hasMacroValues = true;
     kf0.macroValues[0] = 0.1f;
-    kf0.paramOverrides["filterCutoffHz"] = 800.0f;
+    kf0.paramOverrides["filterCutoffHz"] = MorphParamOverride{800.0f, {}, {}};
     p.morphKoin.keyframes.push_back(kf0);
 
     MorphKoinKeyframe kf1;
@@ -98,10 +101,64 @@ TEST_CASE("morphKoin and uiFocus morph kind roundtrip through JSON", "[patch][se
     REQUIRE(result.patch.morphKoin.keyframes[0].name == "TIGHT");
     REQUIRE(result.patch.morphKoin.keyframes[0].hasMacroValues);
     REQUIRE(result.patch.morphKoin.keyframes[0].macroValues[0] == Catch::Approx(0.1f));
-    REQUIRE(result.patch.morphKoin.keyframes[0].paramOverrides.at("filterCutoffHz") == Catch::Approx(800.0f));
+    REQUIRE(result.patch.morphKoin.keyframes[0].paramOverrides.at("filterCutoffHz").value ==
+            Catch::Approx(800.0f));
     REQUIRE(result.patch.morphKoin.position == Catch::Approx(0.35f));
     REQUIRE(result.patch.uiFocus.knobs[0].kind == UiFocusKnobKind::Morph);
     REQUIRE(result.patch.uiFocus.knobs[0].label == "EVOLVE");
+}
+
+TEST_CASE("morphKoin loads up to sixteen keyframes", "[patch][serialization][morph]")
+{
+    Patch p = Patch::makeInit();
+    p.morphKoin.label = "SCENE";
+    for (std::size_t i = 0; i < pw8::core::kMaxMorphKeyframes + 2; ++i)
+    {
+        MorphKoinKeyframe kf;
+        kf.name = "KF" + std::to_string(i);
+        kf.position = static_cast<float>(i) / static_cast<float>(pw8::core::kMaxMorphKeyframes);
+        p.morphKoin.keyframes.push_back(kf);
+    }
+
+    const auto result = loadPatchFromJson(savePatchToJson(p));
+    REQUIRE(result.ok);
+    REQUIRE(result.patch.morphKoin.keyframes.size() == pw8::core::kMaxMorphKeyframes);
+}
+
+TEST_CASE("morphKoin paramOverrides object form roundtrips", "[patch][serialization][morph]")
+{
+    Patch p = Patch::makeInit();
+    p.morphKoin.label = "CURVE";
+    p.morphKoin.autoplaySource = "lfo1";
+
+    MorphKoinKeyframe kf0;
+    kf0.name = "A";
+    kf0.position = 0.0f;
+    kf0.color = "#ff8800";
+    kf0.paramOverrides["filterCutoffHz"] = MorphParamOverride{800.0f, "smooth", "log"};
+
+    MorphKoinKeyframe kf1;
+    kf1.name = "B";
+    kf1.position = 1.0f;
+    p.morphKoin.keyframes = {kf0, kf1};
+
+    const auto result = loadPatchFromJson(savePatchToJson(p));
+    REQUIRE(result.ok);
+    REQUIRE(result.patch.morphKoin.autoplaySource == "lfo1");
+    const auto& ov = result.patch.morphKoin.keyframes[0].paramOverrides.at("filterCutoffHz");
+    REQUIRE(ov.value == Catch::Approx(800.0f));
+    REQUIRE(ov.easing == "smooth");
+    REQUIRE(ov.response == "log");
+    REQUIRE(result.patch.morphKoin.keyframes[0].color == "#ff8800");
+}
+
+TEST_CASE("voiceSettings morphDissemination roundtrips", "[patch][serialization][morph]")
+{
+    Patch p = Patch::makeInit();
+    p.voiceSettings.morphDissemination = true;
+    const auto result = loadPatchFromJson(savePatchToJson(p));
+    REQUIRE(result.ok);
+    REQUIRE(result.patch.voiceSettings.morphDissemination);
 }
 
 TEST_CASE("A v1 document's singular ampEnvelope/lfo1 migrate into envelopes[0]/lfos[0]",
@@ -255,4 +312,102 @@ TEST_CASE("A v2 document without warp fields defaults wt warps on migration to v
     REQUIRE(op.wtSyncRatio == Catch::Approx(1.0f));
     REQUIRE(op.wtSyncAmount == Catch::Approx(0.0f));
     REQUIRE(op.wtFormantShift == Catch::Approx(0.0f));
+}
+
+TEST_CASE("filter modeMorph roundtrips and migrates from legacy mode", "[patch][serialization][blades]")
+{
+    Patch p = Patch::makeInit();
+    p.layerA.filter1.enabled = true;
+    p.layerA.filter1.mode = pw8::filter::FilterMode::Bandpass;
+    p.layerA.filter1.modeMorph = 0.35f;
+
+    const auto json = savePatchToJson(p);
+    const auto loaded = loadPatchFromJson(json);
+    REQUIRE(loaded.ok);
+    REQUIRE(loaded.patch.layerA.filter1.modeMorph == Catch::Approx(0.35f));
+
+    const auto legacy = loadPatchFromJson(R"({"layerA":{"filter1":{"enabled":true,"mode":2,"cutoffHz":1200}}})");
+    REQUIRE(legacy.ok);
+    REQUIRE(legacy.patch.layerA.filter1.modeMorph == Catch::Approx(0.5f));
+}
+
+TEST_CASE("filter routing and F2 cutoff offset roundtrip", "[patch][serialization][blades][routing]")
+{
+    Patch p = Patch::makeInit();
+    p.layerA.filterRouting = 0.65f;
+    p.layerA.filter2.cutoffOffsetSemitones = 7.0f;
+
+    const auto loaded = loadPatchFromJson(savePatchToJson(p));
+    REQUIRE(loaded.ok);
+    REQUIRE(loaded.patch.layerA.filterRouting == Catch::Approx(0.65f));
+    REQUIRE(loaded.patch.layerA.filter2.cutoffOffsetSemitones == Catch::Approx(7.0f));
+}
+
+TEST_CASE("masterDynamics roundtrips through JSON", "[patch][serialization][dynamics]")
+{
+    Patch p = Patch::makeInit();
+    p.masterDynamics.enabled = true;
+    p.masterDynamics.mode = MasterDynamicsMode::Follower;
+    p.masterDynamics.thresholdDb = -18.0f;
+    p.masterDynamics.ratio = 6.0f;
+    p.masterDynamics.attackMs = 3.0f;
+    p.masterDynamics.releaseMs = 120.0f;
+    p.masterDynamics.sidechainGain = 0.85f;
+    p.masterDynamics.vactrolSlewMs = 55.0f;
+    p.masterDynamics.makeupDb = 4.0f;
+    p.masterDynamics.mix = 0.75f;
+
+    const auto loaded = loadPatchFromJson(savePatchToJson(p));
+    REQUIRE(loaded.ok);
+    REQUIRE(loaded.patch.masterDynamics.enabled);
+    REQUIRE(loaded.patch.masterDynamics.mode == MasterDynamicsMode::Follower);
+    REQUIRE(loaded.patch.masterDynamics.thresholdDb == Catch::Approx(-18.0f));
+    REQUIRE(loaded.patch.masterDynamics.ratio == Catch::Approx(6.0f));
+    REQUIRE(loaded.patch.masterDynamics.attackMs == Catch::Approx(3.0f));
+    REQUIRE(loaded.patch.masterDynamics.releaseMs == Catch::Approx(120.0f));
+    REQUIRE(loaded.patch.masterDynamics.sidechainGain == Catch::Approx(0.85f));
+    REQUIRE(loaded.patch.masterDynamics.vactrolSlewMs == Catch::Approx(55.0f));
+    REQUIRE(loaded.patch.masterDynamics.makeupDb == Catch::Approx(4.0f));
+    REQUIRE(loaded.patch.masterDynamics.mix == Catch::Approx(0.75f));
+}
+
+TEST_CASE("legacy patch without masterDynamics defaults to bypass", "[patch][serialization][dynamics]")
+{
+    const auto result = loadPatchFromJson(R"({"schemaVersion":3,"metadata":{"name":"Init"}})");
+    REQUIRE(result.ok);
+    REQUIRE_FALSE(result.patch.masterDynamics.enabled);
+    REQUIRE(result.patch.masterDynamics.mode == MasterDynamicsMode::Envelope);
+}
+
+TEST_CASE("segment envelope chain roundtrips through JSON", "[patch][serialization][segment]")
+{
+    Patch p = Patch::makeInit();
+    auto& chain = p.layerA.segmentEnvelopeChains[0];
+    chain.segments[0] = {SegmentType::Ramp, 120.0f, 1.0f, "inQuartic"};
+    chain.segments[1] = {SegmentType::Hold, 400.0f, 1.0f, ""};
+    chain.segments[2] = {SegmentType::Ramp, 800.0f, 0.0f, "sine"};
+    chain.segmentCount = 3;
+    chain.loopStart = 0;
+    chain.loopEnd = 2;
+
+    const auto loaded = loadPatchFromJson(savePatchToJson(p));
+    REQUIRE(loaded.ok);
+    const auto& out = loaded.patch.layerA.segmentEnvelopeChains[0];
+    REQUIRE(out.segmentCount == 3);
+    REQUIRE(out.segments[0].type == SegmentType::Ramp);
+    REQUIRE(out.segments[0].durationMs == Catch::Approx(120.0f));
+    REQUIRE(out.segments[0].level == Catch::Approx(1.0f));
+    REQUIRE(out.segments[0].shape == "inQuartic");
+    REQUIRE(out.segments[1].type == SegmentType::Hold);
+    REQUIRE(out.segments[2].shape == "sine");
+    REQUIRE(out.loopStart == 0);
+    REQUIRE(out.loopEnd == 2);
+}
+
+TEST_CASE("legacy patch without segment chains uses ADSR fallback", "[patch][serialization][segment]")
+{
+    const auto result = loadPatchFromJson(R"({"schemaVersion":3,"metadata":{"name":"Init"}})");
+    REQUIRE(result.ok);
+    for (const auto& chain : result.patch.layerA.segmentEnvelopeChains)
+        REQUIRE_FALSE(chain.isActive());
 }

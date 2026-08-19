@@ -1,8 +1,10 @@
 #include "PatchFocusPanel.h"
 
 #include <cmath>
+#include <algorithm>
 
 #include "../PlayModeLayout.h"
+#include "../theme/FigmaKnobTokens.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "ModRoutingUi.h"
@@ -74,19 +76,30 @@ namespace pw8::plugin::ui
 
         desktopDeckTitleLabel_.setText("OBSIDIAN ACTIVE PERFORMANCE CONTROL DECK", juce::dontSendNotification);
         desktopDeckTitleLabel_.setJustificationType(juce::Justification::centredLeft);
-        desktopDeckTitleLabel_.setFont(fonts::label(9.0f));
+        desktopDeckTitleLabel_.setFont(fonts::label(layout::kIpadPlayLabelSize));
         desktopDeckTitleLabel_.setColour(juce::Label::textColourId, palette::kTextSecondary);
         desktopDeckTitleLabel_.setVisible(false);
         panel_.addChildComponent(desktopDeckTitleLabel_);
 
         desktopDeckStatusLabel_.setText("ASSIGNED MACRO MAPPINGS OK", juce::dontSendNotification);
         desktopDeckStatusLabel_.setJustificationType(juce::Justification::centredRight);
-        desktopDeckStatusLabel_.setFont(fonts::label(8.0f));
+        desktopDeckStatusLabel_.setFont(fonts::label(layout::kIpadPlayCaptionSize));
         desktopDeckStatusLabel_.setColour(juce::Label::textColourId, palette::kAccent);
         desktopDeckStatusLabel_.setVisible(false);
         panel_.addChildComponent(desktopDeckStatusLabel_);
 
-        setBasicPerformanceLayout(true);
+        setBasicPerformanceLayout(false);
+        morphHubStrip_ = std::make_unique<MorphTimelineStrip>(processor_);
+        morphHubStrip_->setCompactHubMode(true);
+        morphHubStrip_->setShowMorphKnob(false);
+        addChildComponent(*morphHubStrip_);
+
+        morphHubTitleLabel_.setText("EVOLVE KOIN", juce::dontSendNotification);
+        morphHubTitleLabel_.setFont(fonts::label(9.0f));
+        morphHubTitleLabel_.setColour(juce::Label::textColourId, palette::kFigmaTeal);
+        morphHubTitleLabel_.setVisible(false);
+        addChildComponent(morphHubTitleLabel_);
+
         startTimerHz(12);
         timerCallback();
     }
@@ -96,19 +109,45 @@ namespace pw8::plugin::ui
         stopTimer();
     }
 
+    void PatchFocusPanel::applyDesktopDeckChrome(bool desktopDeck)
+    {
+        panel_.setShowChrome(!desktopDeck);
+        panel_.setTitle(desktopDeck ? juce::String() : juce::String("Performance Controls"));
+
+        desktopDeckTitleLabel_.setVisible(desktopDeck);
+        desktopDeckStatusLabel_.setVisible(desktopDeck);
+
+        if (desktopDeck)
+        {
+            introLabel_.setVisible(false);
+            ringLegendLabel_.setVisible(false);
+            subtitleLabel_.setVisible(false);
+            macroHintsLabel_.setVisible(false);
+            modWheelBadge_.setVisible(false);
+            expressionBadge_.setVisible(false);
+            sidechainBadge_.setVisible(false);
+            standardSectionLabel_.setVisible(false);
+            advancedButton_.setVisible(false);
+        }
+    }
+
+    bool PatchFocusPanel::showPerformanceRoutingUi() const noexcept
+    {
+        return !compactLayout_ && !desktopPlayModeLayout_ && !ipadPlayLayout_;
+    }
+
     void PatchFocusPanel::setBasicPerformanceLayout(bool basicLayout)
     {
         basicLayout_ = basicLayout;
         if (basicLayout)
             compactLayout_ = false;
-        introLabel_.setVisible(basicLayout && !compactLayout_ && !desktopPlayModeLayout_);
-        ringLegendLabel_.setVisible(basicLayout && !compactLayout_ && !desktopPlayModeLayout_);
         if (!compactLayout_)
         {
             panel_.setVisible(true);
             if (panel_.getParentComponent() == nullptr)
                 addAndMakeVisible(panel_);
         }
+        applyDesktopDeckChrome(desktopPlayModeLayout_ || ipadPlayLayout_);
         applyLayoutMode();
         resized();
     }
@@ -120,12 +159,19 @@ namespace pw8::plugin::ui
         {
             basicLayout_ = false;
             desktopPlayModeLayout_ = false;
-        }
-        introLabel_.setVisible(basicLayout_ && !compactLayout_ && !desktopPlayModeLayout_);
-        ringLegendLabel_.setVisible(basicLayout_ && !compactLayout_ && !desktopPlayModeLayout_);
-        panel_.setVisible(!compactLayout_);
-        if (!compactLayout_)
+            ipadPlayLayout_ = false;
             orbitHole_ = {};
+            subtitleLabel_.setVisible(false);
+        }
+        panel_.setShowChrome(true);
+        panel_.setTitle("Performance Controls");
+        if (!compactLayout_)
+        {
+            panel_.setVisible(true);
+            if (panel_.getParentComponent() == nullptr)
+                addAndMakeVisible(panel_);
+        }
+        applyDesktopDeckChrome(desktopPlayModeLayout_ || ipadPlayLayout_);
         applyLayoutMode();
         resized();
     }
@@ -137,19 +183,17 @@ namespace pw8::plugin::ui
         {
             compactLayout_ = false;
             basicLayout_ = true;
+            ipadPlayLayout_ = false;
         }
-        introLabel_.setVisible(basicLayout_ && !compactLayout_ && !desktopPlayModeLayout_);
-        ringLegendLabel_.setVisible(basicLayout_ && !compactLayout_ && !desktopPlayModeLayout_);
-        desktopDeckTitleLabel_.setVisible(desktopPlayModeLayout_);
-        desktopDeckStatusLabel_.setVisible(desktopPlayModeLayout_);
-        modWheelBadge_.setVisible(!desktopPlayModeLayout_ && modWheelBadge_.isVisible());
-        expressionBadge_.setVisible(!desktopPlayModeLayout_ && expressionBadge_.isVisible());
-        sidechainBadge_.setVisible(!desktopPlayModeLayout_ && sidechainBadge_.isVisible());
-        macroHintsLabel_.setVisible(!desktopPlayModeLayout_ && macroHintsLabel_.isVisible());
-        standardSectionLabel_.setVisible(!desktopPlayModeLayout_ && standardSectionLabel_.isVisible());
+        if (desktopPlayModeLayout_)
+        {
+            desktopDeckTitleLabel_.setText("OBSIDIAN ACTIVE PERFORMANCE CONTROL DECK", juce::dontSendNotification);
+            desktopDeckStatusLabel_.setText("ASSIGNED MACRO MAPPINGS OK", juce::dontSendNotification);
+        }
         panel_.setVisible(true);
         if (panel_.getParentComponent() == nullptr)
             addAndMakeVisible(panel_);
+        applyDesktopDeckChrome(desktopPlayModeLayout_ || ipadPlayLayout_);
         applyLayoutMode();
         refreshFromPatch();
         resized();
@@ -159,7 +203,20 @@ namespace pw8::plugin::ui
     {
         ipadPlayLayout_ = ipadPlayLayout;
         if (ipadPlayLayout)
-            desktopPlayModeLayout_ = true;
+        {
+            desktopPlayModeLayout_ = false;
+            compactLayout_ = false;
+            basicLayout_ = true;
+        }
+        if (ipadPlayLayout_)
+        {
+            desktopDeckTitleLabel_.setText("OBSIDIAN ASSIGNED PERFORMANCE MACROS", juce::dontSendNotification);
+            desktopDeckStatusLabel_.setText("MACRO PAGE 1 / 1", juce::dontSendNotification);
+        }
+        panel_.setVisible(true);
+        if (panel_.getParentComponent() == nullptr)
+            addAndMakeVisible(panel_);
+        applyDesktopDeckChrome(desktopPlayModeLayout_ || ipadPlayLayout_);
         applyLayoutMode();
         refreshFromPatch();
         resized();
@@ -173,11 +230,13 @@ namespace pw8::plugin::ui
 
     void PatchFocusPanel::applyLayoutMode()
     {
-        const int featureDialCap = desktopPlayModeLayout_
+        const int featureDialCap = (desktopPlayModeLayout_ || ipadPlayLayout_)
                                        ? layout::kDesktopPlayModeMacroKnobTouchSize
-                                       : (compactLayout_ ? 56 : (basicLayout_ ? 120 : 72));
-        const int standardDialCap = compactLayout_ ? 52 : (basicLayout_ ? 96 : 68);
-        const auto featureDeckedSize = desktopPlayModeLayout_
+                                       : (compactLayout_ ? figma::compactMacroDialDiameter()
+                                                         : (basicLayout_ ? 120 : 72));
+        const int standardDialCap =
+            compactLayout_ ? figma::compactMacroDialDiameter() : (basicLayout_ ? 96 : 68);
+        const auto featureDeckedSize = (desktopPlayModeLayout_ || ipadPlayLayout_)
                                            ? GlowKnob::DeckedKnobSize::Large
                                            : (compactLayout_ ? GlowKnob::DeckedKnobSize::Small
                                                              : (basicLayout_ ? GlowKnob::DeckedKnobSize::Large
@@ -187,17 +246,37 @@ namespace pw8::plugin::ui
 
         for (std::size_t i = 0; i < knobs_.size(); ++i)
         {
-            const bool featured = i < featureKnobCount_;
-            knobs_[i]->setMaxDialDiameter(featured ? featureDialCap : standardDialCap);
-            knobs_[i]->setDeckedStyle(true, featured ? featureDeckedSize : standardDeckedSize);
+            const bool featured = (desktopPlayModeLayout_ || ipadPlayLayout_) ? (i == 0)
+                                                                              : (i < featureKnobCount_);
+            if (compactLayout_)
+                knobs_[i]->applyFigmaContext(figma::KnobContext::CompactMacro);
+            else if (desktopPlayModeLayout_ || ipadPlayLayout_)
+                knobs_[i]->applyFigmaContext(featured ? figma::KnobContext::DesktopMacroFeature
+                                                      : figma::KnobContext::DesktopMacroStandard);
+            else
+            {
+                knobs_[i]->setMaxDialDiameter(featured ? featureDialCap : standardDialCap);
+                knobs_[i]->setDeckedStyle(true, featured ? featureDeckedSize : standardDeckedSize);
+            }
             knobs_[i]->setFeaturedPerformanceMacro(featured);
+            knobs_[i]->setShowModRouteRing(!desktopPlayModeLayout_ && !ipadPlayLayout_);
         }
     }
 
     void PatchFocusPanel::refreshFromPatch()
     {
-        lastLayout_ = {};
         timerCallback();
+        syncMacroKnobsFromApvts();
+    }
+
+    void PatchFocusPanel::syncMacroKnobsFromApvts()
+    {
+        for (std::size_t i = 0; i < knobs_.size() && i < kMacroParameterIds.size(); ++i)
+        {
+            if (auto* param =
+                    dynamic_cast<juce::RangedAudioParameter*>(processor_.apvts.getParameter(kMacroParameterIds[i])))
+                knobs_[i]->syncSliderFromParameter(*param);
+        }
     }
 
     void PatchFocusPanel::updateBadgePulse()
@@ -239,7 +318,7 @@ namespace pw8::plugin::ui
 
     void PatchFocusPanel::paint(juce::Graphics& g)
     {
-        if (desktopPlayModeLayout_)
+        if (desktopPlayModeLayout_ || ipadPlayLayout_)
         {
             auto bounds = getLocalBounds().toFloat();
             g.setColour(palette::kPanelRaised.withAlpha(0.92f));
@@ -308,7 +387,7 @@ namespace pw8::plugin::ui
         const auto& patch = processor_.getCurrentPatch();
 
         PatchFocusLayout layout;
-        if (desktopPlayModeLayout_)
+        if (desktopPlayModeLayout_ || ipadPlayLayout_)
         {
             const std::size_t macroCount = ipadPlayLayout_ ? layout::kIpadPlayMacroCount : layout::kDesktopPlayModeMacroCount;
             layout.featureKnobs.reserve(macroCount);
@@ -321,7 +400,7 @@ namespace pw8::plugin::ui
         }
         else if (compactLayout_)
         {
-            layout = inferPatchFocusLayout(patch, 4, 0, &processor_.apvts);
+            layout = inferPatchFocusLayout(patch, layout::kCompactMacroCount, 0, &processor_.apvts);
         }
         else
         {
@@ -335,9 +414,9 @@ namespace pw8::plugin::ui
         const bool authored = !patch.uiFocus.knobs.empty();
         if (compactLayout_)
         {
-            subtitleLabel_.setText(authored ? "Performance macros" : "Feature macros", juce::dontSendNotification);
+            subtitleLabel_.setText("Patch KOINS", juce::dontSendNotification);
         }
-        else if (desktopPlayModeLayout_)
+        else if (desktopPlayModeLayout_ || ipadPlayLayout_)
         {
             subtitleLabel_.setText({}, juce::dontSendNotification);
         }
@@ -350,27 +429,62 @@ namespace pw8::plugin::ui
                                    juce::dontSendNotification);
         }
 
-        standardSectionLabel_.setVisible(!compactLayout_ && !layout.standardKnobs.empty());
+        standardSectionLabel_.setVisible(showPerformanceRoutingUi() && !layout.standardKnobs.empty());
 
         const auto macroHints = formatFeatureMacroHints(patch, layout.featureKnobs);
         macroHintsLabel_.setText(macroHints, juce::dontSendNotification);
-        macroHintsLabel_.setVisible(!compactLayout_ && macroHints.isNotEmpty());
+        macroHintsLabel_.setVisible(showPerformanceRoutingUi() && macroHints.isNotEmpty());
 
-        if (layout != lastLayout_)
+        const bool knobStructureChanged = knobs_.empty() || !samePatchFocusKnobStructure(layout, lastLayout_);
+        if (knobStructureChanged)
         {
             lastLayout_ = layout;
             rebuildKnobs(layout);
             applyLayoutMode();
             resized();
+            syncMacroKnobsFromApvts();
+        }
+        else
+        {
+            lastLayout_ = layout;
+        }
+
+        if (!knobStructureChanged && (desktopPlayModeLayout_ || ipadPlayLayout_))
+        {
+            for (std::size_t i = 0; i < knobs_.size() && i < patch.macros.size(); ++i)
+            {
+                const auto& macro = patch.macros[i];
+                const auto label =
+                    macro.name.empty() ? juce::String(kMacroParameterNames[i]) : juce::String(macro.name);
+                knobs_[i]->setDisplayName(label);
+            }
+        }
+
+        const bool hasMorphUi = std::any_of(patch.uiFocus.knobs.begin(), patch.uiFocus.knobs.end(),
+                                            [](const patch::UiFocusKnob& k) { return k.kind == patch::UiFocusKnobKind::Morph; });
+        showMorphHub_ = hasMorphUi && !patch.morphKoin.keyframes.empty() && basicLayout_ && !compactLayout_
+                        && !desktopPlayModeLayout_ && !ipadPlayLayout_;
+        if (morphHubStrip_)
+        {
+            morphHubTitleLabel_.setVisible(showMorphHub_);
+            morphHubStrip_->setVisible(showMorphHub_);
+            if (showMorphHub_)
+            {
+                if (morphHubStrip_->getParentComponent() == nullptr)
+                    panel_.addAndMakeVisible(*morphHubStrip_);
+                if (morphHubTitleLabel_.getParentComponent() == nullptr)
+                    panel_.addAndMakeVisible(morphHubTitleLabel_);
+                morphHubStrip_->refresh();
+            }
         }
 
         const auto wheelText = formatModWheelStatus(patch, processor_.getModWheelValue());
         modWheelBadge_.setText(wheelText, juce::dontSendNotification);
-        modWheelBadge_.setVisible(!wheelText.isEmpty());
+        modWheelBadge_.setVisible(showPerformanceRoutingUi() && !wheelText.isEmpty());
 
         const auto exprText = formatExpressionStatus(patch, processor_.getExpressionValue());
         expressionBadge_.setText(exprText, juce::dontSendNotification);
-        expressionBadge_.setVisible(!exprText.isEmpty());
+        expressionBadge_.setVisible(showPerformanceRoutingUi() && !exprText.isEmpty());
 
         const auto scText = formatSidechainStatus(patch, processor_.getSidechainLevel(), processor_.getSidechainActive()
 #if JucePlugin_Build_AU || JucePlugin_Build_VST3
@@ -382,7 +496,7 @@ namespace pw8::plugin::ui
 #endif
         );
         sidechainBadge_.setText(scText, juce::dontSendNotification);
-        sidechainBadge_.setVisible(!scText.isEmpty());
+        sidechainBadge_.setVisible(showPerformanceRoutingUi() && !scText.isEmpty());
 
         badgePulsePhase_ += 1.0f / 12.0f;
         if (badgePulsePhase_ > 1.0f)
@@ -458,8 +572,11 @@ namespace pw8::plugin::ui
             knobs_.push_back(std::move(knob));
         };
 
-        for (const auto& spec : layout.featureKnobs)
-            addKnob(spec, true);
+        for (std::size_t i = 0; i < layout.featureKnobs.size(); ++i)
+        {
+            const bool featured = (desktopPlayModeLayout_ || ipadPlayLayout_) ? (i == 0) : true;
+            addKnob(layout.featureKnobs[i], featured);
+        }
         for (const auto& spec : layout.standardKnobs)
             addKnob(spec, false);
     }
@@ -495,10 +612,20 @@ namespace pw8::plugin::ui
 
     void PatchFocusPanel::resized()
     {
-        if (desktopPlayModeLayout_)
+        if (desktopPlayModeLayout_ || ipadPlayLayout_)
         {
             panel_.setBounds(getLocalBounds());
             auto bounds = panel_.getLocalBounds().reduced(layout::kDesktopPlayModePerformanceDeckPadding);
+
+            introLabel_.setVisible(false);
+            ringLegendLabel_.setVisible(false);
+            subtitleLabel_.setVisible(false);
+            macroHintsLabel_.setVisible(false);
+            modWheelBadge_.setVisible(false);
+            expressionBadge_.setVisible(false);
+            sidechainBadge_.setVisible(false);
+            standardSectionLabel_.setVisible(false);
+            advancedButton_.setVisible(false);
 
             auto header = bounds.removeFromTop(layout::kDesktopPlayModeMacrosHeaderHeight);
             desktopDeckTitleLabel_.setBounds(header.removeFromLeft(header.getWidth() - 160));
@@ -524,51 +651,21 @@ namespace pw8::plugin::ui
 
         if (compactLayout_)
         {
-            if (!orbitHole_.isEmpty() && !knobs_.empty())
-            {
-                subtitleLabel_.setBounds(0, 0, 0, 0);
-                const auto centre = orbitHole_.getCentre();
-                const int orbitRadius = juce::jmax(orbitHole_.getWidth(), orbitHole_.getHeight()) / 2 + 36;
-                const int knobSize = 64;
-                static constexpr float kAngles[] = {
-                    -juce::MathConstants<float>::halfPi,
-                    0.0f,
-                    juce::MathConstants<float>::halfPi,
-                    juce::MathConstants<float>::pi,
-                };
-                for (std::size_t i = 0; i < knobs_.size() && i < 4; ++i)
-                {
-                    const float a = kAngles[i];
-                    const int cx = centre.x + static_cast<int>(std::cos(a) * static_cast<float>(orbitRadius));
-                    const int cy = centre.y + static_cast<int>(std::sin(a) * static_cast<float>(orbitRadius));
-                    knobs_[i]->setBounds(cx - knobSize / 2, cy - knobSize / 2, knobSize, knobSize);
-                }
-                return;
-            }
-
-            auto bounds = getLocalBounds().reduced(layout::kCompactMacroPanelPadding);
-            subtitleLabel_.setBounds(bounds.removeFromTop(16));
-            bounds.removeFromTop(layout::kCompactMacroRowGap);
-
-            const std::size_t knobCount = knobs_.size();
+            auto bounds = getLocalBounds();
+            const std::size_t knobCount =
+                juce::jmin(knobs_.size(), static_cast<std::size_t>(layout::kCompactPerformanceKoinCount));
             if (knobCount == 0)
                 return;
 
-            const int columns = 3;
-            const int rows = static_cast<int>((knobCount + static_cast<std::size_t>(columns) - 1)
-                                              / static_cast<std::size_t>(columns));
-            const int cellWidth = (bounds.getWidth() - (columns - 1) * layout::kCompactMacroKnobGap) / columns;
-            const int cellHeight = layout::kCompactMacroKnobSize + 18;
+            const int columns = static_cast<int>(knobCount);
+            const int gap = layout::kCompactMacroKnobGap;
+            const int cellWidth = (bounds.getWidth() - (columns - 1) * gap) / juce::jmax(1, columns);
 
             for (std::size_t i = 0; i < knobCount; ++i)
             {
-                const int col = static_cast<int>(i) % columns;
-                const int row = static_cast<int>(i) / columns;
-                const int x = bounds.getX() + col * (cellWidth + layout::kCompactMacroKnobGap);
-                const int y = bounds.getY() + row * (cellHeight + layout::kCompactMacroRowGap);
-                knobs_[i]->setBounds(x, y, cellWidth, cellHeight);
+                const int x = bounds.getX() + static_cast<int>(i) * (cellWidth + gap);
+                knobs_[i]->setBounds(x, bounds.getY(), cellWidth, bounds.getHeight());
             }
-            juce::ignoreUnused(rows);
             return;
         }
 
@@ -615,6 +712,14 @@ namespace pw8::plugin::ui
         }
 
         bounds.removeFromTop(basicLayout_ ? 8 : 4);
+
+        if (showMorphHub_ && morphHubStrip_ != nullptr)
+        {
+            morphHubTitleLabel_.setBounds(bounds.removeFromTop(layout::kPlayFocusMorphHubCardHeight));
+            bounds.removeFromTop(2);
+            morphHubStrip_->setBounds(bounds.removeFromBottom(layout::kPlayFocusMorphHubMiniStripHeight));
+            bounds.removeFromBottom(6);
+        }
 
         if (knobs_.empty())
             return;

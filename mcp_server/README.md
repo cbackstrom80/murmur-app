@@ -34,6 +34,9 @@ change here.
 
 ## Connect a real MCP client
 
+**Cursor (this repo):** `.mcp.json` at the repo root registers the `patchwork-eight`
+server for the workspace. Reload MCP after edits.
+
 Claude Desktop (`~/Library/Application Support/Claude/claude_desktop_config.json`
 on macOS) or Claude Code:
 
@@ -42,7 +45,8 @@ on macOS) or Claude Code:
   "mcpServers": {
     "patchwork-eight": {
       "command": "python3",
-      "args": ["/absolute/path/to/patchwork-eight/mcp_server/server.py"]
+      "args": ["/absolute/path/to/patchwork-eight/mcp_server/server.py"],
+      "cwd": "/absolute/path/to/patchwork-eight"
     }
   }
 }
@@ -51,6 +55,21 @@ on macOS) or Claude Code:
 Restart the client, then ask it something like *"list the Patchwork Eight
 engines"* or *"build me a laser sound using the FM/PM engine"* -- it should
 discover and call the tools below on its own.
+
+## Live Standalone audition (integrated MCP bridge)
+
+When **MURMUR Standalone** (`MURMUR.app`) is running, it starts a localhost
+HTTP bridge and writes `~/Library/Application Support/MURMUR/mcp-bridge.json`.
+
+Agent flow:
+
+1. Launch Standalone.
+2. Connect MCP (Cursor uses repo `.mcp.json`).
+3. `create_patch` → edit tools → `load_into_standalone` to hear it live.
+4. Optional: `render_preview` / `validate_patch` via offline `pw8-render`.
+5. `save_patch` when ready.
+
+VST3/AU do **not** expose the bridge (Standalone-only).
 
 ## Tools
 
@@ -62,6 +81,8 @@ Construction/editing (operate on a scratch patch identified by `patch_id`,
 returned by `create_patch` -- nothing here touches `content/presets/` until
 `save_patch` is called explicitly): `create_patch`, `set_operator`,
 `add_mod_route`, `set_effect`, `set_envelope`, `set_filter`,
+`set_generative`, `set_utility_peaks`, `set_master_dynamics`,
+`set_morph_koin`, `add_morph_keyframe`, `remove_morph_keyframe`,
 `list_scratch_patches`, `save_patch`, `delete_scratch_patch`.
 
 Rendering: `render_preview` (real audio through `pw8-render`, returns
@@ -69,6 +90,9 @@ peak/rms/NaN-Inf metrics + the rendered WAV's path -- open it directly to
 listen, audio isn't streamed back through the tool call in this pass),
 `validate_patch` (low/mid/high-note pass/fail check, the same bar the
 250-patch factory preset bank was checked against).
+
+Live Standalone (requires `MURMUR.app` running): `standalone_status`,
+`load_into_standalone` (scratch patch → live engine), `load_preset_into_standalone`.
 
 ## Files
 
@@ -84,6 +108,8 @@ listen, audio isn't streamed back through the tool call in this pass),
 - `render.py` -- shells out to `pw8-render --receipt` and parses the
   resulting JSON (peak/rms/NaN-Inf) -- the same real DSP path, not a
   synthetic check.
+- `standalone_bridge.py` -- HTTP client for the MURMUR Standalone localhost
+  bridge (live patch loads while agents iterate).
 - `midi_writer.py` -- a minimal hand-rolled Standard MIDI File writer for
   preview renders, kept dependency-free rather than adding `mido` (matches
   this project's general preference for small, obvious dependencies).

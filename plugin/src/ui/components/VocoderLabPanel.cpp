@@ -1,6 +1,7 @@
 #include "VocoderLabPanel.h"
 
 #include "../PlayModeLayout.h"
+#include "../theme/FigmaKnobTokens.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "state/PluginState.h"
@@ -130,6 +131,7 @@ namespace pw8::plugin::ui
         }
 
         bindSlot(2);
+        rebuildFftWindow();
         startTimerHz(20);
     }
 
@@ -167,6 +169,7 @@ namespace pw8::plugin::ui
 
         const auto prefix = slotParamPrefix(slotIndex_);
         mixKnob_ = std::make_unique<GlowKnob>(apvts_, prefix + "Mix", "VOCODER MIX");
+        mixKnob_->applyFigmaContext(figma::KnobContext::DesignVocoder);
         addAndMakeVisible(*mixKnob_);
 
         static constexpr const char* kFields[] = {"VocoderBandCount", "VocoderFormant", "VocoderSibilance",
@@ -177,6 +180,7 @@ namespace pw8::plugin::ui
         for (std::size_t i = 0; i < 5; ++i)
         {
             auto knob = std::make_unique<GlowKnob>(apvts_, prefix + kFields[i], kLabels[i]);
+            knob->applyFigmaContext(figma::KnobContext::DesignVocoder);
             addAndMakeVisible(*knob);
             paramKnobs_.push_back(std::move(knob));
         }
@@ -207,11 +211,84 @@ namespace pw8::plugin::ui
         resized();
     }
 
+    void VocoderLabPanel::rebuildFftWindow() noexcept
+    {
+        float sum = 0.0f;
+        for (int i = 0; i < kFftSize; ++i)
+        {
+            const float w = 0.5f
+                            * (1.0f - std::cos(2.0f * juce::MathConstants<float>::pi * static_cast<float>(i)
+                                               / static_cast<float>(kFftSize - 1)));
+            fftWindow_[static_cast<std::size_t>(i)] = w;
+            sum += w;
+        }
+        fftWindowSum_ = juce::jmax(1.0e-6f, sum);
+    }
+
+    void VocoderLabPanel::updateBandSpectrumFromScope() noexcept
+    {
+        const int pulled = processor_.readScopeSamples(fftCapture_.data(), kFftSize);
+        if (pulled < kFftSize / 2)
+        {
+            fftReady_ = false;
+            return;
+        }
+
+        fftData_.fill(0.0f);
+        for (int i = 0; i < kFftSize; ++i)
+        {
+            fftData_[static_cast<std::size_t>(i)] =
+                fftCapture_[static_cast<std::size_t>(i)] * fftWindow_[static_cast<std::size_t>(i)];
+        }
+
+        fft_.performFrequencyOnlyForwardTransform(fftData_.data());
+
+        const double sampleRate = processor_.getScopeSampleRate() > 0.0 ? processor_.getScopeSampleRate() : 48000.0;
+        constexpr float kMinHz = 80.0f;
+        constexpr float kMaxHz = 12000.0f;
+        constexpr float kMinDb = -62.0f;
+        constexpr float kMaxDb = 0.0f;
+
+        std::array<float, layout::kDesignVocoderBandCount> nextCarrier{};
+        for (std::size_t band = 0; band < layout::kDesignVocoderBandCount; ++band)
+        {
+            const float t = static_cast<float>(band) / static_cast<float>(layout::kDesignVocoderBandCount - 1);
+            const float freq = kMinHz * std::pow(kMaxHz / kMinHz, t);
+            const float binIndex = static_cast<float>(freq * static_cast<float>(kFftSize) / static_cast<float>(sampleRate));
+            const int i0 = juce::jlimit(0, kFftSize / 2 - 1, static_cast<int>(binIndex));
+            const int i1 = juce::jmin(kFftSize / 2 - 1, i0 + 1);
+            const float frac = binIndex - static_cast<float>(i0);
+            const float mag = fftData_[static_cast<std::size_t>(i0)] * (1.0f - frac)
+                              + fftData_[static_cast<std::size_t>(i1)] * frac;
+            const float magNorm = juce::jmax(1.0e-8f, mag * 2.0f / fftWindowSum_);
+            const float db = juce::Decibels::gainToDecibels(magNorm, kMinDb);
+            nextCarrier[band] = juce::jlimit(0.08f, 1.0f, juce::jmap(db, kMinDb, kMaxDb, 0.08f, 1.0f));
+        }
+
+        const float scLevel = processor_.getSidechainLevel();
+        const bool scActive = processor_.getSidechainActive();
+
+        for (std::size_t i = 0; i < layout::kDesignVocoderBandCount; ++i)
+        {
+            carrierBandHeights_[i] =
+                juce::jlimit(0.08f, 1.0f, carrierBandHeights_[i] * 0.55f + nextCarrier[i] * 0.45f);
+            const float t = static_cast<float>(i) / static_cast<float>(layout::kDesignVocoderBandCount - 1);
+            const float bandWeight = 0.35f + 0.65f * std::sin(t * juce::MathConstants<float>::pi);
+            const float modTarget = scActive ? scLevel * bandWeight : 0.08f;
+            modulatorBandHeights_[i] = juce::jlimit(
+                0.08f, 1.0f, modulatorBandHeights_[i] * 0.55f + modTarget * 0.45f);
+        }
+
+        fftReady_ = true;
+    }
+
     void VocoderLabPanel::timerCallback()
     {
         animPhase_ += 0.04f;
         if (animPhase_ > juce::MathConstants<float>::twoPi)
             animPhase_ -= juce::MathConstants<float>::twoPi;
+
+        updateBandSpectrumFromScope();
 
         const bool scActive = processor_.getSidechainActive();
         const float scLevel = processor_.getSidechainLevel();
@@ -223,19 +300,22 @@ namespace pw8::plugin::ui
         enableButton_.setToggleState(readEffectType(apvts_, slotParamPrefix(slotIndex_)) != 0,
                                      juce::dontSendNotification);
 
-        for (std::size_t i = 0; i < layout::kDesignVocoderBandCount; ++i)
+        if (!fftReady_)
         {
-            const float t = static_cast<float>(i) / static_cast<float>(layout::kDesignVocoderBandCount - 1);
-            const float wobble = 0.08f * std::sin(animPhase_ + t * 4.2f);
-            const float bandWeight = 0.35f + 0.65f * std::sin(t * juce::MathConstants<float>::pi);
-            const float scTarget = scActive ? scLevel * bandWeight : 0.12f;
-            carrierBandHeights_[i] =
-                juce::jlimit(0.08f, 1.0f, carrierBandHeights_[i] * 0.92f + (0.28f + scTarget + wobble) * 0.08f);
-            const float modTarget = scActive ? scLevel * (0.4f + 0.6f * bandWeight) : 0.08f;
-            modulatorBandHeights_[i] = juce::jlimit(
-                0.08f, 1.0f,
-                modulatorBandHeights_[i] * 0.92f
-                    + (modTarget + 0.12f * std::sin(animPhase_ * 0.8f + t * 3.1f)) * 0.08f);
+            for (std::size_t i = 0; i < layout::kDesignVocoderBandCount; ++i)
+            {
+                const float t = static_cast<float>(i) / static_cast<float>(layout::kDesignVocoderBandCount - 1);
+                const float wobble = 0.08f * std::sin(animPhase_ + t * 4.2f);
+                const float bandWeight = 0.35f + 0.65f * std::sin(t * juce::MathConstants<float>::pi);
+                const float scTarget = scActive ? scLevel * bandWeight : 0.12f;
+                carrierBandHeights_[i] =
+                    juce::jlimit(0.08f, 1.0f, carrierBandHeights_[i] * 0.92f + (0.28f + scTarget + wobble) * 0.08f);
+                const float modTarget = scActive ? scLevel * (0.4f + 0.6f * bandWeight) : 0.08f;
+                modulatorBandHeights_[i] = juce::jlimit(
+                    0.08f, 1.0f,
+                    modulatorBandHeights_[i] * 0.92f
+                        + (modTarget + 0.12f * std::sin(animPhase_ * 0.8f + t * 3.1f)) * 0.08f);
+            }
         }
 
         repaint();
@@ -503,7 +583,7 @@ namespace pw8::plugin::ui
         auto placeKnob = [&](GlowKnob* knob, int col, int row) {
             if (knob == nullptr)
                 return;
-            knob->setMaxDialDiameter(layout::kDesignVocoderKnobDiameter);
+            knob->applyFigmaContext(figma::KnobContext::DesignVocoder);
             auto cell = controlsInner.withPosition(controlsInner.getX() + col * knobW, controlsInner.getY() + row * knobBlockH)
                             .withSize(knobW, knobBlockH);
             knob->setBounds(cell.withSizeKeepingCentre(knobW, knobBlockH).reduced(8));

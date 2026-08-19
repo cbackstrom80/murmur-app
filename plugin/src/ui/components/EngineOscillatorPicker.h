@@ -25,6 +25,7 @@ namespace pw8::plugin::ui
         void resized() override;
         void mouseDown(const juce::MouseEvent& event) override;
         void mouseDoubleClick(const juce::MouseEvent& event) override;
+        bool keyPressed(const juce::KeyPress& key) override;
 
         std::function<void()> onWavetableLabRequested;
 
@@ -56,6 +57,11 @@ namespace pw8::plugin::ui
         [[nodiscard]] int subPickerPillIndexAt(juce::Point<int> pos) const;
         void activateSubPickerPill(int pillIndex);
         void stepSubPickerCycler(int delta);
+        void stepWavetablePosition(int delta);
+        void setWavetablePositionNormalized(float pos01);
+        void loadGranularSampleFromFile();
+        void paintContextPositionArrows(juce::Graphics& g);
+        [[nodiscard]] bool usesWavetablePositionControls() const;
         void paintWaveCell(juce::Graphics& g, juce::Rectangle<float> cell, int cellIndex, bool selected,
                            const std::array<float, wireframe::kPreviewPoints>& samples, const char* label);
         void paintWavetableWaveCell(juce::Graphics& g, juce::Rectangle<float> cell, int cellIndex, bool selected,
@@ -93,9 +99,13 @@ namespace pw8::plugin::ui
         juce::Rectangle<int> contextPreviewBounds_;
         juce::Rectangle<int> subPickerLeftArrow_;
         juce::Rectangle<int> subPickerRightArrow_;
+        juce::Rectangle<int> contextLeftArrow_;
+        juce::Rectangle<int> contextRightArrow_;
         bool subPickerUsesCycler_ = false;
+        bool contextUsesPositionArrows_ = false;
         std::array<juce::Rectangle<int>, 4> cellLayout_{};
         EngineOscContextThumb contextThumb_;
+        std::unique_ptr<juce::FileChooser> fileChooser_;
     };
 
 } // namespace pw8::plugin::ui

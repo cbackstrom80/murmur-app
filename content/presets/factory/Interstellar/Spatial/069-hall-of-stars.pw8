@@ -4,7 +4,7 @@
     "id": "pw8-interstellar-spatial-069-2172448298",
     "name": "HALL OF STARS",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar spatial pad #069 \u2014 Hall Of Stars. Headphone-first spatial pad \u2014 M3 is algorithmic reverb; load companion QUASAR preset `069-hall-of-stars.quasar` on the master bus for binaural spatial. Mid-register chords; dual layers + Quasar delay wash; SPACE opens the chamber. Engines: Classic, Additive, PhaseShape.",
+    "description": "Interstellar spatial pad #069 \u2014 Hall Of Stars. Headphone-first spatial pad \u2014 M3 is inline QUASAR binaural spatial (embedded in patch) Mid-register chords; dual layers + Quasar delay wash; SPACE opens the chamber. Engines: Classic, Additive, PhaseShape.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -42,8 +42,7 @@
       "CNTR holds bass \u2014 sweep SPACE for orbit",
       "slow LFO orbit on Quasar room/distance"
     ],
-    "spatial": "use-quasar-plugin",
-    "companionQuasar": "interstellar/069-hall-of-stars.quasar"
+    "spatial": "inline-quasar"
   },
   "layerMode": 2,
   "layerMorph": 0.0,
@@ -345,28 +344,28 @@
       },
       {
         "source": 1,
-        "destination": 15,
+        "destination": 32,
         "targetIndex": 2,
         "amount": 0.17,
         "scope": 2
       },
       {
         "source": 1,
-        "destination": 17,
+        "destination": 37,
         "targetIndex": 2,
         "amount": 20.0,
         "scope": 2
       },
       {
         "source": 2,
-        "destination": 16,
+        "destination": 38,
         "targetIndex": 2,
         "amount": 0.7100000000000001,
         "scope": 2
       },
       {
         "source": 2,
-        "destination": 18,
+        "destination": 32,
         "targetIndex": 2,
         "amount": 0.15000000000000002,
         "scope": 2
@@ -380,49 +379,49 @@
       },
       {
         "source": 21,
-        "destination": 15,
+        "destination": 32,
         "targetIndex": 2,
         "amount": 0.52,
         "scope": 2
       },
       {
         "source": 21,
-        "destination": 16,
+        "destination": 38,
         "targetIndex": 2,
         "amount": 1.15,
         "scope": 2
       },
       {
         "source": 21,
-        "destination": 17,
+        "destination": 37,
         "targetIndex": 2,
         "amount": 16.0,
         "scope": 2
       },
       {
         "source": 21,
-        "destination": 18,
+        "destination": 32,
         "targetIndex": 2,
         "amount": 0.26,
         "scope": 2
       },
       {
         "source": 22,
-        "destination": 18,
+        "destination": 32,
         "targetIndex": 2,
         "amount": 0.38,
         "scope": 2
       },
       {
         "source": 22,
-        "destination": 16,
+        "destination": 38,
         "targetIndex": 2,
         "amount": 0.85,
         "scope": 2
       },
       {
         "source": 22,
-        "destination": 17,
+        "destination": 37,
         "targetIndex": 2,
         "amount": 14.0,
         "scope": 2
@@ -436,7 +435,7 @@
       },
       {
         "source": 22,
-        "destination": 15,
+        "destination": 32,
         "targetIndex": 2,
         "amount": 0.28,
         "scope": 2
@@ -812,7 +811,7 @@
     {
       "id": "m1",
       "name": "SPACE",
-      "description": "Spatial macro \u2014 pair with standalone QUASAR plugin on the master bus.",
+      "description": "Spatial macro \u2014 room, delay, and mix on master Quasar (M3).",
       "value": 0.0
     },
     {
@@ -881,13 +880,33 @@
       "chorusBaseDelayMs": 14.0
     },
     {
-      "type": 7,
-      "mix": 0.44000000000000006,
-      "reverbSizeParam": 0.95,
-      "reverbDecaySeconds": 5.38,
-      "reverbPreDelayMs": 57.2,
-      "reverbDiffusion": 0.72,
-      "reverbModDepth": 0.18
+      "type": 13,
+      "mix": 0.8,
+      "qsr1Level": 0.5937744361182183,
+      "qsr2Level": 0.5102515301406936,
+      "cntrLevel": 0.7906492628433622,
+      "inputSplitHpfHz": 120.0,
+      "cntrHpfHz": 80.0,
+      "qsr1Height": -0.05,
+      "qsr1Distance": 0.3460574634191644,
+      "qsr2Height": 0.05,
+      "qsr2Distance": 0.43488559842674956,
+      "qsr1RoomAmount": 0.48,
+      "qsr1RoomSize": 0.95,
+      "qsr1RoomDamping": 0.42941877715647037,
+      "qsr2RoomAmount": 0.44,
+      "qsr2RoomSize": 1.0105632217394853,
+      "qsr2RoomDamping": 0.3970575760565037,
+      "quasarDelayTimeMs": 715.0,
+      "quasarDelayFeedback": 0.5,
+      "quasarDelayVolume": 0.32,
+      "quasarOutputMode": 0,
+      "quasarCrossfeed": 0.0,
+      "quasarDelaySync": false,
+      "quasarDelaySyncDivision": 2,
+      "qsr1AngleDeg": 147.51725984751997,
+      "qsr2AngleDeg": 207.1281231607979,
+      "quasarDelaySyncDivisionIndex": 2
     },
     {
       "type": 9,
@@ -928,7 +947,7 @@
   },
   "morphKoin": {
     "label": "SCENE",
-    "description": "INTIMATE in-head \u2194 VOID wash \u2014 use QUASAR plugin + morph position.",
+    "description": "INTIMATE in-head \u2194 VOID wash \u2014 inline Quasar on master M3 + morph position.",
     "defaultPosition": 0.35,
     "position": 0.35,
     "curve": "smooth",
@@ -946,7 +965,19 @@
           0,
           0,
           0
-        ]
+        ],
+        "paramOverrides": {
+          "layerA.filter1.cutoffHz": {
+            "value": 2360.0,
+            "easing": "smooth",
+            "response": ""
+          },
+          "layerA.filter1.resonance": {
+            "value": 0.0925,
+            "easing": "smooth",
+            "response": ""
+          }
+        }
       },
       {
         "name": "STAGE",
@@ -960,7 +991,19 @@
           0,
           0,
           0
-        ]
+        ],
+        "paramOverrides": {
+          "layerA.filter1.cutoffHz": {
+            "value": 8300.0,
+            "easing": "smooth",
+            "response": ""
+          },
+          "layerA.filter1.resonance": {
+            "value": 0.28800000000000003,
+            "easing": "smooth",
+            "response": ""
+          }
+        }
       },
       {
         "name": "VOID",
@@ -974,7 +1017,19 @@
           0,
           0,
           0
-        ]
+        ],
+        "paramOverrides": {
+          "layerA.filter1.cutoffHz": {
+            "value": 14240.0,
+            "easing": "smooth",
+            "response": ""
+          },
+          "layerA.filter1.resonance": {
+            "value": 0.5770000000000001,
+            "easing": "smooth",
+            "response": ""
+          }
+        }
       }
     ]
   }

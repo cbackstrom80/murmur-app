@@ -5,7 +5,8 @@
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "state/PluginState.h"
-#include "wireframe/EnvelopePathBuilder.h"
+#include "../visualizer/PreviewDraw.h"
+#include "../visualizer/VisualPreviewCache.h"
 
 namespace pw8::plugin::ui
 {
@@ -106,14 +107,18 @@ namespace pw8::plugin::ui
         g.setColour(palette::kBorder.withAlpha(0.55f));
         g.drawRoundedRectangle(bounds.reduced(0.5f), 3.0f, 1.0f);
 
-        juce::Path outline;
-        juce::Path fillPath;
-        float sustainEndX = bounds.getX();
-        wireframe::buildEnvelopePath(params_, bounds.reduced(1.0f, 1.0f), outline, fillPath, sustainEndX);
-
-        g.setColour(palette::kAccent.withAlpha(0.12f));
-        g.fillPath(fillPath);
-        draw::strokeGlowPath(g, outline, 0.95f, 1.2f, false);
+        const auto key = preview::envelopePreviewKey(params_.delaySeconds, params_.attackSeconds, params_.holdSeconds,
+                                                      params_.decaySeconds, params_.sustainLevel, params_.releaseSeconds,
+                                                      params_.curveShape);
+        const auto& polyline = preview::VisualPreviewCache::instance().getOrBuild(
+            key, preview::kDefaultPolylinePoints,
+            [&](int n, preview::PreviewPolyline& out) { preview::buildEnvelopePolyline(params_, n, out); });
+        preview::PolylineDrawOptions opts;
+        opts.liveGlow = false;
+        opts.alpha = 0.95f;
+        opts.strokeWidth = 1.2f;
+        opts.yScale = 0.88f;
+        preview::paintPolylineCurve(g, bounds.reduced(1.0f, 1.0f), polyline, opts);
     }
 
     void EngineAdsrMini::paintTicks(juce::Graphics& g, juce::Rectangle<int> /*bounds*/)

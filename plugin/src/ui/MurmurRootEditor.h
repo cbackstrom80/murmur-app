@@ -12,6 +12,7 @@
 #include "components/PatchBrowserBar.h"
 #include "components/PresetBrowserOverlay.h"
 #include "content/FavoritesStore.h"
+#include "content/PresetRatingsStore.h"
 #include "processor/PatchworkEightProcessor.h"
 #include "theme/ObsidianLookAndFeel.h"
 
@@ -35,11 +36,13 @@ namespace pw8::plugin::ui
         void setEditorMode(layout::EditorMode mode);
         void setDesignSubPage(layout::DesignSubPage page);
         [[nodiscard]] int outerMarginForCurrentView() const;
+        [[nodiscard]] juce::BorderSize<int> contentInsetsForCurrentView() const;
 
         ObsidianLookAndFeel lookAndFeel_;
         juce::TooltipWindow tooltipWindow_{this};
 
         content::FavoritesStore favoritesStore_;
+        content::PresetRatingsStore ratingsStore_;
         PatchBrowserBar patchBrowserBar_;
         MurmurChromeBar murmurChromeBar_;
         PresetBrowserOverlay presetBrowserOverlay_;
@@ -49,7 +52,7 @@ namespace pw8::plugin::ui
         DesignModeEditor designModeEditor_;
         layout::EditorMode editorMode_ = layout::EditorMode::Play;
         layout::DesignSubPage designSubPage_ = layout::DesignSubPage::Engine;
-        layout::PlayViewMode lastNonCompactPlayView_ = layout::PlayViewMode::Basic;
+        layout::PlayViewMode lastNonCompactPlayView_ = layout::PlayViewMode::Desktop;
 
         juce::ComponentBoundsConstrainer aspectConstrainer_;
         juce::ComponentBoundsConstrainer compactConstrainer_;

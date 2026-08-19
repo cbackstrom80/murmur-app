@@ -41,6 +41,11 @@ namespace pw8::plugin::ui
         void setArpMode(int modeOrdinal);
         void setOctaveRange(int octaves);
         void setSyncDivisionQuick(int buttonIndex);
+        void setRateModeFree(bool free);
+        void setStepPage(int pageIndex);
+        void adjustNumSteps(int delta);
+        void applyPatternTool(int toolIndex);
+        [[nodiscard]] int currentStepPage() const noexcept;
         [[nodiscard]] juce::String engineRoutingSubtitle(int engineIndex) const;
         void paintVelocityCurve(juce::Graphics& g, juce::Rectangle<int> area) const;
         void paintHoldRow(juce::Graphics& g) const;
@@ -69,14 +74,20 @@ namespace pw8::plugin::ui
         juce::Rectangle<int> holdRowBounds_;
 
         SectionPanel stepPanel_;
+        juce::TextButton freeSyncButton_{"SYNC"};
+        juce::TextButton stepDecButton_{"-"};
+        juce::Label stepCountLabel_;
+        juce::TextButton stepIncButton_{"+"};
+        std::array<juce::TextButton, 4> pageButtons_{};
+        std::array<juce::TextButton, 4> patternButtons_{};
         juce::Viewport stepViewport_;
         ArpStepStrip stepStrip_;
+        int euclideanPulseCount_ = 5;
 
         SectionPanel timingPanel_;
         juce::Label clockResolutionLabel_;
         std::array<juce::TextButton, 4> syncButtons_{};
-        juce::Slider gateSlider_;
-        juce::Label gateLabel_;
+        std::unique_ptr<GlowKnob> gateKnob_;
         std::unique_ptr<GlowKnob> numStepsKnob_;
         std::unique_ptr<GlowKnob> swingKnob_;
         std::unique_ptr<GlowKnob> rateHzKnob_;

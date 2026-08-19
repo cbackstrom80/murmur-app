@@ -8,10 +8,12 @@
 
 #include "ModAssignmentController.h"
 #include "processor/PatchworkEightProcessor.h"
+#include "../theme/FigmaKnobTokens.h"
 
-// The one control primitive PLAY mode is built from: a rotary knob (painted by
-// ObsidianLookAndFeel), a name label underneath, and a value readout -- attached
-// directly to an APVTS parameter, so automating it from a host visibly moves the
+// The Figma glow-ring-knob control (frame 21:4): decked rotary + mod rings.
+// Code Connect: plugin/src/ui/figma-connect/GlowKnob.figma.ts
+//
+// Attached directly to an APVTS parameter, so automating it from a host visibly moves the
 // same knob the user sees (the property docs/PLUGIN_ARCHITECTURE.md's whole
 // "Automation" section exists to guarantee at the engine level; this is that
 // guarantee's visible side).
@@ -37,7 +39,19 @@ namespace pw8::plugin::ui
         GlowKnob(juce::AudioProcessorValueTreeState& apvts, const juce::String& paramId, const juce::String& name,
                   std::function<juce::String(float)> valueToText = nullptr,
                   juce::Colour accentColour = juce::Colours::transparentBlack);
+
+        /// UI-only knob (no APVTS) — same Figma decked rendering; for patch-local or UI-state values.
+        GlowKnob(const juce::String& name, double minValue, double maxValue, double initialValue,
+                 std::function<void(double)> onValueChange,
+                 std::function<juce::String(float)> valueToText = nullptr,
+                 juce::Colour accentColour = juce::Colours::transparentBlack);
         ~GlowKnob() override;
+
+        void setManualValue(double value, juce::NotificationType notification = juce::dontSendNotification);
+        [[nodiscard]] double getManualValue() const noexcept;
+
+        /// Re-read the bound APVTS parameter into the slider (e.g. after preset load).
+        void syncSliderFromParameter(const juce::RangedAudioParameter& param);
 
         void resized() override;
         void paintOverChildren(juce::Graphics& g) override;
@@ -81,6 +95,16 @@ namespace pw8::plugin::ui
 
         /// Compact header layout: smaller dial, hidden value readout.
         void setHeaderCompactMode(bool compact);
+
+        /// Apply diameter, deck size, label font, and readout mode from Figma `21:4` context tokens.
+        void applyFigmaContext(figma::KnobContext context);
+
+        /// Hide mod-route overlay rings (desktop PLAY macros — value arc only).
+        void setShowModRouteRing(bool show);
+
+        void setShowNameLabel(bool show);
+
+        [[nodiscard]] juce::String getValueDisplayText() const;
 
         // -- juce::DragAndDropTarget --
         bool isInterestedInDragSource(const SourceDetails& details) override;
@@ -133,6 +157,10 @@ namespace pw8::plugin::ui
         bool deckedStyle_ = false;
         DeckedKnobSize deckedSize_ = DeckedKnobSize::Medium;
         bool featuredPerformanceMacro_ = false;
+        bool hideValueBox_ = false;
+        bool showModRouteRing_ = true;
+        bool manualMode_ = false;
+        std::function<void(double)> manualOnChange_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GlowKnob)
     };

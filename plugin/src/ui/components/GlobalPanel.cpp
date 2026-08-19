@@ -1,5 +1,6 @@
 #include "GlobalPanel.h"
 
+#include "../theme/FigmaKnobTokens.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "FxEffectPlayParams.h"
@@ -112,9 +113,11 @@ namespace pw8::plugin::ui
 
         masterGainKnob_ =
             std::make_unique<GlowKnob>(apvts_, kMasterGainId, "Master Vol", nullptr, palette::kAccentWarm);
+        masterGainKnob_->applyFigmaContext(figma::KnobContext::ChromeMaster);
         panel_.addChildComponent(*masterGainKnob_);
 
         limiterCeilKnob_ = std::make_unique<GlowKnob>(apvts_, masterFxParamId(3, "LimiterCeilingDb"), "Limiter Ceil");
+        limiterCeilKnob_->applyFigmaContext(figma::KnobContext::PanelGridMedium);
         panel_.addChildComponent(*limiterCeilKnob_);
 
         std::array<juce::String, 7> prefixes{};
@@ -145,6 +148,7 @@ namespace pw8::plugin::ui
         const auto prefix = masterPrefix(selectedMasterSlot_);
         chainMixKnob_.reset();
         chainMixKnob_ = std::make_unique<GlowKnob>(apvts_, prefix + "Mix", "Mix");
+        chainMixKnob_->applyFigmaContext(figma::KnobContext::DesignFxDetail);
         panel_.addChildComponent(*chainMixKnob_);
 
         chainParamKnobs_.clear();
@@ -155,6 +159,7 @@ namespace pw8::plugin::ui
             if (def.fieldSuffix == nullptr || def.fieldSuffix[0] == '\0')
                 continue;
             auto knob = std::make_unique<GlowKnob>(apvts_, prefix + def.fieldSuffix, def.label);
+            knob->applyFigmaContext(figma::KnobContext::DesignFxDetail);
             panel_.addChildComponent(*knob);
             chainParamKnobs_.push_back(std::move(knob));
         }

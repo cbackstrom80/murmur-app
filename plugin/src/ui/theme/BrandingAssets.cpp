@@ -42,10 +42,25 @@ namespace pw8::plugin::ui::branding
             return keyBlackTransparent(mark);
         }
 
+        juce::Image buildLogoLockup()
+        {
+            auto logo = loadEmbedded(BinaryData::murmur_logo_lockup_png, BinaryData::murmur_logo_lockup_pngSize);
+            if (!logo.isValid())
+                return {};
+
+            return logo.convertedToFormat(juce::Image::ARGB);
+        }
+
         const juce::Image& cachedMarkIcon()
         {
             static const juce::Image icon = buildMarkIcon();
             return icon;
+        }
+
+        const juce::Image& cachedLogoLockup()
+        {
+            static const juce::Image logo = buildLogoLockup();
+            return logo;
         }
     } // namespace
 
@@ -57,6 +72,31 @@ namespace pw8::plugin::ui::branding
     juce::Image getMarkIcon()
     {
         return cachedMarkIcon();
+    }
+
+    juce::Image getLogoLockup()
+    {
+        return cachedLogoLockup();
+    }
+
+    int logoLockupWidth() noexcept
+    {
+        return 85;
+    }
+
+    int logoLockupHeight() noexcept
+    {
+        return 43;
+    }
+
+    int compactLogoWidth() noexcept
+    {
+        return 35;
+    }
+
+    int compactLogoHeight() noexcept
+    {
+        return 18;
     }
 
     int wordmarkWidth() noexcept
@@ -89,6 +129,18 @@ namespace pw8::plugin::ui::branding
         g.drawImageWithin(mark, static_cast<int>(bounds.getX()), static_cast<int>(bounds.getY()),
                           static_cast<int>(bounds.getWidth()), static_cast<int>(bounds.getHeight()),
                           juce::RectanglePlacement::centred | juce::RectanglePlacement::onlyReduceInSize);
+    }
+
+    void paintLogoLockup(juce::Graphics& g, juce::Rectangle<float> bounds) noexcept
+    {
+        const auto& logo = cachedLogoLockup();
+        if (!logo.isValid() || bounds.isEmpty())
+            return;
+
+        g.drawImageWithin(logo, static_cast<int>(bounds.getX()), static_cast<int>(bounds.getY()),
+                          static_cast<int>(bounds.getWidth()), static_cast<int>(bounds.getHeight()),
+                          juce::RectanglePlacement::xLeft | juce::RectanglePlacement::yMid
+                              | juce::RectanglePlacement::onlyReduceInSize);
     }
 
 } // namespace pw8::plugin::ui::branding

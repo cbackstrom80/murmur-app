@@ -121,6 +121,9 @@ namespace pw8::plugin::ui
         {
             case modulation::ModDestination::FilterCutoff: return 36.0f;
             case modulation::ModDestination::FilterResonance: return 0.4f;
+            case modulation::ModDestination::FilterModeMorph: return 0.5f;
+            case modulation::ModDestination::FilterRouting: return 0.5f;
+            case modulation::ModDestination::FilterDrive: return 0.4f;
             case modulation::ModDestination::OperatorFilterCutoff: return 36.0f;
             case modulation::ModDestination::OperatorFilterResonance: return 0.4f;
             case modulation::ModDestination::OperatorLevel: return 0.35f;
@@ -139,6 +142,48 @@ namespace pw8::plugin::ui
             case modulation::ModDestination::MasterReverbDiffusion: return 0.25f;
             case modulation::ModDestination::MasterReverbModDepth: return 0.2f;
             case modulation::ModDestination::MasterGain: return 0.25f;
+            case modulation::ModDestination::MasterDynamicsMix: return 0.25f;
+            case modulation::ModDestination::SidechainDepth: return 0.35f;
+            case modulation::ModDestination::MorphPosition: return 0.25f;
+            case modulation::ModDestination::QuasarQsr1Angle: return 45.0f;
+            case modulation::ModDestination::QuasarQsr2Angle: return 45.0f;
+            case modulation::ModDestination::QuasarRoomAmount: return 0.25f;
+            case modulation::ModDestination::QuasarCrossfeed: return 0.25f;
+            case modulation::ModDestination::QuasarDelayVolume: return 0.25f;
+            case modulation::ModDestination::QuasarQsr1Distance: return 0.4f;
+            case modulation::ModDestination::QuasarQsr2Distance: return 0.4f;
+            case modulation::ModDestination::QuasarDelayTime: return 200.0f;
+            case modulation::ModDestination::QuasarDelayFeedback: return 0.3f;
+            case modulation::ModDestination::QuasarQsr1Height: return 0.3f;
+            case modulation::ModDestination::QuasarQsr2Height: return 0.3f;
+            case modulation::ModDestination::QuasarCntrLevel: return 0.2f;
+            case modulation::ModDestination::QuasarQsr1Level: return 0.25f;
+            case modulation::ModDestination::QuasarQsr2Level: return 0.25f;
+            case modulation::ModDestination::OperatorFmModulatorRatio: return 2.0f;
+            case modulation::ModDestination::OperatorFmModulatorIndex: return 0.35f;
+            case modulation::ModDestination::OperatorFmModulatorFeedback: return 0.25f;
+            case modulation::ModDestination::OperatorFreqRatio: return 2.0f;
+            case modulation::ModDestination::OperatorPhaseBend: return 0.35f;
+            case modulation::ModDestination::OperatorPhaseFold: return 0.25f;
+            case modulation::ModDestination::OperatorPhaseAsymmetry: return 0.25f;
+            case modulation::ModDestination::OperatorAdditivePartialCount: return 8.0f;
+            case modulation::ModDestination::OperatorAdditiveTilt: return 0.25f;
+            case modulation::ModDestination::OperatorAdditiveOddEven: return 0.25f;
+            case modulation::ModDestination::OperatorAdditiveStretch: return 0.25f;
+            case modulation::ModDestination::OperatorResonatorStructure: return 0.25f;
+            case modulation::ModDestination::OperatorResonatorDecay: return 0.25f;
+            case modulation::ModDestination::OperatorResonatorDamping: return 0.25f;
+            case modulation::ModDestination::OperatorResonatorBrightness: return 0.25f;
+            case modulation::ModDestination::OperatorResonatorModeCount: return 1.0f;
+            case modulation::ModDestination::OperatorGrainDensity: return 10.0f;
+            case modulation::ModDestination::OperatorGrainSizeMs: return 20.0f;
+            case modulation::ModDestination::OperatorGrainPositionJitter: return 0.25f;
+            case modulation::ModDestination::OperatorGrainPitchJitter: return 0.25f;
+            case modulation::ModDestination::UnisonVoices: return 2.0f;
+            case modulation::ModDestination::UnisonDetune: return 10.0f;
+            case modulation::ModDestination::UnisonSpread: return 0.25f;
+            case modulation::ModDestination::VocoderMix: return 0.35f;
+            case modulation::ModDestination::VocoderFormant: return 0.35f;
             default: return 0.0f;
         }
     }
@@ -152,6 +197,12 @@ namespace pw8::plugin::ui
                 return ModDestinationParam{juce::String(kFilterIdPrefix) + "CutoffHz", "Filter Cutoff"};
             case modulation::ModDestination::FilterResonance:
                 return ModDestinationParam{juce::String(kFilterIdPrefix) + "Resonance", "Filter Resonance"};
+            case modulation::ModDestination::FilterModeMorph:
+                return ModDestinationParam{juce::String(kFilterIdPrefix) + "ModeMorph", "Filter Mode Morph"};
+            case modulation::ModDestination::FilterRouting:
+                return ModDestinationParam{juce::String(kFilterRoutingId), "Filter Routing"};
+            case modulation::ModDestination::FilterDrive:
+                return ModDestinationParam{juce::String(kFilter2IdPrefix) + "Drive", "Filter 2 Drive"};
             case modulation::ModDestination::OperatorFilterCutoff:
                 return ModDestinationParam{operatorFilterParamId(targetIndex, "FilterCutoffHz"),
                                            "Eng " + juce::String(static_cast<int>(targetIndex)) + " Cutoff"};
@@ -202,6 +253,129 @@ namespace pw8::plugin::ui
                                            "Master " + juce::String(static_cast<int>(targetIndex)) + " Rev Mod"};
             case modulation::ModDestination::MasterGain:
                 return ModDestinationParam{juce::String(kMasterGainId), "Master Gain"};
+            case modulation::ModDestination::MasterDynamicsMix:
+                return ModDestinationParam{juce::String(kMasterDynamicsIdPrefix) + "Mix", "Master Dynamics Mix"};
+            case modulation::ModDestination::SidechainDepth:
+                return ModDestinationParam{juce::String(kMasterDynamicsIdPrefix) + "SidechainGain", "Sidechain Depth"};
+            case modulation::ModDestination::MorphPosition:
+                return ModDestinationParam{juce::String(kMorphPositionId), "Morph Position"};
+            case modulation::ModDestination::QuasarQsr1Angle:
+                return ModDestinationParam{masterFxParamId(targetIndex, "Qsr1AngleDeg"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " QSR1 Az"};
+            case modulation::ModDestination::QuasarQsr2Angle:
+                return ModDestinationParam{masterFxParamId(targetIndex, "Qsr2AngleDeg"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " QSR2 Az"};
+            case modulation::ModDestination::QuasarRoomAmount:
+                return ModDestinationParam{masterFxParamId(targetIndex, "Qsr1RoomAmount"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " QSR Room"};
+            case modulation::ModDestination::QuasarCrossfeed:
+                return ModDestinationParam{masterFxParamId(targetIndex, "QuasarCrossfeed"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " QSR Xfeed"};
+            case modulation::ModDestination::QuasarDelayVolume:
+                return ModDestinationParam{masterFxParamId(targetIndex, "QuasarDelayVolume"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " QSR Delay"};
+            case modulation::ModDestination::QuasarQsr1Distance:
+                return ModDestinationParam{masterFxParamId(targetIndex, "Qsr1Distance"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " QSR1 Dist"};
+            case modulation::ModDestination::QuasarQsr2Distance:
+                return ModDestinationParam{masterFxParamId(targetIndex, "Qsr2Distance"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " QSR2 Dist"};
+            case modulation::ModDestination::QuasarDelayTime:
+                return ModDestinationParam{masterFxParamId(targetIndex, "QuasarDelayTimeMs"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " QSR Delay Time"};
+            case modulation::ModDestination::QuasarDelayFeedback:
+                return ModDestinationParam{masterFxParamId(targetIndex, "QuasarDelayFeedback"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " QSR Delay Fdbk"};
+            case modulation::ModDestination::QuasarQsr1Height:
+                return ModDestinationParam{masterFxParamId(targetIndex, "Qsr1Height"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " QSR1 Height"};
+            case modulation::ModDestination::QuasarQsr2Height:
+                return ModDestinationParam{masterFxParamId(targetIndex, "Qsr2Height"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " QSR2 Height"};
+            case modulation::ModDestination::QuasarCntrLevel:
+                return ModDestinationParam{masterFxParamId(targetIndex, "CntrLevel"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " QSR CNTR"};
+            case modulation::ModDestination::QuasarQsr1Level:
+                return ModDestinationParam{masterFxParamId(targetIndex, "Qsr1Level"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " QSR1 Level"};
+            case modulation::ModDestination::QuasarQsr2Level:
+                return ModDestinationParam{masterFxParamId(targetIndex, "Qsr2Level"),
+                                           "Master " + juce::String(static_cast<int>(targetIndex)) + " QSR2 Level"};
+            case modulation::ModDestination::OperatorFmModulatorRatio:
+                return ModDestinationParam{operatorParamId(targetIndex, "FmModulatorRatio"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " FM Ratio"};
+            case modulation::ModDestination::OperatorFmModulatorIndex:
+                return ModDestinationParam{operatorParamId(targetIndex, "FmModulatorIndex"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " FM Index"};
+            case modulation::ModDestination::OperatorFmModulatorFeedback:
+                return ModDestinationParam{operatorParamId(targetIndex, "FmModulatorFeedback"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " FM Fdbk"};
+            case modulation::ModDestination::OperatorFreqRatio:
+                return ModDestinationParam{operatorParamId(targetIndex, "FreqRatio"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " Freq Ratio"};
+            case modulation::ModDestination::OperatorPhaseBend:
+                return ModDestinationParam{operatorParamId(targetIndex, "PhaseBend"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " Phase Bend"};
+            case modulation::ModDestination::OperatorPhaseFold:
+                return ModDestinationParam{operatorParamId(targetIndex, "PhaseFold"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " Phase Fold"};
+            case modulation::ModDestination::OperatorPhaseAsymmetry:
+                return ModDestinationParam{operatorParamId(targetIndex, "PhaseAsymmetry"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " Phase Asym"};
+            case modulation::ModDestination::OperatorAdditivePartialCount:
+                return ModDestinationParam{operatorParamId(targetIndex, "AdditivePartialCount"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " Partials"};
+            case modulation::ModDestination::OperatorAdditiveTilt:
+                return ModDestinationParam{operatorParamId(targetIndex, "AdditiveTilt"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " Add Tilt"};
+            case modulation::ModDestination::OperatorAdditiveOddEven:
+                return ModDestinationParam{operatorParamId(targetIndex, "AdditiveOddEven"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " Odd/Even"};
+            case modulation::ModDestination::OperatorAdditiveStretch:
+                return ModDestinationParam{operatorParamId(targetIndex, "AdditiveStretch"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " Stretch"};
+            case modulation::ModDestination::OperatorResonatorStructure:
+                return ModDestinationParam{operatorParamId(targetIndex, "ResonatorStructure"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " Res Str"};
+            case modulation::ModDestination::OperatorResonatorDecay:
+                return ModDestinationParam{operatorParamId(targetIndex, "ResonatorDecay"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " Res Dec"};
+            case modulation::ModDestination::OperatorResonatorDamping:
+                return ModDestinationParam{operatorParamId(targetIndex, "ResonatorDamping"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " Res Damp"};
+            case modulation::ModDestination::OperatorResonatorBrightness:
+                return ModDestinationParam{operatorParamId(targetIndex, "ResonatorBrightness"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " Res Bright"};
+            case modulation::ModDestination::OperatorResonatorModeCount:
+                return ModDestinationParam{operatorParamId(targetIndex, "ResonatorModeCount"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " Res Modes"};
+            case modulation::ModDestination::OperatorGrainDensity:
+                return ModDestinationParam{operatorParamId(targetIndex, "GrainDensity"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " Grain Dens"};
+            case modulation::ModDestination::OperatorGrainSizeMs:
+                return ModDestinationParam{operatorParamId(targetIndex, "GrainSizeMs"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " Grain Size"};
+            case modulation::ModDestination::OperatorGrainPositionJitter:
+                return ModDestinationParam{operatorParamId(targetIndex, "GrainPositionJitter"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " Pos Jit"};
+            case modulation::ModDestination::OperatorGrainPitchJitter:
+                return ModDestinationParam{operatorParamId(targetIndex, "GrainPitchJitter"),
+                                           "Op " + juce::String(static_cast<int>(targetIndex)) + " Pitch Jit"};
+            case modulation::ModDestination::UnisonVoices:
+                return ModDestinationParam{juce::String(kUnisonVoicesId), "Unison Voices"};
+            case modulation::ModDestination::UnisonDetune:
+                return ModDestinationParam{juce::String(kUnisonDetuneId), "Unison Detune"};
+            case modulation::ModDestination::UnisonSpread:
+                return ModDestinationParam{juce::String(kUnisonSpreadId), "Unison Spread"};
+            case modulation::ModDestination::VocoderMix:
+                return ModDestinationParam{
+                    targetIndex < 3 ? insertFxParamId(targetIndex, "Mix") : masterFxParamId(targetIndex - 3, "Mix"),
+                    "FX " + juce::String(static_cast<int>(targetIndex)) + " Voc Mix"};
+            case modulation::ModDestination::VocoderFormant:
+                return ModDestinationParam{
+                    targetIndex < 3 ? insertFxParamId(targetIndex, "VocoderFormant")
+                                    : masterFxParamId(targetIndex - 3, "VocoderFormant"),
+                    "FX " + juce::String(static_cast<int>(targetIndex)) + " Voc Formant"};
             case modulation::ModDestination::None:
                 break;
         }
@@ -228,9 +402,33 @@ namespace pw8::plugin::ui
                 return {-1.0f, 1.0f};
             case modulation::ModDestination::OperatorWavetableSyncRatio:
                 return {-8.0f, 8.0f};
+            case modulation::ModDestination::OperatorFmModulatorRatio:
+            case modulation::ModDestination::OperatorFreqRatio:
+                return {-16.0f, 16.0f};
+            case modulation::ModDestination::OperatorAdditivePartialCount:
+                return {-32.0f, 32.0f};
+            case modulation::ModDestination::OperatorResonatorModeCount:
+                return {-4.0f, 4.0f};
+            case modulation::ModDestination::OperatorGrainDensity:
+                return {-100.0f, 100.0f};
+            case modulation::ModDestination::OperatorGrainSizeMs:
+                return {-200.0f, 200.0f};
+            case modulation::ModDestination::UnisonVoices:
+                return {-8.0f, 8.0f};
+            case modulation::ModDestination::UnisonDetune:
+                return {-50.0f, 50.0f};
             case modulation::ModDestination::OperatorWavetableSyncAmount:
                 return {-1.0f, 1.0f};
             case modulation::ModDestination::Pan:
+                return {-1.0f, 1.0f};
+            case modulation::ModDestination::MorphPosition:
+                return {-1.0f, 1.0f};
+            case modulation::ModDestination::FilterModeMorph:
+            case modulation::ModDestination::FilterRouting:
+            case modulation::ModDestination::FilterDrive:
+                return {-1.0f, 1.0f};
+            case modulation::ModDestination::MasterDynamicsMix:
+            case modulation::ModDestination::SidechainDepth:
                 return {-1.0f, 1.0f};
             default:
                 return {-1.0f, 1.0f};
@@ -263,6 +461,12 @@ namespace pw8::plugin::ui
         const auto range = modAmountRangeFor(route.destination);
         const float clamped = juce::jlimit(range.min, range.max, amount);
         processor.setOrReplaceModRouteLive(route.source, route.destination, route.targetIndex, clamped, route.scope);
+    }
+
+    void updateModRouteCurve(PatchworkEightProcessor& processor, const modulation::ModRoute& route,
+                             modulation::ModCurve curve)
+    {
+        processor.setModRouteCurveLive(route.source, route.destination, route.targetIndex, curve);
     }
 
     PatchFocusLayout inferPatchFocusLayout(const patch::Patch& patch, std::size_t maxFeatureKnobs,
@@ -563,7 +767,21 @@ namespace pw8::plugin::ui
                   modulation::ModDestination::OperatorWavetableBend, modulation::ModDestination::OperatorWavetableAsymmetry,
                   modulation::ModDestination::OperatorWavetableSyncRatio,
                   modulation::ModDestination::OperatorWavetableFormant,
-                  modulation::ModDestination::OperatorWavetableSyncAmount})
+                  modulation::ModDestination::OperatorWavetableSyncAmount,
+                  modulation::ModDestination::OperatorFmModulatorRatio,
+                  modulation::ModDestination::OperatorFmModulatorIndex,
+                  modulation::ModDestination::OperatorFmModulatorFeedback, modulation::ModDestination::OperatorFreqRatio,
+                  modulation::ModDestination::OperatorPhaseBend, modulation::ModDestination::OperatorPhaseFold,
+                  modulation::ModDestination::OperatorPhaseAsymmetry,
+                  modulation::ModDestination::OperatorAdditivePartialCount,
+                  modulation::ModDestination::OperatorAdditiveTilt, modulation::ModDestination::OperatorAdditiveOddEven,
+                  modulation::ModDestination::OperatorAdditiveStretch,
+                  modulation::ModDestination::OperatorResonatorStructure, modulation::ModDestination::OperatorResonatorDecay,
+                  modulation::ModDestination::OperatorResonatorDamping,
+                  modulation::ModDestination::OperatorResonatorBrightness,
+                  modulation::ModDestination::OperatorResonatorModeCount, modulation::ModDestination::OperatorGrainDensity,
+                  modulation::ModDestination::OperatorGrainSizeMs, modulation::ModDestination::OperatorGrainPositionJitter,
+                  modulation::ModDestination::OperatorGrainPitchJitter})
             {
                 const auto mapped = modDestinationParam(dest, op);
                 if (mapped.has_value() && mapped->paramId == paramId)
@@ -577,7 +795,14 @@ namespace pw8::plugin::ui
                  {modulation::ModDestination::MasterFxMix, modulation::ModDestination::MasterReverbMix,
                   modulation::ModDestination::MasterReverbSize, modulation::ModDestination::MasterReverbDecay,
                   modulation::ModDestination::MasterReverbPreDelay, modulation::ModDestination::MasterReverbDiffusion,
-                  modulation::ModDestination::MasterReverbModDepth})
+                  modulation::ModDestination::MasterReverbModDepth, modulation::ModDestination::QuasarQsr1Angle,
+                  modulation::ModDestination::QuasarQsr2Angle, modulation::ModDestination::QuasarRoomAmount,
+                  modulation::ModDestination::QuasarCrossfeed, modulation::ModDestination::QuasarDelayVolume,
+                  modulation::ModDestination::QuasarQsr1Distance, modulation::ModDestination::QuasarQsr2Distance,
+                  modulation::ModDestination::QuasarDelayTime, modulation::ModDestination::QuasarDelayFeedback,
+                  modulation::ModDestination::QuasarQsr1Height, modulation::ModDestination::QuasarQsr2Height,
+                  modulation::ModDestination::QuasarCntrLevel, modulation::ModDestination::QuasarQsr1Level,
+                  modulation::ModDestination::QuasarQsr2Level})
             {
                 const auto mapped = modDestinationParam(dest, slot);
                 if (mapped.has_value() && mapped->paramId == paramId)
@@ -587,7 +812,12 @@ namespace pw8::plugin::ui
 
         for (const auto dest :
              {modulation::ModDestination::FilterCutoff, modulation::ModDestination::FilterResonance,
-              modulation::ModDestination::Pan, modulation::ModDestination::MasterGain})
+              modulation::ModDestination::FilterModeMorph, modulation::ModDestination::FilterRouting,
+              modulation::ModDestination::FilterDrive, modulation::ModDestination::Pan,
+              modulation::ModDestination::MasterGain, modulation::ModDestination::MasterDynamicsMix,
+              modulation::ModDestination::SidechainDepth, modulation::ModDestination::MorphPosition,
+              modulation::ModDestination::UnisonVoices, modulation::ModDestination::UnisonDetune,
+              modulation::ModDestination::UnisonSpread})
         {
             const auto mapped = modDestinationParam(dest, 0);
             if (mapped.has_value() && mapped->paramId == paramId)

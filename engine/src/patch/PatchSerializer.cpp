@@ -1,5 +1,6 @@
 #include "pw8/patch/PatchSerializer.hpp"
 
+#include "pw8/effects/BinauralSpace.hpp"
 #include "pw8/patch/PatchModDefaults.hpp"
 
 #include <algorithm>
@@ -49,6 +50,77 @@ namespace pw8::patch
             e.releaseSeconds = clampNum(j.value("releaseSeconds", e.releaseSeconds), 0.0f, 60.0f);
             e.curveShape = clampNum(j.value("curveShape", e.curveShape), 0.0f, 16.0f);
             e.legato = j.value("legato", e.legato);
+        }
+
+        void toJson(json& j, const envelope::SegmentEnvelopeSegment& seg)
+        {
+            j = json{{"type", envelope::segmentTypeToString(seg.type)},
+                     {"durationMs", seg.durationMs},
+                     {"level", seg.level}};
+            if (!seg.shape.empty())
+                j["shape"] = seg.shape;
+        }
+
+        void fromJson(const json& j, envelope::SegmentEnvelopeSegment& seg)
+        {
+            seg.type = envelope::parseSegmentType(j.value("type", std::string{"ramp"}));
+            seg.durationMs = clampNum(j.value("durationMs", seg.durationMs), 1.0f, 60000.0f);
+            seg.level = clampNum(j.value("level", seg.level), 0.0f, 1.0f);
+            seg.shape = j.value("shape", std::string{});
+        }
+
+        void toJson(json& j, const envelope::SegmentEnvelopeChain& chain)
+        {
+            if (!chain.isActive())
+                return;
+            json segments = json::array();
+            for (std::size_t i = 0; i < chain.segmentCount; ++i)
+            {
+                json js;
+                toJson(js, chain.segments[i]);
+                segments.push_back(js);
+            }
+            j["segments"] = segments;
+            j["loopStart"] = chain.loopStart;
+            j["loopEnd"] = chain.loopEnd;
+        }
+
+        void fromJson(const json& j, envelope::SegmentEnvelopeChain& chain)
+        {
+            chain = {};
+            if (!j.contains("segments") || !j.at("segments").is_array())
+                return;
+
+            std::size_t i = 0;
+            for (const auto& js : j.at("segments"))
+            {
+                if (i >= envelope::kMaxSegmentEnvelopeSegments)
+                    break;
+                fromJson(js, chain.segments[i]);
+                ++i;
+            }
+            chain.segmentCount = i;
+            chain.loopStart = static_cast<std::size_t>(
+                clampNum(j.value("loopStart", 0), 0, static_cast<int>(envelope::kMaxSegmentEnvelopeSegments) - 1));
+            chain.loopEnd = static_cast<std::size_t>(
+                clampNum(j.value("loopEnd", 0), 0, static_cast<int>(envelope::kMaxSegmentEnvelopeSegments) - 1));
+        }
+
+        void toJsonEnvelopeSlot(json& j, const envelope::DahdsrParams& e, const envelope::SegmentEnvelopeChain& chain)
+        {
+            toJson(j, e);
+            if (chain.isActive())
+            {
+                json segJson;
+                toJson(segJson, chain);
+                j.update(segJson);
+            }
+        }
+
+        void fromJsonEnvelopeSlot(const json& j, envelope::DahdsrParams& e, envelope::SegmentEnvelopeChain& chain)
+        {
+            fromJson(j, e);
+            fromJson(j, chain);
         }
 
         void toJson(json& j, const algorithm::AlgorithmGraphDefinition& g)
@@ -233,8 +305,8 @@ namespace pw8::patch
         void toJson(json& j, const filter::FilterParams& f)
         {
             j = json{{"enabled", f.enabled},     {"mode", static_cast<int>(f.mode)},
-                     {"cutoffHz", f.cutoffHz},     {"resonance", f.resonance},
-                     {"keyTrack", f.keyTrack}};
+                     {"modeMorph", f.modeMorph}, {"cutoffHz", f.cutoffHz},
+                     {"resonance", f.resonance}, {"keyTrack", f.keyTrack}};
         }
 
         void fromJson(const json& j, filter::FilterParams& f)
@@ -244,12 +316,17 @@ namespace pw8::patch
             f.cutoffHz = clampNum(j.value("cutoffHz", 8000.0f), 10.0f, 24000.0f);
             f.resonance = clampNum(j.value("resonance", 0.2f), 0.0f, 1.0f);
             f.keyTrack = clampNum(j.value("keyTrack", 0.0f), -1.0f, 1.0f);
+            if (j.contains("modeMorph"))
+                f.modeMorph = clampNum(j.value("modeMorph", 0.0f), 0.0f, 1.0f);
+            else
+                f.modeMorph = filter::modeMorphFromMode(f.mode);
         }
 
         void toJson(json& j, const filter::CharacterFilterParams& f)
         {
             j = json{{"enabled", f.enabled},     {"cutoffHz", f.cutoffHz}, {"resonance", f.resonance},
-                     {"drive", f.drive},         {"keyTrack", f.keyTrack}};
+                     {"drive", f.drive},         {"cutoffOffsetSemis", f.cutoffOffsetSemitones},
+                     {"keyTrack", f.keyTrack}};
         }
 
         void fromJson(const json& j, filter::CharacterFilterParams& f)
@@ -258,6 +335,7 @@ namespace pw8::patch
             f.cutoffHz = clampNum(j.value("cutoffHz", 4000.0f), 20.0f, 24000.0f);
             f.resonance = clampNum(j.value("resonance", 0.3f), 0.0f, 1.0f);
             f.drive = clampNum(j.value("drive", 0.0f), 0.0f, 1.0f);
+            f.cutoffOffsetSemitones = clampNum(j.value("cutoffOffsetSemis", 0.0f), -48.0f, 48.0f);
             f.keyTrack = clampNum(j.value("keyTrack", 0.0f), -1.0f, 1.0f);
         }
 
@@ -281,18 +359,19 @@ namespace pw8::patch
         {
             j = json{{"source", static_cast<int>(r.source)}, {"destination", static_cast<int>(r.destination)},
                      {"targetIndex", r.targetIndex},           {"amount", r.amount},
-                     {"scope", static_cast<int>(r.scope)}};
+                     {"scope", static_cast<int>(r.scope)},     {"curve", static_cast<int>(r.curve)}};
         }
 
         void fromJson(const json& j, modulation::ModRoute& r)
         {
             r.source = static_cast<modulation::ModSource>(
                 clampNum(j.value("source", 0), 0, static_cast<int>(modulation::ModSource::Sidechain)));
-            r.destination = static_cast<modulation::ModDestination>(
-                clampNum(j.value("destination", 0), 0, static_cast<int>(modulation::ModDestination::ModRouteDepth)));
+            r.destination = static_cast<modulation::ModDestination>(clampNum(
+                j.value("destination", 0), 0, static_cast<int>(modulation::ModDestination::UnisonSpread)));
             r.targetIndex = static_cast<std::uint8_t>(clampNum(j.value("targetIndex", 0), 0, 255));
             r.amount = clampNum(j.value("amount", 0.0f), -1000.0f, 1000.0f);
             r.scope = static_cast<modulation::ModScope>(clampNum(j.value("scope", 0), 0, 2));
+            r.curve = static_cast<modulation::ModCurve>(clampNum(j.value("curve", 0), 0, 3));
         }
 
         void toJson(json& j, const effects::DelayNodeParams& n)
@@ -367,6 +446,36 @@ namespace pw8::patch
                 {"vocoderSibilance", e.vocoderSibilance},
                 {"vocoderScGainDb", e.vocoderScGainDb},
                 {"vocoderReleaseMs", e.vocoderReleaseMs},
+                {"cloudsDensity", e.cloudsDensity},
+                {"cloudsGrainSizeMs", e.cloudsGrainSizeMs},
+                {"cloudsPitch", e.cloudsPitch},
+                {"cloudsFreeze", e.cloudsFreeze},
+                {"cloudsMode", e.cloudsMode},
+                {"qsr1Level", e.qsr1Level},
+                {"qsr2Level", e.qsr2Level},
+                {"cntrLevel", e.cntrLevel},
+                {"inputSplitHpfHz", e.inputSplitHpfHz},
+                {"cntrHpfHz", e.cntrHpfHz},
+                {"qsr1Height", e.qsr1Height},
+                {"qsr1AngleDeg", e.qsr1AngleDeg},
+                {"qsr1Distance", e.qsr1Distance},
+                {"qsr2Height", e.qsr2Height},
+                {"qsr2AngleDeg", e.qsr2AngleDeg},
+                {"qsr2Distance", e.qsr2Distance},
+                {"qsr1RoomAmount", e.qsr1RoomAmount},
+                {"qsr1RoomSize", e.qsr1RoomSize},
+                {"qsr1RoomDamping", e.qsr1RoomDamping},
+                {"qsr2RoomAmount", e.qsr2RoomAmount},
+                {"qsr2RoomSize", e.qsr2RoomSize},
+                {"qsr2RoomDamping", e.qsr2RoomDamping},
+                {"quasarDelayTimeMs", e.quasarDelayTimeMs},
+                {"quasarDelayFeedback", e.quasarDelayFeedback},
+                {"quasarDelayVolume", e.quasarDelayVolume},
+                {"quasarOutputMode", e.quasarOutputMode},
+                {"quasarCrossfeed", e.quasarCrossfeed},
+                {"quasarDelaySync", e.quasarDelaySync},
+                {"quasarDelaySyncDivisionIndex", e.quasarDelaySyncDivisionIndex},
+                {"qsrStereoSplit", e.qsrStereoSplit},
                 {"limiterCeilingDb", e.limiterCeilingDb},           {"limiterLookaheadMs", e.limiterLookaheadMs},
                 {"limiterReleaseMs", e.limiterReleaseMs},
                 {"tapeDelaySync", e.tapeDelaySync},
@@ -376,13 +485,14 @@ namespace pw8::patch
 
         void fromJson(const json& j, effects::EffectSlotParams& e)
         {
-            int typeOrdinal = static_cast<int>(clampNum(j.value("type", 0), 0, 12));
+            int typeOrdinal = static_cast<int>(clampNum(j.value("type", 0), 0, 13));
             if (typeOrdinal == 12)
                 typeOrdinal = 11; // legacy Vocoder ordinal (pre–EffectType consolidation)
             // Interstellar master slots used ordinal 11 for legacy Quasar/Binaural before Vocoder.
             if (typeOrdinal == 11 && !j.contains("vocoderBandCount")
-                && (j.contains("qsr1Level") || j.contains("qsr1Angle") || j.contains("quasarDelayTimeMs")))
-                typeOrdinal = 0;
+                && (j.contains("qsr1Level") || j.contains("qsr1Angle") || j.contains("qsr1AngleDeg")
+                    || j.contains("quasarDelayTimeMs")))
+                typeOrdinal = static_cast<int>(effects::EffectType::BinauralSpace);
             e.type = static_cast<effects::EffectType>(typeOrdinal);
             e.mix = clampNum(j.value("mix", 1.0f), 0.0f, 1.0f);
 
@@ -487,6 +597,49 @@ namespace pw8::patch
             e.vocoderScGainDb = clampNum(j.value("vocoderScGainDb", 0.0f), 0.0f, 48.0f);
             e.vocoderReleaseMs = clampNum(j.value("vocoderReleaseMs", 40.0f), 5.0f, 250.0f);
 
+            e.cloudsDensity = clampNum(j.value("cloudsDensity", 0.35f), 0.0f, 1.0f);
+            e.cloudsGrainSizeMs = clampNum(j.value("cloudsGrainSizeMs", 80.0f), 5.0f, 500.0f);
+            e.cloudsPitch = clampNum(j.value("cloudsPitch", 1.0f), 0.25f, 4.0f);
+            e.cloudsFreeze = clampNum(j.value("cloudsFreeze", 0.0f), 0.0f, 1.0f);
+            e.cloudsMode = static_cast<int>(clampNum(j.value("cloudsMode", 0), 0, 2));
+
+            e.qsr1Level = clampNum(j.value("qsr1Level", 0.65f), 0.0f, 1.0f);
+            e.qsr2Level = clampNum(j.value("qsr2Level", 0.55f), 0.0f, 1.0f);
+            e.cntrLevel = clampNum(j.value("cntrLevel", 0.85f), 0.0f, 1.0f);
+            e.inputSplitHpfHz = clampNum(j.value("inputSplitHpfHz", 120.0f), 20.0f, 500.0f);
+            e.cntrHpfHz = clampNum(j.value("cntrHpfHz", 80.0f), 20.0f, 300.0f);
+            e.qsr1Height = clampNum(j.value("qsr1Height", 0.0f), -1.0f, 1.0f);
+            e.qsr1AngleDeg = clampNum(j.contains("qsr1AngleDeg") ? j.value("qsr1AngleDeg", 30.0f) : j.value("qsr1Angle", 30.0f),
+                                      0.0f, 360.0f);
+            e.qsr1Distance = clampNum(j.value("qsr1Distance", 0.35f), 0.0f, 1.0f);
+            e.qsr2Height = clampNum(j.value("qsr2Height", 0.0f), -1.0f, 1.0f);
+            e.qsr2AngleDeg = clampNum(j.contains("qsr2AngleDeg") ? j.value("qsr2AngleDeg", 330.0f) : j.value("qsr2Angle", 330.0f),
+                                      0.0f, 360.0f);
+            e.qsr2Distance = clampNum(j.value("qsr2Distance", 0.4f), 0.0f, 1.0f);
+            e.qsr1RoomAmount = clampNum(j.value("qsr1RoomAmount", 0.45f), 0.0f, 1.0f);
+            e.qsr1RoomSize = clampNum(j.value("qsr1RoomSize", 1.0f), 0.2f, 3.0f);
+            e.qsr1RoomDamping = clampNum(j.value("qsr1RoomDamping", 0.55f), 0.0f, 1.0f);
+            e.qsr2RoomAmount = clampNum(j.value("qsr2RoomAmount", 0.40f), 0.0f, 1.0f);
+            e.qsr2RoomSize = clampNum(j.value("qsr2RoomSize", 1.1f), 0.2f, 3.0f);
+            e.qsr2RoomDamping = clampNum(j.value("qsr2RoomDamping", 0.50f), 0.0f, 1.0f);
+            e.quasarDelayTimeMs =
+                clampNum(j.value("quasarDelayTimeMs", 450.0f), 3.0f, effects::kMaxQuasarDelaySeconds * 1000.0f);
+            e.quasarDelayFeedback = clampNum(j.value("quasarDelayFeedback", 0.35f), 0.0f, 0.95f);
+            e.quasarDelayVolume = clampNum(j.value("quasarDelayVolume", 0.25f), 0.0f, 1.0f);
+            e.quasarOutputMode = static_cast<int>(clampNum(j.value("quasarOutputMode", 0), 0, 2));
+            e.quasarCrossfeed = clampNum(j.value("quasarCrossfeed", 0.0f), 0.0f, 1.0f);
+            if (j.contains("quasarDelaySync"))
+            {
+                const auto& syncVal = j.at("quasarDelaySync");
+                e.quasarDelaySync = syncVal.is_boolean() ? syncVal.get<bool>()
+                                                         : (clampNum(syncVal.get<float>(), 0.0f, 1.0f) >= 0.5f);
+            }
+            else
+                e.quasarDelaySync = false;
+            e.quasarDelaySyncDivisionIndex = static_cast<int>(
+                clampNum(j.value("quasarDelaySyncDivisionIndex", j.value("quasarDelaySyncDivision", 2.0f)), 0.0f, 8.0f));
+            e.qsrStereoSplit = j.value("qsrStereoSplit", true);
+
             e.limiterCeilingDb = clampNum(j.value("limiterCeilingDb", -0.3f), -12.0f, 0.0f);
             e.limiterLookaheadMs = clampNum(j.value("limiterLookaheadMs", 5.0f),
                                              0.5f, effects::kMaxLimiterLookaheadSeconds * 1000.0f);
@@ -513,10 +666,10 @@ namespace pw8::patch
             toJson(filt2, l.filter2);
 
             json envelopes = json::array();
-            for (const auto& e : l.envelopes)
+            for (std::size_t ei = 0; ei < l.envelopes.size(); ++ei)
             {
                 json je;
-                toJson(je, e);
+                toJsonEnvelopeSlot(je, l.envelopes[ei], l.segmentEnvelopeChains[ei]);
                 envelopes.push_back(je);
             }
 
@@ -557,6 +710,7 @@ namespace pw8::patch
 
             j = json{{"operators", ops},       {"algorithm", algo},           {"envelopes", envelopes},
                      {"unison", uni},           {"filter1", filt},             {"filter2", filt2},
+                     {"filterRouting", l.filterRouting},
                      {"lfos", lfos},            {"modRoutes", routes},         {"metaRoutes", metaRoutes},
                      {"gain", l.gain},
                      {"pan", l.pan},            {"width", l.width},            {"centerGravity", l.centerGravity},
@@ -585,6 +739,7 @@ namespace pw8::patch
             // any v1 singular "ampEnvelope"/"lfo1" into "envelopes"/"lfos" arrays -- this
             // only ever needs to read the current (v2+) array shape.
             l.envelopes = std::array<envelope::DahdsrParams, core::kNumEnvelopesPerLayer>{};
+            l.segmentEnvelopeChains = std::array<envelope::SegmentEnvelopeChain, core::kNumEnvelopesPerLayer>{};
             if (j.contains("envelopes") && j.at("envelopes").is_array())
             {
                 std::size_t i = 0;
@@ -592,7 +747,7 @@ namespace pw8::patch
                 {
                     if (i >= core::kNumEnvelopesPerLayer)
                         break;
-                    fromJson(je, l.envelopes[i]);
+                    fromJsonEnvelopeSlot(je, l.envelopes[i], l.segmentEnvelopeChains[i]);
                     ++i;
                 }
             }
@@ -603,6 +758,7 @@ namespace pw8::patch
                 fromJson(j.at("filter1"), l.filter1);
             if (j.contains("filter2"))
                 fromJson(j.at("filter2"), l.filter2);
+            l.filterRouting = clampNum(j.value("filterRouting", 0.0f), 0.0f, 1.0f);
 
             l.lfos = std::array<lfo::LfoParams, core::kNumLfosPerLayer>{};
             if (j.contains("lfos") && j.at("lfos").is_array())
@@ -762,6 +918,8 @@ namespace pw8::patch
             j = json{{"name", kf.name}};
             if (kf.position >= 0.0f && kf.position <= 1.0f)
                 j["position"] = kf.position;
+            if (!kf.color.empty())
+                j["color"] = kf.color;
             if (kf.hasMacroValues)
             {
                 json mv = json::array();
@@ -772,8 +930,15 @@ namespace pw8::patch
             if (!kf.paramOverrides.empty())
             {
                 json po = json::object();
-                for (const auto& [key, val] : kf.paramOverrides)
-                    po[key] = val;
+                for (const auto& [key, ov] : kf.paramOverrides)
+                {
+                    if (ov.easing.empty() && ov.response.empty())
+                        po[key] = ov.value;
+                    else
+                        po[key] = json{{"value", ov.value},
+                                       {"easing", ov.easing},
+                                       {"response", ov.response}};
+                }
                 j["paramOverrides"] = po;
             }
         }
@@ -782,6 +947,7 @@ namespace pw8::patch
         {
             kf.name = j.value("name", std::string{});
             kf.position = clampNum(j.value("position", 0.0f), 0.0f, 1.0f);
+            kf.color = j.value("color", std::string{});
             kf.hasMacroValues = false;
             if (j.contains("macroValues") && j.at("macroValues").is_array())
             {
@@ -799,7 +965,18 @@ namespace pw8::patch
             if (j.contains("paramOverrides") && j.at("paramOverrides").is_object())
             {
                 for (const auto& [key, val] : j.at("paramOverrides").items())
-                    kf.paramOverrides[key] = val.get<float>();
+                {
+                    MorphParamOverride ov;
+                    if (val.is_number())
+                        ov.value = val.get<float>();
+                    else if (val.is_object())
+                    {
+                        ov.value = clampNum(val.value("value", 0.0f), -100000.0f, 100000.0f);
+                        ov.easing = val.value("easing", std::string{});
+                        ov.response = val.value("response", std::string{});
+                    }
+                    kf.paramOverrides[key] = ov;
+                }
             }
         }
 
@@ -809,7 +986,8 @@ namespace pw8::patch
                      {"defaultPosition", morph.defaultPosition},
                      {"position", morph.position},
                      {"curve", morph.curve},
-                     {"wrap", morph.wrap}};
+                     {"wrap", morph.wrap},
+                     {"autoplaySource", morph.autoplaySource}};
             if (!morph.description.empty())
                 j["description"] = morph.description;
             json keyframes = json::array();
@@ -830,12 +1008,13 @@ namespace pw8::patch
             morph.position = clampNum(j.value("position", morph.defaultPosition), 0.0f, 1.0f);
             morph.curve = j.value("curve", std::string{"linear"});
             morph.wrap = j.value("wrap", false);
+            morph.autoplaySource = j.value("autoplaySource", std::string{"none"});
             morph.keyframes.clear();
             if (!j.contains("keyframes") || !j.at("keyframes").is_array())
                 return;
             for (const auto& jk : j.at("keyframes"))
             {
-                if (morph.keyframes.size() >= 4)
+                if (morph.keyframes.size() >= core::kMaxMorphKeyframes)
                     break;
                 MorphKoinKeyframe kf;
                 fromJson(jk, kf);
@@ -940,6 +1119,169 @@ namespace pw8::patch
             a.numSteps = std::max<std::size_t>(1, requestedNumSteps);
         }
 
+        [[nodiscard]] const char* masterDynamicsModeToString(MasterDynamicsMode mode) noexcept
+        {
+            switch (mode)
+            {
+                case MasterDynamicsMode::Vactrol: return "vactrol";
+                case MasterDynamicsMode::Follower: return "follower";
+                case MasterDynamicsMode::Compressor: return "compressor";
+                case MasterDynamicsMode::Envelope:
+                default: return "envelope";
+            }
+        }
+
+        [[nodiscard]] MasterDynamicsMode masterDynamicsModeFromString(const std::string& s) noexcept
+        {
+            if (s == "vactrol")
+                return MasterDynamicsMode::Vactrol;
+            if (s == "follower")
+                return MasterDynamicsMode::Follower;
+            if (s == "compressor")
+                return MasterDynamicsMode::Compressor;
+            return MasterDynamicsMode::Envelope;
+        }
+
+        void toJson(json& j, const MasterDynamics& md)
+        {
+            j = json{{"enabled", md.enabled},
+                     {"mode", masterDynamicsModeToString(md.mode)},
+                     {"thresholdDb", md.thresholdDb},
+                     {"ratio", md.ratio},
+                     {"attackMs", md.attackMs},
+                     {"releaseMs", md.releaseMs},
+                     {"sidechainGain", md.sidechainGain},
+                     {"vactrolSlewMs", md.vactrolSlewMs},
+                     {"makeupDb", md.makeupDb},
+                     {"mix", md.mix}};
+        }
+
+        void fromJson(const json& j, MasterDynamics& md)
+        {
+            md.enabled = j.value("enabled", false);
+            md.mode = masterDynamicsModeFromString(j.value("mode", std::string{"envelope"}));
+            md.thresholdDb = clampNum(j.value("thresholdDb", -12.0f), -60.0f, 0.0f);
+            md.ratio = clampNum(j.value("ratio", 4.0f), 1.0f, 20.0f);
+            md.attackMs = clampNum(j.value("attackMs", 5.0f), 0.1f, 500.0f);
+            md.releaseMs = clampNum(j.value("releaseMs", 80.0f), 1.0f, 5000.0f);
+            md.sidechainGain = clampNum(j.value("sidechainGain", 1.0f), 0.0f, 2.0f);
+            md.vactrolSlewMs = clampNum(j.value("vactrolSlewMs", 40.0f), 1.0f, 5000.0f);
+            md.makeupDb = clampNum(j.value("makeupDb", 0.0f), 0.0f, 24.0f);
+            md.mix = clampNum(j.value("mix", 1.0f), 0.0f, 1.0f);
+        }
+
+        void toJson(json& j, const modulation::GenerativeStreamParams& s)
+        {
+            j = json{{"spread", s.spread}, {"bias", s.bias}, {"lagMs", s.lagMs}};
+            if (!s.quantScale.empty())
+                j["quantScale"] = s.quantScale;
+        }
+
+        void fromJson(const json& j, modulation::GenerativeStreamParams& s)
+        {
+            s.spread = clampNum(j.value("spread", 0.5f), 0.0f, 1.0f);
+            s.bias = clampNum(j.value("bias", 0.0f), -1.0f, 1.0f);
+            s.lagMs = clampNum(j.value("lagMs", 80.0f), 0.1f, 5000.0f);
+            s.quantScale = j.value("quantScale", std::string{});
+        }
+
+        void toJson(json& j, const modulation::GenerativeParams& g)
+        {
+            j = json{{"seed", g.seed},
+                     {"dejaVu", g.dejaVu},
+                     {"seedLocked", g.seedLocked},
+                     {"clockTRateHz", g.clockTRateHz},
+                     {"clockXRateHz", g.clockXRateHz},
+                     {"correlation", g.correlation}};
+            json streams = json::array();
+            for (const auto& stream : g.streams)
+            {
+                json js;
+                toJson(js, stream);
+                streams.push_back(js);
+            }
+            j["streams"] = streams;
+            j["outputRouting"] = g.outputRouting;
+        }
+
+        void fromJson(const json& j, modulation::GenerativeParams& g)
+        {
+            g.seed = j.value("seed", static_cast<std::uint64_t>(0));
+            g.dejaVu = j.value("dejaVu", true);
+            g.seedLocked = j.value("seedLocked", false);
+            g.clockTRateHz = clampNum(j.value("clockTRateHz", 0.47f), 0.01f, 40.0f);
+            g.clockXRateHz = clampNum(j.value("clockXRateHz", 4.7f), 0.01f, 40.0f);
+            g.correlation = clampNum(j.value("correlation", 0.0f), 0.0f, 1.0f);
+            if (j.contains("streams") && j.at("streams").is_array())
+            {
+                std::size_t i = 0;
+                for (const auto& js : j.at("streams"))
+                {
+                    if (i >= modulation::kNumGenerativeStreams)
+                        break;
+                    fromJson(js, g.streams[i]);
+                    ++i;
+                }
+            }
+            if (j.contains("outputRouting") && j.at("outputRouting").is_array())
+            {
+                std::size_t i = 0;
+                for (const auto& slot : j.at("outputRouting"))
+                {
+                    if (i >= modulation::kNumGenerativeOutputs)
+                        break;
+                    g.outputRouting[i] = static_cast<std::uint8_t>(slot.get<std::uint64_t>());
+                    ++i;
+                }
+            }
+        }
+
+        void toJson(json& j, const modulation::PeaksUtilitySlotParams& s)
+        {
+            j = json{{"enabled", s.enabled},
+                     {"mode", static_cast<int>(s.mode)},
+                     {"attackMs", s.attackMs},
+                     {"releaseMs", s.releaseMs},
+                     {"lfoRateHz", s.lfoRateHz},
+                     {"lfoDepth", s.lfoDepth}};
+        }
+
+        void fromJson(const json& j, modulation::PeaksUtilitySlotParams& s)
+        {
+            s.enabled = j.value("enabled", false);
+            s.mode = static_cast<modulation::PeaksUtilityMode>(clampNum(j.value("mode", 0), 0, 1));
+            s.attackMs = clampNum(j.value("attackMs", 5.0f), 0.1f, 5000.0f);
+            s.releaseMs = clampNum(j.value("releaseMs", 80.0f), 1.0f, 5000.0f);
+            s.lfoRateHz = clampNum(j.value("lfoRateHz", 0.5f), 0.01f, 40.0f);
+            s.lfoDepth = clampNum(j.value("lfoDepth", 0.5f), 0.0f, 1.0f);
+        }
+
+        void toJson(json& j, const modulation::PeaksUtilityParams& p)
+        {
+            json slots = json::array();
+            for (const auto& slot : p.slots)
+            {
+                json js;
+                toJson(js, slot);
+                slots.push_back(js);
+            }
+            j["slots"] = slots;
+        }
+
+        void fromJson(const json& j, modulation::PeaksUtilityParams& p)
+        {
+            if (!j.contains("slots") || !j.at("slots").is_array())
+                return;
+            std::size_t i = 0;
+            for (const auto& js : j.at("slots"))
+            {
+                if (i >= p.slots.size())
+                    break;
+                fromJson(js, p.slots[i]);
+                ++i;
+            }
+        }
+
     } // namespace
 
     std::string savePatchToJson(const Patch& patch, int indent) noexcept
@@ -967,7 +1309,8 @@ namespace pw8::patch
                                        {"a4Hz", patch.voiceSettings.a4Hz},
                                        {"portamentoSeconds", patch.voiceSettings.portamentoSeconds},
                                        {"macroDissemination", patch.voiceSettings.macroDissemination},
-                                       {"disseminationDepth", patch.voiceSettings.disseminationDepth}};
+                                       {"disseminationDepth", patch.voiceSettings.disseminationDepth},
+                                       {"morphDissemination", patch.voiceSettings.morphDissemination}};
 
             j["locks"] = json{
                 {"lockSources", patch.locks.lockSources},       {"lockAlgorithm", patch.locks.lockAlgorithm},
@@ -1010,6 +1353,29 @@ namespace pw8::patch
                 masterFx.push_back(jfx);
             }
             j["masterEffects"] = masterFx;
+
+            if (patch.masterDynamics.enabled || patch.masterDynamics.mode != MasterDynamicsMode::Envelope
+                || patch.masterDynamics.mix < 0.999f)
+            {
+                json md;
+                toJson(md, patch.masterDynamics);
+                j["masterDynamics"] = md;
+            }
+
+            if (patch.generative.dejaVu || patch.generative.seedLocked || patch.generative.correlation > 0.001f
+                || patch.generative.clockTRateHz != 0.47f || patch.generative.clockXRateHz != 4.7f)
+            {
+                json gen;
+                toJson(gen, patch.generative);
+                j["generative"] = gen;
+            }
+
+            if (patch.utilityPeaks.slots[0].enabled || patch.utilityPeaks.slots[1].enabled)
+            {
+                json peaks;
+                toJson(peaks, patch.utilityPeaks);
+                j["utilityPeaks"] = peaks;
+            }
 
             const patch::FxProcessOrder defaultOrder{};
             if (patch.fxProcessOrder.insert != defaultOrder.insert || patch.fxProcessOrder.master != defaultOrder.master)
@@ -1177,6 +1543,7 @@ namespace pw8::patch
                 p.voiceSettings.macroDissemination = vs.value("macroDissemination", false);
                 p.voiceSettings.disseminationDepth =
                     clampNum(vs.value("disseminationDepth", 0.22f), 0.0f, 1.0f);
+                p.voiceSettings.morphDissemination = vs.value("morphDissemination", false);
             }
 
             if (root.contains("locks"))
@@ -1223,6 +1590,15 @@ namespace pw8::patch
                     ++i;
                 }
             }
+
+            if (root.contains("masterDynamics"))
+                fromJson(root.at("masterDynamics"), p.masterDynamics);
+
+            if (root.contains("generative"))
+                fromJson(root.at("generative"), p.generative);
+
+            if (root.contains("utilityPeaks"))
+                fromJson(root.at("utilityPeaks"), p.utilityPeaks);
 
             if (root.contains("fxProcessOrder") && root.at("fxProcessOrder").is_object())
             {

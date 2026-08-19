@@ -1,6 +1,7 @@
 #include "GlowKnob.h"
 
 #include "../ModPreview.hpp"
+#include "../theme/FigmaKnobTokens.h"
 #include "../theme/KnobRingDraw.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
@@ -52,6 +53,43 @@ namespace pw8::plugin::ui
         attachment_ = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, paramId,
                                                                                                slider_);
         slider_.getProperties().set("maxDialDiameter", maxDialDiameter_);
+
+        // Figma glow-ring-knob (21:4) — decked style is the product default.
+        setDeckedStyle(true, DeckedKnobSize::Medium);
+    }
+
+    GlowKnob::GlowKnob(const juce::String& name, double minValue, double maxValue, double initialValue,
+                        std::function<void(double)> onValueChange,
+                        std::function<juce::String(float)> valueToText, juce::Colour accentColour)
+        : manualMode_(true),
+          manualOnChange_(std::move(onValueChange))
+    {
+        slider_.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+        slider_.setRotaryParameters(rotary::kStartAngle, rotary::kEndAngle, true);
+        slider_.valueToText = std::move(valueToText);
+        slider_.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 76, 16);
+        slider_.setRange(minValue, maxValue, (maxValue - minValue) / 200.0);
+        slider_.setValue(initialValue, juce::dontSendNotification);
+        slider_.setColour(juce::Slider::textBoxBackgroundColourId, palette::kPanelRaised);
+        slider_.setColour(juce::Slider::textBoxOutlineColourId, palette::kBorder);
+        slider_.setColour(juce::Slider::textBoxTextColourId, palette::kTextPrimary);
+        if (!accentColour.isTransparent())
+            slider_.setColour(juce::Slider::rotarySliderFillColourId, accentColour);
+        slider_.onValueChange = [this] {
+            if (manualOnChange_)
+                manualOnChange_(slider_.getValue());
+        };
+        addAndMakeVisible(slider_);
+        slider_.addMouseListener(this, false);
+
+        nameLabel_.setText(name.toUpperCase(), juce::dontSendNotification);
+        nameLabel_.setJustificationType(juce::Justification::centred);
+        nameLabel_.setColour(juce::Label::textColourId, palette::kTextPrimary);
+        nameLabel_.setFont(fonts::label(11.0f));
+        addAndMakeVisible(nameLabel_);
+
+        slider_.getProperties().set("maxDialDiameter", maxDialDiameter_);
+        setDeckedStyle(true, DeckedKnobSize::Medium);
     }
 
     GlowKnob::~GlowKnob()
@@ -59,9 +97,31 @@ namespace pw8::plugin::ui
         stopTimer();
     }
 
+    void GlowKnob::setManualValue(double value, juce::NotificationType notification)
+    {
+        slider_.setValue(value, notification);
+    }
+
+    double GlowKnob::getManualValue() const noexcept
+    {
+        return slider_.getValue();
+    }
+
+    void GlowKnob::syncSliderFromParameter(const juce::RangedAudioParameter& param)
+    {
+        if (manualMode_)
+            return;
+
+        slider_.setValue(param.convertFrom0to1(param.getValue()), juce::dontSendNotification);
+        repaint();
+    }
+
     void GlowKnob::enableModulationTarget(PatchworkEightProcessor& processor, modulation::ModDestination destination,
                                            std::uint8_t targetIndex)
     {
+        if (manualMode_)
+            return;
+
         modProcessor_ = &processor;
         modDestination_ = destination;
         modTargetIndex_ = targetIndex;
@@ -127,15 +187,82 @@ namespace pw8::plugin::ui
         headerCompactMode_ = compact;
         if (compact)
         {
-            maxDialDiameter_ = 40;
+            hideValueBox_ = true;
+            maxDialDiameter_ = figma::chromeMasterDialDiameter();
             slider_.getProperties().set("maxDialDiameter", maxDialDiameter_);
+            setDeckedStyle(true, DeckedKnobSize::Small);
             nameLabel_.setFont(fonts::label(fonts::kCaptionSize));
         }
         resized();
     }
 
+    void GlowKnob::setShowModRouteRing(bool show)
+    {
+        showModRouteRing_ = show;
+        repaint();
+    }
+
+    void GlowKnob::setShowNameLabel(bool show)
+    {
+        nameLabel_.setVisible(show);
+        resized();
+    }
+
+    juce::String GlowKnob::getValueDisplayText() const
+    {
+        const double value = slider_.getValue();
+        if (slider_.valueToText)
+            return slider_.valueToText(static_cast<float>(value));
+        return juce::String(value, 2);
+    }
+
+    void GlowKnob::applyFigmaContext(figma::KnobContext context)
+    {
+        const auto spec = figma::specFor(context);
+        maxDialDiameter_ = spec.diameter;
+        slider_.getProperties().set("maxDialDiameter", maxDialDiameter_);
+        hideValueBox_ = spec.hideValueBox;
+        headerCompactMode_ = false;
+
+        if (context == figma::KnobContext::DesktopMacroFeature || context == figma::KnobContext::DesktopMacroStandard)
+        {
+            deckedStyle_ = false;
+            slider_.getProperties().set("knobStyle", "radialGlow");
+            slider_.getProperties().set("featuredKoin", context == figma::KnobContext::DesktopMacroFeature);
+            slider_.getProperties().remove("deckedSize");
+            hideValueBox_ = true;
+            slider_.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+            nameLabel_.setFont(fonts::label(spec.labelFontPt));
+            resized();
+            return;
+        }
+
+        slider_.getProperties().set("knobStyle", "decked");
+
+        auto deckSize = DeckedKnobSize::Medium;
+        switch (spec.deckSize)
+        {
+            case figma::DeckSize::Large: deckSize = DeckedKnobSize::Large; break;
+            case figma::DeckSize::Small: deckSize = DeckedKnobSize::Small; break;
+            default: break;
+        }
+        setDeckedStyle(true, deckSize);
+        nameLabel_.setFont(fonts::label(spec.labelFontPt));
+
+        if (spec.headerCompact)
+            setHeaderCompactMode(true);
+        else if (spec.hideValueBox)
+            slider_.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+        else
+            slider_.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 76, kTextBoxHeight);
+        resized();
+    }
+
     void GlowKnob::timerCallback()
     {
+        if (manualMode_)
+            return;
+
         juce::Colour next = juce::Colours::transparentBlack;
         auto nextSource = modulation::ModSource::None;
         float nextAmountNorm = 0.0f;
@@ -312,7 +439,7 @@ namespace pw8::plugin::ui
         if (showDepthPopover_ && modProcessor_ != nullptr)
             depthPopoverArea_ = bounds.removeFromBottom(kDepthPopoverHeight).reduced(8, 2);
 
-        if (headerCompactMode_)
+        if (headerCompactMode_ || hideValueBox_)
         {
             slider_.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
             const int dialDiameter =
@@ -349,11 +476,11 @@ namespace pw8::plugin::ui
             knobrings::computeLayout(sliderBounds, static_cast<float>(maxDialDiameter_), deckedStyle_);
         const float strokeScale = featuredPerformanceMacro_ ? 1.35f : 1.08f;
 
-        if (dragHover_)
-            knobrings::drawDragHoverRing(g, ringLayout);
-
-        if (!ringColour_.isTransparent())
+        if (showModRouteRing_ && !ringColour_.isTransparent())
         {
+            if (dragHover_)
+                knobrings::drawDragHoverRing(g, ringLayout);
+
             if (macroActivityMode_)
             {
                 knobrings::strokeModRouteTrack(g, ringLayout,
@@ -364,7 +491,7 @@ namespace pw8::plugin::ui
             knobrings::strokeModRouteArc(g, ringLayout, ringAmountNormalized_, ringColour_, strokeScale);
         }
 
-        if (liveModNormalized_ >= 0.0f)
+        if (showModRouteRing_ && liveModNormalized_ >= 0.0f)
         {
             const auto ghostAccent = ringColour_.isTransparent() ? palette::kAccent : ringColour_;
             knobrings::drawLiveModGhost(g, ringLayout, liveModNormalized_, ghostAccent);

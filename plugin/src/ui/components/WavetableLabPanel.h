@@ -7,6 +7,9 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "GlowKnob.h"
+#include "ConcentricGlowKnob.h"
+#include "ModAssignmentController.h"
+#include "TripleGlowKnob.h"
 #include "SectionPanel.h"
 #include "WavetableStackView.h"
 #include "../PlayModeLayout.h"
@@ -18,7 +21,7 @@ namespace pw8::plugin::ui
     class WavetableLabPanel : public juce::Component, private juce::Timer
     {
     public:
-        explicit WavetableLabPanel(PatchworkEightProcessor& processor);
+        explicit WavetableLabPanel(PatchworkEightProcessor& processor, ModAssignmentController& assignmentController);
         ~WavetableLabPanel() override;
 
         std::function<void()> onClosed;
@@ -36,6 +39,7 @@ namespace pw8::plugin::ui
     private:
         void timerCallback() override;
         void bindEngine(int engineIndex);
+        void wireModTargets();
         void ensureWavetableEngine();
         void paintHarmonicEditor(juce::Graphics& g, juce::Rectangle<int> bounds) const;
         void paintFrameStrip(juce::Graphics& g) const;
@@ -57,6 +61,7 @@ namespace pw8::plugin::ui
         void paintOverChildren(juce::Graphics& g) override;
 
         PatchworkEightProcessor& processor_;
+        ModAssignmentController& assignmentController_;
         juce::AudioProcessorValueTreeState& apvts_;
         int engineIndex_ = 0;
 
@@ -81,14 +86,12 @@ namespace pw8::plugin::ui
         SectionPanel harmonicPanel_{"HARMONIC PARTIALS (1-16)"};
 
         std::array<juce::TextButton, 6> waveformButtons_{};
-        std::unique_ptr<GlowKnob> leftCoarseKnob_;
-        std::unique_ptr<GlowKnob> leftFineKnob_;
+        std::unique_ptr<ConcentricGlowKnob> pitchKnob_;
         juce::Label phaseDispersionLabel_;
         juce::TextButton phaseDispersionToggle_{"ON"};
 
         std::unique_ptr<GlowKnob> wtPosKnob_;
-        std::unique_ptr<GlowKnob> phaseBendKnob_;
-        std::array<std::unique_ptr<GlowKnob>, 3> unisonKnobs_{};
+        std::unique_ptr<TripleGlowKnob> unisonKnob_;
         std::array<juce::TextButton, 3> morphTypeButtons_{};
         juce::Label morphPositionLabel_;
         juce::Label frameStripTitleLabel_;
@@ -98,7 +101,7 @@ namespace pw8::plugin::ui
         int morphTypeIndex_ = 0;
         int selectedFrameStripIndex_ = 4;
 
-        juce::Rectangle<int> unisonKnobBounds_[3]{};
+        juce::Rectangle<int> unisonKnobBounds_;
         juce::Rectangle<int> phaseDispersionBounds_;
         bool phaseDispersionOn_ = false;
 

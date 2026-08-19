@@ -43,6 +43,7 @@ from mcp.server.fastmcp import FastMCP
 import content
 import patch_builder
 import render as render_mod
+import standalone_bridge
 from patch_schema import (
     BASE_OPERATOR_FIELDS, EFFECT_FIELDS, EFFECT_TYPE_IDS, ENGINE_EXTRA_FIELDS,
     ENGINE_NAMES, MOD_DEST_IDS, MOD_SCOPE_IDS, MOD_SOURCE_IDS,
@@ -198,6 +199,36 @@ def set_spread_bundle(patch_id: str, slot: int, name: str, destinations: list[di
 
 
 @mcp.tool()
+def set_master_dynamics(patch_id: str, params: dict | None = None) -> dict:
+    """Configure Streams-style master bus dynamics (masterDynamics on the patch).
+    params keys: enabled, mode (envelope/vactrol/follower/compressor), thresholdDb,
+    ratio, attackMs, releaseMs, sidechainGain, vactrolSlewMs, makeupDb, mix."""
+    warnings = patch_builder.set_master_dynamics(patch_id, params)
+    return {"patch_id": patch_id, "warnings": warnings,
+            "summary": patch_builder.explain_patch(patch_builder.load_scratch(patch_id))}
+
+
+@mcp.tool()
+def set_generative(patch_id: str, params: dict | None = None,
+                   streams: list[dict] | None = None) -> dict:
+    """Configure Marbles-style generative mod sources (generative on patch).
+    params: seed, dejaVu, seedLocked, clockTRateHz, clockXRateHz, correlation.
+    streams: up to 4 dicts with spread, bias, lagMs per stream."""
+    warnings = patch_builder.set_generative(patch_id, params, streams)
+    return {"patch_id": patch_id, "warnings": warnings,
+            "summary": patch_builder.explain_patch(patch_builder.load_scratch(patch_id))}
+
+
+@mcp.tool()
+def set_utility_peaks(patch_id: str, slot: int, params: dict | None = None) -> dict:
+    """Configure a Peaks utility slot (0 or 1) on utilityPeaks.
+    params: enabled, mode (mini_envelope/mini_lfo), attackMs, releaseMs, lfoRateHz, lfoDepth."""
+    warnings = patch_builder.set_utility_peaks(patch_id, slot, params)
+    return {"patch_id": patch_id, "warnings": warnings,
+            "summary": patch_builder.explain_patch(patch_builder.load_scratch(patch_id))}
+
+
+@mcp.tool()
 def set_morph_koin(patch_id: str, label: str, keyframes: list[dict],
                    default_position: float = 0.0, description: str = "",
                    curve: str = "linear", wrap: bool = False,
@@ -208,6 +239,24 @@ def set_morph_koin(patch_id: str, label: str, keyframes: list[dict],
     warnings = patch_builder.set_morph_koin(
         patch_id, label, keyframes, default_position, description,
         curve, wrap, position, macro_koins)
+    return {"patch_id": patch_id, "warnings": warnings,
+            "summary": patch_builder.explain_patch(patch_builder.load_scratch(patch_id))}
+
+
+@mcp.tool()
+def add_morph_keyframe(patch_id: str, name: str, position: float,
+                       macro_values: list[float] | None = None,
+                       param_overrides: dict | None = None) -> dict:
+    """Append a morph keyframe to scratch patch morphKoin (up to 16). Round-trip via save_patch."""
+    warnings = patch_builder.add_morph_keyframe(patch_id, name, position, macro_values, param_overrides)
+    return {"patch_id": patch_id, "warnings": warnings,
+            "summary": patch_builder.explain_patch(patch_builder.load_scratch(patch_id))}
+
+
+@mcp.tool()
+def remove_morph_keyframe(patch_id: str, index: int) -> dict:
+    """Remove morph keyframe at index from scratch patch morphKoin."""
+    warnings = patch_builder.remove_morph_keyframe(patch_id, index)
     return {"patch_id": patch_id, "warnings": warnings,
             "summary": patch_builder.explain_patch(patch_builder.load_scratch(patch_id))}
 
@@ -271,6 +320,41 @@ def validate_patch(patch_id: str) -> dict:
     against before being bundled into the installer. Run this before
     save_patch."""
     return render_mod.validate_patch(patch_id)
+
+
+# -- Live Standalone bridge (MURMUR.app only) ---------------------------------
+
+@mcp.tool()
+def standalone_status() -> dict:
+    """Returns whether MURMUR Standalone is running with the integrated MCP bridge.
+    When connected, agents can load scratch patches into the live app for audition."""
+    return standalone_bridge.status()
+
+
+@mcp.tool()
+def load_into_standalone(patch_id: str) -> dict:
+    """Loads a scratch patch (from create_patch / set_operator / etc.) into the
+    running MURMUR Standalone app. Requires Standalone to be open — it publishes
+    a localhost bridge manifest under ~/Library/Application Support/MURMUR/."""
+    src = patch_builder.scratch_path(patch_id)
+    if not src.exists():
+        raise FileNotFoundError(f"no scratch patch '{patch_id}'")
+    result = standalone_bridge.load_path(src)
+    result["patch_id"] = patch_id
+    result["path"] = str(src.resolve())
+    return result
+
+
+@mcp.tool()
+def load_preset_into_standalone(repo_relative_path: str) -> dict:
+    """Loads a saved .pw8 preset from the repo (e.g. content/presets/factory/Blades/001-serial-sweep.pw8)
+    into the running MURMUR Standalone app."""
+    dest = patch_builder.REPO_ROOT / repo_relative_path
+    if not dest.is_file():
+        raise FileNotFoundError(f"preset not found: {repo_relative_path}")
+    result = standalone_bridge.load_path(dest)
+    result["preset"] = repo_relative_path
+    return result
 
 
 if __name__ == "__main__":

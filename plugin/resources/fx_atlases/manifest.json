@@ -1,0 +1,23 @@
+{
+  "frames": 24,
+  "frameWidth": 128,
+  "frameHeight": 64,
+  "atlases": [
+    {
+      "name": "chorus",
+      "file": "chorus_atlas.png"
+    },
+    {
+      "name": "tape",
+      "file": "tape_atlas.png"
+    },
+    {
+      "name": "reverb",
+      "file": "reverb_atlas.png"
+    },
+    {
+      "name": "clouds",
+      "file": "clouds_atlas.png"
+    }
+  ]
+}

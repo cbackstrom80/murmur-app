@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <optional>
 
 #include <juce_core/juce_core.h>
@@ -66,10 +67,13 @@ namespace pw8::plugin::content
                                                              const PresetMetadataFilter& filter = {},
                                                              const juce::StringArray* favoritePathsOnly = nullptr) const;
 
+        using EntryPredicate = std::function<bool(const PresetEntry&)>;
+
         /// Values still available for one facet given the other active filters (faceted search).
         [[nodiscard]] juce::StringArray uniqueFacetValues(PresetFacet facet,
                                                            const PresetMetadataFilter& filter,
-                                                           const juce::StringArray* favoritePathsOnly = nullptr) const;
+                                                           const juce::StringArray* favoritePathsOnly = nullptr,
+                                                           const EntryPredicate& entryPredicate = {}) const;
 
         [[nodiscard]] juce::StringArray uniqueCategories() const;
 

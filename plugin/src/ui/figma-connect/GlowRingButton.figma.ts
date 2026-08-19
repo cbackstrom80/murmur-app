@@ -1,4 +1,4 @@
-// url=https://www.figma.com/design/pi5kUNcZWQGhqfRAVu3voh/MURMUR-Obsidian?node-id=2-71
+// url=https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/MURMUR-Obsidian?node-id=2-71
 // source=plugin/src/ui/components/GlowRingButton.h
 // component=GlowRingButton
 import figma from 'figma'

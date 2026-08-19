@@ -19,10 +19,17 @@
 namespace pw8::plugin::ui::fonts
 {
     // Minimum readable sizes for dark Obsidian panels (see docs/UI.md).
-    inline constexpr float kCaptionSize = 10.0f;
-    inline constexpr float kLabelMinSize = 10.5f;
-    inline constexpr float kSectionTitleSize = 12.5f;
-    inline constexpr float kBodyLabelSize = 11.0f;
+    inline constexpr float kCaptionSize = 11.0f;
+    inline constexpr float kLabelMinSize = 11.5f;
+    inline constexpr float kSectionTitleSize = 13.5f;
+    inline constexpr float kBodyLabelSize = 12.0f;
+    inline constexpr float kMicroMinSize = 7.0f;
+    inline constexpr float kPresetNameSize = 14.0f;
+
+    /// ASCII-safe UI chrome — avoids UTF-8 punctuation that garbles in Avenir Next @ small sizes.
+    inline constexpr const char* kArrow = "->";
+    inline constexpr const char* kSep = " / ";
+    inline constexpr const char* kDash = " - ";
 
     [[nodiscard]] inline const juce::String& preferredFamily() noexcept
     {
@@ -55,6 +62,20 @@ namespace pw8::plugin::ui::fonts
     [[nodiscard]] inline juce::Font caption(float size) noexcept
     {
         return value(juce::jmax(kCaptionSize, size));
+    }
+
+    /// Dense card/lab chrome (7–10 pt) — no kLabelMinSize floor.
+    [[nodiscard]] inline juce::Font micro(float size) noexcept
+    {
+        return juce::Font(juce::FontOptions(preferredFamily(), juce::jmax(kMicroMinSize, size), juce::Font::plain))
+            .withExtraKerningFactor(0.04f);
+    }
+
+    /// Figma card titles / chrome labels — bold, no kLabelMinSize floor.
+    [[nodiscard]] inline juce::Font denseBold(float size) noexcept
+    {
+        return juce::Font(juce::FontOptions(preferredFamily(), juce::jmax(kMicroMinSize, size), juce::Font::bold))
+            .withExtraKerningFactor(0.06f);
     }
 
 } // namespace pw8::plugin::ui::fonts

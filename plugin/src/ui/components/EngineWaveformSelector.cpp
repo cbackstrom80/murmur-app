@@ -88,7 +88,7 @@ namespace pw8::plugin::ui
 
         const auto idx = static_cast<std::size_t>(engineIndex_);
         float ratio = 1.0f;
-        if (auto* raw = processor_.apvts.getRawParameterValue(operatorParamId(idx, "FrequencyRatio")))
+        if (auto* raw = processor_.apvts.getRawParameterValue(operatorParamId(idx, "FreqRatio")))
             ratio = juce::jlimit(0.25f, 8.0f, raw->load());
 
         animPhase_ += 0.014f * ratio;

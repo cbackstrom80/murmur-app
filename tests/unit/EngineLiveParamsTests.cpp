@@ -221,3 +221,39 @@ TEST_CASE("Engine::setArpeggiatorScalarLive preserves held notes and pattern sta
             anyOnsetAfter = true;
     REQUIRE(anyOnsetAfter); // still playing -- held notes/pattern position survived the live update.
 }
+
+TEST_CASE("Engine::setFilterRoutingLive morphs dual-filter output on held voice", "[engine][liveparams][blades][routing]")
+{
+    patch::Patch p = patch::Patch::makeInit();
+    p.layerA.operators[0].classicWaveform = oscillator::ClassicWaveform::Saw;
+    p.layerA.envelopes[0].attackSeconds = 0.001f;
+    p.layerA.envelopes[0].decaySeconds = 0.01f;
+    p.layerA.envelopes[0].sustainLevel = 1.0f;
+    p.layerA.filter1.enabled = true;
+    p.layerA.filter1.cutoffHz = 800.0f;
+    p.layerA.filter1.resonance = 0.35f;
+    p.layerA.filter2.enabled = true;
+    p.layerA.filter2.cutoffHz = 2000.0f;
+    p.layerA.filter2.resonance = 0.25f;
+    p.layerA.filter2.drive = 0.2f;
+    p.layerA.filterRouting = 0.0f;
+
+    render::Engine engine;
+    engine.prepare(kSampleRate);
+    REQUIRE(engine.loadPatch(p));
+    engine.noteOn(60, 0, 100);
+
+    std::vector<float> settleL(500), settleR(500);
+    core::StereoBlockView settleView(settleL.data(), settleR.data(), settleL.size());
+    engine.process(settleView);
+
+    const float rmsSerial = renderRms(engine, 2000);
+    engine.setFilterRoutingLive(0.5f);
+    const float rmsParallel = renderRms(engine, 2000);
+    engine.setFilterRoutingLive(1.0f);
+    const float rmsCrossfade = renderRms(engine, 2000);
+
+    REQUIRE(rmsSerial > 0.001f);
+    REQUIRE(std::abs(rmsParallel - rmsSerial) > 1.0e-4f);
+    REQUIRE(std::abs(rmsCrossfade - rmsParallel) > 1.0e-4f);
+}

@@ -42,6 +42,9 @@ namespace pw8::plugin::ui
 
     void updateModRouteAmount(PatchworkEightProcessor& processor, const modulation::ModRoute& route, float amount);
 
+    void updateModRouteCurve(PatchworkEightProcessor& processor, const modulation::ModRoute& route,
+                             modulation::ModCurve curve);
+
     [[nodiscard]] std::optional<ModDestinationParam> modDestinationParam(modulation::ModDestination destination,
                                                                            std::uint8_t targetIndex);
 
@@ -76,6 +79,26 @@ namespace pw8::plugin::ui
             return featureKnobs == other.featureKnobs && standardKnobs == other.standardKnobs;
         }
     };
+
+    /// Ignores display labels — only knob kind, macro index, and param id.
+    [[nodiscard]] inline bool samePatchFocusKnobStructure(const PatchFocusLayout& a,
+                                                          const PatchFocusLayout& b) noexcept
+    {
+        if (a.featureKnobs.size() != b.featureKnobs.size() || a.standardKnobs.size() != b.standardKnobs.size())
+            return false;
+
+        const auto sameSpec = [](const PatchFocusKnobSpec& x, const PatchFocusKnobSpec& y) noexcept {
+            return x.kind == y.kind && x.macroIndex == y.macroIndex && x.paramId == y.paramId;
+        };
+
+        for (std::size_t i = 0; i < a.featureKnobs.size(); ++i)
+            if (!sameSpec(a.featureKnobs[i], b.featureKnobs[i]))
+                return false;
+        for (std::size_t i = 0; i < a.standardKnobs.size(); ++i)
+            if (!sameSpec(a.standardKnobs[i], b.standardKnobs[i]))
+                return false;
+        return true;
+    }
 
     /// 1–3 routed feature macro KOINS plus consistent standard APVTS param knobs.
     [[nodiscard]] PatchFocusLayout inferPatchFocusLayout(

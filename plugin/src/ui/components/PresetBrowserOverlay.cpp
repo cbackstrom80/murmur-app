@@ -598,7 +598,7 @@ namespace pw8::plugin::ui
                    + juce::String(time.getMonth() + 1).paddedLeft('0', 2) + "/"
                    + juce::String(time.getYear()).substring(2);
         }
-        return "—";
+        return "-";
     }
 
     juce::String PresetBrowserOverlay::emptyStateMessage() const
@@ -979,23 +979,23 @@ namespace pw8::plugin::ui
 
         juce::String countText = juce::String(visibleEntries_.size()) + " presets";
         if (selectedCategoryKey_.isNotEmpty() && selectedCategoryKey_ != kFavoritesCategoryKey)
-            countText += " · " + selectedCategoryKey_.toUpperCase();
+            countText += juce::String(fonts::kSep) + selectedCategoryKey_.toUpperCase();
 
         const auto filter = browseFilter();
         if (filter.mood.isNotEmpty())
-            countText += " · " + filter.mood.toUpperCase();
+            countText += juce::String(fonts::kSep) + filter.mood.toUpperCase();
         if (filter.genre.isNotEmpty())
-            countText += " · " + filter.genre.toUpperCase();
+            countText += juce::String(fonts::kSep) + filter.genre.toUpperCase();
         if (filter.tag.isNotEmpty())
-            countText += " · #" + filter.tag.toUpperCase();
+            countText += juce::String(fonts::kSep) + "#" + filter.tag.toUpperCase();
 
         g.setColour(palette::kTextDim);
-        g.setFont(fonts::label(8.0f));
+        g.setFont(fonts::micro(8.0f));
         g.drawText(countText, bottomBarBounds_.reduced(16, 0), juce::Justification::centredLeft, true);
 
         g.setColour(palette::kTextSecondary);
-        g.drawText("◀ PREV PRESET", paginationPrevBounds_, juce::Justification::centred, true);
-        g.drawText("NEXT PRESET ▶", paginationNextBounds_, juce::Justification::centred, true);
+        g.drawText("PREV PRESET", paginationPrevBounds_, juce::Justification::centred, true);
+        g.drawText("NEXT PRESET", paginationNextBounds_, juce::Justification::centred, true);
     }
 
     void PresetBrowserOverlay::resized()

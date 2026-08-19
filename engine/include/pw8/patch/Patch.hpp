@@ -11,10 +11,13 @@
 #include "pw8/core/Version.hpp"
 #include "pw8/effects/EffectTypes.hpp"
 #include "pw8/envelope/DahdsrEnvelope.hpp"
+#include "pw8/envelope/SegmentEnvelope.hpp"
 #include "pw8/filter/CharacterFilter.hpp"
 #include "pw8/filter/StateVariableFilter.hpp"
 #include "pw8/lfo/Lfo.hpp"
+#include "pw8/modulation/GenerativeSources.hpp"
 #include "pw8/modulation/ModMatrixTypes.hpp"
+#include "pw8/modulation/PeaksUtility.hpp"
 #include "pw8/operator/OperatorNode.hpp"
 #include "pw8/sequencer/ArpeggiatorTypes.hpp"
 
@@ -171,6 +174,8 @@ namespace pw8::patch
         /// docs/MODULATION.md). Schema v1's singular `ampEnvelope` field migrates to
         /// `envelopes[0]` on load -- see PatchSerializer's v1->v2 migration.
         std::array<envelope::DahdsrParams, core::kNumEnvelopesPerLayer> envelopes{};
+        /// Optional Stages-style segment chains per envelope slot (empty = legacy ADSR).
+        std::array<envelope::SegmentEnvelopeChain, core::kNumEnvelopesPerLayer> segmentEnvelopeChains{};
         UnisonSettings unison{};
 
         /// Global filter: clean multimode SVF, applied per-voice to the full algorithm
@@ -180,6 +185,9 @@ namespace pw8::patch
 
         /// Global character filter (nonlinear ladder + drive), serial after Filter 1.
         filter::CharacterFilterParams filter2{};
+
+        /// Blades routing morph: 0 = serial F1→F2, 0.5 = parallel, 1 = crossfade of serial orders.
+        float filterRouting = 0.0f;
 
         /// 8 LFOs, usable as mod matrix sources (Lfo1..Lfo8, see docs/MODULATION.md).
         /// `lfos[0]` is what used to be the singular `lfo1` field (schema v1 migrates
@@ -246,6 +254,8 @@ namespace pw8::patch
         /// Per-voice spread applied to Macro1–3 at note-on when `macroDissemination` is true
         /// (0 = no spread, 0.25 ≈ ±25% around the current macro value).
         float disseminationDepth = 0.22f;
+        /// When true, morph timeline position is frozen per voice at note-on (Frames + PoliMATHS hybrid).
+        bool morphDissemination = false;
     };
 
     struct Macro
@@ -274,26 +284,36 @@ namespace pw8::patch
         std::string label;            ///< optional display override
     };
 
+    /// Optional per-override morph shaping (Frames per-channel easing/response).
+    struct MorphParamOverride
+    {
+        float value = 0.0f;
+        std::string easing;   ///< empty = use morphKoin global curve
+        std::string response; ///< empty | linear | log (log-space lerp for positive values)
+    };
+
     /// One stored snapshot on the morph timeline (see docs/MORPH_KOIN_SPEC.md).
     struct MorphKoinKeyframe
     {
         std::string name;
         float position = 0.0f; ///< 0..1 timeline slot; evenly spaced when unset in JSON
+        std::string color;       ///< optional UI hue (#rrggbb)
         std::array<float, 8> macroValues{}; ///< optional per-keyframe macro levels
         bool hasMacroValues = false;
-        /// Horizon 3: dotted APVTS / patch paths → float. Parsed in serializer; applied by morph executor.
-        std::unordered_map<std::string, float> paramOverrides;
+        std::unordered_map<std::string, MorphParamOverride> paramOverrides;
     };
 
-    /// Frames-inspired morph between 2–4 keyframes. Metadata round-trips in Horizon 2; executor TODO Horizon 3.
+    /// Frames-inspired morph between 2–16 keyframes (DESIGN cap); PLAY KOIN shows up to 4.
     struct MorphKoin
     {
         std::string label;
         std::string description;
         float defaultPosition = 0.0f;
         float position = 0.0f;
-        std::string curve = "linear"; ///< linear | smooth | step
+        std::string curve = "linear"; ///< linear | smooth | step | inQuartic | outQuartic | sine | bounce
         bool wrap = false;
+        /// Autoplay morph position from mod source: none | lfo1..lfo8 | modWheel | sidechain | expression
+        std::string autoplaySource = "none";
         std::vector<MorphKoinKeyframe> keyframes;
     };
 
@@ -310,6 +330,29 @@ namespace pw8::patch
     {
         std::array<std::uint8_t, effects::kNumLayerInsertSlots> insert{0, 1, 2};
         std::array<std::uint8_t, effects::kNumMasterSlots> master{0, 1, 2, 3};
+    };
+
+    /// Streams-style master bus dynamics (Track C — docs/MASTER_DYNAMICS_SPEC.md).
+    enum class MasterDynamicsMode : std::uint8_t
+    {
+        Envelope = 0,
+        Vactrol,
+        Follower,
+        Compressor,
+    };
+
+    struct MasterDynamics
+    {
+        bool enabled = false;
+        MasterDynamicsMode mode = MasterDynamicsMode::Envelope;
+        float thresholdDb = -12.0f;
+        float ratio = 4.0f;
+        float attackMs = 5.0f;
+        float releaseMs = 80.0f;
+        float sidechainGain = 1.0f;
+        float vactrolSlewMs = 40.0f;
+        float makeupDb = 0.0f;
+        float mix = 1.0f;
     };
 
     struct Patch
@@ -331,6 +374,9 @@ namespace pw8::patch
         /// 4 master FX slots, applied in order to the final mixed stereo bus (after
         /// all layers' insert effects). See docs/FX_BANK.md.
         std::array<effects::EffectSlotParams, effects::kNumMasterSlots> masterEffects{};
+        MasterDynamics masterDynamics{};
+        modulation::GenerativeParams generative{};
+        modulation::PeaksUtilityParams utilityPeaks{};
         FxProcessOrder fxProcessOrder{};
         std::uint64_t seed = 0;
 

@@ -15,9 +15,13 @@
 #include "pw8/patch/PatchSerializer.hpp"
 #include "pw8/dsp/SidechainFollower.hpp"
 #include "pw8/modulation/MorphKoinExecutor.hpp"
+#include "pw8/modulation/ModMatrixExecutor.hpp"
 #include "pw8/sequencer/ArpeggiatorTypes.hpp"
 #include "processor/EffectLatency.hpp"
 #include "ui/MurmurRootEditor.h"
+#if JucePlugin_Build_Standalone
+#include "standalone/StandaloneMcpBridge.h"
+#endif
 
 #include <juce_core/juce_core.h>
 
@@ -139,9 +143,30 @@ namespace pw8::plugin
 #ifdef PW8_DEV_CONTENT_ROOT
         pw8::content::addSearchRoot(PW8_DEV_CONTENT_ROOT);
 #endif
+
+#if JucePlugin_Build_Standalone
+        standaloneMcpBridge_ = std::make_unique<StandaloneMcpBridge>(
+            [this](const juce::String& path) { return loadPatchFromFile(path); },
+            [this](const juce::String& json) { return loadPatchFromJsonString(json); },
+            [this]() {
+                juce::DynamicObject::Ptr body(new juce::DynamicObject());
+                body->setProperty("ok", true);
+                body->setProperty("product", "MURMUR");
+                body->setProperty("patch_name", juce::String(currentPatch_.metadata.name));
+                body->setProperty("preset_path", currentPresetPath_);
+                if (standaloneMcpBridge_ != nullptr)
+                    body->setProperty("port", standaloneMcpBridge_->getPort());
+                return juce::var(body.get());
+            });
+#endif
     }
 
-    PatchworkEightProcessor::~PatchworkEightProcessor() = default;
+    PatchworkEightProcessor::~PatchworkEightProcessor()
+    {
+#if JucePlugin_Build_Standalone
+        standaloneMcpBridge_.reset();
+#endif
+    }
 
     void PatchworkEightProcessor::cacheParameterPointers()
     {
@@ -150,6 +175,17 @@ namespace pw8::plugin
 
         cacheGroup(apvts, filterParamPointers_, kFilterIdPrefix, kFilterFieldSpecs);
         cacheGroup(apvts, filter2ParamPointers_, kFilter2IdPrefix, kFilter2FieldSpecs);
+        filterRoutingPointer_ = apvts.getRawParameterValue(kFilterRoutingId);
+        for (std::size_t i = 0; i < kNumMasterDynamicsFields; ++i)
+            masterDynamicsParamPointers_[i] =
+                apvts.getRawParameterValue(juce::String(kMasterDynamicsIdPrefix) + kMasterDynamicsFieldSpecs[i].idSuffix);
+        for (std::size_t i = 0; i < kNumGenerativeFields; ++i)
+            generativeParamPointers_[i] =
+                apvts.getRawParameterValue(juce::String(kGenerativeIdPrefix) + kGenerativeFieldSpecs[i].idSuffix);
+        for (std::size_t slot = 0; slot < kNumPeaksUtilitySlots; ++slot)
+            for (std::size_t i = 0; i < kNumPeaksUtilitySlotFields; ++i)
+                peaksUtilityParamPointers_[slot][i] = apvts.getRawParameterValue(
+                    peaksUtilitySlotParamId(slot, kPeaksUtilitySlotFieldSpecs[i].idSuffix));
         cacheGroup(apvts, arpParamPointers_, kArpIdPrefix, kArpFieldSpecs);
 
         for (std::size_t lfo = 0; lfo < kNumLfos; ++lfo)
@@ -188,6 +224,7 @@ namespace pw8::plugin
         layerGainPointer_ = apvts.getRawParameterValue(kLayerGainId);
         layerPanPointer_ = apvts.getRawParameterValue(kLayerPanId);
         masterGainPointer_ = apvts.getRawParameterValue(kMasterGainId);
+        portamentoPointer_ = apvts.getRawParameterValue(kPortamentoId);
         modWheelParamPointer_ = apvts.getRawParameterValue(kModWheelId);
         expressionParamPointer_ = apvts.getRawParameterValue(kExpressionId);
         morphPositionPointer_ = apvts.getRawParameterValue(kMorphPositionId);
@@ -299,8 +336,11 @@ namespace pw8::plugin
         {
             const auto msg = metadata.getMessage();
             if (msg.isController())
+            {
                 applyPerformanceCcToApvts(msg.getControllerNumber(), msg.getControllerValue(), macroParamPointers_,
                                           masterGainPointer_);
+                noteMidiLearnCc(msg.getControllerNumber(), msg.getControllerValue());
+            }
         }
 
 #if JucePlugin_Build_AU || JucePlugin_Build_VST3
@@ -323,6 +363,7 @@ namespace pw8::plugin
 #endif
 
         pushLiveParametersToEngine(*engine);
+        updateMorphTimelineModulation(*engine, bpm, numSamples);
 
         std::array<render::BlockMidiEvent, 256> blockMidi{};
         std::size_t blockMidiCount = 0;
@@ -414,6 +455,35 @@ namespace pw8::plugin
         }
         scopeAudioTap_.pushStereoBlock(buffer.getReadPointer(0), buffer.getReadPointer(1), buffer.getNumSamples());
 
+        if (const float* left = buffer.getReadPointer(0))
+        {
+            const float* right = buffer.getNumChannels() > 1 ? buffer.getReadPointer(1) : left;
+            float colMin = 0.0f;
+            float colMax = 0.0f;
+            float peakL = 0.0f;
+            float peakR = 0.0f;
+            float sumL = 0.0f;
+            float sumR = 0.0f;
+            for (int i = 0; i < numSamples; ++i)
+            {
+                const float l = left[i];
+                const float r = right[i];
+                colMin = juce::jmin(colMin, l, r);
+                colMax = juce::jmax(colMax, l, r);
+                peakL = juce::jmax(peakL, std::abs(l));
+                peakR = juce::jmax(peakR, std::abs(r));
+                sumL += l * l;
+                sumR += r * r;
+            }
+            const float inv = numSamples > 0 ? 1.0f / static_cast<float>(numSamples) : 0.0f;
+            visualizerBus_.pushWaveformColumn(colMin, colMax);
+            visualizerBus_.pushLevels(peakL, peakR, std::sqrt(sumL * inv), std::sqrt(sumR * inv));
+            const float envLevel = juce::jmax(peakL, peakR);
+            visualizerBus_.pushEnvelope(envLevel > 0.001f ? murmur8::EnvelopeSnapshot::Stage::Sustain
+                                                          : murmur8::EnvelopeSnapshot::Stage::Idle,
+                                        envLevel, envLevel);
+        }
+
         activeVoiceCount_.store(static_cast<int>(engine->countActiveVoices()), std::memory_order_relaxed);
 
         const double blockEndMs = juce::Time::getMillisecondCounterHiRes();
@@ -460,6 +530,7 @@ namespace pw8::plugin
             fp.cutoffHz = loadF(filterParamPointers_[2]);
             fp.resonance = loadF(filterParamPointers_[3]);
             fp.keyTrack = loadF(filterParamPointers_[4]);
+            fp.modeMorph = loadF(filterParamPointers_[5]);
             engine.setFilterLive(fp);
 
             filter::CharacterFilterParams f2;
@@ -468,7 +539,9 @@ namespace pw8::plugin
             f2.resonance = loadF(filter2ParamPointers_[2]);
             f2.drive = loadF(filter2ParamPointers_[3]);
             f2.keyTrack = loadF(filter2ParamPointers_[4]);
+            f2.cutoffOffsetSemitones = loadF(filter2ParamPointers_[5]);
             engine.setFilter2Live(f2);
+            engine.setFilterRoutingLive(loadF(filterRoutingPointer_));
         }
 
         // 8 LFOs -- field order matches kLfoFieldSpecs / lfo::LfoParams. One
@@ -564,6 +637,7 @@ namespace pw8::plugin
             fp.cutoffHz = loadF(fptrs[2]);
             fp.resonance = loadF(fptrs[3]);
             fp.keyTrack = loadF(fptrs[4]);
+            fp.modeMorph = filter::modeMorphFromMode(fp.mode);
             engine.setOperatorFilterLive(op, fp);
         }
 
@@ -605,6 +679,58 @@ namespace pw8::plugin
         }
         if (needs(ParamGroup::MasterGain))
             engine.setMasterGainLive(loadF(masterGainPointer_));
+        if (needs(ParamGroup::MasterDynamics))
+        {
+            patch::MasterDynamics md;
+            md.enabled = loadB(masterDynamicsParamPointers_[0]);
+            md.mode = static_cast<patch::MasterDynamicsMode>(loadI(masterDynamicsParamPointers_[1]));
+            md.thresholdDb = loadF(masterDynamicsParamPointers_[2]);
+            md.ratio = loadF(masterDynamicsParamPointers_[3]);
+            md.attackMs = loadF(masterDynamicsParamPointers_[4]);
+            md.releaseMs = loadF(masterDynamicsParamPointers_[5]);
+            md.sidechainGain = loadF(masterDynamicsParamPointers_[6]);
+            md.vactrolSlewMs = loadF(masterDynamicsParamPointers_[7]);
+            md.makeupDb = loadF(masterDynamicsParamPointers_[8]);
+            md.mix = loadF(masterDynamicsParamPointers_[9]);
+            engine.setMasterDynamicsLive(md);
+        }
+        if (needs(ParamGroup::Generative))
+        {
+            modulation::GenerativeParams g{};
+            g.dejaVu = loadB(generativeParamPointers_[0]);
+            g.seedLocked = loadB(generativeParamPointers_[1]);
+            g.clockTRateHz = loadF(generativeParamPointers_[2]);
+            g.clockXRateHz = loadF(generativeParamPointers_[3]);
+            g.correlation = loadF(generativeParamPointers_[4]);
+            for (std::size_t s = 0; s < modulation::kNumGenerativeStreams; ++s)
+            {
+                const std::size_t base = 5 + s * 3;
+                g.streams[s].spread = loadF(generativeParamPointers_[base]);
+                g.streams[s].bias = loadF(generativeParamPointers_[base + 1]);
+                g.streams[s].lagMs = loadF(generativeParamPointers_[base + 2]);
+            }
+            for (std::size_t r = 0; r < modulation::kNumGenerativeOutputs; ++r)
+                g.outputRouting[r] = static_cast<std::uint8_t>(loadI(generativeParamPointers_[17 + r]));
+            engine.setGenerativeLive(g);
+        }
+        if (needs(ParamGroup::PeaksUtility))
+        {
+            modulation::PeaksUtilityParams peaks{};
+            for (std::size_t slot = 0; slot < kNumPeaksUtilitySlots; ++slot)
+            {
+                const auto& ptrs = peaksUtilityParamPointers_[slot];
+                auto& p = peaks.slots[slot];
+                p.enabled = loadB(ptrs[0]);
+                p.mode = static_cast<modulation::PeaksUtilityMode>(loadI(ptrs[1]));
+                p.attackMs = loadF(ptrs[2]);
+                p.releaseMs = loadF(ptrs[3]);
+                p.lfoRateHz = loadF(ptrs[4]);
+                p.lfoDepth = loadF(ptrs[5]);
+            }
+            engine.setUtilityPeaksLive(peaks);
+        }
+        if (needs(ParamGroup::Portamento))
+            engine.setPortamentoLive(loadF(portamentoPointer_));
 
         if (needs(ParamGroup::FxRouting))
         {
@@ -632,75 +758,11 @@ namespace pw8::plugin
                 continue;
             const auto& ptrs = insertFxParamPointers_[slot];
             effects::EffectSlotParams p = engine.getInsertEffectParams(slot);
-            p.type = static_cast<effects::EffectType>(loadI(ptrs[0]));
-            p.mix = effectiveFxMix(loadF(ptrs[1]));
-            p.saturationDriveDb = loadF(ptrs[2]);
-            p.chorusRateHz = loadF(ptrs[3]);
-            p.chorusDepthMs = loadF(ptrs[4]);
-            p.chorusBaseDelayMs = loadF(ptrs[5]);
-            p.tapeDelayMs = loadF(ptrs[6]);
-            p.tapeFeedback = loadF(ptrs[7]);
-            p.tapeDriveDb = loadF(ptrs[8]);
-            p.tapeDuckAmount = loadF(ptrs[9]);
-            p.tapeDriftDepthMs = loadF(ptrs[10]);
-            p.tapeDriftRateHz = loadF(ptrs[11]);
-            p.tapePanMode = static_cast<effects::DelayPanMode>(loadI(ptrs[12]));
-            p.nodeInsanity = loadF(ptrs[13]);
-            p.freqShiftHz = loadF(ptrs[14]);
-            p.freqShiftDelayMs = loadF(ptrs[15]);
-            p.freqShiftFeedback = loadF(ptrs[16]);
-            p.freqShiftLowCutHz = loadF(ptrs[17]);
-            p.freqShiftHighCutHz = loadF(ptrs[18]);
-            p.fractalMorph = loadF(ptrs[19]);
-            p.fractalBaseDelayMs = loadF(ptrs[20]);
-            p.fractalRatio = loadF(ptrs[21]);
-            p.fractalSpreadMs = loadF(ptrs[22]);
-            p.reverbSizeParam = loadF(ptrs[23]);
-            p.reverbDecaySeconds = loadF(ptrs[24]);
-            p.reverbPreDelayMs = loadF(ptrs[25]);
-            p.reverbHighRatio = loadF(ptrs[26]);
-            p.reverbHighCrossoverHz = loadF(ptrs[27]);
-            p.reverbLowRatio = loadF(ptrs[28]);
-            p.reverbLowCrossoverHz = loadF(ptrs[29]);
-            p.reverbDiffusion = loadF(ptrs[30]);
-            p.reverbDensity = loadF(ptrs[31]);
-            p.reverbModDepth = loadF(ptrs[32]);
-            p.reverbModRateHz = loadF(ptrs[33]);
-            p.reverbEarlyLevel = loadF(ptrs[34]);
-            p.reverbLateLevel = loadF(ptrs[35]);
-            p.reverbRollOffHz = loadF(ptrs[36]);
-            p.reverbVlfCutDb = loadF(ptrs[37]);
-            p.eqLowFreqHz = loadF(ptrs[38]);
-            p.eqLowGainDb = loadF(ptrs[39]);
-            p.eqMidFreqHz = loadF(ptrs[40]);
-            p.eqMidGainDb = loadF(ptrs[41]);
-            p.eqMidQ = loadF(ptrs[42]);
-            p.eqHighFreqHz = loadF(ptrs[43]);
-            p.eqHighGainDb = loadF(ptrs[44]);
-            p.compThresholdDb = loadF(ptrs[45]);
-            p.compRatio = loadF(ptrs[46]);
-            p.compAttackMs = loadF(ptrs[47]);
-            p.compReleaseMs = loadF(ptrs[48]);
-            p.compKneeDb = loadF(ptrs[49]);
-            p.compMakeupDb = loadF(ptrs[50]);
-            p.compTransformerCore = loadF(ptrs[51]);
-            p.compTransformerBrand = loadF(ptrs[52]);
-            p.compTransformerAmount = loadF(ptrs[53]);
-            p.limiterCeilingDb = loadF(ptrs[54]);
-            p.limiterLookaheadMs = loadF(ptrs[55]);
-            p.limiterReleaseMs = loadF(ptrs[56]);
-            p.tapeDelaySync = loadB(ptrs[57]);
-            p.tapeDelaySyncDivisionIndex = loadI(ptrs[58]);
-            p.compAutoMakeup = loadB(ptrs[59]);
-            p.compCharacter = loadI(ptrs[60]);
-            p.vocoderBandCount = static_cast<int>(loadF(ptrs[61]));
-            p.vocoderFormant = loadF(ptrs[62]);
-            p.vocoderSibilance = loadF(ptrs[63]);
-            p.vocoderScGainDb = loadF(ptrs[64]);
-            p.vocoderReleaseMs = loadF(ptrs[65]);
-            p.reverbCharacter = loadI(ptrs[66]);
-            p.saturationCharacter = loadI(ptrs[67]);
-            p.eqOutGainDb = loadF(ptrs[68]);
+            std::array<float, kNumEffectSlotFields> fxValues{};
+            for (std::size_t i = 0; i < kNumEffectSlotFields; ++i)
+                fxValues[i] = loadF(ptrs[i]);
+            applyEffectSlotFieldValues(p, fxValues);
+            p.mix = effectiveFxMix(p.mix);
             engine.setInsertEffectLive(slot, p);
         }
 
@@ -711,75 +773,11 @@ namespace pw8::plugin
                 continue;
             const auto& ptrs = masterFxParamPointers_[slot];
             effects::EffectSlotParams p = engine.getMasterEffectParams(slot);
-            p.type = static_cast<effects::EffectType>(loadI(ptrs[0]));
-            p.mix = effectiveFxMix(loadF(ptrs[1]));
-            p.saturationDriveDb = loadF(ptrs[2]);
-            p.chorusRateHz = loadF(ptrs[3]);
-            p.chorusDepthMs = loadF(ptrs[4]);
-            p.chorusBaseDelayMs = loadF(ptrs[5]);
-            p.tapeDelayMs = loadF(ptrs[6]);
-            p.tapeFeedback = loadF(ptrs[7]);
-            p.tapeDriveDb = loadF(ptrs[8]);
-            p.tapeDuckAmount = loadF(ptrs[9]);
-            p.tapeDriftDepthMs = loadF(ptrs[10]);
-            p.tapeDriftRateHz = loadF(ptrs[11]);
-            p.tapePanMode = static_cast<effects::DelayPanMode>(loadI(ptrs[12]));
-            p.nodeInsanity = loadF(ptrs[13]);
-            p.freqShiftHz = loadF(ptrs[14]);
-            p.freqShiftDelayMs = loadF(ptrs[15]);
-            p.freqShiftFeedback = loadF(ptrs[16]);
-            p.freqShiftLowCutHz = loadF(ptrs[17]);
-            p.freqShiftHighCutHz = loadF(ptrs[18]);
-            p.fractalMorph = loadF(ptrs[19]);
-            p.fractalBaseDelayMs = loadF(ptrs[20]);
-            p.fractalRatio = loadF(ptrs[21]);
-            p.fractalSpreadMs = loadF(ptrs[22]);
-            p.reverbSizeParam = loadF(ptrs[23]);
-            p.reverbDecaySeconds = loadF(ptrs[24]);
-            p.reverbPreDelayMs = loadF(ptrs[25]);
-            p.reverbHighRatio = loadF(ptrs[26]);
-            p.reverbHighCrossoverHz = loadF(ptrs[27]);
-            p.reverbLowRatio = loadF(ptrs[28]);
-            p.reverbLowCrossoverHz = loadF(ptrs[29]);
-            p.reverbDiffusion = loadF(ptrs[30]);
-            p.reverbDensity = loadF(ptrs[31]);
-            p.reverbModDepth = loadF(ptrs[32]);
-            p.reverbModRateHz = loadF(ptrs[33]);
-            p.reverbEarlyLevel = loadF(ptrs[34]);
-            p.reverbLateLevel = loadF(ptrs[35]);
-            p.reverbRollOffHz = loadF(ptrs[36]);
-            p.reverbVlfCutDb = loadF(ptrs[37]);
-            p.eqLowFreqHz = loadF(ptrs[38]);
-            p.eqLowGainDb = loadF(ptrs[39]);
-            p.eqMidFreqHz = loadF(ptrs[40]);
-            p.eqMidGainDb = loadF(ptrs[41]);
-            p.eqMidQ = loadF(ptrs[42]);
-            p.eqHighFreqHz = loadF(ptrs[43]);
-            p.eqHighGainDb = loadF(ptrs[44]);
-            p.compThresholdDb = loadF(ptrs[45]);
-            p.compRatio = loadF(ptrs[46]);
-            p.compAttackMs = loadF(ptrs[47]);
-            p.compReleaseMs = loadF(ptrs[48]);
-            p.compKneeDb = loadF(ptrs[49]);
-            p.compMakeupDb = loadF(ptrs[50]);
-            p.compTransformerCore = loadF(ptrs[51]);
-            p.compTransformerBrand = loadF(ptrs[52]);
-            p.compTransformerAmount = loadF(ptrs[53]);
-            p.limiterCeilingDb = loadF(ptrs[54]);
-            p.limiterLookaheadMs = loadF(ptrs[55]);
-            p.limiterReleaseMs = loadF(ptrs[56]);
-            p.tapeDelaySync = loadB(ptrs[57]);
-            p.tapeDelaySyncDivisionIndex = loadI(ptrs[58]);
-            p.compAutoMakeup = loadB(ptrs[59]);
-            p.compCharacter = loadI(ptrs[60]);
-            p.vocoderBandCount = static_cast<int>(loadF(ptrs[61]));
-            p.vocoderFormant = loadF(ptrs[62]);
-            p.vocoderSibilance = loadF(ptrs[63]);
-            p.vocoderScGainDb = loadF(ptrs[64]);
-            p.vocoderReleaseMs = loadF(ptrs[65]);
-            p.reverbCharacter = loadI(ptrs[66]);
-            p.saturationCharacter = loadI(ptrs[67]);
-            p.eqOutGainDb = loadF(ptrs[68]);
+            std::array<float, kNumEffectSlotFields> fxValues{};
+            for (std::size_t i = 0; i < kNumEffectSlotFields; ++i)
+                fxValues[i] = loadF(ptrs[i]);
+            applyEffectSlotFieldValues(p, fxValues);
+            p.mix = effectiveFxMix(p.mix);
             engine.setMasterEffectLive(slot, p);
         }
 
@@ -824,10 +822,57 @@ namespace pw8::plugin
         const std::string_view json(static_cast<const char*>(data), static_cast<std::size_t>(sizeInBytes));
         const auto result = patch::loadPatchFromJson(json);
         if (result.ok)
-            loadPatch(result.patch);
+            loadPatch(result.patch, PatchReloadIntent::ExternalLoad);
     }
 
-    bool PatchworkEightProcessor::loadPatch(const patch::Patch& newPatch)
+    void PatchworkEightProcessor::setPatchDirty(bool dirty) noexcept
+    {
+        if (patchDirty_ == dirty)
+            return;
+        patchDirty_ = dirty;
+        if (onPatchDirtyChanged)
+            onPatchDirtyChanged();
+    }
+
+    juce::File PatchworkEightProcessor::userPresetsDirectory()
+    {
+        return juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
+            .getChildFile("MURMUR")
+            .getChildFile("Presets")
+            .getChildFile("user");
+    }
+
+    bool PatchworkEightProcessor::isUserPresetPath(const juce::String& filePath)
+    {
+        if (filePath.isEmpty())
+            return false;
+
+        const juce::File file(filePath);
+        const juce::File userDir = userPresetsDirectory();
+        return file == userDir || file.isAChildOf(userDir);
+    }
+
+    bool PatchworkEightProcessor::saveCurrentPatchToFile(const juce::String& filePath)
+    {
+        if (filePath.isEmpty())
+            return false;
+
+        syncPatchFromAllParameters();
+        const auto json = patch::savePatchToJson(currentPatch_);
+        juce::File file(filePath);
+        if (!file.getParentDirectory().createDirectory())
+            return false;
+        if (!file.replaceWithText(juce::String(json)))
+            return false;
+
+        currentPresetPath_ = file.getFullPathName();
+        setPatchDirty(false);
+        if (onPatchMetadataChanged)
+            onPatchMetadataChanged();
+        return true;
+    }
+
+    bool PatchworkEightProcessor::loadPatch(const patch::Patch& newPatch, PatchReloadIntent intent)
     {
         currentPatch_ = newPatch;
         patch::ensureDefaultModWheelRoute(currentPatch_.layerA);
@@ -845,15 +890,12 @@ namespace pw8::plugin
         fresh->prepare(getSampleRate() > 0.0 ? getSampleRate() : 48000.0);
         const bool ok = fresh->loadPatch(currentPatch_);
         publishEngine(std::move(fresh));
-        // Discard any not-yet-consumed drag-to-modulate publish from BEFORE this
-        // reload. Without this, a mod-route drag that hasn't yet been picked up by
-        // the audio thread's next block could still be sitting in
-        // pendingModRoutes_ and get applied to the Engine we just published above,
-        // silently overwriting `newPatch`'s own (correct) mod routes with stale
-        // pre-reload ones. `fresh` was already built from newPatch's real routes,
-        // so there's nothing useful left for a stale publish to contribute.
+        lastMorphTimelinePos_ = -1.0f;
+        morphKeyframeCrossedIndex_.store(-1, std::memory_order_relaxed);
+        morphKeyframeCrossedFlash_.store(false, std::memory_order_relaxed);
         pendingModRoutes_.store(nullptr, std::memory_order_release);
         paramChangeQueue_.pushAllGroups();
+        setPatchDirty(intent == PatchReloadIntent::UserEdit);
         if (onPatchLoaded)
             onPatchLoaded();
         return ok;
@@ -871,7 +913,17 @@ namespace pw8::plugin
             return false;
 
         currentPresetPath_ = file.getFullPathName();
-        return loadPatch(result.patch);
+        return loadPatch(result.patch, PatchReloadIntent::ExternalLoad);
+    }
+
+    bool PatchworkEightProcessor::loadPatchFromJsonString(const juce::String& jsonUtf8)
+    {
+        const auto result = patch::loadPatchFromJson(jsonUtf8.toStdString());
+        if (!result.ok)
+            return false;
+
+        currentPresetPath_ = {};
+        return loadPatch(result.patch, PatchReloadIntent::ExternalLoad);
     }
 
     GraphEditResult PatchworkEightProcessor::tryCompileAlgorithm(
@@ -919,6 +971,7 @@ namespace pw8::plugin
     {
         currentPatch_.layerA.modRoutes = routes;
         publishModRoutesLive(routes);
+        setPatchDirty(true);
         return true;
     }
 
@@ -930,6 +983,27 @@ namespace pw8::plugin
     float PatchworkEightProcessor::getExpressionValue() const noexcept
     {
         return mirroredExpression_.load(std::memory_order_relaxed);
+    }
+
+    void PatchworkEightProcessor::noteMidiLearnCc(int controller, int value7) noexcept
+    {
+        if (controller < 0 || controller > 127 || value7 < 0 || value7 > 127)
+            return;
+
+        const auto packed = (static_cast<std::uint32_t>(controller + 1) << 16)
+                            | static_cast<std::uint32_t>(value7);
+        midiLearnCcEvent_.store(packed, std::memory_order_relaxed);
+    }
+
+    bool PatchworkEightProcessor::consumeMidiLearnCc(int& controller, int& value7) noexcept
+    {
+        const auto packed = midiLearnCcEvent_.exchange(0, std::memory_order_acq_rel);
+        if (packed == 0)
+            return false;
+
+        controller = static_cast<int>((packed >> 16) - 1);
+        value7 = static_cast<int>(packed & 0xFFFFu);
+        return controller >= 0 && controller <= 127 && value7 >= 0 && value7 <= 127;
     }
 
     float PatchworkEightProcessor::getHostBpm() const noexcept
@@ -944,6 +1018,12 @@ namespace pw8::plugin
             }
         }
         return bpm;
+    }
+
+    bool PatchworkEightProcessor::isSustainPedalHeld(int channel) const noexcept
+    {
+        const auto* engine = activeEngine_.load(std::memory_order_acquire);
+        return engine != nullptr ? engine->isSustainPedalHeld(channel) : false;
     }
 
     modulation::ModSourceValues PatchworkEightProcessor::buildModPreviewSources(float bpm) noexcept
@@ -1078,6 +1158,121 @@ namespace pw8::plugin
         return loadPatch(currentPatch_);
     }
 
+    namespace
+    {
+        patch::MorphKoinKeyframe captureMorphKeyframeFromPatch(const patch::Patch& patch)
+        {
+            patch::MorphKoinKeyframe kf;
+            kf.hasMacroValues = true;
+            for (std::size_t i = 0; i < patch.macros.size(); ++i)
+                kf.macroValues[i] = patch.macros[i].value;
+
+            kf.paramOverrides["layerA.filter1.cutoffHz"] = {patch.layerA.filter1.cutoffHz, "", ""};
+            kf.paramOverrides["layerA.filter1.resonance"] = {patch.layerA.filter1.resonance, "", ""};
+            return kf;
+        }
+    } // namespace
+
+    bool PatchworkEightProcessor::addMorphKeyframeAt(float position, const std::string& name)
+    {
+        syncCurrentPatchFromApvts();
+        auto& mk = currentPatch_.morphKoin;
+        if (mk.keyframes.size() >= core::kMaxMorphKeyframes)
+            return false;
+
+        auto kf = captureMorphKeyframeFromPatch(currentPatch_);
+        kf.name = name.empty() ? ("Keyframe " + std::to_string(mk.keyframes.size() + 1)) : name;
+        kf.position = juce::jlimit(0.0f, 1.0f, position);
+        mk.keyframes.push_back(std::move(kf));
+        return loadPatch(currentPatch_);
+    }
+
+    bool PatchworkEightProcessor::removeMorphKeyframe(const std::size_t index)
+    {
+        syncCurrentPatchFromApvts();
+        auto& mk = currentPatch_.morphKoin;
+        if (index >= mk.keyframes.size())
+            return false;
+
+        mk.keyframes.erase(mk.keyframes.begin() + static_cast<std::ptrdiff_t>(index));
+        return loadPatch(currentPatch_);
+    }
+
+    bool PatchworkEightProcessor::recaptureMorphKeyframe(const std::size_t index)
+    {
+        syncCurrentPatchFromApvts();
+        auto& mk = currentPatch_.morphKoin;
+        if (index >= mk.keyframes.size())
+            return false;
+
+        auto kf = captureMorphKeyframeFromPatch(currentPatch_);
+        kf.name = mk.keyframes[index].name;
+        kf.position = mk.keyframes[index].position;
+        kf.color = mk.keyframes[index].color;
+        kf.paramOverrides = mk.keyframes[index].paramOverrides;
+        mk.keyframes[index] = std::move(kf);
+        return loadPatch(currentPatch_);
+    }
+
+    bool PatchworkEightProcessor::setMorphKeyframeColor(const std::size_t index, const std::string& color)
+    {
+        syncCurrentPatchFromApvts();
+        auto& mk = currentPatch_.morphKoin;
+        if (index >= mk.keyframes.size())
+            return false;
+
+        mk.keyframes[index].color = color;
+        return loadPatch(currentPatch_);
+    }
+
+    bool PatchworkEightProcessor::setMorphKeyframeParamEasing(const std::size_t index, const std::string& path,
+                                                              const std::string& easing)
+    {
+        syncCurrentPatchFromApvts();
+        auto& mk = currentPatch_.morphKoin;
+        if (index >= mk.keyframes.size())
+            return false;
+
+        auto it = mk.keyframes[index].paramOverrides.find(path);
+        if (it == mk.keyframes[index].paramOverrides.end())
+            return false;
+
+        it->second.easing = easing;
+        return loadPatch(currentPatch_);
+    }
+
+    bool PatchworkEightProcessor::setMorphKoinSettings(const std::string& curve, const bool wrap,
+                                                       const std::string& autoplaySource,
+                                                       const bool morphDissemination)
+    {
+        syncCurrentPatchFromApvts();
+        currentPatch_.morphKoin.curve = curve;
+        currentPatch_.morphKoin.wrap = wrap;
+        currentPatch_.morphKoin.autoplaySource = autoplaySource;
+        currentPatch_.voiceSettings.morphDissemination = morphDissemination;
+        return loadPatch(currentPatch_);
+    }
+
+    pw8::envelope::SegmentEnvelopeChain PatchworkEightProcessor::getSegmentEnvelopeChain(
+        const std::size_t envIndex) const noexcept
+    {
+        if (envIndex >= core::kNumEnvelopesPerLayer)
+            return {};
+        return currentPatch_.layerA.segmentEnvelopeChains[envIndex];
+    }
+
+    bool PatchworkEightProcessor::setSegmentEnvelopeChain(const std::size_t envIndex,
+                                                           const pw8::envelope::SegmentEnvelopeChain& chain)
+    {
+        if (envIndex >= core::kNumEnvelopesPerLayer)
+            return false;
+        syncCurrentPatchFromApvts();
+        currentPatch_.layerA.segmentEnvelopeChains[envIndex] = chain;
+        if (auto* engine = activeEngine_.load(std::memory_order_acquire))
+            engine->setSegmentEnvelopeChainLive(envIndex, chain);
+        return true;
+    }
+
     bool PatchworkEightProcessor::setOperatorWavetableFile(std::size_t opIndex, const juce::String& filePath)
     {
         if (opIndex >= currentPatch_.layerA.operators.size())
@@ -1130,6 +1325,75 @@ namespace pw8::plugin
             ensureOperatorWavetableLoaded(i);
     }
 
+    bool PatchworkEightProcessor::morphTimelineIsModulated() const noexcept
+    {
+        if (currentPatch_.morphKoin.keyframes.size() < 2)
+            return false;
+
+        const auto& autoplay = currentPatch_.morphKoin.autoplaySource;
+        if (!autoplay.empty() && autoplay != "none")
+            return true;
+
+        for (const auto& route : currentPatch_.layerA.modRoutes)
+        {
+            if (!route.isActive() || route.destination != modulation::ModDestination::MorphPosition)
+                continue;
+            if (route.scope != modulation::ModScope::Voice)
+                return true;
+        }
+        return false;
+    }
+
+    void PatchworkEightProcessor::updateMorphTimelineModulation(render::Engine& engine, float bpm,
+                                                                int numSamples) noexcept
+    {
+        if (!morphTimelineIsModulated())
+            return;
+
+        modulation::ModSourceValues sources;
+        sources.modWheel = engine.getChannelModWheel(0);
+        sources.expression = engine.getChannelExpression(0);
+        sources.sidechain = sidechainLevel_.load(std::memory_order_relaxed);
+        for (std::size_t i = 0; i < kMacroParameterIds.size(); ++i)
+            sources.macros[i] = loadF(macroParamPointers_[i]);
+
+        const auto& lfoParams = currentPatch_.layerA.lfos;
+        for (std::size_t i = 0; i < modPreviewLfos_.size() && i < lfoParams.size(); ++i)
+        {
+            float value = sources.layerLfos[i];
+            for (int sample = 0; sample < numSamples; ++sample)
+                value = modPreviewLfos_[i].renderSample(lfoParams[i], bpm > 0.0f ? bpm : 120.0f);
+            sources.layerLfos[i] = value;
+        }
+
+        float position = morphPositionPointer_ != nullptr ? loadF(morphPositionPointer_) : 0.0f;
+        const float autoplay =
+            modulation::resolveAutoplayMorphPosition(currentPatch_.morphKoin.autoplaySource, sources);
+        if (autoplay >= 0.0f)
+            position = autoplay;
+
+        position += modulation::ModMatrixExecutor::computeMorphPositionOffset(engine.getModRoutes(), sources);
+
+        if (currentPatch_.morphKoin.wrap)
+            position = std::fmod(position, 1.0f);
+        position = juce::jlimit(0.0f, 1.0f, position);
+
+        if (lastMorphTimelinePos_ >= 0.0f)
+        {
+            const int crossed = modulation::detectMorphKeyframeCrossing(currentPatch_.morphKoin, lastMorphTimelinePos_,
+                                                                        position);
+            if (crossed >= 0)
+            {
+                morphKeyframeCrossedIndex_.store(crossed, std::memory_order_relaxed);
+                morphKeyframeCrossedFlash_.store(true, std::memory_order_relaxed);
+            }
+        }
+        lastMorphTimelinePos_ = position;
+
+        engine.applyMorphPositionLive(position);
+        currentPatch_.morphKoin.position = position;
+    }
+
     void PatchworkEightProcessor::applyMorphFromPosition(float position) noexcept
     {
         if (currentPatch_.morphKoin.keyframes.size() < 2)
@@ -1150,30 +1414,7 @@ namespace pw8::plugin
         setParam(juce::String(kFilterIdPrefix) + "Resonance", currentPatch_.layerA.filter1.resonance);
 
         auto syncFx = [&](const effects::EffectSlotParams& p, const juce::String& id) {
-            const std::array<float, kNumEffectSlotFields> values = {
-                static_cast<float>(p.type), p.mix,        p.saturationDriveDb, p.chorusRateHz,   p.chorusDepthMs,
-                p.chorusBaseDelayMs,        p.tapeDelayMs, p.tapeFeedback,      p.tapeDriveDb,    p.tapeDuckAmount,
-                p.tapeDriftDepthMs,         p.tapeDriftRateHz, static_cast<float>(p.tapePanMode), p.nodeInsanity,
-                p.freqShiftHz,              p.freqShiftDelayMs, p.freqShiftFeedback, p.freqShiftLowCutHz,
-                p.freqShiftHighCutHz,       p.fractalMorph, p.fractalBaseDelayMs, p.fractalRatio, p.fractalSpreadMs,
-                p.reverbSizeParam,          p.reverbDecaySeconds, p.reverbPreDelayMs,
-                p.reverbHighRatio,          p.reverbHighCrossoverHz, p.reverbLowRatio, p.reverbLowCrossoverHz,
-                p.reverbDiffusion,          p.reverbDensity, p.reverbModDepth,    p.reverbModRateHz,
-                p.reverbEarlyLevel,         p.reverbLateLevel, p.reverbRollOffHz, p.reverbVlfCutDb,
-                p.eqLowFreqHz,              p.eqLowGainDb,  p.eqMidFreqHz,       p.eqMidGainDb,    p.eqMidQ,
-                p.eqHighFreqHz,             p.eqHighGainDb,
-                p.compThresholdDb,          p.compRatio,    p.compAttackMs,      p.compReleaseMs,  p.compKneeDb,
-                p.compMakeupDb,
-                p.compTransformerCore,      p.compTransformerBrand, p.compTransformerAmount,
-                p.limiterCeilingDb,         p.limiterLookaheadMs, p.limiterReleaseMs,
-                static_cast<float>(p.tapeDelaySync), static_cast<float>(p.tapeDelaySyncDivisionIndex),
-                p.compAutoMakeup ? 1.0f : 0.0f, static_cast<float>(p.compCharacter),
-                static_cast<float>(p.vocoderBandCount), p.vocoderFormant, p.vocoderSibilance, p.vocoderScGainDb,
-                p.vocoderReleaseMs,
-                static_cast<float>(p.reverbCharacter),
-                static_cast<float>(p.saturationCharacter),
-                p.eqOutGainDb,
-            };
+            const auto values = effectSlotFieldValues(p);
             for (std::size_t i = 0; i < kNumEffectSlotFields; ++i)
                 setParam(id + kEffectSlotFieldSpecs[i].idSuffix, values[i]);
         };
@@ -1186,12 +1427,21 @@ namespace pw8::plugin
     {
         if (parameterID.startsWith("macro"))
             return ParamGroup::Macros;
-        if (parameterID.startsWith(kFilterIdPrefix) || parameterID.startsWith(kFilter2IdPrefix))
+        if (parameterID.startsWith(kFilterIdPrefix) || parameterID.startsWith(kFilter2IdPrefix) ||
+            parameterID == kFilterRoutingId)
             return ParamGroup::Filter;
         if (parameterID.startsWith(kLayerGainId) || parameterID.startsWith(kLayerPanId))
             return ParamGroup::LayerGainPan;
         if (parameterID.startsWith(kMasterGainId))
             return ParamGroup::MasterGain;
+        if (parameterID.startsWith(kMasterDynamicsIdPrefix))
+            return ParamGroup::MasterDynamics;
+        if (parameterID.startsWith(kGenerativeIdPrefix))
+            return ParamGroup::Generative;
+        if (parameterID.startsWith(kPeaksUtilityIdPrefix))
+            return ParamGroup::PeaksUtility;
+        if (parameterID.startsWith(kPortamentoId))
+            return ParamGroup::Portamento;
         if (parameterID.startsWith(kUnisonVoicesId) || parameterID.startsWith(kUnisonDetuneId) ||
             parameterID.startsWith(kUnisonSpreadId) || parameterID.startsWith(kUnisonPhaseRandomId))
             return ParamGroup::Unison;
@@ -1245,7 +1495,8 @@ namespace pw8::plugin
 
         if (parameterID == kMorphPositionId)
         {
-            applyMorphFromPosition(apvts.getRawParameterValue(kMorphPositionId)->load());
+            if (!morphTimelineIsModulated())
+                applyMorphFromPosition(apvts.getRawParameterValue(kMorphPositionId)->load());
             paramChangeQueue_.pushAllGroups();
             return;
         }
@@ -1274,6 +1525,8 @@ namespace pw8::plugin
         {
             updateReportedLatency();
         }
+
+        setPatchDirty(true);
     }
 
     void PatchworkEightProcessor::updateReportedLatency() noexcept
@@ -1325,6 +1578,25 @@ namespace pw8::plugin
         currentPatch_.layerA.modRoutes = routes; // Keep the getStateInformation()/preset-save source of truth in sync.
         hasUserCreatedModRouteLive_ = true;
         publishModRoutesLive(routes);
+        setPatchDirty(true);
+    }
+
+    void PatchworkEightProcessor::setModRouteCurveLive(modulation::ModSource source,
+                                                        modulation::ModDestination destination,
+                                                        std::uint8_t targetIndex, modulation::ModCurve curve)
+    {
+        auto routes = currentPatch_.layerA.modRoutes;
+        for (auto& route : routes)
+        {
+            if (route.source == source && route.destination == destination && route.targetIndex == targetIndex)
+            {
+                route.curve = curve;
+                currentPatch_.layerA.modRoutes = routes;
+                publishModRoutesLive(routes);
+                setPatchDirty(true);
+                return;
+            }
+        }
     }
 
     void PatchworkEightProcessor::removeModRouteLive(modulation::ModSource source,
@@ -1338,6 +1610,7 @@ namespace pw8::plugin
 
         currentPatch_.layerA.modRoutes = routes;
         publishModRoutesLive(routes);
+        setPatchDirty(true);
     }
 
     std::size_t PatchworkEightProcessor::getArpPlayheadStep() const noexcept
@@ -1382,6 +1655,57 @@ namespace pw8::plugin
             engine->setArpStepLive(stepIndex, step);
     }
 
+    void PatchworkEightProcessor::toggleArpStepTie(std::size_t stepIndex) noexcept
+    {
+        if (stepIndex >= sequencer::kMaxArpSteps)
+            return;
+        auto& step = currentPatch_.arpeggiator.steps[stepIndex];
+        step.tie = !step.tie;
+        if (auto* engine = activeEngine_.load(std::memory_order_acquire))
+            engine->setArpStepLive(stepIndex, step);
+    }
+
+    void PatchworkEightProcessor::cycleArpStepProbability(std::size_t stepIndex) noexcept
+    {
+        if (stepIndex >= sequencer::kMaxArpSteps)
+            return;
+        auto& step = currentPatch_.arpeggiator.steps[stepIndex];
+        static constexpr float kLevels[] = {1.0f, 0.75f, 0.5f, 0.25f};
+        int idx = 0;
+        for (int i = 0; i < 4; ++i)
+        {
+            if (std::abs(step.probability - kLevels[i]) < 0.06f)
+            {
+                idx = (i + 1) % 4;
+                break;
+            }
+        }
+        step.probability = kLevels[idx];
+        if (auto* engine = activeEngine_.load(std::memory_order_acquire))
+            engine->setArpStepLive(stepIndex, step);
+    }
+
+    void PatchworkEightProcessor::cycleArpStepOctaveOffset(std::size_t stepIndex) noexcept
+    {
+        if (stepIndex >= sequencer::kMaxArpSteps)
+            return;
+        auto& step = currentPatch_.arpeggiator.steps[stepIndex];
+        step.octaveOffset = step.octaveOffset >= 2 ? -2 : step.octaveOffset + 1;
+        if (auto* engine = activeEngine_.load(std::memory_order_acquire))
+            engine->setArpStepLive(stepIndex, step);
+    }
+
+    void PatchworkEightProcessor::setArpStepVelocity(std::size_t stepIndex, float velocity01) noexcept
+    {
+        if (stepIndex >= sequencer::kMaxArpSteps)
+            return;
+        auto& step = currentPatch_.arpeggiator.steps[stepIndex];
+        step.velocityScale = juce::jlimit(0.05f, 1.0f, velocity01);
+        step.enabled = true;
+        if (auto* engine = activeEngine_.load(std::memory_order_acquire))
+            engine->setArpStepLive(stepIndex, step);
+    }
+
     void PatchworkEightProcessor::setAllArpStepsGate(float gate01) noexcept
     {
         const float gate = juce::jlimit(0.05f, 1.0f, gate01);
@@ -1401,6 +1725,153 @@ namespace pw8::plugin
         }
     }
 
+    void PatchworkEightProcessor::setAllArpStepsEnabled(bool enabled) noexcept
+    {
+        const auto numSteps = currentPatch_.arpeggiator.numSteps;
+        if (auto* engine = activeEngine_.load(std::memory_order_acquire))
+        {
+            for (std::size_t i = 0; i < numSteps && i < sequencer::kMaxArpSteps; ++i)
+            {
+                currentPatch_.arpeggiator.steps[i].enabled = enabled;
+                engine->setArpStepLive(i, currentPatch_.arpeggiator.steps[i]);
+            }
+        }
+        else
+        {
+            for (std::size_t i = 0; i < numSteps && i < sequencer::kMaxArpSteps; ++i)
+                currentPatch_.arpeggiator.steps[i].enabled = enabled;
+        }
+    }
+
+    void PatchworkEightProcessor::randomizeArpPattern(float activeDensity01) noexcept
+    {
+        const auto numSteps = currentPatch_.arpeggiator.numSteps;
+        const float density = juce::jlimit(0.15f, 1.0f, activeDensity01);
+        juce::Random rng(static_cast<int>(juce::Time::getMillisecondCounter()));
+
+        if (auto* engine = activeEngine_.load(std::memory_order_acquire))
+        {
+            for (std::size_t i = 0; i < numSteps && i < sequencer::kMaxArpSteps; ++i)
+            {
+                auto& step = currentPatch_.arpeggiator.steps[i];
+                step.enabled = rng.nextFloat() <= density;
+                step.accent = step.enabled && rng.nextFloat() < 0.22f;
+                step.ratchetCount = rng.nextFloat() < 0.12f ? rng.nextInt({2, 4}) : 1;
+                step.velocityScale = 0.45f + rng.nextFloat() * 0.55f;
+                step.probability = rng.nextFloat() < 0.15f ? 0.5f : 1.0f;
+                step.tie = false;
+                step.octaveOffset = rng.nextFloat() < 0.08f ? rng.nextInt({-1, 1}) : 0;
+                engine->setArpStepLive(i, step);
+            }
+        }
+        else
+        {
+            for (std::size_t i = 0; i < numSteps && i < sequencer::kMaxArpSteps; ++i)
+            {
+                auto& step = currentPatch_.arpeggiator.steps[i];
+                step.enabled = rng.nextFloat() <= density;
+                step.accent = step.enabled && rng.nextFloat() < 0.22f;
+                step.ratchetCount = rng.nextFloat() < 0.12f ? rng.nextInt({2, 4}) : 1;
+                step.velocityScale = 0.45f + rng.nextFloat() * 0.55f;
+                step.probability = rng.nextFloat() < 0.15f ? 0.5f : 1.0f;
+                step.tie = false;
+                step.octaveOffset = rng.nextFloat() < 0.08f ? rng.nextInt({-1, 1}) : 0;
+            }
+        }
+    }
+
+    std::size_t PatchworkEightProcessor::getArpNumSteps() const noexcept
+    {
+        return static_cast<std::size_t>(std::max(1, loadI(arpParamPointers_[6])));
+    }
+
+    void PatchworkEightProcessor::setArpNumSteps(int steps) noexcept
+    {
+        const int clamped = juce::jlimit(1, static_cast<int>(sequencer::kMaxArpSteps), steps);
+        const auto oldCount = currentPatch_.arpeggiator.numSteps;
+        const auto newCount = static_cast<std::size_t>(clamped);
+        currentPatch_.arpeggiator.numSteps = newCount;
+
+        if (newCount > oldCount)
+        {
+            for (std::size_t i = oldCount; i < newCount; ++i)
+            {
+                auto& step = currentPatch_.arpeggiator.steps[i];
+                step.enabled = true;
+                step.velocityScale = 0.85f;
+                if (auto* engine = activeEngine_.load(std::memory_order_acquire))
+                    engine->setArpStepLive(i, step);
+            }
+        }
+
+        if (auto* param = apvts.getParameter(juce::String(kArpIdPrefix) + "NumSteps"))
+            param->setValueNotifyingHost(param->convertTo0to1(static_cast<float>(clamped)));
+
+        if (auto* engine = activeEngine_.load(std::memory_order_acquire))
+        {
+            sequencer::ArpeggiatorParams ap;
+            ap.enabled = loadB(arpParamPointers_[0]);
+            ap.mode = static_cast<sequencer::ArpMode>(loadI(arpParamPointers_[1]));
+            ap.rateMode = static_cast<sequencer::ArpRateMode>(loadI(arpParamPointers_[2]));
+            ap.rateHz = loadF(arpParamPointers_[3]);
+            ap.syncDivisionIndex = loadI(arpParamPointers_[4]);
+            ap.octaveRange = loadI(arpParamPointers_[5]);
+            ap.numSteps = newCount;
+            ap.swing = loadF(arpParamPointers_[7]);
+            ap.latch = loadB(arpParamPointers_[8]);
+            engine->setArpeggiatorScalarLive(ap);
+        }
+
+        setPatchDirty(true);
+    }
+
+    void PatchworkEightProcessor::applyEuclideanArpPattern(int pulses) noexcept
+    {
+        const auto numSteps = getArpNumSteps();
+        currentPatch_.arpeggiator.numSteps = numSteps;
+        if (numSteps == 0)
+            return;
+
+        const int steps = static_cast<int>(numSteps);
+        pulses = juce::jlimit(1, steps, pulses);
+
+        int bucket = 0;
+        if (auto* engine = activeEngine_.load(std::memory_order_acquire))
+        {
+            for (int i = 0; i < steps; ++i)
+            {
+                bucket += pulses;
+                const bool on = bucket >= steps;
+                if (on)
+                    bucket -= steps;
+                auto& step = currentPatch_.arpeggiator.steps[static_cast<std::size_t>(i)];
+                step.enabled = on;
+                engine->setArpStepLive(static_cast<std::size_t>(i), step);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < steps; ++i)
+            {
+                bucket += pulses;
+                const bool on = bucket >= steps;
+                if (on)
+                    bucket -= steps;
+                currentPatch_.arpeggiator.steps[static_cast<std::size_t>(i)].enabled = on;
+            }
+        }
+    }
+
+    bool PatchworkEightProcessor::getHostIsPlaying() const noexcept
+    {
+        if (auto* playHead = getPlayHead())
+        {
+            if (const auto position = playHead->getPosition(); position.hasValue())
+                return position->getIsPlaying();
+        }
+        return false;
+    }
+
     void PatchworkEightProcessor::syncAllParametersFromPatch()
     {
         auto setParam = [this](const juce::String& id, float value) {
@@ -1417,14 +1888,17 @@ namespace pw8::plugin
         const auto& filter = currentPatch_.layerA.filter1;
         const std::array<float, kNumFilterFields> filterValues = {
             filter.enabled ? 1.0f : 0.0f, static_cast<float>(filter.mode), filter.cutoffHz, filter.resonance,
-            filter.keyTrack,
+            filter.keyTrack, filter.modeMorph,
         };
         for (std::size_t i = 0; i < kNumFilterFields; ++i)
             setParam(juce::String(kFilterIdPrefix) + kFilterFieldSpecs[i].idSuffix, filterValues[i]);
 
+        setParam(kFilterRoutingId, currentPatch_.layerA.filterRouting);
+
         const auto& filter2 = currentPatch_.layerA.filter2;
         const std::array<float, kNumFilter2Fields> filter2Values = {
             filter2.enabled ? 1.0f : 0.0f, filter2.cutoffHz, filter2.resonance, filter2.drive, filter2.keyTrack,
+            filter2.cutoffOffsetSemitones,
         };
         for (std::size_t i = 0; i < kNumFilter2Fields; ++i)
             setParam(juce::String(kFilter2IdPrefix) + kFilter2FieldSpecs[i].idSuffix, filter2Values[i]);
@@ -1500,6 +1974,67 @@ namespace pw8::plugin
         setParam(kLayerGainId, currentPatch_.layerA.gain);
         setParam(kLayerPanId, currentPatch_.layerA.pan);
         setParam(kMasterGainId, currentPatch_.voiceSettings.masterGain);
+        setParam(kPortamentoId, currentPatch_.voiceSettings.portamentoSeconds);
+
+        const auto& md = currentPatch_.masterDynamics;
+        const std::array<float, kNumMasterDynamicsFields> mdValues = {
+            md.enabled ? 1.0f : 0.0f,
+            static_cast<float>(md.mode),
+            md.thresholdDb,
+            md.ratio,
+            md.attackMs,
+            md.releaseMs,
+            md.sidechainGain,
+            md.vactrolSlewMs,
+            md.makeupDb,
+            md.mix,
+        };
+        for (std::size_t i = 0; i < kNumMasterDynamicsFields; ++i)
+            setParam(juce::String(kMasterDynamicsIdPrefix) + kMasterDynamicsFieldSpecs[i].idSuffix, mdValues[i]);
+
+        const auto& gen = currentPatch_.generative;
+        const std::array<float, kNumGenerativeFields> genValues = {
+            gen.dejaVu ? 1.0f : 0.0f,
+            gen.seedLocked ? 1.0f : 0.0f,
+            gen.clockTRateHz,
+            gen.clockXRateHz,
+            gen.correlation,
+            gen.streams[0].spread,
+            gen.streams[0].bias,
+            gen.streams[0].lagMs,
+            gen.streams[1].spread,
+            gen.streams[1].bias,
+            gen.streams[1].lagMs,
+            gen.streams[2].spread,
+            gen.streams[2].bias,
+            gen.streams[2].lagMs,
+            gen.streams[3].spread,
+            gen.streams[3].bias,
+            gen.streams[3].lagMs,
+            static_cast<float>(gen.outputRouting[0]),
+            static_cast<float>(gen.outputRouting[1]),
+            static_cast<float>(gen.outputRouting[2]),
+            static_cast<float>(gen.outputRouting[3]),
+            static_cast<float>(gen.outputRouting[4]),
+            static_cast<float>(gen.outputRouting[5]),
+        };
+        for (std::size_t i = 0; i < kNumGenerativeFields; ++i)
+            setParam(juce::String(kGenerativeIdPrefix) + kGenerativeFieldSpecs[i].idSuffix, genValues[i]);
+
+        for (std::size_t slot = 0; slot < kNumPeaksUtilitySlots; ++slot)
+        {
+            const auto& p = currentPatch_.utilityPeaks.slots[slot];
+            const std::array<float, kNumPeaksUtilitySlotFields> peakValues = {
+                p.enabled ? 1.0f : 0.0f,
+                static_cast<float>(p.mode),
+                p.attackMs,
+                p.releaseMs,
+                p.lfoRateHz,
+                p.lfoDepth,
+            };
+            for (std::size_t i = 0; i < kNumPeaksUtilitySlotFields; ++i)
+                setParam(peaksUtilitySlotParamId(slot, kPeaksUtilitySlotFieldSpecs[i].idSuffix), peakValues[i]);
+        }
 
         const auto& uni = currentPatch_.layerA.unison;
         setParam(kUnisonVoicesId, static_cast<float>(juce::jmax(1, uni.voices)));
@@ -1508,30 +2043,7 @@ namespace pw8::plugin
         setParam(kUnisonPhaseRandomId, uni.phaseRandom);
 
         auto syncFxSlot = [&](const effects::EffectSlotParams& p, const juce::String& id) {
-            const std::array<float, kNumEffectSlotFields> values = {
-                static_cast<float>(p.type), p.mix,        p.saturationDriveDb, p.chorusRateHz,   p.chorusDepthMs,
-                p.chorusBaseDelayMs,        p.tapeDelayMs, p.tapeFeedback,      p.tapeDriveDb,    p.tapeDuckAmount,
-                p.tapeDriftDepthMs,         p.tapeDriftRateHz, static_cast<float>(p.tapePanMode), p.nodeInsanity,
-                p.freqShiftHz,              p.freqShiftDelayMs, p.freqShiftFeedback, p.freqShiftLowCutHz,
-                p.freqShiftHighCutHz,       p.fractalMorph, p.fractalBaseDelayMs, p.fractalRatio, p.fractalSpreadMs,
-                p.reverbSizeParam,          p.reverbDecaySeconds, p.reverbPreDelayMs,
-                p.reverbHighRatio,          p.reverbHighCrossoverHz, p.reverbLowRatio, p.reverbLowCrossoverHz,
-                p.reverbDiffusion,          p.reverbDensity, p.reverbModDepth,    p.reverbModRateHz,
-                p.reverbEarlyLevel,         p.reverbLateLevel, p.reverbRollOffHz, p.reverbVlfCutDb,
-                p.eqLowFreqHz,              p.eqLowGainDb,  p.eqMidFreqHz,       p.eqMidGainDb,    p.eqMidQ,
-                p.eqHighFreqHz,             p.eqHighGainDb,
-                p.compThresholdDb,          p.compRatio,    p.compAttackMs,      p.compReleaseMs,  p.compKneeDb,
-                p.compMakeupDb,
-                p.compTransformerCore,      p.compTransformerBrand, p.compTransformerAmount,
-                p.limiterCeilingDb,         p.limiterLookaheadMs, p.limiterReleaseMs,
-                static_cast<float>(p.tapeDelaySync), static_cast<float>(p.tapeDelaySyncDivisionIndex),
-                p.compAutoMakeup ? 1.0f : 0.0f, static_cast<float>(p.compCharacter),
-                static_cast<float>(p.vocoderBandCount), p.vocoderFormant, p.vocoderSibilance, p.vocoderScGainDb,
-                p.vocoderReleaseMs,
-                static_cast<float>(p.reverbCharacter),
-                static_cast<float>(p.saturationCharacter),
-                p.eqOutGainDb,
-            };
+            const auto values = effectSlotFieldValues(p);
             for (std::size_t i = 0; i < kNumEffectSlotFields; ++i)
                 setParam(id + kEffectSlotFieldSpecs[i].idSuffix, values[i]);
         };
@@ -1567,6 +2079,8 @@ namespace pw8::plugin
         filter.cutoffHz = loadF(filterParamPointers_[2]);
         filter.resonance = loadF(filterParamPointers_[3]);
         filter.keyTrack = loadF(filterParamPointers_[4]);
+        filter.modeMorph = loadF(filterParamPointers_[5]);
+        currentPatch_.layerA.filterRouting = loadF(filterRoutingPointer_);
 
         auto& filter2 = currentPatch_.layerA.filter2;
         filter2.enabled = loadB(filter2ParamPointers_[0]);
@@ -1574,6 +2088,7 @@ namespace pw8::plugin
         filter2.resonance = loadF(filter2ParamPointers_[2]);
         filter2.drive = loadF(filter2ParamPointers_[3]);
         filter2.keyTrack = loadF(filter2ParamPointers_[4]);
+        filter2.cutoffOffsetSemitones = loadF(filter2ParamPointers_[5]);
 
         for (std::size_t lfoIdx = 0; lfoIdx < kNumLfos; ++lfoIdx)
         {
@@ -1643,6 +2158,7 @@ namespace pw8::plugin
             ef.cutoffHz = loadF(fptrs[2]);
             ef.resonance = loadF(fptrs[3]);
             ef.keyTrack = loadF(fptrs[4]);
+            ef.modeMorph = filter::modeMorphFromMode(ef.mode);
         }
 
         for (std::size_t envIdx = 0; envIdx < kNumEnvelopes; ++envIdx)
@@ -1662,6 +2178,47 @@ namespace pw8::plugin
         currentPatch_.layerA.gain = loadF(layerGainPointer_);
         currentPatch_.layerA.pan = loadF(layerPanPointer_);
         currentPatch_.voiceSettings.masterGain = loadF(masterGainPointer_);
+        currentPatch_.voiceSettings.portamentoSeconds = loadF(portamentoPointer_);
+
+        auto& md = currentPatch_.masterDynamics;
+        md.enabled = loadB(masterDynamicsParamPointers_[0]);
+        md.mode = static_cast<patch::MasterDynamicsMode>(loadI(masterDynamicsParamPointers_[1]));
+        md.thresholdDb = loadF(masterDynamicsParamPointers_[2]);
+        md.ratio = loadF(masterDynamicsParamPointers_[3]);
+        md.attackMs = loadF(masterDynamicsParamPointers_[4]);
+        md.releaseMs = loadF(masterDynamicsParamPointers_[5]);
+        md.sidechainGain = loadF(masterDynamicsParamPointers_[6]);
+        md.vactrolSlewMs = loadF(masterDynamicsParamPointers_[7]);
+        md.makeupDb = loadF(masterDynamicsParamPointers_[8]);
+        md.mix = loadF(masterDynamicsParamPointers_[9]);
+
+        auto& gen = currentPatch_.generative;
+        gen.dejaVu = loadB(generativeParamPointers_[0]);
+        gen.seedLocked = loadB(generativeParamPointers_[1]);
+        gen.clockTRateHz = loadF(generativeParamPointers_[2]);
+        gen.clockXRateHz = loadF(generativeParamPointers_[3]);
+        gen.correlation = loadF(generativeParamPointers_[4]);
+        for (std::size_t s = 0; s < modulation::kNumGenerativeStreams; ++s)
+        {
+            const std::size_t base = 5 + s * 3;
+            gen.streams[s].spread = loadF(generativeParamPointers_[base]);
+            gen.streams[s].bias = loadF(generativeParamPointers_[base + 1]);
+            gen.streams[s].lagMs = loadF(generativeParamPointers_[base + 2]);
+        }
+        for (std::size_t r = 0; r < modulation::kNumGenerativeOutputs; ++r)
+            gen.outputRouting[r] = static_cast<std::uint8_t>(loadI(generativeParamPointers_[17 + r]));
+
+        for (std::size_t slot = 0; slot < kNumPeaksUtilitySlots; ++slot)
+        {
+            const auto& ptrs = peaksUtilityParamPointers_[slot];
+            auto& p = currentPatch_.utilityPeaks.slots[slot];
+            p.enabled = loadB(ptrs[0]);
+            p.mode = static_cast<modulation::PeaksUtilityMode>(loadI(ptrs[1]));
+            p.attackMs = loadF(ptrs[2]);
+            p.releaseMs = loadF(ptrs[3]);
+            p.lfoRateHz = loadF(ptrs[4]);
+            p.lfoDepth = loadF(ptrs[5]);
+        }
 
         auto& uni = currentPatch_.layerA.unison;
         uni.voices = juce::jlimit(1, static_cast<int>(core::kMaxUnisonVoices), loadI(unisonVoicesPointer_));
@@ -1673,75 +2230,10 @@ namespace pw8::plugin
 
         auto readFxSlot = [](const std::array<std::atomic<float>*, kNumEffectSlotFields>& ptrs,
                               effects::EffectSlotParams& p) {
-            p.type = static_cast<effects::EffectType>(loadI(ptrs[0]));
-            p.mix = loadF(ptrs[1]);
-            p.saturationDriveDb = loadF(ptrs[2]);
-            p.chorusRateHz = loadF(ptrs[3]);
-            p.chorusDepthMs = loadF(ptrs[4]);
-            p.chorusBaseDelayMs = loadF(ptrs[5]);
-            p.tapeDelayMs = loadF(ptrs[6]);
-            p.tapeFeedback = loadF(ptrs[7]);
-            p.tapeDriveDb = loadF(ptrs[8]);
-            p.tapeDuckAmount = loadF(ptrs[9]);
-            p.tapeDriftDepthMs = loadF(ptrs[10]);
-            p.tapeDriftRateHz = loadF(ptrs[11]);
-            p.tapePanMode = static_cast<effects::DelayPanMode>(loadI(ptrs[12]));
-            p.nodeInsanity = loadF(ptrs[13]);
-            p.freqShiftHz = loadF(ptrs[14]);
-            p.freqShiftDelayMs = loadF(ptrs[15]);
-            p.freqShiftFeedback = loadF(ptrs[16]);
-            p.freqShiftLowCutHz = loadF(ptrs[17]);
-            p.freqShiftHighCutHz = loadF(ptrs[18]);
-            p.fractalMorph = loadF(ptrs[19]);
-            p.fractalBaseDelayMs = loadF(ptrs[20]);
-            p.fractalRatio = loadF(ptrs[21]);
-            p.fractalSpreadMs = loadF(ptrs[22]);
-            p.reverbSizeParam = loadF(ptrs[23]);
-            p.reverbDecaySeconds = loadF(ptrs[24]);
-            p.reverbPreDelayMs = loadF(ptrs[25]);
-            p.reverbHighRatio = loadF(ptrs[26]);
-            p.reverbHighCrossoverHz = loadF(ptrs[27]);
-            p.reverbLowRatio = loadF(ptrs[28]);
-            p.reverbLowCrossoverHz = loadF(ptrs[29]);
-            p.reverbDiffusion = loadF(ptrs[30]);
-            p.reverbDensity = loadF(ptrs[31]);
-            p.reverbModDepth = loadF(ptrs[32]);
-            p.reverbModRateHz = loadF(ptrs[33]);
-            p.reverbEarlyLevel = loadF(ptrs[34]);
-            p.reverbLateLevel = loadF(ptrs[35]);
-            p.reverbRollOffHz = loadF(ptrs[36]);
-            p.reverbVlfCutDb = loadF(ptrs[37]);
-            p.eqLowFreqHz = loadF(ptrs[38]);
-            p.eqLowGainDb = loadF(ptrs[39]);
-            p.eqMidFreqHz = loadF(ptrs[40]);
-            p.eqMidGainDb = loadF(ptrs[41]);
-            p.eqMidQ = loadF(ptrs[42]);
-            p.eqHighFreqHz = loadF(ptrs[43]);
-            p.eqHighGainDb = loadF(ptrs[44]);
-            p.compThresholdDb = loadF(ptrs[45]);
-            p.compRatio = loadF(ptrs[46]);
-            p.compAttackMs = loadF(ptrs[47]);
-            p.compReleaseMs = loadF(ptrs[48]);
-            p.compKneeDb = loadF(ptrs[49]);
-            p.compMakeupDb = loadF(ptrs[50]);
-            p.compTransformerCore = loadF(ptrs[51]);
-            p.compTransformerBrand = loadF(ptrs[52]);
-            p.compTransformerAmount = loadF(ptrs[53]);
-            p.limiterCeilingDb = loadF(ptrs[54]);
-            p.limiterLookaheadMs = loadF(ptrs[55]);
-            p.limiterReleaseMs = loadF(ptrs[56]);
-            p.tapeDelaySync = loadB(ptrs[57]);
-            p.tapeDelaySyncDivisionIndex = loadI(ptrs[58]);
-            p.compAutoMakeup = loadB(ptrs[59]);
-            p.compCharacter = loadI(ptrs[60]);
-            p.vocoderBandCount = static_cast<int>(loadF(ptrs[61]));
-            p.vocoderFormant = loadF(ptrs[62]);
-            p.vocoderSibilance = loadF(ptrs[63]);
-            p.vocoderScGainDb = loadF(ptrs[64]);
-            p.vocoderReleaseMs = loadF(ptrs[65]);
-            p.reverbCharacter = loadI(ptrs[66]);
-            p.saturationCharacter = loadI(ptrs[67]);
-            p.eqOutGainDb = loadF(ptrs[68]);
+            std::array<float, kNumEffectSlotFields> values{};
+            for (std::size_t i = 0; i < kNumEffectSlotFields; ++i)
+                values[i] = loadF(ptrs[i]);
+            applyEffectSlotFieldValues(p, values);
         };
         for (std::size_t slot = 0; slot < kNumInsertFxSlots; ++slot)
             readFxSlot(insertFxParamPointers_[slot], currentPatch_.layerA.insertEffects[slot]);
@@ -1765,6 +2257,22 @@ namespace pw8::plugin
             for (std::size_t i = 0; i < kNumOperators; ++i)
                 currentPatch_.layerA.algorithm.nodes[i].engine = currentPatch_.layerA.operators[i].engine;
         }
+    }
+
+    void PatchworkEightProcessor::triggerPeaksUtilitySlot(std::size_t slotIndex) noexcept
+    {
+        if (auto* engine = activeEngine_.load(std::memory_order_acquire))
+            engine->triggerPeaksUtilitySlot(slotIndex);
+    }
+
+    std::array<float, 2> PatchworkEightProcessor::getPeaksUtilityLevels() const noexcept
+    {
+        if (const auto* engine = activeEngine_.load(std::memory_order_acquire))
+        {
+            const auto values = engine->getPeaksUtilityOutputValues();
+            return {values.values[0], values.values[1]};
+        }
+        return {0.0f, 0.0f};
     }
 
     void PatchworkEightProcessor::publishEngine(std::unique_ptr<render::Engine> newEngine)

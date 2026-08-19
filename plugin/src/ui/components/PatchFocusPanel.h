@@ -8,6 +8,7 @@
 #include "GlowKnob.h"
 #include "ModRoutingUi.h"
 #include "ModSourceChip.h"
+#include "MorphTimelineStrip.h"
 #include "SectionPanel.h"
 #include "../theme/ObsidianPalette.h"
 #include "processor/PatchworkEightProcessor.h"
@@ -27,7 +28,7 @@ namespace pw8::plugin::ui
         /// BASIC view: larger knobs, hide mod-matrix entry. Advanced entry lives in the view-mode toggle.
         void setBasicPerformanceLayout(bool basicLayout);
 
-        /// Compact 320px column: smaller knobs, tighter grid, up to 3 feature macro KOINS.
+        /// Compact 320px column: Figma `4:1172` 3×2 macro grid (6 KOINS).
         void setCompactLayout(bool compactLayout);
 
         /// Figma `murmur-desktop-play-mode` performance-macros-deck (36:155).
@@ -52,6 +53,9 @@ namespace pw8::plugin::ui
         void applyLayoutMode();
         void updateBadgePulse();
         void layoutKnobGrid(juce::Rectangle<int> bounds, std::size_t startIndex, std::size_t count, int minCellWidth);
+        void applyDesktopDeckChrome(bool desktopDeck);
+        void syncMacroKnobsFromApvts();
+        [[nodiscard]] bool showPerformanceRoutingUi() const noexcept;
 
         PatchworkEightProcessor& processor_;
         SectionPanel panel_{"Performance Controls", palette::kAccentWarm, true};
@@ -74,6 +78,9 @@ namespace pw8::plugin::ui
         PatchFocusLayout lastLayout_;
         std::size_t featureKnobCount_ = 0;
         std::vector<std::unique_ptr<GlowKnob>> knobs_;
+        std::unique_ptr<MorphTimelineStrip> morphHubStrip_;
+        juce::Label morphHubTitleLabel_;
+        bool showMorphHub_ = false;
         float lastModWheel_ = -1.0f;
         float lastExpression_ = -1.0f;
         float badgePulsePhase_ = 0.0f;

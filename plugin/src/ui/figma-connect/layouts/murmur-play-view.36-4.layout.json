@@ -6,9 +6,8 @@
   "canonicalName": "murmur-desktop-play-mode",
   "exportedAt": "2026-08-18",
   "exportSource": "figma-mcp get_metadata",
-  "size": { "width": 1280, "height": 960 },
-  "embedViewport": { "width": 1280, "height": 720 },
-  "insets": { "top": 20, "right": 20, "bottom": 72, "left": 20 },
+  "size": { "width": 1280, "height": 720 },
+  "insets": { "top": 20, "right": 20, "bottom": 12, "left": 20 },
   "sectionGap": 16,
   "codeOwners": {
     "shell": "MurmurRootEditor",
@@ -36,30 +35,33 @@
       "x": 20,
       "y": 96,
       "width": 1240,
-      "height": 180,
+      "height": 130,
       "constant": "kDesktopPlayModeOscilloscopeHeight",
-      "codeMap": "OscilloscopeView"
+      "codeMap": "OscilloscopeView",
+      "drift": { "cpp": 180, "reason": "JUCE flex layout allows scope to grow up to 180px on taller windows" }
     },
     {
       "nodeId": "82:83",
       "name": "master-envelope-section",
       "x": 20,
-      "y": 292,
+      "y": 242,
       "width": 1240,
-      "height": 220,
-      "constant": "kDesktopPlayModeMasterEnvelopeSectionHeight",
-      "codeMap": "MasterEnvelopePanel"
+      "height": 170,
+      "constant": "kDesktopPlayModeMasterEnvelopePlayHeight",
+      "codeMap": "MasterEnvelopePanel",
+      "drift": { "cpp": 168, "reason": "Figma play envelope panel is 170px; cpp constant is 168 for compact row layout" }
     },
     {
       "nodeId": "36:155",
       "name": "performance-macros-deck",
       "x": 20,
-      "y": 528,
+      "y": 428,
       "width": 1240,
-      "height": 280,
+      "height": 208,
       "constant": "kDesktopPlayModePerformanceDeckHeight",
       "codeMap": "PatchFocusPanel",
       "padding": 24,
+      "drift": { "cpp": 280, "reason": "JUCE flex layout allows macro deck up to 280px on taller windows" },
       "children": [
         { "nodeId": "36:156", "name": "macros-header", "height": 13, "constant": "kDesktopPlayModeMacrosHeaderHeight" },
         { "nodeId": "36:161", "name": "knobs-row", "height": 148, "constant": "kDesktopPlayModeKnobsRowHeight" }
@@ -69,11 +71,12 @@
       "nodeId": "36:226",
       "name": "vst-bottom-bar",
       "x": 20,
-      "y": 824,
+      "y": 652,
       "width": 1240,
-      "height": 64,
+      "height": 56,
       "constant": "kDesktopPlayModeBottomBarHeight",
-      "codeMap": "VstBottomBar"
+      "codeMap": "VstBottomBar",
+      "drift": { "cpp": 64, "reason": "Figma bottom bar is 56px; cpp reserves 64px for stage-action row" }
     }
   ]
 }

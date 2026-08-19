@@ -65,6 +65,7 @@ namespace pw8::plugin
         {"CutoffHz",  "Global Cutoff Hz",      10.0f, 24000.0f, 8000.0f, false},
         {"Resonance", "Global Resonance",      0.0f,  1.0f,     0.2f,    false},
         {"KeyTrack",  "Global Key Track",     -1.0f,  1.0f,     0.0f,    false},
+        {"ModeMorph", "Global Filter Mode Morph", 0.0f, 1.0f, 0.0f, false},
     }};
 
     const std::array<ParamFieldSpec, kNumFilter2Fields> kFilter2FieldSpecs = {{
@@ -73,6 +74,7 @@ namespace pw8::plugin
         {"Resonance", "Filter 2 Reso",    0.0f,  1.0f,     0.3f,    false},
         {"Drive",     "Filter 2 Drive",   0.0f,  1.0f,     0.0f,    false},
         {"KeyTrack",  "Filter 2 Key Trk", -1.0f,  1.0f,     0.0f,    false},
+        {"CutoffOffsetSemis", "Filter 2 Cutoff Offset Semis", -48.0f, 48.0f, 0.0f, false},
     }};
 
     const std::array<ParamFieldSpec, kNumOperatorFilterFields> kOperatorFilterFieldSpecs = {{
@@ -108,7 +110,7 @@ namespace pw8::plugin
     // Matches effects::EffectSlotParams's scalar fields (excludes `nodes[]` and
     // FractalEcho's `fractalSeedA/B` -- see PluginState.h for why).
     const std::array<ParamFieldSpec, kNumEffectSlotFields> kEffectSlotFieldSpecs = {{
-        {"Type",               "Type",                 0.0f,     11.0f,    0.0f,   true},
+        {"Type",               "Type",                 0.0f,     13.0f,    0.0f,   true},
         {"Mix",                "Mix",                  0.0f,     1.0f,     1.0f,   false},
         {"SaturationDrive",    "Saturation Drive",      0.0f,     48.0f,    6.0f,   false},
         {"ChorusRate",         "Chorus Rate",           0.01f,    10.0f,    0.5f,   false},
@@ -177,6 +179,36 @@ namespace pw8::plugin
         {"ReverbCharacter",    "Reverb Character",      0.0f,     4.0f,     0.0f,   true},
         {"SaturationCharacter", "Saturation Character",   0.0f,     4.0f,     0.0f,   true},
         {"EqOutGainDb",        "Eq Out Gain Db",       -12.0f,    12.0f,    0.0f,   false},
+        {"CloudsDensity",      "Clouds Density",        0.0f,     1.0f,     0.35f,  false},
+        {"CloudsGrainSizeMs",  "Clouds Grain Size Ms",  5.0f,     500.0f,   80.0f,  false},
+        {"CloudsPitch",        "Clouds Pitch",          0.25f,    4.0f,     1.0f,   false},
+        {"CloudsFreeze",       "Clouds Freeze",         0.0f,     1.0f,     0.0f,   false},
+        {"CloudsMode",         "Clouds Mode",           0.0f,     2.0f,     0.0f,   true},
+        {"Qsr1Level",          "QSR1 Level",            0.0f,     1.0f,     0.65f,  false},
+        {"Qsr2Level",          "QSR2 Level",            0.0f,     1.0f,     0.55f,  false},
+        {"CntrLevel",          "Center Level",          0.0f,     1.0f,     0.85f,  false},
+        {"InputSplitHpfHz",    "Input Split HPF Hz",    20.0f,    500.0f,   120.0f, false},
+        {"CntrHpfHz",          "Center HPF Hz",         20.0f,    300.0f,   80.0f,  false},
+        {"Qsr1Height",         "QSR1 Height",          -1.0f,     1.0f,     0.0f,   false},
+        {"Qsr1AngleDeg",       "QSR1 Angle Deg",        0.0f,     360.0f,   30.0f,  false},
+        {"Qsr1Distance",       "QSR1 Distance",         0.0f,     1.0f,     0.35f,  false},
+        {"Qsr2Height",         "QSR2 Height",          -1.0f,     1.0f,     0.0f,   false},
+        {"Qsr2AngleDeg",       "QSR2 Angle Deg",        0.0f,     360.0f,   330.0f, false},
+        {"Qsr2Distance",       "QSR2 Distance",         0.0f,     1.0f,     0.4f,   false},
+        {"Qsr1RoomAmount",     "QSR1 Room Amount",      0.0f,     1.0f,     0.45f,  false},
+        {"Qsr1RoomSize",       "QSR1 Room Size",        0.2f,     3.0f,     1.0f,   false},
+        {"Qsr1RoomDamping",    "QSR1 Room Damping",     0.0f,     1.0f,     0.55f,  false},
+        {"Qsr2RoomAmount",     "QSR2 Room Amount",      0.0f,     1.0f,     0.40f,  false},
+        {"Qsr2RoomSize",       "QSR2 Room Size",        0.2f,     3.0f,     1.1f,   false},
+        {"Qsr2RoomDamping",    "QSR2 Room Damping",     0.0f,     1.0f,     0.50f,  false},
+        {"QuasarDelayTimeMs",  "Quasar Delay Time Ms",  3.0f,     20000.0f, 450.0f, false},
+        {"QuasarDelayFeedback", "Quasar Delay Feedback", 0.0f,    0.95f,    0.35f,  false},
+        {"QuasarDelayVolume",  "Quasar Delay Volume",   0.0f,     1.0f,     0.25f,  false},
+        {"QuasarOutputMode",   "Quasar Output Mode",    0.0f,     2.0f,     0.0f,   true},
+        {"QuasarCrossfeed",    "Quasar Crossfeed",      0.0f,     1.0f,     0.0f,   false},
+        {"QuasarDelaySync",    "Quasar Delay Sync",     0.0f,     1.0f,     0.0f,   true},
+        {"QuasarDelaySyncDivision", "Quasar Delay Sync Division", 0.0f, 8.0f, 2.0f, true},
+        {"QsrStereoSplit",     "QSR Stereo Split",      0.0f,     1.0f,     1.0f,   true},
     }};
 
     // Matches sequencer::ArpeggiatorParams's scalar fields (excludes `steps[]`).
@@ -190,6 +222,54 @@ namespace pw8::plugin
         {"NumSteps",          "Num Steps",         1.0f, 64.0f, 8.0f, true},
         {"Swing",             "Swing",             0.0f, 1.0f,  0.0f, false},
         {"Latch",             "Latch",             0.0f, 1.0f,  0.0f, true},
+    }};
+
+    const std::array<ParamFieldSpec, kNumGenerativeFields> kGenerativeFieldSpecs = {{
+        {"DejaVu",          "Generative Deja Vu",       0.0f, 1.0f, 1.0f, true},
+        {"SeedLocked",      "Generative Seed Locked",   0.0f, 1.0f, 0.0f, true},
+        {"ClockTRateHz",    "Generative T Rate Hz",     0.01f, 40.0f, 0.47f, false},
+        {"ClockXRateHz",    "Generative X Rate Hz",     0.01f, 40.0f, 4.7f, false},
+        {"Correlation",     "Generative Correlation",   0.0f, 1.0f, 0.0f, false},
+        {"Stream0Spread",   "Generative Stream 0 Spread", 0.0f, 1.0f, 0.5f, false},
+        {"Stream0Bias",     "Generative Stream 0 Bias", -1.0f, 1.0f, 0.0f, false},
+        {"Stream0LagMs",    "Generative Stream 0 Lag Ms", 0.1f, 5000.0f, 80.0f, false},
+        {"Stream1Spread",   "Generative Stream 1 Spread", 0.0f, 1.0f, 0.5f, false},
+        {"Stream1Bias",     "Generative Stream 1 Bias", -1.0f, 1.0f, 0.0f, false},
+        {"Stream1LagMs",    "Generative Stream 1 Lag Ms", 0.1f, 5000.0f, 80.0f, false},
+        {"Stream2Spread",   "Generative Stream 2 Spread", 0.0f, 1.0f, 0.5f, false},
+        {"Stream2Bias",     "Generative Stream 2 Bias", -1.0f, 1.0f, 0.0f, false},
+        {"Stream2LagMs",    "Generative Stream 2 Lag Ms", 0.1f, 5000.0f, 80.0f, false},
+        {"Stream3Spread",   "Generative Stream 3 Spread", 0.0f, 1.0f, 0.5f, false},
+        {"Stream3Bias",     "Generative Stream 3 Bias", -1.0f, 1.0f, 0.0f, false},
+        {"Stream3LagMs",    "Generative Stream 3 Lag Ms", 0.1f, 5000.0f, 80.0f, false},
+        {"OutputRoute0",    "Generative Output Route 0", 0.0f, 5.0f, 0.0f, true},
+        {"OutputRoute1",    "Generative Output Route 1", 0.0f, 5.0f, 1.0f, true},
+        {"OutputRoute2",    "Generative Output Route 2", 0.0f, 5.0f, 2.0f, true},
+        {"OutputRoute3",    "Generative Output Route 3", 0.0f, 5.0f, 3.0f, true},
+        {"OutputRoute4",    "Generative Output Route 4", 0.0f, 5.0f, 4.0f, true},
+        {"OutputRoute5",    "Generative Output Route 5", 0.0f, 5.0f, 5.0f, true},
+    }};
+
+    const std::array<ParamFieldSpec, kNumPeaksUtilitySlotFields> kPeaksUtilitySlotFieldSpecs = {{
+        {"Enabled",   "Peaks Utility Enabled", 0.0f, 1.0f, 0.0f, true},
+        {"Mode",      "Peaks Utility Mode",    0.0f, 1.0f, 0.0f, true},
+        {"AttackMs",  "Peaks Utility Attack Ms", 0.1f, 5000.0f, 5.0f, false},
+        {"ReleaseMs", "Peaks Utility Release Ms", 1.0f, 5000.0f, 80.0f, false},
+        {"LfoRateHz", "Peaks Utility LFO Rate Hz", 0.01f, 40.0f, 0.5f, false},
+        {"LfoDepth",  "Peaks Utility LFO Depth", 0.0f, 1.0f, 0.5f, false},
+    }};
+
+    const std::array<ParamFieldSpec, kNumMasterDynamicsFields> kMasterDynamicsFieldSpecs = {{
+        {"Enabled",       "Master Dynamics Enable", 0.0f, 1.0f, 0.0f, true},
+        {"Mode",          "Master Dynamics Mode",   0.0f, 3.0f, 0.0f, true},
+        {"ThresholdDb",   "Master Dynamics Threshold", -60.0f, 0.0f, -12.0f, false},
+        {"Ratio",         "Master Dynamics Ratio",  1.0f, 20.0f, 4.0f, false},
+        {"AttackMs",      "Master Dynamics Attack", 0.1f, 500.0f, 5.0f, false},
+        {"ReleaseMs",     "Master Dynamics Release", 1.0f, 5000.0f, 80.0f, false},
+        {"SidechainGain", "Master Dynamics Sidechain Gain", 0.0f, 2.0f, 1.0f, false},
+        {"VactrolSlewMs", "Master Dynamics Vactrol Slew", 1.0f, 5000.0f, 40.0f, false},
+        {"MakeupDb",      "Master Dynamics Makeup", 0.0f, 24.0f, 0.0f, false},
+        {"Mix",           "Master Dynamics Mix",    0.0f, 1.0f, 1.0f, false},
     }};
 
     const std::array<ParamFieldSpec, kNumOperatorMixFields> kOperatorMixFieldSpecs = {{
@@ -235,6 +315,11 @@ namespace pw8::plugin
         return "masterFx" + juce::String(static_cast<int>(slot)) + fieldSuffix;
     }
 
+    juce::String peaksUtilitySlotParamId(std::size_t slotIndex, const char* fieldSuffix)
+    {
+        return juce::String(kPeaksUtilityIdPrefix) + "Slot" + juce::String(static_cast<int>(slotIndex)) + fieldSuffix;
+    }
+
     namespace
     {
         void addParam(std::vector<std::unique_ptr<juce::RangedAudioParameter>>& params, const juce::String& id,
@@ -278,6 +363,9 @@ namespace pw8::plugin
         for (const auto& spec : kFilter2FieldSpecs)
             addParam(params, juce::String(kFilter2IdPrefix) + spec.idSuffix, spec);
 
+        addParam(params, kFilterRoutingId,
+                 ParamFieldSpec{"", kFilterRoutingName, 0.0f, 1.0f, 0.0f, false});
+
         for (std::size_t lfo = 0; lfo < kNumLfos; ++lfo)
             for (const auto& spec : kLfoFieldSpecs)
                 addParam(params, lfoParamId(lfo, spec.idSuffix), spec);
@@ -301,6 +389,7 @@ namespace pw8::plugin
         addParam(params, kLayerGainId, ParamFieldSpec{"", "Layer Gain", 0.0f, 4.0f, 1.0f, false});
         addParam(params, kLayerPanId, ParamFieldSpec{"", "Layer Pan", -1.0f, 1.0f, 0.0f, false});
         addParam(params, kMasterGainId, ParamFieldSpec{"", "Master Gain", 0.0f, 4.0f, 1.0f, false});
+        addParam(params, kPortamentoId, ParamFieldSpec{"", kPortamentoName, 0.0f, 10.0f, 0.0f, false});
 
         for (std::size_t slot = 0; slot < kNumInsertFxSlots; ++slot)
             for (const auto& spec : kEffectSlotFieldSpecs)
@@ -312,6 +401,16 @@ namespace pw8::plugin
 
         for (const auto& spec : kArpFieldSpecs)
             addParam(params, juce::String(kArpIdPrefix) + spec.idSuffix, spec);
+
+        for (const auto& spec : kMasterDynamicsFieldSpecs)
+            addParam(params, juce::String(kMasterDynamicsIdPrefix) + spec.idSuffix, spec);
+
+        for (const auto& spec : kGenerativeFieldSpecs)
+            addParam(params, juce::String(kGenerativeIdPrefix) + spec.idSuffix, spec);
+
+        for (std::size_t slot = 0; slot < kNumPeaksUtilitySlots; ++slot)
+            for (const auto& spec : kPeaksUtilitySlotFieldSpecs)
+                addParam(params, peaksUtilitySlotParamId(slot, spec.idSuffix), spec);
 
         addParam(params, kUnisonVoicesId, ParamFieldSpec{"", kUnisonVoicesName, 1.0f, 16.0f, 1.0f, true});
         addParam(params, kUnisonDetuneId, ParamFieldSpec{"", kUnisonDetuneName, 0.0f, 100.0f, 0.0f, false});
@@ -325,6 +424,168 @@ namespace pw8::plugin
         addParam(params, kFxSendBId, ParamFieldSpec{"", kFxSendBName, 0.0f, 1.0f, 0.0f, false});
 
         return {params.begin(), params.end()};
+    }
+
+    std::array<float, kNumEffectSlotFields> effectSlotFieldValues(const effects::EffectSlotParams& p) noexcept
+    {
+        return {
+            static_cast<float>(p.type), p.mix,        p.saturationDriveDb, p.chorusRateHz,   p.chorusDepthMs,
+            p.chorusBaseDelayMs,        p.tapeDelayMs, p.tapeFeedback,      p.tapeDriveDb,    p.tapeDuckAmount,
+            p.tapeDriftDepthMs,         p.tapeDriftRateHz, static_cast<float>(p.tapePanMode), p.nodeInsanity,
+            p.freqShiftHz,              p.freqShiftDelayMs, p.freqShiftFeedback, p.freqShiftLowCutHz,
+            p.freqShiftHighCutHz,       p.fractalMorph, p.fractalBaseDelayMs, p.fractalRatio, p.fractalSpreadMs,
+            p.reverbSizeParam,          p.reverbDecaySeconds, p.reverbPreDelayMs,
+            p.reverbHighRatio,          p.reverbHighCrossoverHz, p.reverbLowRatio, p.reverbLowCrossoverHz,
+            p.reverbDiffusion,          p.reverbDensity, p.reverbModDepth,    p.reverbModRateHz,
+            p.reverbEarlyLevel,         p.reverbLateLevel, p.reverbRollOffHz, p.reverbVlfCutDb,
+            p.eqLowFreqHz,              p.eqLowGainDb,  p.eqMidFreqHz,       p.eqMidGainDb,    p.eqMidQ,
+            p.eqHighFreqHz,             p.eqHighGainDb,
+            p.compThresholdDb,          p.compRatio,    p.compAttackMs,      p.compReleaseMs,  p.compKneeDb,
+            p.compMakeupDb,
+            p.compTransformerCore,      p.compTransformerBrand, p.compTransformerAmount,
+            p.limiterCeilingDb,         p.limiterLookaheadMs, p.limiterReleaseMs,
+            static_cast<float>(p.tapeDelaySync), static_cast<float>(p.tapeDelaySyncDivisionIndex),
+            p.compAutoMakeup ? 1.0f : 0.0f, static_cast<float>(p.compCharacter),
+            static_cast<float>(p.vocoderBandCount), p.vocoderFormant, p.vocoderSibilance, p.vocoderScGainDb,
+            p.vocoderReleaseMs,
+            static_cast<float>(p.reverbCharacter),
+            static_cast<float>(p.saturationCharacter),
+            p.eqOutGainDb,
+            p.cloudsDensity,
+            p.cloudsGrainSizeMs,
+            p.cloudsPitch,
+            p.cloudsFreeze,
+            static_cast<float>(p.cloudsMode),
+            p.qsr1Level,
+            p.qsr2Level,
+            p.cntrLevel,
+            p.inputSplitHpfHz,
+            p.cntrHpfHz,
+            p.qsr1Height,
+            p.qsr1AngleDeg,
+            p.qsr1Distance,
+            p.qsr2Height,
+            p.qsr2AngleDeg,
+            p.qsr2Distance,
+            p.qsr1RoomAmount,
+            p.qsr1RoomSize,
+            p.qsr1RoomDamping,
+            p.qsr2RoomAmount,
+            p.qsr2RoomSize,
+            p.qsr2RoomDamping,
+            p.quasarDelayTimeMs,
+            p.quasarDelayFeedback,
+            p.quasarDelayVolume,
+            static_cast<float>(p.quasarOutputMode),
+            p.quasarCrossfeed,
+            p.quasarDelaySync ? 1.0f : 0.0f,
+            static_cast<float>(p.quasarDelaySyncDivisionIndex),
+            p.qsrStereoSplit ? 1.0f : 0.0f,
+        };
+    }
+
+    void applyEffectSlotFieldValues(effects::EffectSlotParams& p,
+                                    const std::array<float, kNumEffectSlotFields>& v) noexcept
+    {
+        p.type = static_cast<effects::EffectType>(static_cast<int>(v[0] + 0.5f));
+        p.mix = v[1];
+        p.saturationDriveDb = v[2];
+        p.chorusRateHz = v[3];
+        p.chorusDepthMs = v[4];
+        p.chorusBaseDelayMs = v[5];
+        p.tapeDelayMs = v[6];
+        p.tapeFeedback = v[7];
+        p.tapeDriveDb = v[8];
+        p.tapeDuckAmount = v[9];
+        p.tapeDriftDepthMs = v[10];
+        p.tapeDriftRateHz = v[11];
+        p.tapePanMode = static_cast<effects::DelayPanMode>(static_cast<int>(v[12] + 0.5f));
+        p.nodeInsanity = v[13];
+        p.freqShiftHz = v[14];
+        p.freqShiftDelayMs = v[15];
+        p.freqShiftFeedback = v[16];
+        p.freqShiftLowCutHz = v[17];
+        p.freqShiftHighCutHz = v[18];
+        p.fractalMorph = v[19];
+        p.fractalBaseDelayMs = v[20];
+        p.fractalRatio = v[21];
+        p.fractalSpreadMs = v[22];
+        p.reverbSizeParam = v[23];
+        p.reverbDecaySeconds = v[24];
+        p.reverbPreDelayMs = v[25];
+        p.reverbHighRatio = v[26];
+        p.reverbHighCrossoverHz = v[27];
+        p.reverbLowRatio = v[28];
+        p.reverbLowCrossoverHz = v[29];
+        p.reverbDiffusion = v[30];
+        p.reverbDensity = v[31];
+        p.reverbModDepth = v[32];
+        p.reverbModRateHz = v[33];
+        p.reverbEarlyLevel = v[34];
+        p.reverbLateLevel = v[35];
+        p.reverbRollOffHz = v[36];
+        p.reverbVlfCutDb = v[37];
+        p.eqLowFreqHz = v[38];
+        p.eqLowGainDb = v[39];
+        p.eqMidFreqHz = v[40];
+        p.eqMidGainDb = v[41];
+        p.eqMidQ = v[42];
+        p.eqHighFreqHz = v[43];
+        p.eqHighGainDb = v[44];
+        p.compThresholdDb = v[45];
+        p.compRatio = v[46];
+        p.compAttackMs = v[47];
+        p.compReleaseMs = v[48];
+        p.compKneeDb = v[49];
+        p.compMakeupDb = v[50];
+        p.compTransformerCore = v[51];
+        p.compTransformerBrand = v[52];
+        p.compTransformerAmount = v[53];
+        p.limiterCeilingDb = v[54];
+        p.limiterLookaheadMs = v[55];
+        p.limiterReleaseMs = v[56];
+        p.tapeDelaySync = v[57] >= 0.5f;
+        p.tapeDelaySyncDivisionIndex = static_cast<int>(v[58] + 0.5f);
+        p.compAutoMakeup = v[59] >= 0.5f;
+        p.compCharacter = static_cast<int>(v[60] + 0.5f);
+        p.vocoderBandCount = static_cast<int>(v[61] + 0.5f);
+        p.vocoderFormant = v[62];
+        p.vocoderSibilance = v[63];
+        p.vocoderScGainDb = v[64];
+        p.vocoderReleaseMs = v[65];
+        p.reverbCharacter = static_cast<int>(v[66] + 0.5f);
+        p.saturationCharacter = static_cast<int>(v[67] + 0.5f);
+        p.eqOutGainDb = v[68];
+        p.cloudsDensity = v[69];
+        p.cloudsGrainSizeMs = v[70];
+        p.cloudsPitch = v[71];
+        p.cloudsFreeze = v[72];
+        p.cloudsMode = static_cast<int>(v[73] + 0.5f);
+        p.qsr1Level = v[74];
+        p.qsr2Level = v[75];
+        p.cntrLevel = v[76];
+        p.inputSplitHpfHz = v[77];
+        p.cntrHpfHz = v[78];
+        p.qsr1Height = v[79];
+        p.qsr1AngleDeg = v[80];
+        p.qsr1Distance = v[81];
+        p.qsr2Height = v[82];
+        p.qsr2AngleDeg = v[83];
+        p.qsr2Distance = v[84];
+        p.qsr1RoomAmount = v[85];
+        p.qsr1RoomSize = v[86];
+        p.qsr1RoomDamping = v[87];
+        p.qsr2RoomAmount = v[88];
+        p.qsr2RoomSize = v[89];
+        p.qsr2RoomDamping = v[90];
+        p.quasarDelayTimeMs = v[91];
+        p.quasarDelayFeedback = v[92];
+        p.quasarDelayVolume = v[93];
+        p.quasarOutputMode = static_cast<int>(v[94] + 0.5f);
+        p.quasarCrossfeed = v[95];
+        p.quasarDelaySync = v[96] >= 0.5f;
+        p.quasarDelaySyncDivisionIndex = static_cast<int>(v[97] + 0.5f);
+        p.qsrStereoSplit = v[98] >= 0.5f;
     }
 
 } // namespace pw8::plugin

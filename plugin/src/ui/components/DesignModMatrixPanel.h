@@ -1,6 +1,8 @@
 #pragma once
 
+#include <array>
 #include <functional>
+#include <memory>
 #include <optional>
 #include <vector>
 
@@ -9,6 +11,7 @@
 #include "ModAssignmentController.h"
 #include "ModSourceChip.h"
 #include "processor/PatchworkEightProcessor.h"
+#include "pw8/modulation/ModMatrixTypes.hpp"
 
 namespace pw8::plugin::ui
 {
@@ -20,9 +23,18 @@ namespace pw8::plugin::ui
 
         std::function<void()> onClosed;
 
+        enum class Shell
+        {
+            /// Embedded inline (no back row).
+            Inline,
+            /// Design sub-nav MOD page — Figma `27:265`; back returns to ENGINE.
+            DesignPage,
+        };
+
         void showOverlay();
         void dismiss();
 
+        void setShell(Shell shell);
         void setEmbeddedInDesignMode(bool embedded);
         void repaintModAssignmentState();
 
@@ -32,13 +44,23 @@ namespace pw8::plugin::ui
         void mouseDown(const juce::MouseEvent& event) override;
         void mouseDrag(const juce::MouseEvent& event) override;
         void mouseUp(const juce::MouseEvent& event) override;
+        bool keyPressed(const juce::KeyPress& key) override;
 
     private:
         struct RouteRowHit
         {
             modulation::ModRoute route;
+            juce::Rectangle<int> rowArea;
             juce::Rectangle<int> depthArea;
+            juce::Rectangle<int> curveArea;
+            juce::Rectangle<int> polarArea;
         };
+
+        [[nodiscard]] const char* curveLabelForRoute(const modulation::ModRoute& route) const;
+        void selectRouteForLearn(const modulation::ModRoute& route);
+        void toggleRoutePolar(const modulation::ModRoute& route);
+        void cycleRouteCurve(const modulation::ModRoute& route);
+        void pollMidiLearn();
 
         void timerCallback() override;
 
@@ -66,7 +88,7 @@ namespace pw8::plugin::ui
         PatchworkEightProcessor& processor_;
         ModAssignmentController& assignmentController_;
 
-        bool embeddedInDesignMode_ = false;
+        Shell shell_ = Shell::Inline;
 
         juce::TextButton backButton_{"← DESIGN"};
         juce::Viewport routesViewport_;
@@ -86,6 +108,11 @@ namespace pw8::plugin::ui
             float startX = 0.0f;
         };
         std::optional<AmountDragState> amountDrag_;
+
+        std::optional<modulation::ModRoute> selectedLearnRoute_;
+        bool midiLearnActive_ = false;
+        int lastLearnCc_ = -1;
+        mutable juce::Rectangle<int> midiLearnButtonBounds_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DesignModMatrixPanel)
     };

@@ -1,0 +1,26 @@
+{
+  "$schema": "./figma-layout-spec.schema.json",
+  "figmaFileKey": "PFt0LG6XmOiZWcSoUXIWIg",
+  "nodeId": "63:8",
+  "frameName": "murmur-fx-saturation",
+  "canonicalName": "murmur-fx-hero",
+  "exportedAt": "2026-08-19",
+  "exportSource": "FX_FIGMA_PIXEL_IMPORT.md shared detail hero spec",
+  "size": { "width": 448, "height": 296 },
+  "codeOwners": {
+    "hero": "DesignFxHeroViz",
+    "constants": "PlayModeLayout.h"
+  },
+  "children": [
+    {
+      "name": "hero-viz-panel",
+      "width": 448,
+      "height": 296,
+      "constant": "kDesignFxPageDetailHeroWidth",
+      "codeMap": "DesignFxHeroViz"
+    }
+  ],
+  "knobContext": [
+    { "context": "detail-knob-grid", "width": 280, "height": 174, "constant": "kDesignFxPageDetailKnobGridHeight" }
+  ]
+}

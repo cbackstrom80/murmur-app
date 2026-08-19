@@ -71,6 +71,37 @@ def main():
                                             amount=24.0, scope="voice")
     check(f"add_mod_route, warnings={warnings}", len(warnings) == 0)
 
+    warnings = patch_builder.set_generative(
+        patch_id,
+        {"clockTRateHz": 1.2, "clockXRateHz": 6.0, "correlation": 0.35, "dejaVu": True},
+        streams=[{"spread": 0.6, "bias": 0.1, "lagMs": 40.0}],
+    )
+    check(f"set_generative, warnings={warnings}", len(warnings) == 0)
+
+    warnings = patch_builder.add_mod_route(
+        patch_id, source="random_t", destination="filter_cutoff", amount=12.0, scope="voice")
+    check(f"add_mod_route random_t, warnings={warnings}", len(warnings) == 0)
+
+    warnings = patch_builder.set_utility_peaks(
+        patch_id, 0, {"enabled": True, "mode": "mini_lfo", "lfoRateHz": 0.25, "lfoDepth": 0.8})
+    check(f"set_utility_peaks, warnings={warnings}", len(warnings) == 0)
+
+    warnings = patch_builder.set_effect(
+        patch_id, "master", 2, "clouds",
+        {"mix": 0.4, "cloudsDensity": 0.55, "cloudsGrainSizeMs": 120.0, "cloudsMode": 0})
+    check(f"set_effect (master clouds), warnings={warnings}", len(warnings) == 0)
+
+    warnings = patch_builder.set_effect(
+        patch_id, "master", 3, "binaural_space",
+        {"mix": 0.7, "qsr1AngleDeg": 45.0, "qsr2AngleDeg": 315.0, "quasarDelayVolume": 0.3})
+    check(f"set_effect (master binaural_space), warnings={warnings}", len(warnings) == 0)
+    loaded = patch_builder.load_scratch(patch_id)
+    check("binaural_space type id", loaded["masterEffects"][3]["type"] == 13)
+
+    warnings = patch_builder.add_mod_route(
+        patch_id, source="lfo2", destination="quasar_qsr1_angle", target_index=3, amount=30.0, scope="global")
+    check(f"add_mod_route (quasar angle), warnings={warnings}", len(warnings) == 0)
+
     warnings = patch_builder.set_effect(patch_id, "master", 0, "reverb", {"mix": 0.15, "reverbDecaySeconds": 1.2})
     check(f"set_effect (master reverb), warnings={warnings}", len(warnings) == 0)
 
@@ -125,6 +156,8 @@ def main():
     print("\n--- explain_patch ---")
     print(summary)
     check("summary mentions fm_pm", "fm_pm" in summary)
+    check("summary mentions generative", "Generative:" in summary)
+    check("summary mentions clouds", "clouds" in summary.lower())
 
     print("\n== render + validate ==")
     try:
@@ -152,6 +185,18 @@ def main():
 
     patch_builder.scratch_path(patch_id).unlink()
     check("scratch patch cleaned up", not patch_builder.scratch_path(patch_id).exists())
+
+    print("\n== standalone bridge (optional — needs MURMUR.app running) ==")
+    import standalone_bridge
+    bridge = standalone_bridge.status()
+    if bridge.get("connected"):
+        test_id, _ = patch_builder.create_patch("Bridge Probe", "ephemeral")
+        patch_builder.set_operator(test_id, 0, "classic", {"level": 0.5})
+        load_result = standalone_bridge.load_path(patch_builder.scratch_path(test_id))
+        check(f"load_into_standalone bridge: {load_result}", load_result.get("ok") is True)
+        patch_builder.scratch_path(test_id).unlink()
+    else:
+        print(f"[SKIP] Standalone not running: {bridge.get('error', bridge)}")
 
     print("\nAll smoke tests passed.")
 

@@ -1,7 +1,10 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include <cmath>
+
 #include "pw8/core/Types.hpp"
+#include "pw8/modulation/ModCurveShaping.hpp"
 #include "pw8/modulation/ModMatrixExecutor.hpp"
 
 using namespace pw8::modulation;
@@ -265,6 +268,24 @@ TEST_CASE("ModMatrixExecutor routes Sidechain to FilterCutoff", "[modulation][si
     REQUIRE(out.filterCutoffSemitones == Catch::Approx(12.0f));
 }
 
+TEST_CASE("ModMatrixExecutor routes LFO to Blades filter destinations", "[modulation][blades]")
+{
+    pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;
+    routes.push_back(ModRoute{ModSource::Lfo1, ModDestination::FilterModeMorph, 0, 0.5f, ModScope::Layer});
+    routes.push_back(ModRoute{ModSource::Lfo2, ModDestination::FilterRouting, 0, 0.4f, ModScope::Global});
+    routes.push_back(ModRoute{ModSource::Env1, ModDestination::FilterDrive, 0, 0.3f, ModScope::Voice});
+
+    ModSourceValues sources;
+    sources.layerLfos[0] = 1.0f;
+    sources.layerLfos[1] = 0.5f;
+    sources.envelopes[0] = 0.75f;
+
+    const auto out = ModMatrixExecutor::apply(routes, sources);
+    REQUIRE(out.filterModeMorphOffset == Catch::Approx(0.5f));
+    REQUIRE(out.filterRoutingOffset == Catch::Approx(0.2f));
+    REQUIRE(out.filterDriveOffset == Catch::Approx(0.225f));
+}
+
 TEST_CASE("ModMatrixExecutor routes Sidechain to VocoderMix on master slot", "[modulation][sidechain][vocoder]")
 {
     pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;
@@ -287,4 +308,56 @@ TEST_CASE("ModMatrixExecutor routes Sidechain to VocoderFormant on master slot",
 
     const auto out = ModMatrixExecutor::applyMasterBus(routes, sources);
     REQUIRE(out.masterVocoderFormantOffset[0] == Catch::Approx(0.4f));
+}
+
+TEST_CASE("shapeModSource exponential curve reduces mid-range modulation", "[modulation][curve]")
+{
+    REQUIRE(shapeModSource(0.5f, ModCurve::Linear) == Catch::Approx(0.5f));
+    REQUIRE(shapeModSource(0.5f, ModCurve::Exponential) == Catch::Approx(0.25f));
+    REQUIRE(shapeModSource(0.5f, ModCurve::Logarithmic) == Catch::Approx(std::sqrt(0.5f)));
+    REQUIRE(shapeModSource(-0.5f, ModCurve::Exponential) == Catch::Approx(-0.25f));
+}
+
+TEST_CASE("ModMatrixExecutor applies route curve shaping before amount scaling", "[modulation][curve]")
+{
+    pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;
+    ModRoute route{ModSource::Velocity, ModDestination::FilterCutoff, 0, 12.0f, ModScope::Voice};
+    route.curve = ModCurve::Exponential;
+    routes.push_back(route);
+
+    ModSourceValues sources;
+    sources.velocity = 0.5f;
+
+    const auto out = ModMatrixExecutor::apply(routes, sources);
+    REQUIRE(out.filterCutoffSemitones == Catch::Approx(3.0f));
+}
+
+TEST_CASE("ModMatrixExecutor routes LFO to OperatorFmModulatorIndex with targetIndex", "[modulation][fm]")
+{
+    pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;
+    routes.push_back(
+        ModRoute{ModSource::Lfo1, ModDestination::OperatorFmModulatorIndex, 2, 0.5f, ModScope::Voice});
+
+    ModSourceValues sources;
+    sources.voiceLfos[0] = 1.0f;
+
+    const auto out = ModMatrixExecutor::apply(routes, sources);
+    REQUIRE(out.operatorFmModulatorIndexOffset[2] == Catch::Approx(0.5f));
+}
+
+TEST_CASE("ModMatrixExecutor computeLayerUnisonMod applies layer-wide unison routes", "[modulation][unison]")
+{
+    pw8::core::FixedVector<ModRoute, pw8::core::kMaxModRoutes> routes;
+    routes.push_back(ModRoute{ModSource::Macro1, ModDestination::UnisonVoices, 0, 2.0f, ModScope::Layer});
+    routes.push_back(ModRoute{ModSource::Macro2, ModDestination::UnisonDetune, 0, 10.0f, ModScope::Global});
+    routes.push_back(ModRoute{ModSource::Lfo3, ModDestination::UnisonSpread, 0, 0.25f, ModScope::Voice});
+
+    ModSourceValues sources;
+    sources.macros[0] = 1.0f;
+    sources.macros[1] = 0.5f;
+
+    const auto out = ModMatrixExecutor::computeLayerUnisonMod(routes, sources);
+    REQUIRE(out.unisonVoicesOffset == Catch::Approx(2.0f));
+    REQUIRE(out.unisonDetuneOffset == Catch::Approx(5.0f));
+    REQUIRE(out.unisonSpreadOffset == Catch::Approx(0.0f));
 }

@@ -1,10 +1,12 @@
 #pragma once
 
 #include <array>
+#include <memory>
 
 #include <juce_dsp/juce_dsp.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "../visualizer/MurmurVisualizerComponent.h"
 #include "processor/PatchworkEightProcessor.h"
 #include "ui/ScopeViewMode.h"
 #include "ui/ScopeVuMeter.h"
@@ -21,6 +23,7 @@ namespace pw8::plugin::ui
         [[nodiscard]] ScopeViewMode getViewMode() const noexcept { return viewMode_; }
 
         void paint(juce::Graphics& g) override;
+        void resized() override;
 
     private:
         static constexpr int kFftOrder = 10;
@@ -38,11 +41,8 @@ namespace pw8::plugin::ui
         [[nodiscard]] bool pullAndAnalyseVu() noexcept;
         [[nodiscard]] float binMagnitudeDb(float binIndex) const noexcept;
         [[nodiscard]] juce::Rectangle<float> graphBounds() const noexcept;
+        void syncGlMode();
         void paintGrid(juce::Graphics& g, juce::Rectangle<float> bounds) const;
-        void paintSpectrum(juce::Graphics& g, juce::Rectangle<float> bounds) const;
-        void paintPeakHold(juce::Graphics& g, juce::Rectangle<float> bounds) const;
-        void paintVuMeter(juce::Graphics& g, juce::Rectangle<float> bounds) const;
-        [[nodiscard]] juce::Path buildOutlinePath(juce::Rectangle<float> bounds) const;
 
         PatchworkEightProcessor& processor_;
         ScopeViewMode viewMode_ = ScopeViewMode::Fft;
@@ -51,17 +51,19 @@ namespace pw8::plugin::ui
         std::array<float, static_cast<std::size_t>(kFftSize)> captureBuffer_{};
         std::array<float, static_cast<std::size_t>(kVuCaptureSize)> vuCaptureBuffer_{};
         std::array<float, static_cast<std::size_t>(kFftSize)> window_{};
-        float windowSum_ = 1.0f;
         std::array<float, static_cast<std::size_t>(kScopeBins)> targetLevels_{};
         std::array<float, static_cast<std::size_t>(kScopeBins)> displayLevels_{};
         std::array<float, static_cast<std::size_t>(kScopeBins)> peakHold_{};
         std::array<float, static_cast<std::size_t>(kScopeBins)> smoothed_{};
+        std::array<float, murmur8::AudioVisualizerBus::fftBinCount> fftPushBuffer_{};
+        float windowSum_ = 1.0f;
         scope::VuBallistics vu_;
         double sampleRate_ = 48000.0;
         float runningRms_ = 0.0f;
         float rmsEnvelope_ = 0.0f;
         float pulseGlow_ = 0.0f;
         bool hasFreshData_ = false;
+        std::unique_ptr<murmur8::MurmurVisualizerComponent> glPlot_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HeaderSpectrumScope)
     };

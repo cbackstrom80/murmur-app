@@ -3,9 +3,11 @@
 #include "../PerformanceMetricsUi.h"
 
 #include "../PlayModeLayout.h"
+#include "../theme/ObsidianDraw.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "ModRoutingUi.h"
+#include "pw8/modulation/ModCurveShaping.hpp"
 #include "pw8/core/Types.hpp"
 
 namespace pw8::plugin::ui
@@ -37,18 +39,18 @@ namespace pw8::plugin::ui
             {"VELOCITY", modulation::ModSource::Velocity, true},
             {"KEY TRACK", modulation::ModSource::None, false},
             {"MOD WHEEL", modulation::ModSource::ModWheel, true},
-            {"RANDOM", modulation::ModSource::None, false},
+            {"RANDOM", modulation::ModSource::RandomT, true},
         }};
 
         constexpr std::array<DestColSpec, layout::kDesignModMatrixPageDestColumnCount> kDestCols{{
             {"OSC PITCH", modulation::ModDestination::OperatorLevel, 0},
-            {"OSC MIX", modulation::ModDestination::OperatorLevel, 0},
             {"FILTER CUT", modulation::ModDestination::FilterCutoff, 0},
             {"FILTER RES", modulation::ModDestination::FilterResonance, 0},
-            {"AMP", modulation::ModDestination::OperatorLevel, 0},
+            {"FILT MORPH", modulation::ModDestination::FilterModeMorph, 0},
+            {"FILT ROUTE", modulation::ModDestination::FilterRouting, 0},
+            {"F2 DRIVE", modulation::ModDestination::FilterDrive, 0},
             {"PAN", modulation::ModDestination::Pan, 0},
-            {"FX SEND", modulation::ModDestination::MasterFxMix, 0},
-            {"WT POS", modulation::ModDestination::OperatorWavetablePosition, 0},
+            {"MORPH POS", modulation::ModDestination::MorphPosition, 0},
         }};
 
         struct SidebarPillSpec
@@ -59,7 +61,7 @@ namespace pw8::plugin::ui
             bool interactive;
         };
 
-        const std::array<SidebarPillSpec, 8> kSidebarPills{{
+        const std::array<SidebarPillSpec, 14> kSidebarPills{{
             {modulation::ModSource::Lfo1, "LFO1", palette::kModLfo, true},
             {modulation::ModSource::Lfo2, "LFO2", palette::kModLfo, true},
             {modulation::ModSource::Env1, "ENV1", palette::kModEnv, true},
@@ -67,6 +69,12 @@ namespace pw8::plugin::ui
             {modulation::ModSource::Velocity, "VEL", palette::kModVelocity, true},
             {modulation::ModSource::None, "KEY", palette::kTextDim, false},
             {modulation::ModSource::ModWheel, "MOD", palette::kModModWheel, true},
+            {modulation::ModSource::RandomT, "T", palette::kMurmurViolet, true},
+            {modulation::ModSource::RandomX, "X", palette::kMurmurViolet, true},
+            {modulation::ModSource::Random1, "R1", palette::kMurmurViolet, true},
+            {modulation::ModSource::Random2, "R2", palette::kMurmurViolet, true},
+            {modulation::ModSource::Random3, "R3", palette::kMurmurViolet, true},
+            {modulation::ModSource::Random4, "R4", palette::kMurmurViolet, true},
             {modulation::ModSource::None, "RND", palette::kTextDim, false},
         }};
     } // namespace
@@ -99,23 +107,32 @@ namespace pw8::plugin::ui
     void DesignModMatrixPanel::showOverlay()
     {
         setVisible(true);
+        setInterceptsMouseClicks(true, true);
         resized();
     }
 
     void DesignModMatrixPanel::dismiss()
     {
+        setVisible(false);
         if (onClosed)
             onClosed();
     }
 
-    void DesignModMatrixPanel::setEmbeddedInDesignMode(bool embedded)
+    void DesignModMatrixPanel::setShell(Shell shell)
     {
-        if (embeddedInDesignMode_ == embedded)
+        if (shell_ == shell)
             return;
 
-        embeddedInDesignMode_ = embedded;
-        backButton_.setVisible(embedded);
+        shell_ = shell;
+        backButton_.setVisible(shell_ == Shell::DesignPage);
+        backButton_.setButtonText("← ENGINE");
         resized();
+        repaint();
+    }
+
+    void DesignModMatrixPanel::setEmbeddedInDesignMode(bool embedded)
+    {
+        setShell(embedded ? Shell::DesignPage : Shell::Inline);
     }
 
     void DesignModMatrixPanel::repaintModAssignmentState()
@@ -127,6 +144,7 @@ namespace pw8::plugin::ui
 
     void DesignModMatrixPanel::timerCallback()
     {
+        pollMidiLearn();
         repaint();
     }
 
@@ -147,6 +165,69 @@ namespace pw8::plugin::ui
     {
         const auto range = modAmountRangeFor(route.destination);
         return juce::jlimit(0.0f, 1.0f, (route.amount - range.min) / juce::jmax(0.001f, range.max - range.min));
+    }
+
+    const char* DesignModMatrixPanel::curveLabelForRoute(const modulation::ModRoute& route) const
+    {
+        return modulation::modCurveLabel(route.curve);
+    }
+
+    void DesignModMatrixPanel::selectRouteForLearn(const modulation::ModRoute& route)
+    {
+        selectedLearnRoute_ = route;
+        repaint();
+    }
+
+    void DesignModMatrixPanel::toggleRoutePolar(const modulation::ModRoute& route)
+    {
+        const float magnitude = juce::jmax(0.001f, std::abs(route.amount));
+        updateModRouteAmount(processor_, route, route.amount < 0.0f ? magnitude : -magnitude);
+        selectRouteForLearn(route);
+        repaint();
+    }
+
+    void DesignModMatrixPanel::cycleRouteCurve(const modulation::ModRoute& route)
+    {
+        const auto next = modulation::cycleModCurve(route.curve);
+        updateModRouteCurve(processor_, route, next);
+        modulation::ModRoute updated = route;
+        updated.curve = next;
+        selectRouteForLearn(updated);
+        repaint();
+    }
+
+    void DesignModMatrixPanel::pollMidiLearn()
+    {
+        if (!midiLearnActive_)
+            return;
+
+        int cc = -1;
+        int value7 = 0;
+        if (!processor_.consumeMidiLearnCc(cc, value7))
+            return;
+
+        lastLearnCc_ = cc;
+
+        if (!selectedLearnRoute_.has_value())
+            return;
+
+        const auto range = modAmountRangeFor(selectedLearnRoute_->destination);
+        const float norm = static_cast<float>(value7) / 127.0f;
+        const float amount = range.min + norm * (range.max - range.min);
+        updateModRouteAmount(processor_, *selectedLearnRoute_, amount);
+
+        for (const auto& route : processor_.getCurrentPatch().layerA.modRoutes)
+        {
+            if (route.isActive() && route.source == selectedLearnRoute_->source
+                && route.destination == selectedLearnRoute_->destination
+                && route.targetIndex == selectedLearnRoute_->targetIndex)
+            {
+                selectedLearnRoute_ = route;
+                break;
+            }
+        }
+
+        repaint();
     }
 
     juce::Rectangle<int> DesignModMatrixPanel::gridCanvasBounds() const
@@ -196,11 +277,19 @@ namespace pw8::plugin::ui
 
             auto row = area.removeFromTop(layout::kDesignModMatrixPageRouteRowHeight);
             area.removeFromTop(layout::kDesignModMatrixPageRouteRowGap);
+            const auto rowArea = row;
 
             row.removeFromLeft(layout::kDesignModMatrixPageRouteSourceWidth + 12
                                + layout::kDesignModMatrixPageRouteDestWidth + 12);
             const auto depthArea = row.removeFromLeft(layout::kDesignModMatrixPageRouteDepthTrackWidth + 66);
-            hits.push_back({route, depthArea});
+
+            auto tail = row;
+            const int polarW = route.amount < 0.0f ? 27 : 17;
+            const auto polarArea = tail.removeFromRight(polarW).reduced(0, 6);
+            tail.removeFromRight(4);
+            const auto curveArea = tail.removeFromRight(27).reduced(0, 6);
+
+            hits.push_back({route, rowArea, depthArea, curveArea, polarArea});
         }
         return hits;
     }
@@ -351,13 +440,23 @@ namespace pw8::plugin::ui
                 g.fillRoundedRectangle(row.toFloat(), 3.0f);
             }
 
+            const bool selectedLearn =
+                selectedLearnRoute_.has_value() && route.source == selectedLearnRoute_->source
+                && route.destination == selectedLearnRoute_->destination
+                && route.targetIndex == selectedLearnRoute_->targetIndex;
+            if (selectedLearn)
+            {
+                g.setColour(palette::kAccent.withAlpha(0.12f));
+                g.fillRoundedRectangle(row.toFloat(), 3.0f);
+            }
+
             g.setColour(palette::modSourceColour(static_cast<int>(route.source)));
             g.setFont(fonts::label(8.0f));
             g.drawText(modSourceLabel(route.source), row.removeFromLeft(layout::kDesignModMatrixPageRouteSourceWidth),
                        juce::Justification::centredLeft);
 
             g.setColour(palette::kTextDim);
-            g.drawText("→", row.removeFromLeft(12), juce::Justification::centred);
+            g.drawText(fonts::kArrow, row.removeFromLeft(12), juce::Justification::centred);
 
             g.setColour(palette::kTextPrimary);
             g.drawText(modDestinationLabel(route.destination, route.targetIndex),
@@ -385,7 +484,7 @@ namespace pw8::plugin::ui
             g.setColour(palette::kPanel);
             g.fillRoundedRectangle(curveBox.toFloat(), 3.0f);
             g.setColour(palette::kTextDim);
-            g.drawText("LIN", curveBox, juce::Justification::centred);
+            g.drawText(curveLabelForRoute(route), curveBox, juce::Justification::centred);
 
             row.removeFromRight(4);
             auto polarBox = row.removeFromRight(route.amount < 0.0f ? 27 : 17).reduced(0, 6);
@@ -449,6 +548,24 @@ namespace pw8::plugin::ui
         }
 
         inner.removeFromTop(12);
+        auto randomCard = inner.removeFromTop(92);
+        g.setColour(palette::kBackgroundTop.withAlpha(0.65f));
+        g.fillRoundedRectangle(randomCard.toFloat(), 6.0f);
+        g.setColour(palette::kBorder.withAlpha(0.35f));
+        g.drawRoundedRectangle(randomCard.toFloat().reduced(0.5f), 6.0f, 1.0f);
+        auto randomInner = randomCard.reduced(10);
+        g.setColour(palette::kTextDim);
+        g.drawText("RANDOM SOURCES", randomInner.removeFromTop(10), juce::Justification::centredLeft);
+        randomInner.removeFromTop(6);
+        g.drawText("DEJA-VU", randomInner.removeFromTop(10), juce::Justification::centredLeft);
+        randomInner.removeFromTop(4);
+        g.setColour(palette::kMurmurViolet.withAlpha(0.15f));
+        g.fillRoundedRectangle(randomInner.removeFromTop(18).toFloat(), 4.0f);
+        randomInner.removeFromTop(6);
+        g.setColour(palette::kTextDim);
+        g.drawText("T / X CLOCKS", randomInner.removeFromTop(10), juce::Justification::centredLeft);
+
+        inner.removeFromTop(12);
         auto recentCard = inner.removeFromTop(106);
         g.setColour(palette::kBackgroundTop.withAlpha(0.65f));
         g.fillRoundedRectangle(recentCard.toFloat(), 6.0f);
@@ -505,18 +622,26 @@ namespace pw8::plugin::ui
         g.drawText("MIDI INTERFACE MAPPING", learnInner.removeFromTop(10), juce::Justification::centredLeft);
         learnInner.removeFromTop(10);
         auto learnBtn = learnInner.removeFromTop(37);
-        g.setColour(palette::kAccent.withAlpha(0.12f));
+        midiLearnButtonBounds_ = learnBtn;
+        g.setColour(midiLearnActive_ ? palette::kAccent.withAlpha(0.22f) : palette::kAccent.withAlpha(0.12f));
         g.fillRoundedRectangle(learnBtn.toFloat(), 6.0f);
         g.setColour(palette::kAccent);
         g.drawRoundedRectangle(learnBtn.toFloat(), 6.0f, 1.0f);
         g.fillEllipse(static_cast<float>(learnBtn.getCentreX() - 52), static_cast<float>(learnBtn.getCentreY() - 4), 8.0f,
                       8.0f);
         g.setColour(palette::kAccent);
-        g.drawText("MIDI LEARN ACTIVE", learnBtn.withTrimmedLeft(24), juce::Justification::centredLeft);
+        g.drawText(midiLearnActive_ ? "MIDI LEARN ACTIVE" : "START MIDI LEARN", learnBtn.withTrimmedLeft(24),
+                   juce::Justification::centredLeft);
         g.setColour(palette::kTextDim);
         g.setFont(fonts::value(8.0f));
-        g.drawFittedText("Twist any physical dial on your MIDI controller to bind to the selected parameter.",
-                         learnInner, juce::Justification::topLeft, 3);
+        juce::String learnHint =
+            "Twist any physical dial on your MIDI controller to bind to the selected parameter.";
+        if (selectedLearnRoute_.has_value())
+            learnHint = "Selected: " + modSourceLabel(selectedLearnRoute_->source) + " " + fonts::kArrow + " "
+                        + modDestinationLabel(selectedLearnRoute_->destination, selectedLearnRoute_->targetIndex)
+                        + (lastLearnCc_ >= 0 ? juce::String(fonts::kSep) + "CC " + juce::String(lastLearnCc_)
+                                               : juce::String{});
+        g.drawFittedText(learnHint, learnInner, juce::Justification::topLeft, 3);
 
         inner.removeFromTop(12);
         auto info = inner.removeFromTop(46);
@@ -559,8 +684,9 @@ namespace pw8::plugin::ui
         g.setColour(palette::kTextDim);
         g.drawText("MIDI IN", row.removeFromLeft(40).withTrimmedLeft(10), juce::Justification::centredLeft);
 
-        g.drawText("MURMUR DSP ENGINE VST3 · VERSION 1.4.2 · © 2026 MURMUR AUDIO", bounds.reduced(16, 15),
-                   juce::Justification::centredRight);
+        g.drawText("MURMUR DSP ENGINE VST3" + juce::String(fonts::kSep) + "VERSION 1.4.2" + juce::String(fonts::kSep)
+                       + "(C) 2026 MURMUR AUDIO",
+                   bounds.reduced(16, 15), juce::Justification::centredRight);
     }
 
     void DesignModMatrixPanel::toggleGridCell(int sourceRow, int destCol)
@@ -614,6 +740,15 @@ namespace pw8::plugin::ui
 
     void DesignModMatrixPanel::mouseDown(const juce::MouseEvent& event)
     {
+        if (midiLearnButtonBounds_.contains(event.getPosition()))
+        {
+            midiLearnActive_ = !midiLearnActive_;
+            if (!midiLearnActive_)
+                lastLearnCc_ = -1;
+            repaint();
+            return;
+        }
+
         if (const auto cell = gridCellAt(event.getPosition()))
         {
             toggleGridCell(cell->first, cell->second);
@@ -624,9 +759,25 @@ namespace pw8::plugin::ui
                          + routesViewport_.getViewPosition();
         for (const auto& row : layoutRouteRows())
         {
+            if (row.curveArea.contains(pos))
+            {
+                cycleRouteCurve(row.route);
+                return;
+            }
+            if (row.polarArea.contains(pos))
+            {
+                toggleRoutePolar(row.route);
+                return;
+            }
             if (row.depthArea.contains(pos))
             {
+                selectRouteForLearn(row.route);
                 beginDepthDrag(row.route, static_cast<float>(event.position.x));
+                return;
+            }
+            if (row.rowArea.contains(pos))
+            {
+                selectRouteForLearn(row.route);
                 return;
             }
         }
@@ -645,8 +796,19 @@ namespace pw8::plugin::ui
 
     void DesignModMatrixPanel::paint(juce::Graphics& g)
     {
+        juce::ignoreUnused(g);
         paintQuickConfigSidebar(g, sidebarBounds_);
         paintStatusBar(g, statusBarBounds_);
+    }
+
+    bool DesignModMatrixPanel::keyPressed(const juce::KeyPress& key)
+    {
+        if (shell_ == Shell::DesignPage && key == juce::KeyPress::escapeKey)
+        {
+            dismiss();
+            return true;
+        }
+        return false;
     }
 
     void DesignModMatrixPanel::paintOverChildren(juce::Graphics& g)
@@ -659,7 +821,7 @@ namespace pw8::plugin::ui
     {
         auto bounds = getLocalBounds();
 
-        if (embeddedInDesignMode_)
+        if (shell_ == Shell::DesignPage)
         {
             auto header = bounds.removeFromTop(layout::kDesignLabPanelHeaderHeight);
             backButton_.setBounds(header.removeFromLeft(120));

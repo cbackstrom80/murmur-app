@@ -38,6 +38,20 @@ namespace pw8::plugin::ui::palette
     inline const juce::Colour kFigmaPillActive{0xff004033};
     inline const juce::Colour kFigmaPillInactive{0xff141a1f};
 
+    inline const juce::Colour kFigmaFxCardFill{0xff161822};
+    inline const juce::Colour kFigmaFxCardBorder{0xff3e4554};
+    inline const juce::Colour kFigmaFxCardBorderDim{0xff2a2f3d};
+    inline const juce::Colour kFigmaFxChipFill{0xff121318};
+    inline const juce::Colour kFigmaFxChipBorder{0xff2f3440};
+    inline const juce::Colour kFigmaFxToggleOnFill{0xff234d4a};
+    inline const juce::Colour kFigmaFxToggleOnBorder{0xff7fe7e0};
+    inline const juce::Colour kFigmaFxToggleOnText{0xff7fe7e0};
+    inline const juce::Colour kFigmaFxVizFill{0xff07090e};
+    inline const juce::Colour kFigmaFxStatusBarFill{0xff12161f};
+    inline const juce::Colour kFigmaFxMutedText{0xff6b7280};
+    inline const juce::Colour kFigmaFxFooterHint{0xff4b5563};
+    inline const juce::Colour kFigmaFxViewToggleBg{0xff12161f};
+
     // -- Structure: background/panel/border, darkest to lightest. --
     inline const juce::Colour kBackgroundTop{kFigmaBgDeep};
     inline const juce::Colour kBackgroundBottom{kFigmaBgDeep};
@@ -123,6 +137,7 @@ namespace pw8::plugin::ui::palette
         if (source == 29) return kModModWheel;            // ModWheel
         if (source == 30) return kModExpression;          // Expression (CC11)
         if (source >= 21 && source <= 28) return kModMacro; // Macro1..Macro8
+        if (source >= 32 && source <= 37) return kMurmurViolet; // Random1..RandomX
         return kTextDim;
     }
 

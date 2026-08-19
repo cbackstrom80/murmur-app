@@ -114,6 +114,18 @@ repository, integrates through structured boundaries" philosophy
    live in-process `Engine` (instead of shelling out to `pw8-render` per
    call) matters once real usage patterns exist.
 
+### Standalone live bridge (2026-08-17)
+
+**Built:** MURMUR Standalone starts a **localhost-only HTTP bridge**
+(`plugin/src/standalone/StandaloneMcpBridge.*`) and writes
+`~/Library/Application Support/MURMUR/mcp-bridge.json`. MCP tools
+`standalone_status`, `load_into_standalone`, and `load_preset_into_standalone`
+push scratch or saved `.pw8` files into the running app via the same
+message-thread `loadPatchFromFile()` path as the preset browser.
+
+Repo `.mcp.json` registers the server for Cursor. VST3/AU builds omit the
+bridge (Standalone-first trust boundary from Part B below).
+
 ## Part B: an in-app chat box ("make me a laser sound")
 
 A much bigger surface: a natural-language prompt box *inside* the plugin (or

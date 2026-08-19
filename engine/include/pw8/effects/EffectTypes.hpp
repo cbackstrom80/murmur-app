@@ -45,7 +45,9 @@ namespace pw8::effects
         Eq,
         Compressor,
         Limiter,
-        Vocoder, ///< Sidechain-driven band vocoder (DEEP CYCLE — see docs/VOCODER_SIDECHAIN_PLAN.md).
+        Vocoder,       ///< Sidechain-driven band vocoder (DEEP CYCLE — see docs/VOCODER_SIDECHAIN_PLAN.md).
+        Clouds,        ///< Master-bus granular texture (Track G — docs/MUTABLE_INSTRUMENTS_INTEGRATION_PLAN.md §11).
+        BinauralSpace, ///< Master-bus binaural spatializer (QUASAR — docs/QUASAR_RETURN_PLAN.md).
     };
 
     enum class DelayPanMode : std::uint8_t
@@ -229,6 +231,40 @@ namespace pw8::effects
         float limiterCeilingDb = -0.3f;
         float limiterLookaheadMs = 5.0f;
         float limiterReleaseMs = 60.0f;
+
+        // -- Clouds (master FX texture slot) --
+        float cloudsDensity = 0.35f;
+        float cloudsGrainSizeMs = 80.0f;
+        float cloudsPitch = 1.0f;
+        float cloudsFreeze = 0.0f;
+        int cloudsMode = 0; ///< CloudsMode ordinal
+
+        // -- BinauralSpace / QUASAR (master FX spatial slot — see BinauralSpaceParams) --
+        float qsr1Level = 0.65f;
+        float qsr2Level = 0.55f;
+        float cntrLevel = 0.85f;
+        float inputSplitHpfHz = 120.0f;
+        float cntrHpfHz = 80.0f;
+        float qsr1Height = 0.0f;
+        float qsr1AngleDeg = 30.0f;
+        float qsr1Distance = 0.35f;
+        float qsr2Height = 0.0f;
+        float qsr2AngleDeg = 330.0f;
+        float qsr2Distance = 0.4f;
+        float qsr1RoomAmount = 0.45f;
+        float qsr1RoomSize = 1.0f;
+        float qsr1RoomDamping = 0.55f;
+        float qsr2RoomAmount = 0.40f;
+        float qsr2RoomSize = 1.1f;
+        float qsr2RoomDamping = 0.50f;
+        float quasarDelayTimeMs = 450.0f;
+        float quasarDelayFeedback = 0.35f;
+        float quasarDelayVolume = 0.25f;
+        int quasarOutputMode = 0;
+        float quasarCrossfeed = 0.0f;
+        bool quasarDelaySync = false;
+        int quasarDelaySyncDivisionIndex = static_cast<int>(dsp::kDefaultDelaySyncDivisionIndex);
+        bool qsrStereoSplit = true;
     };
 
 } // namespace pw8::effects

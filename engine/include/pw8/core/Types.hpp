@@ -23,6 +23,10 @@ namespace pw8::core
     inline constexpr std::size_t kDefaultVoices = 16;
 
     inline constexpr std::size_t kMaxModRoutes = 64;
+    /// DESIGN morph editor keyframe cap (product decision: 16, not MI's 64).
+    inline constexpr std::size_t kMaxMorphKeyframes = 16;
+    /// PLAY uiFocus morph KOIN display cap (performance surface stays simple).
+    inline constexpr std::size_t kMaxPlayMorphKeyframes = 4;
     inline constexpr std::size_t kMaxUnisonVoices = 16;
     inline constexpr std::size_t kMaxAlgorithmEdges = 32;
 

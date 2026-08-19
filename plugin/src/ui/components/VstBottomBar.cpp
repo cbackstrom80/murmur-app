@@ -1,17 +1,20 @@
 #include "VstBottomBar.h"
 
+#include <optional>
+
 #include "../PerformanceMetricsUi.h"
 #include "../PlayModeLayout.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "LabLauncherChip.h"
+#include "state/PluginState.h"
 #include "pw8/modulation/ModMatrixTypes.hpp"
 
 namespace pw8::plugin::ui
 {
     VstBottomBar::VstBottomBar(PatchworkEightProcessor& processor) : processor_(processor)
     {
-        statusLabel_.setFont(fonts::label(8.0f));
+        statusLabel_.setFont(fonts::label(layout::kIpadPlayCaptionSize));
         statusLabel_.setColour(juce::Label::textColourId, palette::kTextDim);
         statusLabel_.setJustificationType(juce::Justification::centredLeft);
         addAndMakeVisible(statusLabel_);
@@ -31,6 +34,16 @@ namespace pw8::plugin::ui
         };
         addAndMakeVisible(*vocoderChip_);
 
+        quasarChip_ = std::make_unique<LabLauncherChip>();
+        quasarChip_->setLabel("QUASAR");
+        quasarChip_->setAccentColour(juce::Colour(0xff7c4dff));
+        quasarChip_->setHighlighted(true);
+        quasarChip_->onClick = [this] {
+            if (onQuasarLabRequested)
+                onQuasarLabRequested();
+        };
+        addChildComponent(*quasarChip_);
+
         lfoChip_ = std::make_unique<LabLauncherChip>();
         lfoChip_->setLabel("LFO 1·2");
         lfoChip_->setAccentColour(juce::Colour(0xff9f80ff));
@@ -40,6 +53,76 @@ namespace pw8::plugin::ui
                 onLfoLabRequested();
         };
         addAndMakeVisible(*lfoChip_);
+
+        motionChip_ = std::make_unique<LabLauncherChip>();
+        motionChip_->setLabel("MOTION");
+        motionChip_->setAccentColour(palette::kFigmaTeal);
+        motionChip_->setIcon(LabLauncherIcon::Lfo);
+        motionChip_->onClick = [this] {
+            if (onMotionLabRequested)
+                onMotionLabRequested();
+        };
+        addChildComponent(*motionChip_);
+
+        morphEditorChip_ = std::make_unique<LabLauncherChip>();
+        morphEditorChip_->setLabel("MORPH");
+        morphEditorChip_->setAccentColour(palette::kFigmaTeal);
+        morphEditorChip_->setIcon(LabLauncherIcon::Lfo);
+        morphEditorChip_->onClick = [this] {
+            if (onMorphEditorRequested)
+                onMorphEditorRequested();
+        };
+        addChildComponent(*morphEditorChip_);
+
+        filterLabChip_ = std::make_unique<LabLauncherChip>();
+        filterLabChip_->setLabel("FILTER");
+        filterLabChip_->setAccentColour(palette::kAccent);
+        filterLabChip_->setIcon(LabLauncherIcon::Lfo);
+        filterLabChip_->onClick = [this] {
+            if (onFilterLabRequested)
+                onFilterLabRequested();
+        };
+        addChildComponent(*filterLabChip_);
+
+        dynamicsLabChip_ = std::make_unique<LabLauncherChip>();
+        dynamicsLabChip_->setLabel("DYN");
+        dynamicsLabChip_->setAccentColour(palette::kMurmurViolet);
+        dynamicsLabChip_->setIcon(LabLauncherIcon::Lfo);
+        dynamicsLabChip_->onClick = [this] {
+            if (onDynamicsLabRequested)
+                onDynamicsLabRequested();
+        };
+        addChildComponent(*dynamicsLabChip_);
+
+        generativeLabChip_ = std::make_unique<LabLauncherChip>();
+        generativeLabChip_->setLabel("GEN");
+        generativeLabChip_->setAccentColour(palette::kFigmaTeal);
+        generativeLabChip_->setIcon(LabLauncherIcon::Mod);
+        generativeLabChip_->onClick = [this] {
+            if (onGenerativeLabRequested)
+                onGenerativeLabRequested();
+        };
+        addChildComponent(*generativeLabChip_);
+
+        utilityPeaksChip_ = std::make_unique<LabLauncherChip>();
+        utilityPeaksChip_->setLabel("PEAKS");
+        utilityPeaksChip_->setAccentColour(palette::kAccent);
+        utilityPeaksChip_->setIcon(LabLauncherIcon::Lfo);
+        utilityPeaksChip_->onClick = [this] {
+            if (onUtilityPeaksRequested)
+                onUtilityPeaksRequested();
+        };
+        addChildComponent(*utilityPeaksChip_);
+
+        segmentsLabChip_ = std::make_unique<LabLauncherChip>();
+        segmentsLabChip_->setLabel("SEG");
+        segmentsLabChip_->setAccentColour(palette::kFigmaTeal);
+        segmentsLabChip_->setIcon(LabLauncherIcon::Lfo);
+        segmentsLabChip_->onClick = [this] {
+            if (onEnvelopeSegmentsRequested)
+                onEnvelopeSegmentsRequested();
+        };
+        addChildComponent(*segmentsLabChip_);
 
         modChip_ = std::make_unique<LabLauncherChip>();
         modChip_->setLabel("MOD");
@@ -56,10 +139,15 @@ namespace pw8::plugin::ui
         panicButton_.onClick = [this] { processor_.panicAllNotes(); };
         addAndMakeVisible(panicButton_);
 
+        latchButton_.setClickingTogglesState(true);
         latchButton_.setColour(juce::TextButton::buttonColourId, palette::kPanelRaised);
-        latchButton_.setColour(juce::TextButton::textColourOffId, palette::kAccent);
+        latchButton_.setColour(juce::TextButton::buttonOnColourId, palette::kAccent.withAlpha(0.22f));
+        latchButton_.setColour(juce::TextButton::textColourOffId, palette::kTextSecondary);
+        latchButton_.setColour(juce::TextButton::textColourOnId, palette::kAccent);
         latchButton_.setVisible(false);
         addChildComponent(latchButton_);
+        latchAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
+            processor_.apvts, juce::String(kArpIdPrefix) + "Latch", latchButton_);
 
         sustainLabel_.setFont(fonts::label(9.0f));
         sustainLabel_.setColour(juce::Label::textColourId, palette::kTextSecondary);
@@ -77,13 +165,19 @@ namespace pw8::plugin::ui
         routeLabel_.setVisible(false);
         addChildComponent(routeLabel_);
 
-        cpuLabel_.setFont(fonts::label(8.0f));
+        cpuLabel_.setFont(fonts::label(layout::kIpadPlayCaptionSize));
         cpuLabel_.setColour(juce::Label::textColourId, palette::kTextDim);
         cpuLabel_.setJustificationType(juce::Justification::centredLeft);
         cpuLabel_.setVisible(false);
         addChildComponent(cpuLabel_);
 
-        fxLoadLabel_.setFont(fonts::label(8.0f));
+        bpmLabel_.setFont(fonts::label(layout::kIpadPlayLabelSize));
+        bpmLabel_.setColour(juce::Label::textColourId, palette::kFigmaTeal);
+        bpmLabel_.setJustificationType(juce::Justification::centredLeft);
+        bpmLabel_.setVisible(false);
+        addChildComponent(bpmLabel_);
+
+        fxLoadLabel_.setFont(fonts::label(layout::kIpadPlayCaptionSize));
         fxLoadLabel_.setColour(juce::Label::textColourId, palette::kAccentWarm);
         fxLoadLabel_.setJustificationType(juce::Justification::centredLeft);
         fxLoadLabel_.setVisible(false);
@@ -114,9 +208,20 @@ namespace pw8::plugin::ui
         {
             playBoardMode_ = false;
             desktopPlayMode_ = false;
+            ipadPlayMode_ = false;
+            murmurBasicViewMode_ = false;
+            // Secondary labs only — FILTER/DYN/GEN/PEAKS/SEG/MOD are in the header sub-nav.
             vocoderChip_->setVisible(true);
             lfoChip_->setVisible(true);
-            modChip_->setVisible(true);
+            lfoChip_->setLabel("LFO");
+            morphEditorChip_->setVisible(true);
+            filterLabChip_->setVisible(false);
+            dynamicsLabChip_->setVisible(false);
+            generativeLabChip_->setVisible(false);
+            utilityPeaksChip_->setVisible(false);
+            segmentsLabChip_->setVisible(false);
+            modChip_->setVisible(false);
+            motionChip_->setVisible(false);
         }
 
         statusLabel_.setVisible(!designMode);
@@ -124,6 +229,7 @@ namespace pw8::plugin::ui
         {
             vocoderChip_->setVisible(true);
             lfoChip_->setVisible(true);
+            lfoChip_->setLabel("LFO 1-2");
             modChip_->setVisible(true);
         }
         latchButton_.setVisible(false);
@@ -143,22 +249,65 @@ namespace pw8::plugin::ui
         resized();
     }
 
+    void VstBottomBar::setMurmurBasicViewMode(bool murmurBasicViewMode)
+    {
+        murmurBasicViewMode_ = murmurBasicViewMode;
+        if (murmurBasicViewMode)
+        {
+            playBoardMode_ = false;
+            desktopPlayMode_ = false;
+            ipadPlayMode_ = false;
+            designModeV2Layout_ = false;
+            murmurBasicViewMode_ = false;
+        }
+
+        vocoderChip_->setVisible(false);
+        lfoChip_->setVisible(false);
+        motionChip_->setVisible(false);
+        morphEditorChip_->setVisible(false);
+        filterLabChip_->setVisible(false);
+        dynamicsLabChip_->setVisible(false);
+        generativeLabChip_->setVisible(false);
+        utilityPeaksChip_->setVisible(false);
+        segmentsLabChip_->setVisible(false);
+        modChip_->setVisible(false);
+        latchButton_.setVisible(false);
+        sustainLabel_.setVisible(false);
+        midiLabel_.setVisible(false);
+        routeLabel_.setVisible(false);
+        modSourcesLabel_.setVisible(false);
+        fxLoadLabel_.setVisible(false);
+        bpmLabel_.setVisible(false);
+        statusLabel_.setVisible(murmurBasicViewMode_);
+        cpuLabel_.setVisible(murmurBasicViewMode_);
+        voicesLabel_.setVisible(murmurBasicViewMode_);
+        panicButton_.setVisible(murmurBasicViewMode_);
+        if (murmurBasicViewMode_)
+            panicButton_.setButtonText("PANIC RESET");
+        resized();
+    }
+
     void VstBottomBar::setPlayBoardMode(bool playBoardMode)
     {
         playBoardMode_ = playBoardMode;
         if (playBoardMode)
         {
             desktopPlayMode_ = false;
+            ipadPlayMode_ = false;
             designModeV2Layout_ = false;
+            murmurBasicViewMode_ = false;
         }
-        modChip_->setVisible(!playBoardMode_ && !desktopPlayMode_);
-        panicButton_.setVisible(!playBoardMode_ && !desktopPlayMode_);
+        modChip_->setVisible(!playBoardMode_ && !desktopPlayMode_ && !ipadPlayMode_);
+        panicButton_.setVisible(!playBoardMode_ && !desktopPlayMode_ && !ipadPlayMode_);
         latchButton_.setVisible(desktopPlayMode_);
         sustainLabel_.setVisible(desktopPlayMode_);
         midiLabel_.setVisible(desktopPlayMode_);
         routeLabel_.setVisible(desktopPlayMode_);
-        vocoderChip_->setVisible(!desktopPlayMode_);
-        lfoChip_->setVisible(!desktopPlayMode_);
+        vocoderChip_->setVisible(!desktopPlayMode_ && !ipadPlayMode_);
+        quasarChip_->setVisible(playBoardMode_);
+        lfoChip_->setVisible(!desktopPlayMode_ && !ipadPlayMode_);
+        motionChip_->setVisible(playBoardMode_);
+        morphEditorChip_->setVisible(false);
         resized();
     }
 
@@ -168,25 +317,69 @@ namespace pw8::plugin::ui
         if (desktopPlayMode)
         {
             playBoardMode_ = false;
+            ipadPlayMode_ = false;
             designModeV2Layout_ = false;
+            murmurBasicViewMode_ = false;
         }
-        modChip_->setVisible(!playBoardMode_ && !desktopPlayMode_);
-        panicButton_.setVisible(desktopPlayMode_ || (!playBoardMode_ && !desktopPlayMode_));
+        modChip_->setVisible(!playBoardMode_ && !desktopPlayMode_ && !ipadPlayMode_);
+        panicButton_.setVisible(desktopPlayMode_ || ipadPlayMode_ || (!playBoardMode_ && !desktopPlayMode_ && !ipadPlayMode_));
         latchButton_.setVisible(desktopPlayMode_);
         sustainLabel_.setVisible(desktopPlayMode_);
         midiLabel_.setVisible(desktopPlayMode_);
         routeLabel_.setVisible(desktopPlayMode_);
-        vocoderChip_->setVisible(!desktopPlayMode_);
-        lfoChip_->setVisible(!desktopPlayMode_);
+        vocoderChip_->setVisible(!desktopPlayMode_ && !ipadPlayMode_);
+        quasarChip_->setVisible(playBoardMode_);
+        lfoChip_->setVisible(!desktopPlayMode_ && !ipadPlayMode_);
+        motionChip_->setVisible(playBoardMode_);
+        morphEditorChip_->setVisible(false);
+        statusLabel_.setVisible(ipadPlayMode_);
+        voicesLabel_.setVisible(!desktopPlayMode_ && !ipadPlayMode_ && !designModeV2Layout_);
+        cpuLabel_.setVisible(ipadPlayMode_ || designModeV2Layout_);
+        bpmLabel_.setVisible(ipadPlayMode_);
+        fxLoadLabel_.setVisible(designModeV2Layout_);
         if (desktopPlayMode_)
         {
             panicButton_.setButtonText("PANIC RESET");
-            latchButton_.setButtonText("HOLD / LATCH [ON]");
         }
-        else
+        else if (!ipadPlayMode_)
         {
             panicButton_.setButtonText("PANIC");
         }
+        resized();
+    }
+
+    void VstBottomBar::setIpadFooterPillActive(layout::IpadFooterPill pill)
+    {
+        activeIpadFooterPill_ = pill;
+        repaint();
+    }
+
+    void VstBottomBar::setIpadPlayMode(bool ipadPlayMode)
+    {
+        ipadPlayMode_ = ipadPlayMode;
+        if (ipadPlayMode)
+        {
+            playBoardMode_ = false;
+            desktopPlayMode_ = false;
+            designModeV2Layout_ = false;
+            murmurBasicViewMode_ = false;
+        }
+        modChip_->setVisible(!playBoardMode_ && !desktopPlayMode_ && !ipadPlayMode_);
+        panicButton_.setVisible(desktopPlayMode_ || ipadPlayMode_ || (!playBoardMode_ && !desktopPlayMode_ && !ipadPlayMode_));
+        panicButton_.setButtonText(ipadPlayMode_ ? "PANIC RESET" : (desktopPlayMode_ ? "PANIC RESET" : "PANIC"));
+        latchButton_.setVisible(desktopPlayMode_);
+        sustainLabel_.setVisible(desktopPlayMode_);
+        midiLabel_.setVisible(desktopPlayMode_ || designModeV2Layout_);
+        routeLabel_.setVisible(desktopPlayMode_);
+        vocoderChip_->setVisible(!desktopPlayMode_ && !ipadPlayMode_);
+        lfoChip_->setVisible(!desktopPlayMode_ && !ipadPlayMode_);
+        motionChip_->setVisible(false);
+        morphEditorChip_->setVisible(false);
+        statusLabel_.setVisible(ipadPlayMode_);
+        voicesLabel_.setVisible(false);
+        cpuLabel_.setVisible(ipadPlayMode_ || designModeV2Layout_);
+        bpmLabel_.setVisible(ipadPlayMode_);
+        fxLoadLabel_.setVisible(designModeV2Layout_);
         resized();
     }
 
@@ -219,9 +412,29 @@ namespace pw8::plugin::ui
             return;
         }
 
+        if (ipadPlayMode_)
+        {
+            const bool sidechainActive = processor_.getSidechainActive();
+            statusLabel_.setText(sidechainActive ? "SIDECHAIN: ON" : "SIDECHAIN: OFF", juce::dontSendNotification);
+            cpuLabel_.setText(formatCpuPercent(metrics.cpuPercent), juce::dontSendNotification);
+            const float bpm = processor_.getHostBpm();
+            const juce::String playState = processor_.getHostIsPlaying() ? "PLAY" : "STOP";
+            bpmLabel_.setText(juce::String(bpm, 1) + " BPM · HOST · " + playState, juce::dontSendNotification);
+            repaint(cpuBarBounds_);
+            repaint();
+            return;
+        }
+
         if (desktopPlayMode_)
         {
-            sustainLabel_.setText("SUSTAIN", juce::dontSendNotification);
+            const bool latched = latchButton_.getToggleState();
+            latchButton_.setButtonText(latched ? "HOLD / LATCH [ON]" : "HOLD / LATCH [OFF]");
+
+            const bool sustainHeld = processor_.isSustainPedalHeld(0);
+            sustainLabel_.setText(sustainHeld ? "SUSTAIN [ON]" : "SUSTAIN", juce::dontSendNotification);
+            sustainLabel_.setColour(juce::Label::textColourId,
+                                    sustainHeld ? palette::kAccent : palette::kTextSecondary);
+
             midiLabel_.setText("MIDI IN [CH 1]", juce::dontSendNotification);
             routeLabel_.setText("MAIN OUT", juce::dontSendNotification);
             repaint();
@@ -238,6 +451,37 @@ namespace pw8::plugin::ui
         return false;
     }
 
+    void VstBottomBar::paintIpadFooterPills(juce::Graphics& g) const
+    {
+        static constexpr const char* kLabels[] = {"PLAY", "DESIGN", "VOC", "ARP", "LFO"};
+        g.setFont(fonts::label(layout::kIpadPlayLabelSize));
+
+        for (std::size_t i = 0; i < ipadFooterPillBounds_.size(); ++i)
+        {
+            const auto bounds = ipadFooterPillBounds_[i].toFloat();
+            if (bounds.isEmpty())
+                continue;
+
+            const bool active = static_cast<int>(activeIpadFooterPill_) == static_cast<int>(i);
+            g.setColour(active ? palette::kFigmaTeal.withAlpha(0.22f) : palette::kPanelRaised.withAlpha(0.95f));
+            g.fillRoundedRectangle(bounds, 19.0f);
+            g.setColour(active ? palette::kFigmaTeal.withAlpha(0.95f) : palette::kBorder.withAlpha(0.75f));
+            g.drawRoundedRectangle(bounds.reduced(0.5f), 19.0f, 1.0f);
+            g.setColour(active ? palette::kFigmaTextPrimary : palette::kTextSecondary);
+            g.drawText(kLabels[i], bounds, juce::Justification::centred, true);
+        }
+    }
+
+    std::optional<layout::IpadFooterPill> VstBottomBar::footerPillAt(juce::Point<int> point) const
+    {
+        for (std::size_t i = 0; i < ipadFooterPillBounds_.size(); ++i)
+        {
+            if (ipadFooterPillBounds_[i].contains(point))
+                return static_cast<layout::IpadFooterPill>(i);
+        }
+        return std::nullopt;
+    }
+
     void VstBottomBar::paintDesignModeModChips(juce::Graphics& g) const
     {
         static const struct
@@ -252,7 +496,7 @@ namespace pw8::plugin::ui
             {"ENV2", juce::Colour(0xffe0c17f), modulation::ModSource::Env2},
         };
 
-        g.setFont(fonts::label(7.0f));
+        g.setFont(fonts::micro(7.0f));
         for (std::size_t i = 0; i < modChipBounds_.size(); ++i)
         {
             const auto chip = modChipBounds_[i].toFloat();
@@ -272,6 +516,19 @@ namespace pw8::plugin::ui
 
     void VstBottomBar::paintOverChildren(juce::Graphics& g)
     {
+        if (ipadPlayMode_)
+            paintIpadFooterPills(g);
+
+        if (ipadPlayMode_ && !cpuBarBounds_.isEmpty())
+        {
+            g.setColour(juce::Colour(0xff0a0b0e));
+            g.fillRoundedRectangle(cpuBarBounds_.toFloat(), 3.0f);
+            auto fill = cpuBarBounds_.toFloat().reduced(1.0f);
+            fill.setWidth(fill.getWidth() * juce::jlimit(0.0f, 1.0f, cpuLoadPercent_ / 100.0f));
+            g.setColour(palette::kAccent.withAlpha(0.85f));
+            g.fillRoundedRectangle(fill, 2.0f);
+        }
+
         if (!designModeV2Layout_)
             return;
 
@@ -305,6 +562,18 @@ namespace pw8::plugin::ui
 
     void VstBottomBar::mouseDown(const juce::MouseEvent& event)
     {
+        if (ipadPlayMode_)
+        {
+            if (const auto pill = footerPillAt(event.getPosition()))
+            {
+                activeIpadFooterPill_ = *pill;
+                repaint();
+                if (onIpadFooterPillSelected)
+                    onIpadFooterPillSelected(*pill);
+                return;
+            }
+        }
+
         if (!designModeV2Layout_)
             return;
 
@@ -330,15 +599,18 @@ namespace pw8::plugin::ui
 
         if (designModeV2Layout_)
         {
-            g.setFont(fonts::label(8.0f));
-            g.setColour(palette::kTextDim);
-            const int padX = layout::kDesignModeV2StatusBarPaddingX;
-            const int y = static_cast<int>(bounds.getY()) + 15;
-            g.drawText("CPU", padX, y, 15, 10, juce::Justification::centredLeft, true);
-            g.drawText("FX", padX + 89, y, 10, 10, juce::Justification::centredLeft, true);
-            g.drawText("VOICES:", padX + 170, y, 34, 10, juce::Justification::centredLeft, true);
+        g.setFont(fonts::micro(8.0f));
+        g.setColour(palette::kTextDim);
+        const int padX = layout::kDesignModeV2StatusBarPaddingX;
+        const int y = static_cast<int>(bounds.getY()) + 15;
+        g.drawText("CPU", padX, y, 18, 10, juce::Justification::centredLeft, true);
+        g.drawText("FX", padX + 101, y, 14, 10, juce::Justification::centredLeft, true);
+        g.drawText("VOICES", padX + 191, y, 40, 10, juce::Justification::centredLeft, true);
             return;
         }
+
+        if (ipadPlayMode_)
+            return;
 
         if (!desktopPlayMode_)
             return;
@@ -347,17 +619,18 @@ namespace pw8::plugin::ui
         g.setColour(palette::kTextSecondary);
         const int padX = layout::kDesktopPlayModeBottomBarPaddingX;
         const int indicatorY = static_cast<int>(bounds.getY()) + 17;
-        g.drawText("ENGINES", padX, indicatorY + 9, 40, 12, juce::Justification::centredLeft, true);
+        g.drawText("ENGINES", padX, indicatorY + 9, 52, 12, juce::Justification::centredLeft, false);
 
         static constexpr const char* kEngineLabels[] = {"SIN", "SAW", "TRI", "SQR", "NOI", "PAD", "FMB", "ORG"};
+        const int indicatorWidth = layout::kDesktopPlayModeEngineIndicatorWidth;
         int x = padX + 56;
         for (int i = 0; i < 8; ++i)
         {
             const auto& op = processor_.getCurrentPatch().layerA.operators[static_cast<std::size_t>(i)];
             const bool active = op.mixEnabled && !op.mixMute;
 
-            const auto ledBox = juce::Rectangle<float>(static_cast<float>(x + 16), static_cast<float>(indicatorY),
-                                                       16.0f, 16.0f);
+            const float ledX = static_cast<float>(x + (indicatorWidth - 16) / 2);
+            const auto ledBox = juce::Rectangle<float>(ledX, static_cast<float>(indicatorY), 16.0f, 16.0f);
             g.setColour(palette::kPanelRaised.brighter(0.08f));
             g.fillRoundedRectangle(ledBox, 3.0f);
             if (active)
@@ -366,9 +639,9 @@ namespace pw8::plugin::ui
                 g.fillRoundedRectangle(ledBox.reduced(5.0f), 1.0f);
             }
             g.setColour(palette::kTextDim);
-            g.drawText(kEngineLabels[i], static_cast<float>(x + 16), static_cast<float>(indicatorY + 20), 15.0f, 10.0f,
-                       juce::Justification::centred, true);
-            x += layout::kDesktopPlayModeEngineIndicatorWidth + layout::kDesktopPlayModeEngineIndicatorGap;
+            g.drawText(kEngineLabels[i], static_cast<float>(x), static_cast<float>(indicatorY + 20),
+                       static_cast<float>(indicatorWidth), 10.0f, juce::Justification::centred, false);
+            x += indicatorWidth + layout::kDesktopPlayModeEngineIndicatorGap;
         }
     }
 
@@ -376,35 +649,116 @@ namespace pw8::plugin::ui
     {
         if (designModeV2Layout_)
         {
-            auto row = getLocalBounds().reduced(layout::kDesignModeV2StatusBarPaddingX, 11);
-            panicButton_.setBounds(row.removeFromRight(73).withHeight(18));
-            row.removeFromRight(16);
+            auto bounds = getLocalBounds().reduced(layout::kDesignModeV2StatusBarPaddingX, 11);
+            const int rowY = bounds.getY();
+            const int chipH = 18;
+            const int chipW = layout::kDesignStatusBarLabChipWidth;
+            const int chipGap = layout::kDesignStatusBarLabChipGap;
 
-            auto modRow = row.withSizeKeepingCentre(212, 14);
-            modRow = modRow.withX(row.getCentreX() - modRow.getWidth() / 2);
-            modSourcesLabel_.setBounds(modRow.removeFromLeft(64));
-            modRow.removeFromLeft(6);
+            // --- Left: CPU / FX / voices / MIDI (fixed columns) ---
+            int x = bounds.getX();
+            const int metricY = rowY + 4;
+
+            cpuBarBounds_ = {x + 21, metricY + 6, 40, 4};
+            cpuLabel_.setBounds(x + 63, metricY, 26, 10);
+            x += 89 + layout::kDesignStatusBarZoneGap;
+
+            fxLoadBarBounds_ = {x + 14, metricY + 6, 40, 4};
+            fxLoadLabel_.setBounds(x + 56, metricY, 26, 10);
+            x += 78 + layout::kDesignStatusBarZoneGap;
+
+            voicesLabel_.setBounds(x, metricY, 58, 10);
+            x += 58 + layout::kDesignStatusBarZoneGap;
+
+            midiLabel_.setBounds(x, metricY, 44, 10);
+            const int leftEnd = x + 44;
+
+            // --- Right: panic + secondary lab shortcuts ---
+            int rightX = bounds.getRight();
+            auto placeChip = [&](LabLauncherChip& chip) {
+                rightX -= chipW;
+                chip.setBounds(rightX, rowY, chipW, chipH);
+                rightX -= chipGap;
+            };
+
+            if (morphEditorChip_->isVisible())
+                placeChip(*morphEditorChip_);
+            if (lfoChip_->isVisible())
+                placeChip(*lfoChip_);
+            if (vocoderChip_->isVisible())
+                placeChip(*vocoderChip_);
+
+            rightX -= layout::kDesignStatusBarZoneGap;
+            rightX -= layout::kDesignStatusBarPanicWidth;
+            panicButton_.setBounds(rightX, rowY, layout::kDesignStatusBarPanicWidth, chipH);
+            const int rightStart = rightX;
+
+            // --- Center: mod-source quick chips (fills space between left metrics and right actions) ---
+            const int centerPad = 8;
+            const int centerX = leftEnd + centerPad;
+            const int centerW = juce::jmax(0, rightStart - centerPad - centerX);
+            auto modRow = juce::Rectangle<int>(centerX, rowY + 2, centerW, 14);
+            modSourcesLabel_.setBounds(modRow.removeFromLeft(juce::jmin(58, modRow.getWidth())));
+            if (modRow.getWidth() > 4)
+                modRow.removeFromLeft(4);
+
+            const int modChipW = juce::jmax(24, (modRow.getWidth() - 3 * 4) / 4);
             for (std::size_t i = 0; i < modChipBounds_.size(); ++i)
             {
-                modChipBounds_[i] = modRow.removeFromLeft(30).withHeight(14).withY(modRow.getY());
-                modRow.removeFromLeft(6);
+                if (modRow.getWidth() < modChipW)
+                {
+                    modChipBounds_[i] = {};
+                    continue;
+                }
+                modChipBounds_[i] = modRow.removeFromLeft(modChipW).withHeight(14);
+                if (i + 1 < modChipBounds_.size() && modRow.getWidth() > 4)
+                    modRow.removeFromLeft(4);
             }
+            return;
+        }
 
-            auto cpuCluster = row.removeFromLeft(89);
-            const int metricY = cpuCluster.getY() + 4;
-            cpuBarBounds_ = juce::Rectangle<int>(cpuCluster.getX() + 21, metricY + 6, 40, 4);
-            cpuLabel_.setBounds(cpuCluster.getX() + 67, metricY, 22, 10);
-            row.removeFromLeft(16);
+        if (murmurBasicViewMode_)
+        {
+            auto row = getLocalBounds().reduced(layout::kMurmurBasicViewOuterMargin, 10);
+            panicButton_.setBounds(row.removeFromRight(92).withSizeKeepingCentre(92, 20));
+            row.removeFromRight(12);
+            statusLabel_.setBounds(row.removeFromLeft(120).withHeight(12).withY(row.getY() + 4));
+            row.removeFromLeft(12);
+            voicesLabel_.setBounds(row.removeFromLeft(72).withHeight(12).withY(row.getY() + 4));
+            row.removeFromLeft(12);
+            cpuBarBounds_ = row.removeFromLeft(50).withSizeKeepingCentre(50, 6);
+            cpuLabel_.setBounds(row.removeFromLeft(28).withHeight(11).withY(cpuBarBounds_.getY() - 1));
+            return;
+        }
 
-            auto fxCluster = row.removeFromLeft(81);
-            const int fxMetricY = fxCluster.getY() + 4;
-            fxLoadBarBounds_ = juce::Rectangle<int>(fxCluster.getX() + 16, fxMetricY + 6, 40, 4);
-            fxLoadLabel_.setBounds(fxCluster.getX() + 59, fxMetricY, 22, 10);
-            row.removeFromLeft(16);
+        if (ipadPlayMode_)
+        {
+            auto row = getLocalBounds().reduced(layout::kDesktopPlayModeBottomBarPaddingX, 10);
+            panicButton_.setBounds(row.removeFromRight(92).withSizeKeepingCentre(92, 27));
+            row.removeFromRight(12);
 
-            voicesLabel_.setBounds(row.removeFromLeft(65).withHeight(10).withY(row.getY() + 4));
-            row.removeFromLeft(16);
-            midiLabel_.setBounds(row.removeFromLeft(40).withHeight(10).withY(row.getY() + 4));
+            auto leftCluster = row.removeFromLeft(280);
+            statusLabel_.setBounds(leftCluster.removeFromLeft(96).withSizeKeepingCentre(96, 23));
+            leftCluster.removeFromLeft(8);
+            bpmLabel_.setBounds(leftCluster.removeFromLeft(150).withHeight(14).withY(leftCluster.getY() + 4));
+            leftCluster.removeFromLeft(8);
+            cpuBarBounds_ = leftCluster.removeFromLeft(50).withSizeKeepingCentre(50, 6);
+            cpuLabel_.setBounds(leftCluster.removeFromLeft(24).withHeight(11).withY(cpuBarBounds_.getY() - 1));
+
+            const std::array<int, 5> pillWidths = {
+                layout::kIpadPlayFooterPillPlayWidth,   layout::kIpadPlayFooterPillDesignWidth,
+                layout::kIpadPlayFooterPillVocWidth,    layout::kIpadPlayFooterPillArpWidth,
+                layout::kIpadPlayFooterPillLfoWidth,
+            };
+            const int stripWidth = layout::kIpadPlayFooterPillStripWidth;
+            const int stripX = getLocalBounds().getCentreX() - stripWidth / 2;
+            const int stripY = getLocalBounds().getCentreY() - layout::kIpadPlayFooterPillHeight / 2;
+            int pillX = stripX;
+            for (std::size_t i = 0; i < pillWidths.size(); ++i)
+            {
+                ipadFooterPillBounds_[i] = {pillX, stripY, pillWidths[i], layout::kIpadPlayFooterPillHeight};
+                pillX += pillWidths[i] + layout::kIpadPlayFooterPillGap;
+            }
             return;
         }
 
@@ -436,6 +790,13 @@ namespace pw8::plugin::ui
         }
 
         const int chipW = layout::kLabChipWidth;
+        if (playBoardMode_)
+        {
+            motionChip_->setBounds(row.removeFromRight(chipW + 4).reduced(1));
+            row.removeFromRight(4);
+            quasarChip_->setBounds(row.removeFromRight(chipW + 4).reduced(1));
+            row.removeFromRight(4);
+        }
         lfoChip_->setBounds(row.removeFromRight(chipW + 4).reduced(1));
         row.removeFromRight(4);
         vocoderChip_->setBounds(row.removeFromRight(chipW + 8).reduced(1));

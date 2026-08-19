@@ -159,6 +159,7 @@ namespace pw8::plugin::ui
         const bool innerRole = ringRole == "inner";
         const auto knobStyle = slider.getProperties()["knobStyle"].toString();
         const bool deckedStyle = knobStyle == "decked";
+        const bool radialGlowStyle = knobStyle == "radialGlow";
 
         const auto bounds = juce::Rectangle<float>(static_cast<float>(x), static_cast<float>(y),
                                                      static_cast<float>(width), static_cast<float>(height))
@@ -173,6 +174,15 @@ namespace pw8::plugin::ui
         const float proportional = rotary::normalisedProportional(sliderPosProportional, slider);
         const float angle = rotary::proportionalToAngle(proportional, rotaryStartAngle, rotaryEndAngle);
         const auto accent = slider.findColour(juce::Slider::rotarySliderFillColourId);
+
+        if (radialGlowStyle)
+        {
+            const bool featuredKoin = slider.getProperties().getWithDefault("featuredKoin", false);
+            const juce::String valueText = slider.getTextFromValue(slider.getValue());
+            radialglow::drawSinglePerformanceKnob(g, knobBounds, proportional, rotaryStartAngle, rotaryEndAngle, accent,
+                                                  featuredKoin, valueText, slider.isMouseOverOrDragging());
+            return;
+        }
 
         if (deckedStyle)
         {

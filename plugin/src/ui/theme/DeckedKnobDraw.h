@@ -7,6 +7,7 @@
 #include "ObsidianDraw.h"
 #include "ObsidianPalette.h"
 #include "ObsidianRotary.h"
+#include "FigmaKnobTokens.h"
 #include "RadialGlowDraw.h"
 
 namespace pw8::plugin::ui::decked
@@ -55,34 +56,29 @@ namespace pw8::plugin::ui::decked
         Geometry geo;
         geo.radius = diameter * 0.5f;
 
+        geo.outerDeckRadius = geo.radius * figma::DualRingRatios::outer;
+        geo.middleDeckRadius = geo.radius * figma::DualRingRatios::middle;
+        geo.innerCapRadius = geo.radius * figma::DualRingRatios::cap;
+
         switch (size)
         {
             case Size::Large:
-                geo.outerDeckRadius = geo.radius * 0.96f;
-                geo.middleDeckRadius = geo.radius * 0.82f;
-                geo.innerCapRadius = geo.radius * 0.56f;
-                geo.trackThickness = juce::jmax(2.4f, geo.radius * 0.058f);
-                geo.drawLedRing = true;
+                geo.trackThickness = juce::jmax(1.8f, geo.radius * 0.038f);
+                geo.drawLedRing = diameter >= 120.0f;
                 geo.drawDropShadow = true;
                 geo.drawRimGlow = true;
                 break;
             case Size::Small:
-                geo.outerDeckRadius = geo.radius * 0.94f;
-                geo.middleDeckRadius = geo.radius * 0.78f;
-                geo.innerCapRadius = geo.radius * 0.52f;
-                geo.trackThickness = juce::jmax(1.6f, geo.radius * 0.062f);
+                geo.trackThickness = juce::jmax(1.4f, geo.radius * 0.042f);
                 break;
             default:
-                geo.outerDeckRadius = geo.radius * 0.95f;
-                geo.middleDeckRadius = geo.radius * 0.80f;
-                geo.innerCapRadius = geo.radius * 0.55f;
-                geo.trackThickness = juce::jmax(2.0f, geo.radius * 0.060f);
+                geo.trackThickness = juce::jmax(1.6f, geo.radius * 0.040f);
                 geo.drawDropShadow = diameter >= 44.0f;
                 geo.drawRimGlow = diameter >= 58.0f;
                 break;
         }
 
-        geo.valueArcRadius = geo.middleDeckRadius * 0.94f;
+        geo.valueArcRadius = geo.middleDeckRadius;
         return geo;
     }
 
@@ -261,7 +257,7 @@ namespace pw8::plugin::ui::decked
     }
 
     constexpr float kDualKnobInnerInset = 22.0f;
-    constexpr float kDualOuterArcStroke = 6.0f;
+    constexpr float kDualOuterArcStroke = figma::HeroStrokeAt180::dualOuter;
 
     /// Outer ring of a stacked dual knob: hollow track + structural accent value arc (Figma UX-09).
     inline void drawDualOuterRotarySlider(juce::Graphics& g, juce::Rectangle<float> knobBounds, float proportional,
@@ -274,11 +270,11 @@ namespace pw8::plugin::ui::decked
         const float angle = rotary::proportionalToAngle(proportional, rotaryStartAngle, rotaryEndAngle);
 
         if (dimAlpha >= 0.99f)
-            radialglow::drawBackgroundHalo(g, layout.centre, layout.outerRingRadius, juce::Colour(0xff00ffd2));
+            radialglow::drawBackgroundHalo(g, layout.centre, layout.outerRingRadius, figma::kKoinRingOuter);
         radialglow::strokeDimTrackArc(g, layout.centre, layout.outerRingRadius, layout.outerStroke, rotaryStartAngle,
                                        rotaryEndAngle, palette::kBorder, dimAlpha);
         radialglow::strokeGlowValueArc(g, layout.centre, layout.outerRingRadius, layout.outerStroke, rotaryStartAngle,
-                                       angle, juce::Colour(0xff00ffd2), dimAlpha);
+                                       angle, figma::kKoinRingOuter, dimAlpha);
     }
 
     /// Inner ring of a stacked dual knob: second glow arc (Figma UX-09), not a filled cap.
@@ -290,7 +286,7 @@ namespace pw8::plugin::ui::decked
         const float diameter = juce::jmax(16.0f, juce::jmin(knobBounds.getWidth(), knobBounds.getHeight()));
         const auto layout = radialglow::computeLayout(knobBounds.withSizeKeepingCentre(diameter, diameter));
         const float angle = rotary::proportionalToAngle(proportional, rotaryStartAngle, rotaryEndAngle);
-        const juce::Colour ringColour = accent.isTransparent() ? juce::Colour(0xff9f80ff) : accent;
+        const juce::Colour ringColour = accent.isTransparent() ? figma::kKoinRingMiddle : accent;
 
         radialglow::strokeDimTrackArc(g, layout.centre, layout.middleRingRadius, layout.middleStroke,
                                        rotaryStartAngle, rotaryEndAngle, palette::kBorder, dimAlpha);

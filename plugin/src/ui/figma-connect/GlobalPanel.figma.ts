@@ -1,4 +1,4 @@
-// url=https://www.figma.com/design/pi5kUNcZWQGhqfRAVu3voh/MURMUR-Obsidian?node-id=9-96
+// url=https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/MURMUR-Obsidian?node-id=9-96
 // source=plugin/src/ui/components/GlobalPanel.h
 // component=GlobalPanel
 import figma from 'figma'

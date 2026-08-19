@@ -64,6 +64,14 @@ namespace pw8::plugin::ui
             "VOCODER", "VOC",
             {{{"VocoderBandCount", "Bands"}, {"VocoderFormant", "Formant"}, {"VocoderReleaseMs", "Release"},
               {"VocoderScGainDb", "SC Gain"}}}};
+        static constexpr FxTypePlaySpec kClouds{
+            "CLOUDS", "CLD",
+            {{{"CloudsDensity", "Density"}, {"CloudsGrainSizeMs", "Grain"}, {"CloudsPitch", "Pitch"},
+              {"CloudsFreeze", "Freeze"}}}};
+        static constexpr FxTypePlaySpec kQuasar{
+            "QUASAR", "QSR",
+            {{{"Qsr1Level", "QSR1"}, {"Qsr1AngleDeg", "Azimuth"}, {"Qsr1Distance", "Distance"},
+              {"CntrLevel", "Center"}}}};
 
         switch (typeOrdinal)
         {
@@ -78,6 +86,8 @@ namespace pw8::plugin::ui
             case 9: return kCompressor;
             case 10: return kLimiter;
             case 11: return kVocoder;
+            case 12: return kClouds;
+            case 13: return kQuasar;
             default: return kBypass;
         }
     }
@@ -113,6 +123,8 @@ namespace pw8::plugin::ui
             case 9: return "COMP";
             case 10: return "LIMIT";
             case 11: return "VOCODER";
+            case 12: return "CLOUDS";
+            case 13: return "QUASAR";
             default: return "OFF";
         }
     }

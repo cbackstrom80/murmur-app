@@ -1548,6 +1548,27 @@ TEST_CASE("Vocoder mix=0 passes carrier dry", "[effects][vocoder]")
     REQUIRE(outR == Catch::Approx(-0.33f));
 }
 
+TEST_CASE("EffectChain BinauralSpace slot processes stereo input", "[effects][chain][quasar]")
+{
+    EffectChain<1> chain;
+    chain.prepare(kSampleRate);
+
+    std::array<EffectSlotParams, 1> params{};
+    params[0].type = EffectType::BinauralSpace;
+    params[0].mix = 1.0f;
+    params[0].qsr1Level = 1.0f;
+    params[0].qsr2Level = 1.0f;
+    params[0].cntrLevel = 0.0f;
+    params[0].qsr1AngleDeg = 60.0f;
+    params[0].qsr2AngleDeg = 300.0f;
+    params[0].quasarDelayVolume = 0.0f;
+
+    float outL = 0.0f, outR = 0.0f;
+    chain.process(params, outL, outR, 0.0f, 0.0f, false);
+    REQUIRE(std::isfinite(outL));
+    REQUIRE(std::isfinite(outR));
+}
+
 TEST_CASE("EffectChain vocoder applies distinct vocoderScGainDb values", "[effects][chain][vocoder]")
 {
     EffectChain<1> chain;

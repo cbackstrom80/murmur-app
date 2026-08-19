@@ -28,6 +28,7 @@ FetchContent_MakeAvailable(JUCE)
 juce_add_binary_data(pw8_branding_data
     SOURCES
         resources/branding/murmur_mark_512.png
+        resources/branding/murmur_logo_lockup.png
         resources/fx-glyphs/fx_bypass.svg
         resources/fx-glyphs/fx_sat.svg
         resources/fx-glyphs/fx_chr.svg
@@ -40,6 +41,10 @@ juce_add_binary_data(pw8_branding_data
         resources/fx-glyphs/fx_comp.svg
         resources/fx-glyphs/fx_lim.svg
         resources/fx-glyphs/fx_voc.svg
+        resources/fx_atlases/chorus_atlas.png
+        resources/fx_atlases/tape_atlas.png
+        resources/fx_atlases/reverb_atlas.png
+        resources/fx_atlases/clouds_atlas.png
 )
 
 juce_add_plugin(pw8_plugin
@@ -74,10 +79,10 @@ target_sources(pw8_plugin PRIVATE
     src/content/PresetIndex.cpp
     src/content/WavetableIndex.cpp
     src/content/FavoritesStore.cpp
+    src/content/PresetRatingsStore.cpp
     src/ui/MurmurRootEditor.cpp
     src/ui/DesignModeEditor.cpp
     src/ui/PlayModeEditor.cpp
-    src/ui/DesignModeEditor.cpp
     src/ui/theme/ObsidianLookAndFeel.cpp
     src/ui/theme/DualKnobLookAndFeel.cpp
     src/ui/theme/BrandingAssets.cpp
@@ -100,19 +105,25 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/EngineWaveformSelector.cpp
     src/ui/components/EngineAdsrMini.cpp
     src/ui/components/EngineGridPanel.cpp
-    src/ui/components/DesignModeHeaderBar.cpp
     src/ui/components/MurmurChromeBar.cpp
     src/ui/components/DashboardStrip.cpp
     src/ui/components/DesignFxPanel.cpp
+    src/ui/components/DesignFxCardBrowser.cpp
     src/ui/components/DesignFxUiState.cpp
     src/ui/components/DesignFxPresetLibrary.cpp
-    src/ui/components/DesignFxStubKnob.cpp
     src/ui/components/DesignFxSignalChain.cpp
     src/ui/components/DesignModMatrixPanel.cpp
     src/ui/components/VstBottomBar.cpp
     src/ui/components/VstTopBar.cpp
     src/ui/components/VocoderLabPanel.cpp
     src/ui/components/DualLfoLabPanel.cpp
+    src/ui/components/DesignMorphEditorPanel.cpp
+    src/ui/components/DesignFilterLabPanel.cpp
+    src/ui/components/DesignDynamicsLabPanel.cpp
+    src/ui/components/DesignGenerativeLabPanel.cpp
+    src/ui/components/DesignUtilityPeaksPanel.cpp
+    src/ui/components/DesignEnvelopeSegmentsPanel.cpp
+    src/ui/components/MorphTimelineStrip.cpp
     src/ui/components/EngineDetailOverlay.cpp
     src/ui/components/LiveTopologyStrip.cpp
     src/ui/components/TopologyGraphOverlay.cpp
@@ -136,11 +147,30 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/ModRoutingUi.cpp
     src/ui/components/ModSourcePalette.cpp
     src/ui/components/PatchFocusPanel.cpp
+    src/ui/components/MasterEnvelopePanel.cpp
+    src/ui/components/MasterMotionLabPanel.cpp
+    src/ui/components/MasterQuasarPanel.cpp
+    src/ui/components/quasar/QuasarBinauralFieldView.cpp
+    src/ui/components/quasar/QuasarChainHeader.cpp
+    src/ui/components/quasar/QuasarEngineCard.cpp
+    src/ui/components/quasar/QuasarPrimaryKnobRow.cpp
+    src/ui/components/quasar/QuasarSegmentedMeter.cpp
+    src/ui/components/quasar/QuasarSpatialCard.cpp
+    src/ui/components/quasar/QuasarTelemetryBar.cpp
+    src/ui/components/IpadPlayMasterStrip.cpp
+    src/ui/components/BasicPerformanceSidebar.cpp
     src/ui/components/MasterOutputDeck.cpp
     src/ui/components/ModLauncherPanel.cpp
     src/ui/components/ModRoutingOverlay.cpp
     src/ui/components/ModSourceStrip.cpp
     src/ui/components/OscilloscopeView.cpp
+    src/ui/visualizer/MurmurVisualizerComponent.cpp
+    src/ui/visualizer/SharedGlVisualizerRoot.cpp
+    src/ui/visualizer/VisualPreviewCache.cpp
+    src/ui/visualizer/FxCpuPreview.cpp
+    src/ui/visualizer/PreviewSurface.cpp
+    src/ui/visualizer/FxAnimationAtlas.cpp
+    src/ui/visualizer/FxEmbeddedAtlases.cpp
     src/ui/components/FilterPanelScopeView.cpp
     src/ui/components/ArpStepStrip.cpp
     src/ui/components/ArpLauncherChip.cpp
@@ -158,7 +188,9 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/wireframe/FxChainFlowView.cpp
     src/ui/components/wireframe/LfoWireframeView.cpp
     src/ui/components/wireframe/FilterWireframeView.cpp
+    src/ui/components/wireframe/FilterRoutingWireframeView.cpp
     src/ui/components/wireframe/ModRoutingWireframeView.cpp
+    src/standalone/StandaloneMcpBridge.cpp
 )
 
 target_include_directories(pw8_plugin PRIVATE src)
@@ -169,6 +201,7 @@ target_link_libraries(pw8_plugin
         pw8_branding_data
         juce::juce_audio_utils
         juce::juce_dsp
+        juce::juce_opengl
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags

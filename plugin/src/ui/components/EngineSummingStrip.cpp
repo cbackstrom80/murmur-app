@@ -1,6 +1,7 @@
 #include "EngineSummingStrip.h"
 
 #include "../theme/BrandingAssets.h"
+#include "../theme/FigmaKnobTokens.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "pw8/algorithm/AlgorithmTypes.hpp"
@@ -66,7 +67,9 @@ namespace pw8::plugin::ui
         panel_.addAndMakeVisible(helpLabel_);
 
         layerGainKnob_ = std::make_unique<GlowKnob>(processor_.apvts, kLayerGainId, "Layer");
+        layerGainKnob_->applyFigmaContext(figma::KnobContext::PanelGridMedium);
         masterGainKnob_ = std::make_unique<GlowKnob>(processor_.apvts, kMasterGainId, "Master", nullptr, palette::kAccentWarm);
+        masterGainKnob_->applyFigmaContext(figma::KnobContext::ChromeMaster);
         panel_.addAndMakeVisible(*layerGainKnob_);
         panel_.addAndMakeVisible(*masterGainKnob_);
 

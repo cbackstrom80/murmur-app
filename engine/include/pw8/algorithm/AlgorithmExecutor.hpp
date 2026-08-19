@@ -102,7 +102,8 @@ namespace pw8::algorithm
                                            std::pow(2.0f, operatorFilterCutoffSemitones[i] / 12.0f);
                     const float resonance =
                         dsp::clamp(operatorFilterParams[i].resonance + operatorFilterResonanceOffset[i], 0.0f, 1.0f);
-                    shaped = operatorFilters[i].renderSample(shaped, operatorFilterParams[i].mode, cutoffHz, resonance);
+                    shaped = operatorFilters[i].renderSample(shaped, operatorFilterParams[i].mode,
+                                                             operatorFilterParams[i].modeMorph, cutoffHz, resonance);
                 }
 
                 const float finalOut = dsp::clamp(dsp::flushIfNotFinite(shaped + audioAcc[i]), -16.0f, 16.0f);

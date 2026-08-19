@@ -6,6 +6,7 @@
 #include "../PerformanceMetricsUi.h"
 #include "../PlayModeLayout.h"
 #include "../theme/DeckedKnobDraw.h"
+#include "../theme/FigmaKnobTokens.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
 #include "../theme/ObsidianRotary.h"
@@ -77,8 +78,10 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    WavetableLabPanel::WavetableLabPanel(PatchworkEightProcessor& processor)
+    WavetableLabPanel::WavetableLabPanel(PatchworkEightProcessor& processor,
+                                         ModAssignmentController& assignmentController)
         : processor_(processor),
+          assignmentController_(assignmentController),
           apvts_(processor.apvts),
           meshPanel_("3D SPECTRUM PREVIEW"),
           morphPanel_("MORPH CONTROLS"),
@@ -221,21 +224,42 @@ namespace pw8::plugin::ui
             return juce::String(juce::jmax(1, juce::roundToInt(voices))) + " V";
         };
 
-        unisonKnobs_[0] = std::make_unique<GlowKnob>(apvts_, kUnisonVoicesId, "VOICES", voicesLabel, palette::kAccentWarm);
-        unisonKnobs_[1] = std::make_unique<GlowKnob>(apvts_, kUnisonDetuneId, "DETUNE", detuneLabel, palette::kAccentWarm);
-        unisonKnobs_[2] = std::make_unique<GlowKnob>(apvts_, kUnisonSpreadId, "WIDTH", spreadLabel, palette::kAccentWarm);
-        for (auto& knob : unisonKnobs_)
-        {
-            if (knob == nullptr)
-                continue;
-            knob->setDeckedStyle(true, GlowKnob::DeckedKnobSize::Small);
-            knob->setMaxDialDiameter(26);
-            oscConfigPanel_.addAndMakeVisible(*knob);
-        }
+        unisonKnob_ = std::make_unique<TripleGlowKnob>(apvts_, kUnisonVoicesId, kUnisonDetuneId, kUnisonSpreadId,
+                                                       "VOICES", "DETUNE", "WIDTH", voicesLabel, detuneLabel,
+                                                       spreadLabel);
+        unisonKnob_->applyFigmaContext(figma::KnobContext::WavetableUnison);
+        oscConfigPanel_.addAndMakeVisible(*unisonKnob_);
 
         bindEngine(0);
+        wireModTargets();
         refreshMorphTypeButtons();
         startTimerHz(8);
+    }
+
+    void WavetableLabPanel::wireModTargets()
+    {
+        const auto targetIndex = static_cast<std::uint8_t>(engineIndex_);
+        if (unisonKnob_ != nullptr)
+        {
+            unisonKnob_->enableOuterModulationTarget(processor_, modulation::ModDestination::UnisonVoices);
+            unisonKnob_->enableMiddleModulationTarget(processor_, modulation::ModDestination::UnisonDetune);
+            unisonKnob_->enableInnerModulationTarget(processor_, modulation::ModDestination::UnisonSpread);
+            unisonKnob_->setModAssignmentController(&assignmentController_);
+        }
+        if (pitchKnob_ != nullptr)
+        {
+            pitchKnob_->enableInnerModulationTarget(processor_, modulation::ModDestination::OperatorPhaseBend,
+                                                      targetIndex);
+            pitchKnob_->enableOuterModulationTarget(processor_, modulation::ModDestination::OperatorFreqRatio,
+                                                    targetIndex);
+            pitchKnob_->setModAssignmentController(&assignmentController_);
+        }
+        if (wtPosKnob_ != nullptr)
+        {
+            wtPosKnob_->enableModulationTarget(processor_, modulation::ModDestination::OperatorWavetablePosition,
+                                                 targetIndex);
+            wtPosKnob_->setModAssignmentController(&assignmentController_);
+        }
     }
 
     WavetableLabPanel::~WavetableLabPanel() { stopTimer(); }
@@ -270,27 +294,18 @@ namespace pw8::plugin::ui
                                  juce::dontSendNotification);
 
         wtPosKnob_.reset();
-        phaseBendKnob_.reset();
-        leftCoarseKnob_.reset();
-        leftFineKnob_.reset();
+        pitchKnob_.reset();
 
         wtPosKnob_ = std::make_unique<GlowKnob>(apvts_, operatorParamId(op, "WavetablePos"), "POSITION");
-        phaseBendKnob_ = std::make_unique<GlowKnob>(apvts_, operatorParamId(op, "PhaseBend"), "PHASE");
-        leftCoarseKnob_ = std::make_unique<GlowKnob>(apvts_, operatorParamId(op, "FreqRatio"), "COARSE",
-                                                    ratioToSemitonesText);
-        leftFineKnob_ = std::make_unique<GlowKnob>(apvts_, operatorParamId(op, "PhaseBend"), "FINE", phaseBendToCentsText);
-        for (auto* knob : {wtPosKnob_.get(), phaseBendKnob_.get()})
-        {
-            knob->setMaxDialDiameter(58);
-            morphPanel_.addAndMakeVisible(*knob);
-        }
-        for (auto* knob : {leftCoarseKnob_.get(), leftFineKnob_.get()})
-        {
-            knob->setMaxDialDiameter(28);
-            knob->setDeckedStyle(true, GlowKnob::DeckedKnobSize::Small);
-            oscConfigPanel_.addAndMakeVisible(*knob);
-        }
+        pitchKnob_ = std::make_unique<ConcentricGlowKnob>(apvts_, operatorParamId(op, "PhaseBend"),
+                                                          operatorParamId(op, "FreqRatio"), "FINE", "COARSE",
+                                                          phaseBendToCentsText, ratioToSemitonesText);
+        wtPosKnob_->applyFigmaContext(figma::KnobContext::PanelGridMedium);
+        morphPanel_.addAndMakeVisible(*wtPosKnob_);
+        pitchKnob_->applyFigmaContext(figma::KnobContext::WavetableTuning);
+        oscConfigPanel_.addAndMakeVisible(*pitchKnob_);
 
+        wireModTargets();
         refreshWaveformButtons();
         refreshMorphTypeButtons();
         refreshHarmonicHeights();
@@ -575,22 +590,15 @@ namespace pw8::plugin::ui
         auto tuningCard = content.removeFromTop(88);
         tuningCard = tuningCard.reduced(0, 2);
         auto tuningKnobs = tuningCard.removeFromBottom(56);
-        if (leftCoarseKnob_ != nullptr)
-        {
-            leftCoarseKnob_->setBounds(tuningKnobs.removeFromLeft(tuningKnobs.getWidth() / 2).reduced(6, 0));
-            leftFineKnob_->setBounds(tuningKnobs.reduced(6, 0));
-        }
+        if (pitchKnob_ != nullptr)
+            pitchKnob_->setBounds(tuningKnobs.reduced(6, 0));
 
         content.removeFromTop(8);
         auto unisonCard = content;
         auto unisonKnobs = unisonCard.removeFromTop(72);
-        const int uniW = unisonKnobs.getWidth() / 3;
-        for (int i = 0; i < 3; ++i)
-        {
-            unisonKnobBounds_[static_cast<std::size_t>(i)] = unisonKnobs.removeFromLeft(uniW).reduced(4, 0);
-            if (unisonKnobs_[static_cast<std::size_t>(i)] != nullptr)
-                unisonKnobs_[static_cast<std::size_t>(i)]->setBounds(unisonKnobBounds_[static_cast<std::size_t>(i)]);
-        }
+        unisonKnobBounds_ = unisonKnobs.reduced(4, 0);
+        if (unisonKnob_ != nullptr)
+            unisonKnob_->setBounds(unisonKnobBounds_);
 
         phaseDispersionBounds_ = unisonCard.removeFromTop(22).reduced(0, 2);
         phaseDispersionLabel_.setBounds(phaseDispersionBounds_.removeFromLeft(phaseDispersionBounds_.getWidth() - 28));

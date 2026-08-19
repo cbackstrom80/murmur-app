@@ -1,4 +1,4 @@
-// url=https://www.figma.com/design/pi5kUNcZWQGhqfRAVu3voh/MURMUR-Obsidian?node-id=10-126
+// url=https://www.figma.com/design/PFt0LG6XmOiZWcSoUXIWIg/MURMUR-Obsidian?node-id=10-126
 // source=plugin/src/ui/components/TopologyGraphOverlay.h
 // component=TopologyGraphOverlay
 import figma from 'figma'

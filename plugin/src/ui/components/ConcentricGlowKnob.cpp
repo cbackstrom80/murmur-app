@@ -1,4 +1,5 @@
 #include "ConcentricGlowKnob.h"
+#include "../ModPreview.hpp"
 #include "../theme/RadialGlowDraw.h"
 
 #include "../theme/DeckedKnobDraw.h"
@@ -30,6 +31,8 @@ namespace pw8::plugin::ui
                                            const juce::String& outerLabel,
                                            std::function<juce::String(float)> innerValueToText,
                                            std::function<juce::String(float)> outerValueToText)
+        : innerParamId_(innerParamId),
+          outerParamId_(outerParamId)
     {
         configureSlider(outerSlider_);
         configureSlider(innerSlider_);
@@ -41,7 +44,7 @@ namespace pw8::plugin::ui
 
         outerSlider_.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
         innerSlider_.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-        innerSlider_.setColour(juce::Slider::rotarySliderFillColourId, juce::Colour(0xff9f80ff));
+        innerSlider_.setColour(juce::Slider::rotarySliderFillColourId, figma::kKoinRingOuter);
 
         outerSlider_.getProperties().set("ringChannel", 0);
         innerSlider_.getProperties().set("ringChannel", 1);
@@ -147,6 +150,27 @@ namespace pw8::plugin::ui
         resized();
     }
 
+    void ConcentricGlowKnob::applyFigmaContext(figma::KnobContext context)
+    {
+        setMaxDialDiameter(figma::specFor(context).diameter);
+    }
+
+    void ConcentricGlowKnob::setDesignCardCompactLayout(bool enabled)
+    {
+        if (designCardCompactLayout_ == enabled)
+            return;
+
+        designCardCompactLayout_ = enabled;
+        resized();
+        repaint();
+    }
+
+    void ConcentricGlowKnob::setExpandedReadout(bool expanded)
+    {
+        expandedReadout_ = expanded;
+        repaint();
+    }
+
     ConcentricGlowKnob::ModRingState& ConcentricGlowKnob::modStateForEvent(const juce::MouseEvent& event)
     {
         if (event.eventComponent == &outerSlider_ || outerSlider_.isParentOf(event.eventComponent))
@@ -176,11 +200,13 @@ namespace pw8::plugin::ui
         return localPos.toFloat().getDistanceFrom(outerCentre) >= (innerRadius + outerRadius) * 0.5f;
     }
 
-    void ConcentricGlowKnob::refreshModRingState(ModRingState& state)
+    void ConcentricGlowKnob::refreshModRingState(ModRingState& state, const juce::String& paramId,
+                                                 const juce::Slider& slider)
     {
         juce::Colour next = juce::Colours::transparentBlack;
         auto nextSource = modulation::ModSource::None;
         float nextAmountNorm = 0.0f;
+        float nextLiveMod = -1.0f;
         if (modProcessor_ != nullptr && state.destination != modulation::ModDestination::None)
         {
             for (const auto& route : modProcessor_->getCurrentPatch().layerA.modRoutes)
@@ -196,20 +222,36 @@ namespace pw8::plugin::ui
                     break;
                 }
             }
+
+            if (modProcessor_->hasModRouteTo(state.destination, state.targetIndex))
+            {
+                const auto sources = modProcessor_->buildModPreviewSources(modProcessor_->getHostBpm());
+                const auto modOut =
+                    modulation::ModMatrixExecutor::apply(modProcessor_->getCurrentPatch().layerA.modRoutes, sources);
+                const float offset =
+                    modOffsetForDestination(modOut, state.destination, state.targetIndex);
+                if (auto* param = modProcessor_->apvts.getParameter(paramId))
+                {
+                    const float base = static_cast<float>(slider.getValue());
+                    nextLiveMod = normalizedModulatedValue(param, base, state.destination, offset);
+                }
+            }
         }
-        if (next != state.colour || nextAmountNorm != state.amountNormalized || nextSource != state.source)
+        if (next != state.colour || nextAmountNorm != state.amountNormalized || nextSource != state.source ||
+            nextLiveMod != state.liveModNormalized)
         {
             state.colour = next;
             state.source = nextSource;
             state.amountNormalized = nextAmountNorm;
+            state.liveModNormalized = nextLiveMod;
             repaint();
         }
     }
 
     void ConcentricGlowKnob::timerCallback()
     {
-        refreshModRingState(innerMod_);
-        refreshModRingState(outerMod_);
+        refreshModRingState(innerMod_, innerParamId_, innerSlider_);
+        refreshModRingState(outerMod_, outerParamId_, outerSlider_);
     }
 
     void ConcentricGlowKnob::handleModMouseDown(const juce::MouseEvent& event, ModRingState& state)
@@ -266,7 +308,8 @@ namespace pw8::plugin::ui
                 break;
             }
         }
-        refreshModRingState(state);
+        refreshModRingState(state, &state == &outerMod_ ? outerParamId_ : innerParamId_,
+                            &state == &outerMod_ ? outerSlider_ : innerSlider_);
     }
 
     void ConcentricGlowKnob::mouseDown(const juce::MouseEvent& event)
@@ -314,6 +357,12 @@ namespace pw8::plugin::ui
         outerMod_.depthDragActive = false;
     }
 
+    void ConcentricGlowKnob::mouseDoubleClick(const juce::MouseEvent& event)
+    {
+        juce::ignoreUnused(event);
+        setExpandedReadout(!expandedReadout_);
+    }
+
     bool ConcentricGlowKnob::isInterestedInDragSource(const SourceDetails& details)
     {
         return (innerMod_.destination != modulation::ModDestination::None ||
@@ -356,15 +405,40 @@ namespace pw8::plugin::ui
 
     void ConcentricGlowKnob::resized()
     {
-        auto bounds = getLocalBounds().reduced(4);
-        outerLabel_.setBounds(bounds.removeFromTop(kOuterLabelHeight));
-        bounds.removeFromTop(1);
-        innerLabel_.setBounds(bounds.removeFromBottom(kInnerLabelHeight));
+        const bool compactCardLayout = designCardCompactLayout_ || getHeight() <= 32;
+        auto bounds = getLocalBounds().reduced(compactCardLayout ? 1 : 4);
 
-        const int outerDiameter =
-            juce::jmin(maxDialDiameter_, bounds.getWidth(), juce::jmax(32, bounds.getHeight()));
+        if (compactCardLayout)
+        {
+            outerLabel_.setVisible(false);
+            innerLabel_.setVisible(false);
+        }
+        else
+        {
+            outerLabel_.setVisible(true);
+            innerLabel_.setVisible(true);
+            outerLabel_.setBounds(bounds.removeFromTop(kOuterLabelHeight));
+            bounds.removeFromTop(1);
+            innerLabel_.setBounds(bounds.removeFromBottom(kInnerLabelHeight));
+        }
+
+        const int minDial = compactCardLayout ? 20 : 32;
+        int outerDiameter =
+            juce::jmin(maxDialDiameter_, bounds.getWidth(), juce::jmax(minDial, bounds.getHeight()));
+
+        if (designCardCompactLayout_)
+        {
+            outerDiameter = juce::jmin(maxDialDiameter_, bounds.getWidth(), bounds.getHeight() - 10);
+            const int innerDiameter =
+                juce::jmax(16, outerDiameter - static_cast<int>(decked::kDualKnobInnerInset * 2.0f));
+            auto dialColumn = bounds.removeFromTop(outerDiameter);
+            outerSlider_.setBounds(dialColumn.withSizeKeepingCentre(bounds.getWidth(), outerDiameter));
+            innerSlider_.setBounds(dialColumn.withSizeKeepingCentre(bounds.getWidth(), innerDiameter));
+            return;
+        }
+
         const int innerDiameter =
-            juce::jmax(24, outerDiameter - static_cast<int>(decked::kDualKnobInnerInset * 2.0f));
+            juce::jmax(compactCardLayout ? 16 : 24, outerDiameter - static_cast<int>(decked::kDualKnobInnerInset * 2.0f));
 
         const auto dialColumn = bounds.withSizeKeepingCentre(bounds.getWidth(), outerDiameter);
         outerSlider_.setBounds(dialColumn.withHeight(outerDiameter));
@@ -401,6 +475,12 @@ namespace pw8::plugin::ui
         if (!state.colour.isTransparent())
             knobrings::strokeModRouteArc(g, ringLayout, state.amountNormalized, state.colour,
                                          outerOrbit ? 1.15f : 1.0f);
+
+        if (state.liveModNormalized >= 0.0f)
+        {
+            const auto ghostAccent = state.colour.isTransparent() ? palette::kAccent : state.colour;
+            knobrings::drawLiveModGhost(g, ringLayout, state.liveModNormalized, ghostAccent);
+        }
     }
 
     void ConcentricGlowKnob::paintOverChildren(juce::Graphics& g)
@@ -413,8 +493,8 @@ namespace pw8::plugin::ui
         const float innerDiameter = juce::jmax(16.0f, juce::jmin(innerBounds.getWidth(), innerBounds.getHeight()));
         const float innerOrbitRadius = innerDiameter * 0.42f;
 
-        paintModRing(g, outerMod_, outerOrbitRadius, true);
-        paintModRing(g, innerMod_, innerOrbitRadius, false);
+        paintModRing(g, outerMod_, 0.0f, true);
+        paintModRing(g, innerMod_, 0.0f, false);
 
         const auto drawDepth = [&](const ModRingState& state) {
             if (!state.showDepthPopover || state.depthPopoverArea_.isEmpty())
@@ -433,6 +513,17 @@ namespace pw8::plugin::ui
         drawDepth(innerMod_);
         drawDepth(outerMod_);
 
+        if (designCardCompactLayout_)
+        {
+            auto labelRow = getLocalBounds().removeFromBottom(8);
+            g.setFont(fonts::micro(7.0f));
+            g.setColour(palette::kFigmaTextDim);
+            g.drawText(outerLabel_.getText(), labelRow.removeFromLeft(labelRow.getWidth() / 2),
+                       juce::Justification::centred);
+            g.drawText(innerLabel_.getText(), labelRow, juce::Justification::centred);
+            return;
+        }
+
         const auto dialBounds = outerSlider_.getBounds().toFloat();
         const auto layout = radialglow::computeLayout(dialBounds);
         const bool outerFocused = focusedChannel_ == 0;
@@ -440,8 +531,19 @@ namespace pw8::plugin::ui
         const juce::String value =
             outerFocused ? outerSlider_.getTextFromValue(outerSlider_.getValue())
                          : innerSlider_.getTextFromValue(innerSlider_.getValue());
-        const juce::Colour accent = outerFocused ? juce::Colour(0xff00ffd2) : innerSlider_.findColour(juce::Slider::rotarySliderFillColourId);
-        radialglow::drawCenterReadout(g, layout, title, value, accent);
+        const juce::Colour outerColour = figma::kKoinRingOuter;
+        const juce::Colour innerColour = innerSlider_.findColour(juce::Slider::rotarySliderFillColourId);
+        const juce::Colour accent = outerFocused ? outerColour : innerColour;
+
+        if (expandedReadout_)
+        {
+            radialglow::drawStackedCenterReadout(
+                g, layout, outerSlider_.getTextFromValue(outerSlider_.getValue()),
+                innerSlider_.getTextFromValue(innerSlider_.getValue()), juce::String(), outerColour, innerColour,
+                juce::Colours::transparentBlack);
+        }
+        else
+            radialglow::drawCenterReadout(g, layout, title, value, accent);
     }
 
 } // namespace pw8::plugin::ui

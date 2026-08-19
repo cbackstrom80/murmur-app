@@ -1,5 +1,7 @@
 #include "MurmurRootEditor.h"
 
+#include <algorithm>
+
 #include "PlayModeLayout.h"
 #include "theme/BrandingAssets.h"
 #include "theme/ObsidianPalette.h"
@@ -25,13 +27,13 @@ namespace pw8::plugin::ui
         : juce::AudioProcessorEditor(&processor),
           patchBrowserBar_(processor),
           murmurChromeBar_(processor),
-          presetBrowserOverlay_(processor, patchBrowserBar_.getPresetIndex(), favoritesStore_),
+          presetBrowserOverlay_(processor, patchBrowserBar_.getPresetIndex(), favoritesStore_, ratingsStore_),
           playModeEditor_(processor, chrome_),
           designModeEditor_(processor, chrome_)
     {
         setLookAndFeel(&lookAndFeel_);
 
-        aspectConstrainer_.setFixedAspectRatio(layout::kAspectRatio);
+        aspectConstrainer_.setFixedAspectRatio(0.0);
         aspectConstrainer_.setMinimumSize(layout::kMinWidth, layout::kMinHeight);
         aspectConstrainer_.setMaximumSize(layout::kMaxWidth, layout::kMaxHeight);
 
@@ -48,6 +50,13 @@ namespace pw8::plugin::ui
         murmurChromeBar_.setPresetIndex(&patchBrowserBar_.getPresetIndex());
         murmurChromeBar_.setFavoritesStore(&favoritesStore_);
         murmurChromeBar_.onPlayViewModeChanged = [this](layout::PlayViewMode mode) {
+            if (mode == layout::PlayViewMode::Advanced)
+            {
+                setEditorMode(layout::EditorMode::Design);
+                setDesignSubPage(layout::DesignSubPage::Engine);
+                return;
+            }
+
             if (mode != layout::PlayViewMode::Compact)
                 lastNonCompactPlayView_ = mode;
             playModeEditor_.setPlayViewMode(mode);
@@ -58,6 +67,9 @@ namespace pw8::plugin::ui
         murmurChromeBar_.onEditorModeChanged = [this](layout::EditorMode mode) { setEditorMode(mode); };
         murmurChromeBar_.onDesignSubPageChanged = [this](layout::DesignSubPage page) { setDesignSubPage(page); };
         murmurChromeBar_.onBrowseRequested = [this] {
+            if (playModeEditor_.isCompactView())
+                return;
+
             addAndMakeVisible(presetBrowserOverlay_);
             presetBrowserOverlay_.setBounds(getLocalBounds());
             presetBrowserOverlay_.showOverlay();
@@ -67,6 +79,12 @@ namespace pw8::plugin::ui
             syncChromeState();
             applyWindowConstraints();
             resized();
+        };
+
+        playModeEditor_.onEditorModeChangeRequested = [this](layout::EditorMode mode) { setEditorMode(mode); };
+        playModeEditor_.onDesignSubPageChangeRequested = [this](layout::DesignSubPage page) {
+            setEditorMode(layout::EditorMode::Design);
+            setDesignSubPage(page);
         };
 
         addAndMakeVisible(murmurChromeBar_);
@@ -79,6 +97,10 @@ namespace pw8::plugin::ui
                 return;
             designSubPage_ = page;
             murmurChromeBar_.setDesignSubPage(page);
+        };
+        designModeEditor_.onOpenPlayFilterRequested = [this] {
+            setEditorMode(layout::EditorMode::Play);
+            playModeEditor_.setPlayViewMode(layout::PlayViewMode::Desktop);
         };
 
         processor.onPatchLoaded = [this, &processor] {
@@ -94,10 +116,12 @@ namespace pw8::plugin::ui
             murmurChromeBar_.refreshPresetDisplay();
         };
 
-        playModeEditor_.setPlayViewMode(layout::PlayViewMode::Basic);
+        processor.onPatchDirtyChanged = [this] { murmurChromeBar_.refreshPresetDisplay(); };
+
+        playModeEditor_.setPlayViewMode(layout::PlayViewMode::Desktop);
         syncChromeState();
         applyWindowConstraints();
-        setSize(layout::kDefaultWidth, layout::kDefaultHeight);
+        setSize(layout::kDefaultWidth, layout::defaultPlayRootHeight(layout::PlayViewMode::Desktop));
     }
 
     MurmurRootEditor::~MurmurRootEditor()
@@ -110,12 +134,16 @@ namespace pw8::plugin::ui
     {
         patchBrowserBar_.setFavoritesStore(&favoritesStore_);
         patchBrowserBar_.onBrowseClicked = [this] {
+            if (playModeEditor_.isCompactView())
+                return;
+
             addAndMakeVisible(presetBrowserOverlay_);
             presetBrowserOverlay_.setBounds(getLocalBounds());
             presetBrowserOverlay_.showOverlay();
         };
         presetBrowserOverlay_.onClosed = [this] {
             patchBrowserBar_.setBrowseFilters(presetBrowserOverlay_.browseFilter());
+            murmurChromeBar_.setBrowseFilters(presetBrowserOverlay_.browseFilter());
             removeChildComponent(&presetBrowserOverlay_);
             if (designSubPage_ == layout::DesignSubPage::Browse)
             {
@@ -126,6 +154,7 @@ namespace pw8::plugin::ui
         };
         presetBrowserOverlay_.onFiltersChanged = [this] {
             patchBrowserBar_.setBrowseFilters(presetBrowserOverlay_.browseFilter());
+            murmurChromeBar_.setBrowseFilters(presetBrowserOverlay_.browseFilter());
             playModeEditor_.setBrowseFilter(presetBrowserOverlay_.browseFilter());
         };
     }
@@ -138,11 +167,26 @@ namespace pw8::plugin::ui
         const auto previousMode = editorMode_;
         editorMode_ = mode;
 
+        if (mode == layout::EditorMode::Design)
+            designModeEditor_.setDesignSubPage(designSubPage_);
+
         if (mode == layout::EditorMode::Play && previousMode == layout::EditorMode::Design)
+        {
             playModeEditor_.setPlayViewMode(lastNonCompactPlayView_);
+            playModeEditor_.syncIpadFooterPill();
+        }
 
         syncChromeState();
         applyWindowConstraints();
+
+        if (mode == layout::EditorMode::Design)
+            deferRootEditorSize(this, layout::kDefaultWidth, layout::minimumDesignRootHeight());
+        else if (previousMode == layout::EditorMode::Design)
+        {
+            deferRootEditorSize(this, layout::kDefaultWidth,
+                                layout::defaultPlayRootHeight(playModeEditor_.getPlayViewMode()));
+        }
+
         resized();
     }
 
@@ -187,20 +231,50 @@ namespace pw8::plugin::ui
         if (playModeEditor_.isCompactView())
             return layout::kCompactOuterMargin;
 
-        if (playModeEditor_.getPlayViewMode() == layout::PlayViewMode::Basic)
+        if (playModeEditor_.getPlayViewMode() == layout::PlayViewMode::Basic
+            || playModeEditor_.getPlayViewMode() == layout::PlayViewMode::Desktop)
             return layout::kDesktopPlayModeOuterMargin;
 
         return layout::kOuterMargin;
+    }
+
+    juce::BorderSize<int> MurmurRootEditor::contentInsetsForCurrentView() const
+    {
+        if (editorMode_ == layout::EditorMode::Design)
+        {
+            const int m = layout::kDesignModeV2OuterMargin;
+            return {m, m, m, m};
+        }
+
+        if (playModeEditor_.isCompactView())
+        {
+            return {layout::kCompactOuterMargin, layout::kCompactOuterMargin, layout::kCompactBottomMargin,
+                    layout::kCompactOuterMargin};
+        }
+
+        if (playModeEditor_.getPlayViewMode() == layout::PlayViewMode::Basic
+            || playModeEditor_.getPlayViewMode() == layout::PlayViewMode::Desktop)
+        {
+            const int m = layout::kDesktopPlayModeOuterMargin;
+            return {m, m, m, m};
+        }
+
+        const int m = layout::kOuterMargin;
+        return {m, m, m, m};
     }
 
     void MurmurRootEditor::applyWindowConstraints()
     {
         if (editorMode_ == layout::EditorMode::Design)
         {
+            const int minH = layout::minimumDesignRootHeight();
             setConstrainer(&aspectConstrainer_);
-            setResizeLimits(layout::kMinWidth, layout::kMinHeight, layout::kMaxWidth, layout::kMaxHeight);
-            if (getWidth() < layout::kMinWidth || getHeight() < layout::kMinHeight)
-                deferRootEditorSize(this, layout::kDefaultWidth, layout::kDefaultHeight);
+            aspectConstrainer_.setMinimumSize(layout::kMinWidth, minH);
+            setResizeLimits(layout::kMinWidth, minH, layout::kMaxWidth, layout::kMaxHeight);
+            if (getWidth() < layout::kMinWidth || getHeight() < minH)
+                deferRootEditorSize(this, std::max(getWidth(), layout::kDefaultWidth),
+                                    layout::clampRootHeight(getHeight(), editorMode_, playModeEditor_.getPlayViewMode(),
+                                                            false));
             return;
         }
 
@@ -214,10 +288,18 @@ namespace pw8::plugin::ui
             return;
         }
 
+        const auto playMode = playModeEditor_.getPlayViewMode();
+        const int minH = layout::minimumPlayRootHeight(playMode);
         setConstrainer(&aspectConstrainer_);
-        setResizeLimits(layout::kMinWidth, layout::kMinHeight, layout::kMaxWidth, layout::kMaxHeight);
-        if (getWidth() < layout::kMinWidth || getHeight() < layout::kMinHeight)
-            deferRootEditorSize(this, layout::kDefaultWidth, layout::kDefaultHeight);
+        aspectConstrainer_.setMinimumSize(layout::kMinWidth, minH);
+        setResizeLimits(layout::kMinWidth, minH, layout::kMaxWidth, layout::kMaxHeight);
+
+        if (getWidth() < layout::kMinWidth || getHeight() < minH)
+        {
+            deferRootEditorSize(this, std::max(getWidth(), layout::kDefaultWidth),
+                                layout::clampRootHeight(std::max(getHeight(), layout::defaultPlayRootHeight(playMode)),
+                                                        editorMode_, playMode, false));
+        }
     }
 
     void MurmurRootEditor::paint(juce::Graphics& g)
@@ -236,7 +318,13 @@ namespace pw8::plugin::ui
             presetBrowserOverlay_.setBounds(bounds);
 
         const int outerMargin = outerMarginForCurrentView();
-        auto content = bounds.reduced(outerMargin);
+        juce::ignoreUnused(outerMargin);
+        const auto insets = contentInsetsForCurrentView();
+        auto content = bounds;
+        content.removeFromTop(insets.getTop());
+        content.removeFromBottom(insets.getBottom());
+        content.removeFromLeft(insets.getLeft());
+        content.removeFromRight(insets.getRight());
 
         const bool compact = playModeEditor_.isCompactView();
         const int chromeHeight = layout::chromeBarHeight(editorMode_, compact);
@@ -245,8 +333,7 @@ namespace pw8::plugin::ui
         const int sectionGap =
             compact ? layout::kCompactBlockGap
                     : (editorMode_ == layout::EditorMode::Design ? layout::kDesignModeV2SectionGap
-                                                                 : (playModeEditor_.getPlayViewMode()
-                                                                            == layout::PlayViewMode::Basic
+                                                                 : (layout::isDesktopPlayLayout(playModeEditor_.getPlayViewMode())
                                                                         ? layout::kDesktopPlayModeSectionGap
                                                                         : layout::kSectionGap));
         content.removeFromTop(sectionGap);
@@ -262,7 +349,9 @@ namespace pw8::plugin::ui
         if (presetBrowserOverlay_.isVisible() && presetBrowserOverlay_.keyPressed(key))
             return true;
 
-        if (!presetBrowserOverlay_.isVisible()
+        const bool compactPlay = playModeEditor_.isCompactView();
+
+        if (!compactPlay && !presetBrowserOverlay_.isVisible()
             && (key == juce::KeyPress('b', juce::ModifierKeys::commandModifier, 0)
                 || key == juce::KeyPress('b', juce::ModifierKeys::ctrlModifier, 0)))
         {
@@ -270,6 +359,15 @@ namespace pw8::plugin::ui
             presetBrowserOverlay_.setBounds(getLocalBounds());
             presetBrowserOverlay_.showOverlay();
             return true;
+        }
+
+        if (!compactPlay && !presetBrowserOverlay_.isVisible() && editorMode_ == layout::EditorMode::Play)
+        {
+            if (key == juce::KeyPress::leftKey || key == juce::KeyPress::rightKey)
+            {
+                murmurChromeBar_.stepPreset(key == juce::KeyPress::rightKey ? 1 : -1);
+                return true;
+            }
         }
 
         if (editorMode_ == layout::EditorMode::Design)

@@ -5,10 +5,18 @@
 #include "PlayModeLayout.h"
 #include "SharedEditorChrome.h"
 #include "components/ArpPanelOverlay.h"
+#include "components/MasterQuasarPanel.h"
 #include "components/DesignFxPanel.h"
+#include "components/DesignDynamicsLabPanel.h"
+#include "components/DesignGenerativeLabPanel.h"
+#include "components/DesignUtilityPeaksPanel.h"
+#include "components/DesignEnvelopeSegmentsPanel.h"
+#include "components/DesignFilterLabPanel.h"
+#include "components/DesignMorphEditorPanel.h"
 #include "components/DualLfoLabPanel.h"
 #include "components/EngineDetailOverlay.h"
 #include "components/EngineGridPanel.h"
+#include "components/MasterEnvelopePanel.h"
 #include "components/ModAssignmentController.h"
 #include "components/DesignModMatrixPanel.h"
 #include "components/VocoderLabPanel.h"
@@ -34,10 +42,12 @@ namespace pw8::plugin::ui
         [[nodiscard]] layout::DesignSubPage getDesignSubPage() const noexcept { return designSubPage_; }
 
         std::function<void(layout::DesignSubPage)> onDesignSubPageChanged;
+        std::function<void()> onOpenPlayFilterRequested;
 
     private:
         void openEngineDetail(int engineIndex);
         void closeEngineDetail();
+        void closeMasterQuasarLab();
         void applySubPageVisibility();
 
         ModAssignmentController modAssignmentController_;
@@ -46,6 +56,7 @@ namespace pw8::plugin::ui
         int wavetableEngineIndex_ = 0;
 
         juce::Component enginePage_;
+        MasterEnvelopePanel masterEnvelopePanel_;
         EngineGridPanel engineGridPanel_;
         VstBottomBar statusBar_;
         EngineDetailOverlay engineDetailOverlay_;
@@ -53,9 +64,16 @@ namespace pw8::plugin::ui
         ArpPanelOverlay arpPanel_;
         VocoderLabPanel vocoderPanel_;
         DesignFxPanel fxPanel_;
+        MasterQuasarPanel masterQuasarPanel_;
         DesignModMatrixPanel modMatrixPanel_;
         WavetableLabPanel wavetablePanel_;
         DualLfoLabPanel dualLfoPanel_;
+        DesignMorphEditorPanel morphPanel_;
+        DesignFilterLabPanel filterLabPanel_;
+        DesignDynamicsLabPanel dynamicsLabPanel_;
+        DesignGenerativeLabPanel generativeLabPanel_;
+        DesignUtilityPeaksPanel utilityPeaksPanel_;
+        DesignEnvelopeSegmentsPanel envelopeSegmentsPanel_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DesignModeEditor)
     };

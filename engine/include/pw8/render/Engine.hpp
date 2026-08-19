@@ -9,6 +9,8 @@
 #include "pw8/algorithm/AlgorithmGraphCompiler.hpp"
 #include "pw8/core/AudioBlock.hpp"
 #include "pw8/dsp/Math.hpp"
+#include "pw8/modulation/GenerativeSources.hpp"
+#include "pw8/dynamics/MasterDynamicsProcessor.hpp"
 #include "pw8/effects/EffectChain.hpp"
 #include "pw8/oscillator/WavetableTable.hpp"
 #include "pw8/patch/PatchModDefaults.hpp"
@@ -70,6 +72,10 @@ namespace pw8::render
         /// notes pick up the updated macro (PoliMATHS Modulation Dissemination MVP).
         void setMacroValue(std::size_t index, float value) noexcept;
 
+        /// Frames-style morph timeline: interpolate keyframes into `patch_` and push
+        /// macro/filter/master fields to sustaining voices. Audio-thread safe.
+        void applyMorphPositionLive(float position) noexcept;
+
         [[nodiscard]] float getMacroValue(std::size_t index) const noexcept
         {
             return index < patch_.macros.size() ? patch_.macros[index].value : 0.0f;
@@ -125,6 +131,9 @@ namespace pw8::render
             return patch_.layerA.filter2;
         }
 
+        void setFilterRoutingLive(float routing) noexcept;
+        [[nodiscard]] float getFilterRouting() const noexcept { return patch_.layerA.filterRouting; }
+
         /// `opIndex` in [0, kNodesPerLayer). Out-of-range is a no-op.
         void setOperatorFilterLive(std::size_t opIndex, const filter::FilterParams& params) noexcept;
         [[nodiscard]] filter::FilterParams getOperatorFilterParams(std::size_t opIndex) const noexcept
@@ -154,9 +163,15 @@ namespace pw8::render
         /// stage timing on currently-sustaining voices via DahdsrEnvelope::retargetParams()
         /// so automating attack/decay on held notes takes effect without retriggering.
         void setEnvelopeLive(std::size_t envIndex, const envelope::DahdsrParams& params) noexcept;
+        void setSegmentEnvelopeChainLive(std::size_t envIndex, const envelope::SegmentEnvelopeChain& chain) noexcept;
         [[nodiscard]] envelope::DahdsrParams getEnvelopeParams(std::size_t envIndex) const noexcept
         {
             return envIndex < core::kNumEnvelopesPerLayer ? patch_.layerA.envelopes[envIndex] : envelope::DahdsrParams{};
+        }
+        [[nodiscard]] envelope::SegmentEnvelopeChain getSegmentEnvelopeChain(std::size_t envIndex) const noexcept
+        {
+            return envIndex < core::kNumEnvelopesPerLayer ? patch_.layerA.segmentEnvelopeChains[envIndex]
+                                                          : envelope::SegmentEnvelopeChain{};
         }
 
         /// Replaces the entire Layer A mod-route list. Unlike every setter above,
@@ -196,6 +211,27 @@ namespace pw8::render
         [[nodiscard]] const patch::UnisonSettings& getUnisonSettings() const noexcept { return patch_.layerA.unison; }
 
         void setMasterGainLive(float masterGain) noexcept;
+        void setMasterDynamicsLive(const patch::MasterDynamics& params) noexcept;
+        void setGenerativeLive(const modulation::GenerativeParams& params) noexcept;
+        void setUtilityPeaksLive(const modulation::PeaksUtilityParams& params) noexcept;
+        [[nodiscard]] const patch::MasterDynamics& getMasterDynamicsParams() const noexcept
+        {
+            return patch_.masterDynamics;
+        }
+        [[nodiscard]] float getMasterDynamicsGainReductionDb() const noexcept
+        {
+            return masterDynamicsProcessor_.getGainReductionDb();
+        }
+        [[nodiscard]] float getMasterDynamicsSidechainEnvelope() const noexcept
+        {
+            return masterDynamicsProcessor_.getSidechainEnvelope();
+        }
+        void triggerPeaksUtilitySlot(std::size_t slotIndex) noexcept { peaksUtilityProcessor_.trigger(slotIndex); }
+        [[nodiscard]] modulation::PeaksUtilityOutputValues getPeaksUtilityOutputValues() const noexcept
+        {
+            return peaksUtilityValues_;
+        }
+        void setPortamentoLive(float portamentoSeconds) noexcept;
         [[nodiscard]] float getMasterGainValue() const noexcept { return patch_.voiceSettings.masterGain; }
 
         /// `slot` in [0, kNumLayerInsertSlots)/[0, kNumMasterSlots). Read-modify-write
@@ -288,6 +324,13 @@ namespace pw8::render
             return masterOutPeak_.load(std::memory_order_relaxed);
         }
 
+        [[nodiscard]] bool isSustainPedalHeld(int channel = 0) const noexcept
+        {
+            if (channel < 0 || channel >= static_cast<int>(sustainPedalHeld_.size()))
+                return false;
+            return sustainPedalHeld_[static_cast<std::size_t>(channel)];
+        }
+
         /// Per-operator peak (post-voice-gain), linear 0..~4. `opIndex` in [0, kNodesPerLayer).
         [[nodiscard]] float getOperatorPeakLinear(std::size_t opIndex) const noexcept
         {
@@ -310,6 +353,10 @@ namespace pw8::render
                                  const std::array<op::OperatorParams, core::kNodesPerLayer>& templates,
                                  voice::VoicePool& voices, voice::VoiceAllocator& allocator, int note, int channel,
                                  int velocity7) noexcept;
+
+        [[nodiscard]] patch::UnisonSettings modulatedUnisonForNoteOn(
+            const patch::LayerPatch& layer, std::array<lfo::Lfo, core::kNumLfosPerLayer>& lfos,
+            int channel) noexcept;
 
         void loadLayerResources(const patch::LayerPatch& layer, algorithm::CompiledAlgorithm& compiledOut,
                                  std::array<op::OperatorParams, core::kNodesPerLayer>& templatesOut,
@@ -363,6 +410,10 @@ namespace pw8::render
         effects::LayerInsertChain layerAInsertChain_{};
         effects::LayerInsertChain layerBInsertChain_{};
         effects::MasterChain masterChain_{};
+        dynamics::MasterDynamicsProcessor masterDynamicsProcessor_{};
+        modulation::GenerativeProcessor generativeProcessor_{};
+        modulation::PeaksUtilityProcessor peaksUtilityProcessor_{};
+        modulation::PeaksUtilityOutputValues peaksUtilityValues_{};
         effects::EffectSlotProcessor sendReturnA_{};
         effects::EffectSlotProcessor sendReturnB_{};
         float fxSendA_ = 0.0f;
@@ -379,6 +430,7 @@ namespace pw8::render
         std::array<float, 16> channelModWheel_{};
         std::array<float, 16> channelExpression_{};
         float sidechainLevel_ = 0.0f;
+        bool dynamicsGatePrev_ = false;
 
         std::atomic<float> synthBusPeak_{0.0f};
         std::atomic<float> masterOutPeak_{0.0f};

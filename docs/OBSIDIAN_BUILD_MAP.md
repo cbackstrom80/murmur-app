@@ -198,7 +198,7 @@ Extract Figma variables → `plugin/src/ui/theme/`.
 
 | Region | C++ | Status |
 |--------|-----|--------|
-| Full compact shell | `CompactModeEditor` via `PlayModeEditor` | **PARTIAL** — 320px width; height 560 vs Figma 565; margin 8 vs 14 |
+| Full compact shell | `CompactModeEditor` via `PlayModeEditor` | **PARTIAL** — 320×560; asymmetric insets 14/30; chrome 28px; see `murmur-compact-view.4-1134.layout.json` |
 | Scope | `CircularScopeView` | **PARTIAL** |
 | Performance macros | `PatchFocusPanel` | **PARTIAL** |
 | Footer | inline compact chrome | **PARTIAL** |
@@ -237,15 +237,16 @@ Extract Figma variables → `plugin/src/ui/theme/`.
 
 ---
 
-### 3c. DESIGN → ENGINE — `37:787` (1280×720)
+### 3c. DESIGN → ENGINE — `37:787` (1280×1048)
 
 | Region | C++ | Status |
 |--------|-----|--------|
 | Shell | `DesignModeEditor` + `MurmurRootEditor` | **PARTIAL** — page 1 only |
-| Header `37:788` | `DesignModeHeaderBar` | **Figma DONE** / **Code DONE** — superseded by `MurmurChromeBar`; sub-nav swaps all design pages |
+| Master envelope | `MasterEnvelopePanel` (`82:4`) | **PARTIAL** — ADSR hero above grid; see [`FIGMA_UI_AUDIT.md` Part 6.4](FIGMA_UI_AUDIT.md#64-master-envelope-sub-panels) |
+| Header `39:2` | `MurmurChromeBar` | **Figma DONE** / **Code DONE** |
 | Grid `37:830` | `EngineGridPanel` (`setDesignModeV2Layout`) | **PARTIAL** |
 | Status `37:1507` | `VstBottomBar` | **PARTIAL** |
-| Deep editor (overlay) | `EngineDetailOverlay` (`28:4` ref) | **PARTIAL** — 3-column OSC/Filter/Amp; 8×28px ENG tabs; letterbox scale |
+| Deep editor (overlay) | `EngineDetailOverlay` (`28:4` ref) | **PARTIAL** |
 
 **Priority:** CRITICAL · **Status:** **PARTIAL**
 
@@ -291,11 +292,12 @@ Extract Figma variables → `plugin/src/ui/theme/`.
 
 ---
 
-### 3h. DESIGN → PRESET BROWSER — `27:6`
+### 3h. DESIGN → PRESET BROWSER — `27:6` / modal `74:959`
 
 | C++ | Status |
 |-----|--------|
-| `PresetBrowserOverlay`, `PatchBrowserBar` | **PARTIAL** — 240/696/300 columns; category tree + table + detail; chrome pass-through |
+| `PresetBrowserOverlay`, `PatchBrowserBar` | **PARTIAL** — full-page `27:6` (240/696/300) + centered modal `74:959` (`murmur-preset-explorer-overlay`, 1040×620); registry in [`FIGMA_UI_AUDIT.md` Part 6.1](FIGMA_UI_AUDIT.md#61-core-views-canonical-registry) |
+| `PlayModeEditor` Basic (`86:4`) | **PARTIAL** — `murmur-basic-view`: envelope hero + portamento + 4 macros; stub `MurmurBasicView.figma.ts` |
 
 **Priority:** LOW · **Status:** **PARTIAL**
 
@@ -439,6 +441,7 @@ PHASE 5 — THEMES — 10:4, 10:139, 10:265, 10:401, 10:534
 ## Related docs
 
 - [`QUASAR_FIGMA_BUILD_GUIDE.md`](QUASAR_FIGMA_BUILD_GUIDE.md) — standalone QUASAR plugin screen (separate from MURMUR frames; reuses Obsidian tokens)
-- [`FIGMA_UI_AUDIT.md`](FIGMA_UI_AUDIT.md) — per-frame pixel deltas and child trees
+- [`FIGMA_UI_AUDIT.md`](FIGMA_UI_AUDIT.md) — per-frame pixel deltas, child trees, and **Part 6 full node registry** (core views + MI tracks + master envelope)
+- [`MUTABLE_INSTRUMENTS_INTEGRATION_PLAN.md`](MUTABLE_INSTRUMENTS_INTEGRATION_PLAN.md) — MI Tracks A–G implementation plan
 - [`UI.md`](UI.md) — OBSIDIAN skin architecture and PLAY mode history
 - [`UI_PAGED_LAYOUT.md`](UI_PAGED_LAYOUT.md) — legacy paged PLAY plan (superseded by Alt UI direction)

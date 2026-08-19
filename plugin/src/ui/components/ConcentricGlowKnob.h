@@ -9,6 +9,7 @@
 #include "ModAssignmentController.h"
 #include "processor/PatchworkEightProcessor.h"
 #include "../theme/DualKnobLookAndFeel.h"
+#include "../theme/FigmaKnobTokens.h"
 
 namespace pw8::plugin::ui
 {
@@ -37,6 +38,9 @@ namespace pw8::plugin::ui
 
         void setModAssignmentController(ModAssignmentController* controller);
         void setMaxDialDiameter(int diameter);
+        void applyFigmaContext(figma::KnobContext context);
+        void setDesignCardCompactLayout(bool enabled);
+        void setExpandedReadout(bool expanded);
 
         /// Category color for the inner cap (outer ring always uses structural kAccent arc).
         void setInnerAccentColour(juce::Colour colour);
@@ -64,11 +68,13 @@ namespace pw8::plugin::ui
             bool depthDragActive = false;
             float depthDragStartAmount = 0.0f;
             float depthDragStartX = 0.0f;
+            float liveModNormalized = -1.0f;
         };
 
         void mouseDown(const juce::MouseEvent& event) override;
         void mouseDrag(const juce::MouseEvent& event) override;
         void mouseUp(const juce::MouseEvent& event) override;
+        void mouseDoubleClick(const juce::MouseEvent& event) override;
 
         bool isInterestedInDragSource(const SourceDetails& details) override;
         void itemDragEnter(const SourceDetails& details) override;
@@ -79,7 +85,7 @@ namespace pw8::plugin::ui
         [[nodiscard]] ModRingState& modStateAtPoint(juce::Point<int> localPos);
         [[nodiscard]] bool isOuterRingPoint(juce::Point<int> localPos) const;
 
-        void refreshModRingState(ModRingState& state);
+        void refreshModRingState(ModRingState& state, const juce::String& paramId, const juce::Slider& slider);
         void paintModRing(juce::Graphics& g, const ModRingState& state, float orbitRadius, bool outerOrbit) const;
         void handleModMouseDown(const juce::MouseEvent& event, ModRingState& state);
         void handleModMouseDrag(const juce::MouseEvent& event, ModRingState& state);
@@ -87,6 +93,7 @@ namespace pw8::plugin::ui
         void setFocusedChannel(int channel);
 
         int focusedChannel_ = 0;
+        bool expandedReadout_ = false;
         DualKnobLookAndFeel outerLookAndFeel_{DualKnobLookAndFeel::KnobType::Outer};
         DualKnobLookAndFeel innerLookAndFeel_{DualKnobLookAndFeel::KnobType::Inner};
         FormattedSlider outerSlider_;
@@ -100,7 +107,10 @@ namespace pw8::plugin::ui
         PatchworkEightProcessor* modProcessor_ = nullptr;
         ModRingState innerMod_;
         ModRingState outerMod_;
+        juce::String innerParamId_;
+        juce::String outerParamId_;
         int maxDialDiameter_ = 88;
+        bool designCardCompactLayout_ = false;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ConcentricGlowKnob)
     };

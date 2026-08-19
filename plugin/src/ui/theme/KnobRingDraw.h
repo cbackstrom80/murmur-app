@@ -7,6 +7,7 @@
 #include "ObsidianDraw.h"
 #include "ObsidianPalette.h"
 #include "ObsidianRotary.h"
+#include "FigmaKnobTokens.h"
 
 namespace pw8::plugin::ui::knobrings
 {
@@ -29,12 +30,12 @@ namespace pw8::plugin::ui::knobrings
         const float dialRadius = diameter * 0.5f;
         const auto centre = knobBounds.getCentre();
 
-        // Match decked::computeGeometry (medium) — value arc sits on middle deck.
-        const float valueArcRadius = deckedStyle ? dialRadius * 0.80f * 0.94f : dialRadius * 0.90f;
-        const float outerDeckRadius = deckedStyle ? dialRadius * 0.95f : dialRadius * 0.98f;
-        const float modGap = juce::jmax(5.0f, dialRadius * 0.095f);
+        // Match decked::computeGeometry — value arc on middle HUD ring.
+        const float outerDeckRadius = deckedStyle ? dialRadius * figma::DualRingRatios::outer : dialRadius * 0.98f;
+        const float valueArcRadius = deckedStyle ? dialRadius * figma::DualRingRatios::middle : dialRadius * 0.90f;
+        const float modGap = juce::jmax(4.0f, dialRadius * 0.06f);
         const float modRingRadius = outerDeckRadius + modGap;
-        const float modStrokeWidth = juce::jmax(4.6f, dialRadius * 0.092f);
+        const float modStrokeWidth = juce::jmax(2.8f, dialRadius * 0.055f);
 
         return {centre, dialRadius, valueArcRadius, modRingRadius, modStrokeWidth};
     }

@@ -7,7 +7,7 @@
   "parentFrame": "37:787",
   "exportedAt": "2026-08-18",
   "exportSource": "figma-mcp get_metadata",
-  "size": { "width": 1248, "height": 320 },
+  "size": { "width": 1248, "height": 180 },
   "padding": 16,
   "codeOwners": {
     "component": "MasterEnvelopePanel",
@@ -29,13 +29,36 @@
       "x": 16,
       "y": 44,
       "width": 1216,
-      "height": 260,
+      "height": 120,
       "children": [
         {
           "nodeId": "82:14",
           "name": "adsr-curve-display",
           "width": 520,
-          "constant": "kDesignModeV2MasterEnvelopeCurveWidth"
+          "height": 120,
+          "constant": "kDesignModeV2MasterEnvelopeCurveWidth",
+          "children": [
+            {
+              "nodeId": "82:16",
+              "name": "plot-area",
+              "height": 80,
+              "constant": "kDesignModeV2MasterEnvelopePlotHeight"
+            }
+          ]
+        },
+        {
+          "nodeId": "82:36",
+          "name": "controls",
+          "x": 532,
+          "width": 684,
+          "height": 120,
+          "constant": "kDesignModeV2MasterEnvelopeControlRowHeight",
+          "children": [
+            { "nodeId": "82:37", "name": "row-a", "width": 150, "constant": "kDesignModeV2MasterEnvelopeKnobColumnWidth" },
+            { "nodeId": "82:48", "name": "row-d", "width": 150, "constant": "kDesignModeV2MasterEnvelopeKnobColumnWidth" },
+            { "nodeId": "82:59", "name": "row-s", "width": 150, "constant": "kDesignModeV2MasterEnvelopeKnobColumnWidth" },
+            { "nodeId": "82:70", "name": "row-r", "width": 150, "constant": "kDesignModeV2MasterEnvelopeKnobColumnWidth" }
+          ]
         }
       ]
     }

@@ -56,8 +56,13 @@ namespace pw8::plugin::ui
 
     void EngineOscContextThumb::setPreviewData(const EngineOscContextPreviewData& data) { preview_ = data; }
 
-    void EngineOscContextThumb::paintFrame(juce::Graphics& g, juce::Rectangle<int> bounds)
+    void EngineOscContextThumb::setSkipChrome(bool skip) { skipChrome_ = skip; }
+
+    void EngineOscContextThumb::paintFrame(juce::Graphics& g, juce::Rectangle<int> bounds, bool skipChrome)
     {
+        if (skipChrome)
+            return;
+
         g.setColour(palette::kBackgroundBottom);
         g.fillRoundedRectangle(bounds.toFloat(), 6.0f);
         g.setColour(palette::kBorder.withAlpha(0.85f));
@@ -83,7 +88,7 @@ namespace pw8::plugin::ui
         if (bounds.isEmpty())
             return;
 
-        paintFrame(g, bounds);
+        paintFrame(g, bounds, skipChrome_);
         paintContent(g, bounds.reduced(1));
     }
 

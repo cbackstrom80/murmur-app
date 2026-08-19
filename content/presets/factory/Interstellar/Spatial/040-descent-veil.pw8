@@ -4,7 +4,7 @@
     "id": "pw8-interstellar-spatial-040-2569600974",
     "name": "DESCENT VEIL",
     "author": "MURMUR Sound Design",
-    "description": "Interstellar spatial pad #040 \u2014 Descent Veil. Headphone-first spatial pad \u2014 M3 is algorithmic reverb; load companion QUASAR preset `040-descent-veil.quasar` on the master bus for binaural spatial. Single held notes 8+ s; ORBIT and SPACE macros move the Quasar scene; slow LFO orbit is always on. Engines: Classic, Wavetable, Granular, Resonator.",
+    "description": "Interstellar spatial pad #040 \u2014 Descent Veil. Headphone-first spatial pad \u2014 M3 is inline QUASAR binaural spatial (embedded in patch) Single held notes 8+ s; ORBIT and SPACE macros move the Quasar scene; slow LFO orbit is always on. Engines: Classic, Wavetable, Granular, Resonator.",
     "category": "interstellar",
     "moods": [
       "cinematic",
@@ -42,8 +42,7 @@
       "CNTR holds bass \u2014 sweep SPACE for orbit",
       "slow LFO orbit on Quasar room/distance"
     ],
-    "spatial": "use-quasar-plugin",
-    "companionQuasar": "interstellar/040-descent-veil.quasar"
+    "spatial": "inline-quasar"
   },
   "layerMode": 0,
   "layerMorph": 0.0,
@@ -350,42 +349,42 @@
       },
       {
         "source": 1,
-        "destination": 15,
+        "destination": 32,
         "targetIndex": 2,
         "amount": 0.21500000000000002,
         "scope": 2
       },
       {
         "source": 1,
-        "destination": 17,
+        "destination": 37,
         "targetIndex": 2,
         "amount": 15.0,
         "scope": 2
       },
       {
         "source": 2,
-        "destination": 16,
+        "destination": 38,
         "targetIndex": 2,
         "amount": 0.63,
         "scope": 2
       },
       {
         "source": 2,
-        "destination": 18,
+        "destination": 32,
         "targetIndex": 2,
         "amount": 0.15000000000000002,
         "scope": 2
       },
       {
         "source": 21,
-        "destination": 17,
+        "destination": 37,
         "targetIndex": 2,
         "amount": 28.0,
         "scope": 2
       },
       {
         "source": 21,
-        "destination": 15,
+        "destination": 32,
         "targetIndex": 2,
         "amount": 0.42,
         "scope": 2
@@ -399,7 +398,7 @@
       },
       {
         "source": 21,
-        "destination": 18,
+        "destination": 32,
         "targetIndex": 2,
         "amount": 0.3,
         "scope": 2
@@ -420,28 +419,28 @@
       },
       {
         "source": 23,
-        "destination": 15,
+        "destination": 32,
         "targetIndex": 2,
         "amount": 0.52,
         "scope": 2
       },
       {
         "source": 23,
-        "destination": 16,
+        "destination": 38,
         "targetIndex": 2,
         "amount": 1.15,
         "scope": 2
       },
       {
         "source": 23,
-        "destination": 17,
+        "destination": 37,
         "targetIndex": 2,
         "amount": 16.0,
         "scope": 2
       },
       {
         "source": 23,
-        "destination": 18,
+        "destination": 32,
         "targetIndex": 2,
         "amount": 0.26,
         "scope": 2
@@ -455,14 +454,14 @@
       },
       {
         "source": 22,
-        "destination": 16,
+        "destination": 38,
         "targetIndex": 2,
         "amount": 1.0,
         "scope": 2
       },
       {
         "source": 22,
-        "destination": 17,
+        "destination": 37,
         "targetIndex": 2,
         "amount": 24.0,
         "scope": 2
@@ -476,7 +475,7 @@
       },
       {
         "source": 22,
-        "destination": 15,
+        "destination": 32,
         "targetIndex": 2,
         "amount": 0.45,
         "scope": 2
@@ -817,7 +816,7 @@
     {
       "id": "m3",
       "name": "SPACE",
-      "description": "Master spatial wash \u2014 room size, decay, pre-delay, diffusion.",
+      "description": "Spatial macro \u2014 room, delay, and mix on master Quasar (M3).",
       "value": 0.0
     },
     {
@@ -874,13 +873,33 @@
       "chorusBaseDelayMs": 14.0
     },
     {
-      "type": 7,
-      "mix": 0.44000000000000006,
-      "reverbSizeParam": 1.27,
-      "reverbDecaySeconds": 5.38,
-      "reverbPreDelayMs": 59.930911209961145,
-      "reverbDiffusion": 0.72,
-      "reverbModDepth": 0.18
+      "type": 13,
+      "mix": 0.8,
+      "qsr1Level": 0.6586284361237514,
+      "qsr2Level": 0.5788617270907717,
+      "cntrLevel": 0.7847523741604286,
+      "inputSplitHpfHz": 120.0,
+      "cntrHpfHz": 80.0,
+      "qsr1Height": 0.03,
+      "qsr1Distance": 0.5074193353607368,
+      "qsr2Height": -0.020000000000000004,
+      "qsr2Distance": 0.602565457092371,
+      "qsr1RoomAmount": 0.48,
+      "qsr1RoomSize": 1.27,
+      "qsr1RoomDamping": 0.43766346558029556,
+      "qsr2RoomAmount": 0.44,
+      "qsr2RoomSize": 1.3403591006437465,
+      "qsr2RoomDamping": 0.4500604972793819,
+      "quasarDelayTimeMs": 749.1363901245143,
+      "quasarDelayFeedback": 0.44000000000000006,
+      "quasarDelayVolume": 0.22,
+      "quasarOutputMode": 0,
+      "quasarCrossfeed": 0.0,
+      "quasarDelaySync": false,
+      "quasarDelaySyncDivision": 2,
+      "qsr1AngleDeg": 57.8615205189099,
+      "qsr2AngleDeg": 296.7929794825795,
+      "quasarDelaySyncDivisionIndex": 2
     },
     {
       "type": 9,
@@ -921,7 +940,7 @@
   },
   "morphKoin": {
     "label": "SCENE",
-    "description": "INTIMATE in-head \u2194 VOID wash \u2014 use QUASAR plugin + morph position.",
+    "description": "INTIMATE in-head \u2194 VOID wash \u2014 inline Quasar on master M3 + morph position.",
     "defaultPosition": 0.35,
     "position": 0.35,
     "curve": "smooth",
@@ -939,7 +958,19 @@
           0,
           0,
           0
-        ]
+        ],
+        "paramOverrides": {
+          "layerA.filter1.cutoffHz": {
+            "value": 2360.0,
+            "easing": "smooth",
+            "response": ""
+          },
+          "layerA.filter1.resonance": {
+            "value": 0.0925,
+            "easing": "smooth",
+            "response": ""
+          }
+        }
       },
       {
         "name": "STAGE",
@@ -953,7 +984,19 @@
           0,
           0,
           0
-        ]
+        ],
+        "paramOverrides": {
+          "layerA.filter1.cutoffHz": {
+            "value": 8300.0,
+            "easing": "smooth",
+            "response": ""
+          },
+          "layerA.filter1.resonance": {
+            "value": 0.28800000000000003,
+            "easing": "smooth",
+            "response": ""
+          }
+        }
       },
       {
         "name": "VOID",
@@ -967,7 +1010,19 @@
           0,
           0,
           0
-        ]
+        ],
+        "paramOverrides": {
+          "layerA.filter1.cutoffHz": {
+            "value": 14240.0,
+            "easing": "smooth",
+            "response": ""
+          },
+          "layerA.filter1.resonance": {
+            "value": 0.5770000000000001,
+            "easing": "smooth",
+            "response": ""
+          }
+        }
       }
     ]
   }

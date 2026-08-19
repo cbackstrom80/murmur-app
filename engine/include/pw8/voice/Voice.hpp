@@ -10,9 +10,12 @@
 #include "pw8/dsp/Random.hpp"
 #include "pw8/dsp/Smoother.hpp"
 #include "pw8/envelope/DahdsrEnvelope.hpp"
+#include "pw8/envelope/SegmentEnvelope.hpp"
 #include "pw8/filter/CharacterFilter.hpp"
+#include "pw8/filter/FilterRouting.hpp"
 #include "pw8/filter/StateVariableFilter.hpp"
 #include "pw8/lfo/Lfo.hpp"
+#include "pw8/modulation/GenerativeSources.hpp"
 #include "pw8/modulation/ModMatrixExecutor.hpp"
 #include "pw8/operator/OperatorNode.hpp"
 #include "pw8/patch/Patch.hpp"
@@ -56,11 +59,59 @@ namespace pw8::voice
     class Voice
     {
     public:
+        std::array<envelope::DahdsrEnvelope, core::kNumEnvelopesPerLayer> envelopes{};
+        std::array<envelope::SegmentEnvelope, core::kNumEnvelopesPerLayer> segmentEnvelopes_{};
+        std::array<envelope::SegmentEnvelopeChain, core::kNumEnvelopesPerLayer> segmentEnvelopeChains{};
+
+        [[nodiscard]] bool usesSegmentEnvelope(std::size_t index) const noexcept
+        {
+            return index < core::kNumEnvelopesPerLayer && segmentEnvelopeChains[index].isActive();
+        }
+
+        [[nodiscard]] bool envelopeIsActive(std::size_t index) const noexcept
+        {
+            if (usesSegmentEnvelope(index))
+                return segmentEnvelopes_[index].isActive();
+            return envelopes[index].isActive();
+        }
+
+        [[nodiscard]] float envelopeLevel(std::size_t index) const noexcept
+        {
+            if (usesSegmentEnvelope(index))
+                return segmentEnvelopes_[index].getCurrentLevel();
+            return envelopes[index].getCurrentLevel();
+        }
+
+        [[nodiscard]] float renderEnvelopeSample(std::size_t index) noexcept
+        {
+            if (usesSegmentEnvelope(index))
+                return segmentEnvelopes_[index].renderSample();
+            return envelopes[index].renderSample();
+        }
+
+        void startEnvelope(std::size_t index, const envelope::DahdsrParams& params) noexcept
+        {
+            if (usesSegmentEnvelope(index))
+                segmentEnvelopes_[index].noteOn(segmentEnvelopeChains[index], params.releaseSeconds);
+            else
+                envelopes[index].noteOn(params);
+        }
+
+        void envelopeNoteOff(std::size_t index) noexcept
+        {
+            if (usesSegmentEnvelope(index))
+                segmentEnvelopes_[index].noteOff();
+            else
+                envelopes[index].noteOff();
+        }
+
         void prepare(double sampleRate) noexcept
         {
             for (auto& s : operatorStates)
                 s.prepare(sampleRate);
             for (auto& e : envelopes)
+                e.prepare(sampleRate);
+            for (auto& e : segmentEnvelopes_)
                 e.prepare(sampleRate);
             for (auto& l : lfos)
                 l.prepare(sampleRate);
@@ -97,7 +148,7 @@ namespace pw8::voice
         {
             // Released voices still in their amp tail have gateOn=false but are audibly
             // active -- crossfade them too, otherwise filter/envelope retrigger clicks.
-            if (!envelopes[0].isActive())
+            if (!envelopeIsActive(0))
             {
                 noteOn(note, channel, velocityUnit, baseFreqHz, envParams, ageCounter, noteGenerationId, voiceSeed,
                        portamentoSeconds);
@@ -116,8 +167,8 @@ namespace pw8::voice
         {
             releaseVelocity = dsp::clamp(releaseVelocityUnit, 0.0f, 1.0f);
             gateOn = false;
-            for (auto& e : envelopes)
-                e.noteOff();
+            for (std::size_t i = 0; i < core::kNumEnvelopesPerLayer; ++i)
+                envelopeNoteOff(i);
         }
 
         /// Immediately silences the voice with no release tail -- used at the end of a
@@ -128,14 +179,16 @@ namespace pw8::voice
             pendingNoteOn_.valid = false;
             for (auto& e : envelopes)
                 e.reset();
+            for (auto& e : segmentEnvelopes_)
+                e.reset();
             noteNumber = -1;
             gateOn = false;
         }
 
-        [[nodiscard]] bool isFree() const noexcept { return noteNumber < 0 && !envelopes[0].isActive(); }
+        [[nodiscard]] bool isFree() const noexcept { return noteNumber < 0 && !envelopeIsActive(0); }
         [[nodiscard]] bool isReleased() const noexcept { return !gateOn; }
-        [[nodiscard]] bool isSounding() const noexcept { return envelopes[0].isActive(); }
-        [[nodiscard]] float amplitudeEstimate() const noexcept { return envelopes[0].getCurrentLevel() * velocity; }
+        [[nodiscard]] bool isSounding() const noexcept { return envelopeIsActive(0); }
+        [[nodiscard]] float amplitudeEstimate() const noexcept { return envelopeLevel(0) * velocity; }
 
         /// Renders one stereo sample. Returns silence and frees the voice once its
         /// amp envelope (envelopes[0]) has fully finished its release. `layerLfoValues`
@@ -151,13 +204,14 @@ namespace pw8::voice
         void renderSample(const algorithm::CompiledAlgorithm& compiled,
                            const std::array<const oscillator::WavetableTable*, core::kNodesPerLayer>& wavetableTables,
                            float bpm, const std::array<float, core::kNumLfosPerLayer>& layerLfoValues,
+                           const modulation::GenerativeOutputValues& generativeValues,
                            const core::FixedVector<modulation::ModRoute, core::kMaxModRoutes>& liveModRoutes,
                            const core::FixedVector<patch::MetaModRoute, 8>& liveMetaRoutes,
                            render::QualityMode qualityMode, float externalSampleL, float externalSampleR,
                            float& outLeft, float& outRight,
                            std::array<float, core::kNodesPerLayer>* operatorPeakScratch = nullptr) noexcept
         {
-            if (noteNumber < 0 && !envelopes[0].isActive())
+            if (noteNumber < 0 && !envelopeIsActive(0))
             {
                 outLeft = 0.0f;
                 outRight = 0.0f;
@@ -180,7 +234,7 @@ namespace pw8::voice
             }
             sourceValues.layerLfos = layerLfoValues;
             for (std::size_t i = 0; i < core::kNumEnvelopesPerLayer; ++i)
-                sourceValues.envelopes[i] = envelopes[i].renderSample();
+                sourceValues.envelopes[i] = renderEnvelopeSample(i);
             const float env = sourceValues.envelopes[0]; // envelopes[0] is the amp envelope -- drives the VCA below.
             sourceValues.velocity = velocity;
             sourceValues.channelPressure = expression.channelPressure;
@@ -189,6 +243,9 @@ namespace pw8::voice
             sourceValues.modWheel = expression.modWheel;
             sourceValues.expression = expression.expression;
             sourceValues.macros = macroValues;
+            sourceValues.randomT = generativeValues.randomT;
+            sourceValues.randomX = generativeValues.randomX;
+            sourceValues.randomOutputs = generativeValues.outputs;
 
             const auto modOut = modulation::ModMatrixExecutor::hasAudioRateModRoutes(liveModRoutes)
                                     ? modulation::ModMatrixExecutor::apply(liveModRoutes, sourceValues, liveMetaRoutes)
@@ -217,6 +274,46 @@ namespace pw8::voice
                     modulatedParams[i].wtSyncAmount + modOut.operatorWavetableSyncAmountOffset[i], 0.0f, 1.0f);
                 modulatedParams[i].wtFormantShift = dsp::clamp(
                     modulatedParams[i].wtFormantShift + modOut.operatorWavetableFormantOffset[i], -1.0f, 1.0f);
+                modulatedParams[i].fmModulatorRatio = dsp::clamp(
+                    modulatedParams[i].fmModulatorRatio + modOut.operatorFmModulatorRatioOffset[i], 0.001f, 32.0f);
+                modulatedParams[i].fmModulatorIndex = dsp::clamp(
+                    modulatedParams[i].fmModulatorIndex + modOut.operatorFmModulatorIndexOffset[i], 0.0f, 2.0f);
+                modulatedParams[i].fmModulatorFeedback = dsp::clamp(
+                    modulatedParams[i].fmModulatorFeedback + modOut.operatorFmModulatorFeedbackOffset[i], 0.0f, 1.0f);
+                modulatedParams[i].frequencyRatio = dsp::clamp(
+                    modulatedParams[i].frequencyRatio + modOut.operatorFreqRatioOffset[i], 0.001f, 32.0f);
+                modulatedParams[i].phaseBend = dsp::clamp(
+                    modulatedParams[i].phaseBend + modOut.operatorPhaseBendOffset[i], -1.0f, 1.0f);
+                modulatedParams[i].phaseFold = dsp::clamp(
+                    modulatedParams[i].phaseFold + modOut.operatorPhaseFoldOffset[i], 0.0f, 1.0f);
+                modulatedParams[i].phaseAsymmetry = dsp::clamp(
+                    modulatedParams[i].phaseAsymmetry + modOut.operatorPhaseAsymmetryOffset[i], -1.0f, 1.0f);
+                modulatedParams[i].additivePartialCount = dsp::clamp(
+                    modulatedParams[i].additivePartialCount + modOut.operatorAdditivePartialCountOffset[i], 1.0f, 64.0f);
+                modulatedParams[i].additiveTilt = dsp::clamp(
+                    modulatedParams[i].additiveTilt + modOut.operatorAdditiveTiltOffset[i], -1.0f, 1.0f);
+                modulatedParams[i].additiveOddEven = dsp::clamp(
+                    modulatedParams[i].additiveOddEven + modOut.operatorAdditiveOddEvenOffset[i], 0.0f, 1.0f);
+                modulatedParams[i].additiveStretch = dsp::clamp(
+                    modulatedParams[i].additiveStretch + modOut.operatorAdditiveStretchOffset[i], -1.0f, 1.0f);
+                modulatedParams[i].resonatorStructure = dsp::clamp(
+                    modulatedParams[i].resonatorStructure + modOut.operatorResonatorStructureOffset[i], 0.0f, 1.0f);
+                modulatedParams[i].resonatorDecay = dsp::clamp(
+                    modulatedParams[i].resonatorDecay + modOut.operatorResonatorDecayOffset[i], 0.0f, 1.0f);
+                modulatedParams[i].resonatorDamping = dsp::clamp(
+                    modulatedParams[i].resonatorDamping + modOut.operatorResonatorDampingOffset[i], 0.0f, 1.0f);
+                modulatedParams[i].resonatorBrightness = dsp::clamp(
+                    modulatedParams[i].resonatorBrightness + modOut.operatorResonatorBrightnessOffset[i], 0.0f, 1.0f);
+                modulatedParams[i].resonatorModeCount = dsp::clamp(
+                    modulatedParams[i].resonatorModeCount + modOut.operatorResonatorModeCountOffset[i], 2.0f, 8.0f);
+                modulatedParams[i].grainDensity = dsp::clamp(
+                    modulatedParams[i].grainDensity + modOut.operatorGrainDensityOffset[i], 0.5f, 200.0f);
+                modulatedParams[i].grainSizeMs = dsp::clamp(
+                    modulatedParams[i].grainSizeMs + modOut.operatorGrainSizeMsOffset[i], 1.0f, 500.0f);
+                modulatedParams[i].grainPositionJitter = dsp::clamp(
+                    modulatedParams[i].grainPositionJitter + modOut.operatorGrainPositionJitterOffset[i], 0.0f, 1.0f);
+                modulatedParams[i].grainPitchJitter = dsp::clamp(
+                    modulatedParams[i].grainPitchJitter + modOut.operatorGrainPitchJitterOffset[i], 0.0f, 1.0f);
             }
 
             const float raw = executor.processSample(compiled, modulatedParams, operatorStates, wavetableTables,
@@ -233,21 +330,39 @@ namespace pw8::voice
             }
 
             float filtered = raw;
+
+            float f1ModulatedCutoffHz = filterParams.cutoffHz;
             if (filterParams.enabled)
             {
                 const float keyTrackFactor = dsp::filterKeyTrackFactor(effectiveFreq, filterParams.keyTrack);
-                const float cutoffHz = filterParams.cutoffHz * keyTrackFactor *
-                                        std::pow(2.0f, modOut.filterCutoffSemitones / 12.0f);
-                const float resonance = dsp::clamp(filterParams.resonance + modOut.filterResonanceOffset, 0.0f, 1.0f);
-                filtered = filter1.renderSample(raw, filterParams.mode, cutoffHz, resonance);
+                f1ModulatedCutoffHz = filterParams.cutoffHz * keyTrackFactor *
+                                      std::pow(2.0f, modOut.filterCutoffSemitones / 12.0f);
             }
 
-            if (filter2Params.enabled)
-            {
-                const float keyTrackFactor = dsp::filterKeyTrackFactor(effectiveFreq, filter2Params.keyTrack);
-                const float cutoffHz = filter2Params.cutoffHz * keyTrackFactor;
-                filtered = filter2.renderSample(filtered, cutoffHz, filter2Params.resonance, filter2Params.drive);
-            }
+            const auto renderGlobalF1 = [&](float in) -> float {
+                if (!filterParams.enabled)
+                    return in;
+                const float resonance =
+                    dsp::clamp(filterParams.resonance + modOut.filterResonanceOffset, 0.0f, 1.0f);
+                const float modeMorph =
+                    dsp::clamp(filterParams.modeMorph + modOut.filterModeMorphOffset, 0.0f, 1.0f);
+                return filter1.renderSample(in, filterParams.mode, modeMorph, f1ModulatedCutoffHz, resonance);
+            };
+
+            const auto renderGlobalF2 = [&](float in) -> float {
+                if (!filter2Params.enabled)
+                    return in;
+                const float cutoffHz = filter::computeFilter2CutoffHz(filterParams.enabled, f1ModulatedCutoffHz,
+                                                                      filter2Params, effectiveFreq);
+                const float resonance = dsp::clamp(filter2Params.resonance, 0.0f, 1.0f);
+                const float drive = dsp::clamp(filter2Params.drive + modOut.filterDriveOffset, 0.0f, 1.0f);
+                return filter2.renderSample(in, cutoffHz, resonance, drive);
+            };
+
+            const float routingMorph =
+                dsp::clamp(filterRouting + modOut.filterRoutingOffset, 0.0f, 1.0f);
+            filtered = filter::applyDualFilterRouting(raw, routingMorph, filterParams.enabled,
+                                                      filter2Params.enabled, renderGlobalF1, renderGlobalF2);
 
             const float amp = dsp::clamp(filtered * env * velocity * outputGain * stealOutputGain_, -16.0f, 16.0f);
 
@@ -259,7 +374,7 @@ namespace pw8::voice
             advanceStealCrossfade();
             advancePortamentoGlide();
 
-            if (!envelopes[0].isActive())
+            if (!envelopeIsActive(0))
                 noteNumber = -1; // fully released -- free for reuse next allocation pass.
         }
 
@@ -309,7 +424,7 @@ namespace pw8::voice
                                  std::uint64_t ageCounter, std::uint64_t noteGenerationId,
                                  std::uint64_t voiceSeed, float portamentoSeconds) noexcept
         {
-            const bool legatoGlide = portamentoSeconds > 0.0f && gateOn && envelopes[0].isActive() &&
+            const bool legatoGlide = portamentoSeconds > 0.0f && gateOn && envelopeIsActive(0) &&
                                      note != noteNumber && baseFreqHz != currentFrequencyHz_;
 
             noteNumber = note;
@@ -326,7 +441,7 @@ namespace pw8::voice
                 portamentoCoeff_ = computePortamentoCoeff(portamentoSeconds);
                 auto legatoParams = envParams;
                 legatoParams[0].legato = true;
-                envelopes[0].noteOn(legatoParams[0]);
+                startEnvelope(0, legatoParams[0]);
                 return;
             }
 
@@ -352,7 +467,7 @@ namespace pw8::voice
             }
 
             for (std::size_t i = 0; i < core::kNumEnvelopesPerLayer; ++i)
-                envelopes[i].noteOn(envParams[i]);
+                startEnvelope(i, envParams[i]);
             filter1.reset();
             filter2.reset();
             for (auto& f : operatorFilters_)
@@ -420,13 +535,13 @@ namespace pw8::voice
         std::array<op::OperatorParams, core::kNodesPerLayer> operatorParams{};
         std::array<op::OperatorState, core::kNodesPerLayer> operatorStates{};
         algorithm::AlgorithmExecutor executor{};
-        std::array<envelope::DahdsrEnvelope, core::kNumEnvelopesPerLayer> envelopes{};
 
         filter::FilterParams filterParams{};
         filter::StateVariableFilter filter1{};
 
         filter::CharacterFilterParams filter2Params{};
         filter::CharacterFilter filter2{};
+        float filterRouting = 0.0f;
 
         std::array<filter::FilterParams, core::kNodesPerLayer> operatorFilterParams_{};
         std::array<filter::StateVariableFilter, core::kNodesPerLayer> operatorFilters_{};

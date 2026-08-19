@@ -1,6 +1,8 @@
 #include "HeaderSpectrumScope.h"
 
 #include "../theme/BrandingAssets.h"
+#include "../visualizer/PreviewDraw.h"
+#include "../visualizer/VisualizerGpu.h"
 #include "../theme/ObsidianDraw.h"
 #include "../theme/ObsidianFonts.h"
 #include "../theme/ObsidianPalette.h"
@@ -48,16 +50,17 @@ namespace pw8::plugin::ui
             const float norm = (logF - logMin) / (logMax - logMin);
             return bounds.getX() + norm * bounds.getWidth();
         }
-
-        [[nodiscard]] float yForLevel(float level, juce::Rectangle<float> bounds) noexcept
-        {
-            return bounds.getBottom() - juce::jlimit(0.0f, 1.0f, level) * bounds.getHeight();
-        }
     } // namespace
 
     HeaderSpectrumScope::HeaderSpectrumScope(PatchworkEightProcessor& processor) : processor_(processor)
     {
         rebuildWindow();
+        if (murmur8::visualizerGpuEnabled())
+        {
+            glPlot_ = std::make_unique<murmur8::MurmurVisualizerComponent>(processor_.getVisualizerBus());
+            addAndMakeVisible(*glPlot_);
+            syncGlMode();
+        }
         startTimerHz(45);
     }
 
@@ -102,7 +105,19 @@ namespace pw8::plugin::ui
         viewMode_ = mode;
         hasFreshData_ = false;
         vu_.reset();
+        syncGlMode();
         repaint();
+    }
+
+    void HeaderSpectrumScope::syncGlMode()
+    {
+        if (glPlot_ == nullptr)
+            return;
+
+        if (viewMode_ == ScopeViewMode::Fft)
+            glPlot_->setMode(murmur8::MurmurVisualizerComponent::Mode::Spectral);
+        else
+            glPlot_->setMode(murmur8::MurmurVisualizerComponent::Mode::VuMeter);
     }
 
     bool HeaderSpectrumScope::pullAndAnalyseFft() noexcept
@@ -154,6 +169,19 @@ namespace pw8::plugin::ui
                 peakHold_[idx] = juce::jmax(displayLevels_[idx], prevPeak * kPeakDecay);
         }
 
+        for (int i = 0; i < murmur8::AudioVisualizerBus::fftBinCount; ++i)
+        {
+            const float t = static_cast<float>(i) / static_cast<float>(murmur8::AudioVisualizerBus::fftBinCount - 1);
+            const float scopeIdx = t * static_cast<float>(kScopeBins - 1);
+            const int i0 = static_cast<int>(scopeIdx);
+            const int i1 = juce::jmin(kScopeBins - 1, i0 + 1);
+            const float frac = scopeIdx - static_cast<float>(i0);
+            fftPushBuffer_[static_cast<std::size_t>(i)] =
+                displayLevels_[static_cast<std::size_t>(i0)] * (1.0f - frac)
+                + displayLevels_[static_cast<std::size_t>(i1)] * frac;
+        }
+        processor_.getVisualizerBus().pushFFTFrame(fftPushBuffer_.data(), murmur8::AudioVisualizerBus::fftBinCount);
+
         hasFreshData_ = true;
         return true;
     }
@@ -166,6 +194,17 @@ namespace pw8::plugin::ui
 
         const auto [rms, peak] = scope::measureMonoBlock(vuCaptureBuffer_.data(), pulled);
         vu_.processFrame(rms, peak);
+
+        if (glPlot_ != nullptr)
+        {
+            murmur8::VuMeterParams params;
+            params.peakL = vu_.peakHoldNorm();
+            params.peakR = vu_.peakHoldNorm();
+            params.rmsL = vu_.rmsNorm();
+            params.rmsR = vu_.rmsNorm();
+            params.vertical = false;
+            glPlot_->setVuMeterParams(params);
+        }
 
         if (vu_.rmsNorm() > 0.02f)
             pulseGlow_ = juce::jmin(kMaxPulseGlow, pulseGlow_ + 0.08f);
@@ -180,24 +219,17 @@ namespace pw8::plugin::ui
         return getLocalBounds().toFloat().reduced(2.0f, 3.0f);
     }
 
-    juce::Path HeaderSpectrumScope::buildOutlinePath(juce::Rectangle<float> bounds) const
+    void HeaderSpectrumScope::resized()
     {
-        juce::Path outlinePath;
-        outlinePath.startNewSubPath(bounds.getX(), yForLevel(displayLevels_[0], bounds));
-
-        for (int i = 1; i < kScopeBins; ++i)
-        {
-            const float freq = freqForScopeBin(i, kScopeBins);
-            const float x = xForFrequency(freq, bounds);
-            const auto idx = static_cast<std::size_t>(i);
-            outlinePath.lineTo(x, yForLevel(displayLevels_[idx], bounds));
-        }
-
-        return outlinePath;
+        if (glPlot_ != nullptr)
+            glPlot_->setBounds(graphBounds().toNearestInt());
     }
 
     void HeaderSpectrumScope::paintGrid(juce::Graphics& g, juce::Rectangle<float> bounds) const
     {
+        if (viewMode_ != ScopeViewMode::Fft)
+            return;
+
         g.setColour(palette::kBorder.withAlpha(0.45f));
         for (const float freq : {100.0f, 1000.0f, 10000.0f})
         {
@@ -222,69 +254,6 @@ namespace pw8::plugin::ui
                    juce::Justification::centred);
     }
 
-    void HeaderSpectrumScope::paintPeakHold(juce::Graphics& g, juce::Rectangle<float> bounds) const
-    {
-        g.setColour(palette::kAccent.withAlpha(0.55f + pulseGlow_ * 0.08f));
-        for (int i = 0; i < kScopeBins; ++i)
-        {
-            const auto idx = static_cast<std::size_t>(i);
-            if (peakHold_[idx] <= displayLevels_[idx] + 0.012f)
-                continue;
-
-            const float freq = freqForScopeBin(i, kScopeBins);
-            const float x = xForFrequency(freq, bounds);
-            const float yPeak = yForLevel(peakHold_[idx], bounds);
-            g.fillEllipse(x - 1.5f, yPeak - 3.0f, 3.0f, 3.0f);
-        }
-    }
-
-    void HeaderSpectrumScope::paintSpectrum(juce::Graphics& g, juce::Rectangle<float> bounds) const
-    {
-        if (!hasFreshData_)
-            return;
-
-        const auto outlinePath = buildOutlinePath(bounds);
-        draw::strokeGlowPath(g, outlinePath, 0.88f + pulseGlow_ * 0.10f, 2.0f, true);
-        paintPeakHold(g, bounds);
-    }
-
-    void HeaderSpectrumScope::paintVuMeter(juce::Graphics& g, juce::Rectangle<float> bounds) const
-    {
-        if (!hasFreshData_)
-            return;
-
-        const auto meterArea = bounds.reduced(8.0f, 10.0f).withTrimmedTop(bounds.getHeight() * 0.28f);
-        const float barHeight = juce::jmin(18.0f, meterArea.getHeight() * 0.42f);
-        const auto bar = juce::Rectangle<float>(meterArea.getX(), meterArea.getCentreY() - barHeight * 0.5f,
-                                                meterArea.getWidth(), barHeight);
-
-        g.setColour(palette::kBackgroundBottom.withAlpha(0.88f));
-        g.fillRoundedRectangle(bar, barHeight * 0.35f);
-        g.setColour(palette::kBorder.withAlpha(0.45f));
-        g.drawRoundedRectangle(bar, barHeight * 0.35f, 1.0f);
-
-        const float fillWidth = bar.getWidth() * vu_.rmsNorm();
-        if (fillWidth > 1.0f)
-        {
-            auto fill = bar.withWidth(fillWidth).reduced(1.5f, 1.5f);
-            g.setColour(palette::kAccent.withAlpha(0.22f + pulseGlow_ * 0.08f));
-            g.fillRoundedRectangle(fill, fill.getHeight() * 0.35f);
-
-            juce::Path fillOutline;
-            fillOutline.addRoundedRectangle(fill, fill.getHeight() * 0.35f);
-            draw::strokeGlowPath(g, fillOutline, 0.82f + pulseGlow_ * 0.08f, 1.4f, true);
-        }
-
-        const float peakX = bar.getX() + bar.getWidth() * vu_.peakHoldNorm();
-        g.setColour(palette::kAccentWarm.withAlpha(0.75f));
-        g.fillRect(peakX - 1.0f, bar.getY() + 2.0f, 2.0f, bar.getHeight() - 4.0f);
-
-        g.setFont(fonts::label(fonts::kCaptionSize));
-        g.setColour(palette::kTextSecondary);
-        g.drawText("L", bar.translated(-14.0f, 0.0f), juce::Justification::centredRight, false);
-        g.drawText("R", bar.withTrimmedLeft(bar.getWidth() + 4.0f), juce::Justification::centredLeft, false);
-    }
-
     void HeaderSpectrumScope::paint(juce::Graphics& g)
     {
         const auto bounds = graphBounds();
@@ -296,14 +265,34 @@ namespace pw8::plugin::ui
         g.setColour(palette::kTopHighlight.withAlpha(0.04f + pulseGlow_ * 0.02f));
         g.fillRoundedRectangle(bounds.reduced(1.0f), 4.0f);
 
-        if (viewMode_ == ScopeViewMode::Fft)
+        if (glPlot_ != nullptr && murmur8::visualizerGpuEnabled() && hasFreshData_)
+        {
+            glPlot_->setBounds(bounds.toNearestInt());
+            paintGrid(g, bounds);
+        }
+        else if (hasFreshData_)
         {
             paintGrid(g, bounds);
-            paintSpectrum(g, bounds);
+            if (viewMode_ == ScopeViewMode::Fft)
+            {
+                preview::paintSpectrumFromBus(g, bounds.reduced(2.0f, 4.0f), processor_.getVisualizerBus());
+            }
+            else
+            {
+                const float rmsW = bounds.getWidth() * 0.42f * vu_.rmsNorm();
+                const float peakW = bounds.getWidth() * 0.42f * vu_.peakHoldNorm();
+                g.setColour(palette::kAccent.withAlpha(0.85f));
+                g.fillRoundedRectangle(bounds.getX() + 4.0f, bounds.getCentreY() - 3.0f, rmsW, 6.0f, 2.0f);
+                g.setColour(palette::kAccentWarm.withAlpha(0.75f));
+                g.fillRoundedRectangle(bounds.getX() + 4.0f, bounds.getCentreY() - 1.5f, peakW, 3.0f, 1.5f);
+            }
         }
-        else
+        else if (!hasFreshData_)
         {
-            paintVuMeter(g, bounds);
+            g.setColour(palette::kTextDim);
+            g.setFont(fonts::value(fonts::kCaptionSize));
+            g.drawText(viewMode_ == ScopeViewMode::Fft ? "Play notes for spectrum" : "Play notes for level",
+                       bounds, juce::Justification::centred);
         }
 
         g.setColour(branding::glowColour().withAlpha(0.06f + pulseGlow_ * 0.05f));

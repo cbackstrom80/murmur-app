@@ -1,5 +1,6 @@
 #include "MacroStrip.h"
 
+#include "../theme/FigmaKnobTokens.h"
 #include "../theme/ObsidianPalette.h"
 #include "state/PluginState.h"
 
@@ -16,6 +17,8 @@ namespace pw8::plugin::ui
             // switches it to the patch-authored one, if any, once a patch loads.
             knobs_[i] = std::make_unique<GlowKnob>(processor_.apvts, kMacroParameterIds[i], kMacroParameterNames[i],
                                                      nullptr, palette::kAccentWarm);
+            knobs_[i]->applyFigmaContext(i == 0 ? figma::KnobContext::DesktopMacroFeature
+                                                : figma::KnobContext::DesktopMacroStandard);
             knobs_[i]->enableMacroActivityRing(processor_, i);
             knobs_[i]->setDeckedStyle(true, GlowKnob::DeckedKnobSize::Medium);
             panel_.addAndMakeVisible(*knobs_[i]);

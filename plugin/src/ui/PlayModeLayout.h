@@ -61,12 +61,14 @@ namespace pw8::plugin::ui::layout
     inline constexpr int kArpStepColumnWidth = 43;
     inline constexpr int kArpStepColumnWidthCompact = 28;
     inline constexpr int kArpStepPageSize = 16;
-    inline constexpr int kArpStepToolRowHeight = 24;
+    inline constexpr int kArpStepToolRowHeight = 38;
     inline constexpr int kArpStepLaneWidth = 32;
     inline constexpr int kArpStepLaneHeight = 130;
     inline constexpr int kArpStepMetaHeight = 39;
     inline constexpr int kArpStepSequencerRowHeight = 191;
-    inline constexpr int kArpSeqHeaderHeight = 13;
+    inline constexpr int kArpSeqHeaderHeight = 20;
+    inline constexpr int kArpStepToolbarButtonWidth = 30;
+    inline constexpr int kArpStepCountLabelWidth = 56;
     inline constexpr int kArpModeButtonHeight = 23;
     inline constexpr int kArpModeButtonGap = 6;
     inline constexpr int kArpOctaveStripHeight = 22;
@@ -232,7 +234,7 @@ namespace pw8::plugin::ui::layout
 
     /// Figma `murmur-desktop-play-mode` (36:4) — Basic performance screen (distinct from obsidian-play-board 22:2).
     /// Canonical frame height is 960px (includes inline header in Figma; chrome is external in code).
-    inline constexpr int kDesktopPlayModeFrameHeight = 960;
+    inline constexpr int kDesktopPlayModeFrameHeight = 720;
     inline constexpr int kDesktopPlayModeOuterMargin = 20;
     inline constexpr int kDesktopPlayModeMasterEnvelopeSectionHeight = 220;
     inline constexpr int kDesktopPlayModeSectionGap = 16;
@@ -413,7 +415,12 @@ namespace pw8::plugin::ui::layout
     inline constexpr int kChromeBarDesignSubNavRowHeight = 22;
     inline constexpr int kChromeBarDesignSubNavGap = 4;
     inline constexpr int kChromeBarTopRowHeight = 24;
-    inline constexpr int kChromeBarBrandWidth = 220;
+    /// Reserved left column for whale lockup (85px asset + margin). Nav begins after this + `kChromeNavSectionGap`.
+    inline constexpr int kChromeBarBrandWidth = 96;
+    inline constexpr int kChromeBarLogoInset = 2;
+    /// Max painted lockup height — keeps logo inside the chrome row beside nav labels.
+    inline constexpr int kChromeBarPlayLogoMaxHeight = 22;
+    inline constexpr int kChromeBarDesignLogoMaxHeight = 17;
     inline constexpr int kChromeBarScoreLineWidth = 1;
     inline constexpr int kChromeBarScoreLineHeight = 24;
     inline constexpr int kChromeBarLedSize = 6;
@@ -453,6 +460,11 @@ namespace pw8::plugin::ui::layout
     inline constexpr int kChromeMasterKnobSize = 28;
     inline constexpr int kChromePresetDisplayWidth = 260;
 
+    [[nodiscard]] inline int chromeBarNavStartX() noexcept
+    {
+        return kChromeBarPaddingX + kChromeBarBrandWidth + kChromeNavSectionGap;
+    }
+
     /// Embedded design lab panel header row (aligns toward design chrome 62px).
     inline constexpr int kDesignLabPanelHeaderHeight = 56;
 
@@ -490,8 +502,11 @@ namespace pw8::plugin::ui::layout
     [[nodiscard]] inline int minimumPlayRootHeight(PlayViewMode mode) noexcept
     {
         const int insets = kDesktopPlayModeOuterMargin * 2;
-        return insets + chromeBarHeight(EditorMode::Play, mode == PlayViewMode::Compact)
-               + kDesktopPlayModeSectionGap + minimumPlayContentHeight(mode);
+        const int computed = insets + chromeBarHeight(EditorMode::Play, mode == PlayViewMode::Compact)
+                             + kDesktopPlayModeSectionGap + minimumPlayContentHeight(mode);
+        if (mode == PlayViewMode::Desktop)
+            return std::min(computed, kDefaultHeight);
+        return computed;
     }
 
     /// Figma `murmur-design-engine` (37:787) — ENGINE sub-page: 8 cards, no FX rack.
@@ -504,23 +519,20 @@ namespace pw8::plugin::ui::layout
     inline constexpr int kDesignModeV2PresetSelectorWidth = 240;
     inline constexpr int kDesignModeV2PresetSelectorHeight = 32;
     inline constexpr int kDesignModeV2MasterKnobSize = 28;
-    inline constexpr int kDesignModeV2GridSectionHeight = 560;
-    inline constexpr int kDesignModeV2MasterEnvelopePanelHeight = 320;
+    inline constexpr int kDesignModeV2GridSectionHeight = 452;
+    inline constexpr int kDesignModeV2MasterEnvelopePanelHeight = 180;
     inline constexpr int kDesignModeV2MasterEnvelopePadding = 16;
     inline constexpr int kDesignModeV2MasterEnvelopeHeaderHeight = 16;
     inline constexpr int kDesignModeV2MasterEnvelopeContentGap = 12;
     inline constexpr int kDesignModeV2MasterEnvelopeCurveWidth = 520;
-    inline constexpr int kDesignModeV2MasterEnvelopePlotHeight = 200;
-    inline constexpr int kDesignModeV2MasterEnvelopeKnobSize = 28;
-    inline constexpr int kDesignModeV2MasterEnvelopeKnobColumnWidth = 72;
-    inline constexpr int kDesignModeV2MasterEnvelopeControlRowHeight = 41;
+    inline constexpr int kDesignModeV2MasterEnvelopePlotHeight = 80;
+    inline constexpr int kDesignModeV2MasterEnvelopeKnobSize = 36;
+    inline constexpr int kDesignModeV2MasterEnvelopeKnobColumnWidth = 150;
+    inline constexpr int kDesignModeV2MasterEnvelopeControlRowHeight = 120;
     inline constexpr int kDesignModeV2MasterEnvelopeControlRowGap = 10;
     inline constexpr int kDesignModeV2StatusBarHeight = 40;
-    /// Figma `murmur-design-engine` (`37:787`) — chrome + master envelope + grid + status.
-    inline constexpr int kDesignEngineHeight =
-        kDesignModeV2OuterMargin * 2 + kChromeBarHeightDesign + kDesignModeV2SectionGap
-        + kDesignModeV2MasterEnvelopePanelHeight + kDesignModeV2SectionGap + kDesignModeV2GridSectionHeight
-        + kDesignModeV2SectionGap + kDesignModeV2StatusBarHeight;
+    /// Figma `murmur-design-engine` (`37:787`) — 1280×800 target frame.
+    inline constexpr int kDesignEngineHeight = 800;
 
     [[nodiscard]] inline int minimumDesignRootHeight() noexcept
     {
@@ -544,28 +556,62 @@ namespace pw8::plugin::ui::layout
         return std::clamp(height, minH, kMaxHeight);
     }
 
-    inline constexpr int kDesignModeV2GridRowHeight = 270;
+    inline constexpr int kDesignModeV2GridRowHeight = 220;
     inline constexpr int kDesignModeV2GridRowGap = 12;
     inline constexpr int kDesignModeV2GridColGap = 12;
     inline constexpr int kDesignModeV2EngineCardWidth = 303;
-    inline constexpr int kDesignModeV2EngineCardHeight = 270;
+    inline constexpr int kDesignModeV2EngineCardHeight = 220;
+    inline constexpr int kDesignModeV2CardCornerRadius = 6;
     inline constexpr int kDesignModeV2StatusBarPaddingX = 16;
+    /// Footer lab chips — secondary shortcuts only (primary labs live in header sub-nav).
+    inline constexpr int kDesignStatusBarLabChipWidth = 58;
+    inline constexpr int kDesignStatusBarLabChipGap = 4;
+    inline constexpr int kDesignStatusBarPanicWidth = 68;
+    inline constexpr int kDesignStatusBarZoneGap = 12;
     inline constexpr int kDesignModeV2CardPadding = 12;
     inline constexpr int kDesignModeV2CardRowGap = 10;
+    inline constexpr int kDesignModeV2CardRowGapAfterSubPicker = 12;
+    inline constexpr int kDesignModeV2CardRowGapBeforeKnobs = 8;
     inline constexpr int kDesignModeV2CardHeaderHeight = 14;
     inline constexpr int kDesignModeV2TypeStripHeight = 14;
-    inline constexpr int kDesignModeV2SubPickerHeight = 22;
+    inline constexpr int kDesignModeV2SubPickerHeight = 20;
     inline constexpr int kDesignModeV2SubPickerPillHeight = 14;
-    inline constexpr int kDesignModeV2SubPickerArrowWidth = 25;
+    inline constexpr int kDesignModeV2SubPickerArrowWidth = 22;
     inline constexpr int kDesignModeV2ContextVisualizerHeight = 80;
+    inline constexpr int kDesignModeV2ContextVisualizerMinHeight = 40;
     inline constexpr int kDesignModeV2OscillatorPickerHeight =
-        kDesignModeV2TypeStripHeight + kDesignModeV2CardRowGap + kDesignModeV2SubPickerHeight + kDesignModeV2CardRowGap
-        + kDesignModeV2ContextVisualizerHeight;
-    inline constexpr int kDesignModeV2KnobsEnvelopeRowHeight = 40;
+        kDesignModeV2TypeStripHeight + kDesignModeV2CardRowGap + kDesignModeV2SubPickerHeight
+        + kDesignModeV2CardRowGapAfterSubPicker + kDesignModeV2ContextVisualizerHeight;
+    inline constexpr int kDesignModeV2KnobsEnvelopeRowHeight = 48;
+    inline constexpr int kDesignModeV2CardKnobContainerWidth = 44;
+    inline constexpr int kDesignModeV2CardKnobContainerGap = 4;
+    inline constexpr int kDesignModeV2CardKnobDialSize = 28;
     inline constexpr int kDesignModeV2LevelRowHeight = 10;
     inline constexpr int kDesignModeV2EnvelopeWidth = 68;
-    inline constexpr int kDesignModeV2EnvelopeHeight = 34;
-    inline constexpr int kDesignModeV2EnvelopeYOffset = 6;
+    inline constexpr int kDesignModeV2EnvelopeHeight = 40;
+    inline constexpr int kDesignModeV2EnvelopeYOffset = 8;
+
+    /// Figma `murmur-fx-card-browser` (152:4) — design FX card landing grid.
+    inline constexpr int kDesignFxCardBrowserSubHeaderHeight = 34;
+    inline constexpr int kDesignFxCardBrowserStatusBarHeight = 46;
+    inline constexpr int kDesignFxCardWidth = 230;
+    inline constexpr int kDesignFxCardHeight = 280;
+    inline constexpr int kDesignFxCardGap = 12;
+    inline constexpr int kDesignFxCardPadding = 12;
+    inline constexpr int kDesignFxCardSectionGap = 10;
+    inline constexpr int kDesignFxCardRadius = 8;
+    inline constexpr int kDesignFxCardAccentStripHeight = 3;
+    inline constexpr int kDesignFxCardAccentStripWidth = 206;
+    inline constexpr int kDesignFxCardMiniVisHeight = 50;
+    inline constexpr int kDesignFxCardMiniVisWidth = 200;
+    inline constexpr int kDesignFxCardMiniKnobSize = 24;
+    inline constexpr int kDesignFxCardMiniKnobColWidth = 48;
+    inline constexpr int kDesignFxCardToggleWidth = 22;
+    inline constexpr int kDesignFxCardToggleHeight = 14;
+    inline constexpr int kDesignFxViewToggleWidth = 100;
+    inline constexpr int kDesignFxViewToggleHeight = 26;
+    inline constexpr int kDesignFxCardColumns = 5;
+    inline constexpr int kDesignFxCardBrowserCount = 10;
 
     /// Figma `murmur-design-fx` (35:4) — standalone design FX rack page.
     inline constexpr int kDesignFxPageSectionGap = 12;
@@ -575,7 +621,7 @@ namespace pw8::plugin::ui::layout
     inline constexpr int kDesignFxPageSignalChainSectionHeight =
         kDesignFxPageSignalChainLabelGap + kDesignFxPageSignalChainLabelHeight + kDesignFxPageSignalChainLabelGap
         + kDesignFxPageSignalChainPipelineHeight;
-    inline constexpr int kDesignFxPageChipWidth = 88;
+    inline constexpr int kDesignFxPageChipWidth = 82;
     inline constexpr int kDesignFxPageChipHeight = 82;
     inline constexpr int kDesignFxPageChipPadding = 6;
     inline constexpr int kDesignFxPageFlowConnectorWidth = 12;
@@ -588,16 +634,22 @@ namespace pw8::plugin::ui::layout
     inline constexpr int kDesignFxPageDetailHeight = 360;
     inline constexpr int kDesignFxPageDetailPadding = 16;
     inline constexpr int kDesignFxPageDetailHeaderHeight = 18;
+    inline constexpr int kDesignFxPageDetailHeaderGap = 14;
     inline constexpr int kDesignFxPageDetailBodyHeight = 296;
     inline constexpr int kDesignFxPageDetailControlsWidth = 280;
-    inline constexpr int kDesignFxPageEqSidebarWidth = 134;
+    inline constexpr int kDesignFxPageDetailHeroWidth = 448;
+    inline constexpr int kDesignFxPageEqSidebarWidth = 120;
+    inline constexpr int kDesignFxPageEqGraphHeight = 220;
+    inline constexpr int kDesignFxPageEqParamStripHeight = 29;
+    inline constexpr int kDesignFxPageDetailActiveToggleWidth = 48;
+    inline constexpr int kDesignFxPageDetailActiveToggleHeight = 16;
     inline constexpr int kDesignFxPageDetailControlsVizGap = 16;
     inline constexpr int kDesignFxPageDetailKnobGridHeight = 174;
     inline constexpr int kDesignFxPageDetailKnobWidth = 64;
     inline constexpr int kDesignFxPageDetailKnobHeight = 58;
     inline constexpr int kDesignFxPageDetailKnobColGap = 44;
     inline constexpr int kDesignFxPageDetailKnobRowGap = 58;
-    inline constexpr int kDesignFxPageDetailModeStripHeight = 30;
+    inline constexpr int kDesignFxPageDetailModeStripHeight = 26;
     inline constexpr int kDesignFxPageOverviewWidth = 380;
     inline constexpr int kDesignFxPageOverviewHeight = 360;
     inline constexpr int kDesignFxPageOverviewPadding = 12;
@@ -607,6 +659,15 @@ namespace pw8::plugin::ui::layout
     inline constexpr int kDesignFxPageRoutingPaddingX = 16;
     inline constexpr int kDesignFxPageSlotCount = 12;
     inline constexpr int kDesignFxPageDetailKnobDialSize = 32;
+
+    /// Figma `murmur-master-quasar-binaural` (102:4)
+    inline constexpr int kQuasarPanelHeaderHeight = 44;
+    inline constexpr int kQuasarBinauralFieldHeight = 318;
+    inline constexpr int kQuasarPrimaryKnobRowHeight = 105;
+    inline constexpr int kQuasarBottomCardHeight = 141;
+    inline constexpr int kQuasarTelemetryBarHeight = 32;
+    inline constexpr int kQuasarPrimaryKnobCellWidth = 80;
+    inline constexpr int kQuasarPrimaryKnobDialSize = 44;
 
     /// Figma `murmur-design-mod-matrix` (27:265) — standalone design mod matrix page.
     inline constexpr int kDesignModMatrixPageOuterMargin = 12;

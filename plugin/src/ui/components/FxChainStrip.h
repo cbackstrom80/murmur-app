@@ -8,8 +8,6 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "DesignFxStubKnob.h"
-#include "DesignFxUiState.h"
 #include "FxEffectPlayParams.h"
 #include "GlowKnob.h"
 #include "GlowRingButton.h"
@@ -25,6 +23,8 @@
 // position; use Swap to reorder within insert or master groups.
 namespace pw8::plugin::ui
 {
+    class DesignFxUiState;
+
     class FxChainStrip : public juce::Component, private juce::Timer
     {
     public:
@@ -43,6 +43,7 @@ namespace pw8::plugin::ui
         void selectEngineSlot(std::size_t index);
         void applyDesignModePill(const juce::String& pill);
         std::function<void(std::size_t fxSlotIndex)> onVocoderLabRequested;
+        std::function<void(std::size_t fxSlotIndex)> onQuasarLabRequested;
         std::function<void(const juce::String& modePill)> onDesignModeChanged;
         std::function<void()> onDesignUiChanged;
 
@@ -95,8 +96,8 @@ namespace pw8::plugin::ui
         bool designFxPageMode_ = false;
         std::size_t designFxChipIndex_ = 1;
         DesignFxUiState* designFxUiState_ = nullptr;
-        std::array<std::unique_ptr<DesignFxStubKnob>, kDesignFxKnobCount> designStubKnobs_{};
         std::unique_ptr<LabLauncherChip> vocoderLabChip_;
+        std::unique_ptr<LabLauncherChip> quasarLabChip_;
 
         PatchworkEightProcessor& processor_;
         juce::AudioProcessorValueTreeState& apvts_;
