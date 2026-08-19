@@ -1,0 +1,755 @@
+{
+  "schemaVersion": 2,
+  "metadata": {
+    "id": "murmur-factory-ambient-850257825",
+    "name": "NEBULA BLOOM",
+    "author": "Patchwork Eight Engineering",
+    "description": "Factory Ambient patch #36. Engines: Classic, Granular, NoiseChaos, Resonator. Procedurally generated (seed 850257825) as part of the 250-patch factory content bank. Archetype: resonant cavern ambient.",
+    "category": "ambient",
+    "moods": [
+      "dark",
+      "spooky",
+      "airy",
+      "evolving",
+      "massive"
+    ],
+    "genres": [
+      "ambient-bed",
+      "cinematic",
+      "meditation",
+      "factory"
+    ],
+    "tags": [
+      "factory",
+      "ambient",
+      "resonant-cave",
+      "dark",
+      "spooky"
+    ],
+    "createdAt": "2026-08-12T00:00:00Z",
+    "engineVersion": "0.1.0",
+    "schemaVersion": 2,
+    "seed": 850257825,
+    "lineage": []
+  },
+  "layerMode": 0,
+  "layerMorph": 0.0,
+  "layerA": {
+    "operators": [
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 0.5,
+        "keyTrack": true,
+        "level": 0.30565230636022417,
+        "pan": 0.0
+      },
+      {
+        "engine": 7,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.549156908004499,
+        "pan": -0.04621024720943495,
+        "resonatorStructure": 0.22293171000597237,
+        "resonatorDecay": 0.7229008653327336,
+        "resonatorDamping": 0.4193735927001998,
+        "resonatorBrightness": 0.5471486611595868,
+        "resonatorModeCount": 5
+      },
+      {
+        "engine": 5,
+        "wavetableId": "content/wavetables/gran-vocal-dust.json",
+        "wavetableFramePosition": 0.08244861805490722,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.4053677139468931,
+        "pan": 0.16102914126180684,
+        "grainDensity": 13.788863295530017,
+        "grainSizeMs": 61.0842427587245,
+        "grainPositionJitter": 0.3902868794889457,
+        "grainPitchJitter": 0.09202094115448549
+      },
+      {
+        "engine": 6,
+        "frequencyRatio": 1.0,
+        "keyTrack": false,
+        "level": 0.04326441239188568,
+        "pan": -0.13250827272569013,
+        "noiseVariant": 1,
+        "noiseRate": 41.01388703750915
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      }
+    ],
+    "algorithm": {
+      "nodes": [
+        {
+          "id": 0,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 1,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 2,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 3,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 4,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 5,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 6,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 7,
+          "engine": 0,
+          "isOutput": true
+        }
+      ],
+      "edges": []
+    },
+    "envelopes": [
+      {
+        "attackSeconds": 3.534482730688487,
+        "decaySeconds": 1.6075501457806136,
+        "sustainLevel": 0.7531865017303762,
+        "releaseSeconds": 6.633014727544314,
+        "curveShape": 2.2
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      }
+    ],
+    "unison": {
+      "mode": 0,
+      "voices": 1
+    },
+    "filter1": {
+      "enabled": true,
+      "mode": 0,
+      "cutoffHz": 2551.72148242485,
+      "resonance": 0.22224814259849507,
+      "keyTrack": 0.18322940572913737
+    },
+    "lfos": [
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 0.08654890371271386,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 0.040769381003993965,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.5
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      }
+    ],
+    "modRoutes": [
+      {
+        "source": 1,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 7.036717081592832,
+        "scope": 1
+      },
+      {
+        "source": 2,
+        "destination": 7,
+        "targetIndex": 2,
+        "amount": 0.43719938755984933,
+        "scope": 1
+      },
+      {
+        "source": 29,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 16.0,
+        "scope": 0
+      },
+      {
+        "source": 17,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 18,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 8.0,
+        "scope": 0
+      },
+      {
+        "source": 30,
+        "destination": 5,
+        "targetIndex": 0,
+        "amount": 0.25,
+        "scope": 0
+      },
+      {
+        "source": 20,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 12.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.5,
+        "scope": 1
+      },
+      {
+        "source": 21,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.22,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.4,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 8.0,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.35,
+        "scope": 0
+      },
+      {
+        "source": 26,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.25,
+        "scope": 0
+      },
+      {
+        "source": 26,
+        "destination": 5,
+        "targetIndex": 2,
+        "amount": 0.3,
+        "scope": 1
+      },
+      {
+        "source": 26,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 8.0,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 12.0,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 5,
+        "targetIndex": 2,
+        "amount": 0.28,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.4,
+        "scope": 0
+      }
+    ],
+    "gain": 1.0,
+    "pan": 0.0,
+    "width": 1.0,
+    "centerGravity": 0.5,
+    "insertEffects": [
+      {
+        "type": 3,
+        "mix": 0.11830120461169776,
+        "tapeDelayMs": 534.9092876907866,
+        "tapeFeedback": 0.38615906857518933,
+        "tapeDriveDb": 4.0,
+        "tapeDuckAmount": 0.25,
+        "tapeDriftDepthMs": 4.948950051794491,
+        "tapeDriftRateHz": 0.07155000267418647,
+        "tapePanMode": 2
+      }
+    ]
+  },
+  "layerB": {
+    "operators": [
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      }
+    ],
+    "algorithm": {
+      "nodes": [
+        {
+          "id": 0,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 1,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 2,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 3,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 4,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 5,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 6,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 7,
+          "engine": 0,
+          "isOutput": false
+        }
+      ],
+      "edges": []
+    },
+    "envelopes": [
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      }
+    ],
+    "gain": 1.0,
+    "pan": 0.0,
+    "width": 1.0,
+    "centerGravity": 0.5
+  },
+  "voiceSettings": {
+    "polyphony": 8,
+    "masterGain": 1.0,
+    "a4Hz": 440.0
+  },
+  "locks": {},
+  "macros": [
+    {
+      "id": "m1",
+      "name": "DRIFT",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m2",
+      "name": "DEPTH",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m3",
+      "name": "SHIMMER",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m4",
+      "name": "AIR",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m5",
+      "name": "STRUCTURE",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m6",
+      "name": "DAMPING",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m7",
+      "name": "SPACE",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m8",
+      "name": "MORPH",
+      "description": "Performance macro.",
+      "value": 0.0
+    }
+  ],
+  "arpeggiator": {
+    "enabled": false
+  },
+  "masterEffects": [
+    {
+      "type": 8,
+      "mix": 1.0,
+      "eqLowFreqHz": 100,
+      "eqLowGainDb": 1.4445920454156012,
+      "eqMidFreqHz": 600,
+      "eqMidGainDb": -0.4285178322837033,
+      "eqMidQ": 0.7,
+      "eqHighFreqHz": 6000,
+      "eqHighGainDb": -2.415195294233958
+    },
+    {
+      "type": 7,
+      "mix": 0.4858839106981386,
+      "reverbSizeParam": 2.3696242029199066,
+      "reverbDecaySeconds": 9.653577906041601,
+      "reverbPreDelayMs": 47.75452677367255,
+      "reverbHighRatio": 0.55,
+      "reverbHighCrossoverHz": 3200.0,
+      "reverbLowRatio": 1.4,
+      "reverbLowCrossoverHz": 300.0,
+      "reverbDiffusion": 0.8,
+      "reverbDensity": 0.85,
+      "reverbModDepth": 0.3,
+      "reverbModRateHz": 0.15,
+      "reverbEarlyLevel": 0.5,
+      "reverbLateLevel": 0.85,
+      "reverbRollOffHz": 9000.0,
+      "reverbVlfCutDb": -6.0
+    },
+    {
+      "type": 9,
+      "mix": 1.0,
+      "compThresholdDb": -19.280609561707703,
+      "compRatio": 2.5,
+      "compAttackMs": 15.0,
+      "compReleaseMs": 180.0,
+      "compKneeDb": 6.0,
+      "compMakeupDb": 3.0
+    },
+    {
+      "type": 10,
+      "mix": 1.0,
+      "limiterCeilingDb": -0.8,
+      "limiterLookaheadMs": 4.0,
+      "limiterReleaseMs": 60.0
+    }
+  ],
+  "uiFocus": {
+    "maxKnobs": 3,
+    "knobs": [
+      {
+        "kind": "macro",
+        "index": 0,
+        "label": "DRIFT"
+      },
+      {
+        "kind": "macro",
+        "index": 1,
+        "label": "DEPTH"
+      },
+      {
+        "kind": "macro",
+        "index": 5,
+        "label": "DAMPING"
+      }
+    ]
+  }
+}

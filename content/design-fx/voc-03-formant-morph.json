@@ -1,7 +1,7 @@
 {
   "chip": 11,
   "name": "FORMANT MORPH",
-  "pw8Ref": "content/presets/factory/Sidechain/03-imogen-ether-vocoder.pw8",
+  "pw8Ref": "content/presets/factory/Sidechain/03-imogen-ether-vocoder.murmur",
   "pw8Slot": 0,
   "params": {
     "VocoderFormant": 0.72,

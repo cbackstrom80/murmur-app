@@ -1,0 +1,422 @@
+{
+  "schemaVersion": 3,
+  "metadata": {
+    "id": "murmur-factory-warp-bend-demo",
+    "name": "WARP BEND DEMO",
+    "author": "Patchwork Eight Engineering",
+    "description": "Factory warp showcase: OP0 reads basic_harmonic.json with strong WT Bend (0.72) for visible phase curvature. LFO1 slowly sweeps wavetable frame position for motion. Use OSC scope to compare bend at 0 vs 0.72.",
+    "category": "warp",
+    "moods": [
+      "digital",
+      "evolving",
+      "bright"
+    ],
+    "genres": [
+      "demo",
+      "sound-design",
+      "factory"
+    ],
+    "tags": [
+      "factory",
+      "warp",
+      "bend",
+      "wavetable",
+      "demo",
+      "digital",
+      "evolving"
+    ],
+    "createdAt": "2026-08-13T00:00:00Z",
+    "engineVersion": "0.1.0",
+    "schemaVersion": 3,
+    "seed": 3101,
+    "lineage": []
+  },
+  "layerMode": 0,
+  "layerMorph": 0.0,
+  "layerA": {
+    "operators": [
+      {
+        "engine": 1,
+        "wavetableId": "content/wavetables/basic_harmonic.json",
+        "wavetableFramePosition": 0.0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 1.0,
+        "pan": 0.0,
+        "wtBend": 0.72,
+        "wtAsymmetry": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      }
+    ],
+    "algorithm": {
+      "nodes": [
+        {
+          "id": 0,
+          "engine": 1,
+          "isOutput": true
+        },
+        {
+          "id": 1,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 2,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 3,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 4,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 5,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 6,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 7,
+          "engine": 0,
+          "isOutput": false
+        }
+      ],
+      "edges": []
+    },
+    "envelopes": [
+      {
+        "attackSeconds": 0.02,
+        "decaySeconds": 0.3,
+        "sustainLevel": 0.85,
+        "releaseSeconds": 0.5,
+        "curveShape": 2.0
+      }
+    ],
+    "lfos": [
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 0.18,
+        "phaseOffset": 0.0
+      }
+    ],
+    "modRoutes": [
+      {
+        "source": 1,
+        "destination": 5,
+        "targetIndex": 0,
+        "amount": 0.55,
+        "scope": 0
+      },
+      {
+        "source": 29,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 18.0,
+        "scope": 0
+      },
+      {
+        "source": 17,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 18,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 8.0,
+        "scope": 0
+      },
+      {
+        "source": 30,
+        "destination": 5,
+        "targetIndex": 0,
+        "amount": 0.25,
+        "scope": 0
+      },
+      {
+        "source": 20,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 12.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 12.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.22,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 5,
+        "targetIndex": 0,
+        "amount": 0.2,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 7,
+        "targetIndex": 0,
+        "amount": 0.45,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.3,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 7,
+        "targetIndex": 0,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.25,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.4,
+        "scope": 0
+      }
+    ],
+    "gain": 0.85,
+    "pan": 0.0,
+    "width": 1.0,
+    "centerGravity": 0.4
+  },
+  "layerB": {
+    "operators": [
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      }
+    ],
+    "algorithm": {
+      "nodes": [
+        {
+          "id": 0,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 1,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 2,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 3,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 4,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 5,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 6,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 7,
+          "engine": 0,
+          "isOutput": false
+        }
+      ],
+      "edges": []
+    },
+    "envelopes": [
+      {
+        "attackSeconds": 0.02,
+        "decaySeconds": 0.3,
+        "sustainLevel": 0.85,
+        "releaseSeconds": 0.5
+      }
+    ],
+    "gain": 1.0,
+    "pan": 0.0,
+    "width": 1.0,
+    "centerGravity": 0.5
+  },
+  "voiceSettings": {
+    "polyphony": 8,
+    "masterGain": 0.8,
+    "a4Hz": 440.0
+  },
+  "locks": {},
+  "macros": [
+    {
+      "id": "m1",
+      "name": "DARKNESS",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    },
+    {
+      "id": "m2",
+      "name": "IMPACT",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    },
+    {
+      "id": "m3",
+      "name": "MOTION",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    },
+    {
+      "id": "m4",
+      "name": "SPACE",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    },
+    {
+      "id": "m5",
+      "name": "BODY",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    },
+    {
+      "id": "m6",
+      "name": "METAL",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    },
+    {
+      "id": "m7",
+      "name": "CHAOS",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    },
+    {
+      "id": "m8",
+      "name": "MORPH",
+      "description": "Reserved -- not yet routed.",
+      "value": 0.0
+    }
+  ],
+  "seed": 3101,
+  "uiFocus": {
+    "maxKnobs": 3,
+    "knobs": [
+      {
+        "kind": "macro",
+        "index": 0,
+        "label": "DARKNESS"
+      },
+      {
+        "kind": "macro",
+        "index": 1,
+        "label": "IMPACT"
+      },
+      {
+        "kind": "macro",
+        "index": 2,
+        "label": "MOTION"
+      }
+    ]
+  }
+}

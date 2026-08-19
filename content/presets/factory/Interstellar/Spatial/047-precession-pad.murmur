@@ -1,0 +1,1028 @@
+{
+  "schemaVersion": 3,
+  "metadata": {
+    "id": "murmur-interstellar-spatial-047-3476753834",
+    "name": "PRECESSION PAD",
+    "author": "MURMUR Sound Design",
+    "description": "Interstellar spatial pad #047 \u2014 Precession Pad. Headphone-first spatial pad \u2014 M3 is inline QUASAR binaural spatial (embedded in patch) Single held notes 8+ s; ORBIT and SPACE macros move the Quasar scene; slow LFO orbit is always on. Engines: Classic, Granular, NoiseChaos, Resonator.",
+    "category": "interstellar",
+    "moods": [
+      "cinematic",
+      "cosmic",
+      "spatial",
+      "vast",
+      "headphone"
+    ],
+    "genres": [
+      "cinematic",
+      "score",
+      "ambient",
+      "spatial",
+      "factory"
+    ],
+    "tags": [
+      "interstellar",
+      "spatial",
+      "quasar",
+      "pad",
+      "binaural",
+      "factory",
+      "orbital-drift",
+      "evolving-space"
+    ],
+    "createdAt": "2026-08-14T00:00:00Z",
+    "engineVersion": "0.1.0",
+    "schemaVersion": 3,
+    "seed": 3476753834,
+    "lineage": [],
+    "type": "Interstellar",
+    "masterFx": "quasar",
+    "performanceHints": [
+      "headphone-first binaural wash",
+      "CNTR holds bass \u2014 sweep SPACE for orbit",
+      "slow LFO orbit on Quasar room/distance"
+    ],
+    "spatial": "inline-quasar"
+  },
+  "layerMode": 0,
+  "layerMorph": 0.0,
+  "layerA": {
+    "operators": [
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 0.5,
+        "keyTrack": true,
+        "level": 0.32,
+        "pan": 0.0
+      },
+      {
+        "engine": 5,
+        "wavetableId": "content/wavetables/texture-granular-shimmer.json",
+        "wavetableFramePosition": 1.04,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.52,
+        "pan": 0.16480887676793865,
+        "grainDensity": 33.2,
+        "grainSizeMs": 278.0,
+        "grainPositionJitter": 0.32,
+        "grainPitchJitter": 0.05
+      },
+      {
+        "engine": 7,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.48,
+        "pan": 0.0,
+        "resonatorStructure": 0.38,
+        "resonatorDecay": 0.82,
+        "resonatorDamping": 0.42,
+        "resonatorBrightness": 0.48,
+        "resonatorModeCount": 6
+      },
+      {
+        "engine": 6,
+        "frequencyRatio": 1.0,
+        "keyTrack": false,
+        "level": 0.05,
+        "pan": 0.0,
+        "noiseVariant": 1,
+        "noiseRate": 25.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      },
+      {
+        "engine": 0,
+        "classicWaveform": 0,
+        "frequencyRatio": 1.0,
+        "keyTrack": true,
+        "level": 0.0,
+        "pan": 0.0
+      }
+    ],
+    "algorithm": {
+      "nodes": [
+        {
+          "id": 0,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 1,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 2,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 3,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 4,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 5,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 6,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 7,
+          "engine": 0,
+          "isOutput": true
+        }
+      ],
+      "edges": []
+    },
+    "envelopes": [
+      {
+        "attackSeconds": 7.7,
+        "decaySeconds": 2.0,
+        "sustainLevel": 0.88,
+        "releaseSeconds": 9.15,
+        "curveShape": 2.3,
+        "legato": true
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      }
+    ],
+    "unison": {
+      "mode": 0,
+      "voices": 1
+    },
+    "filter1": {
+      "enabled": true,
+      "mode": 0,
+      "cutoffHz": 3390.0,
+      "resonance": 0.08,
+      "keyTrack": 0.12
+    },
+    "lfos": [
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 0.028,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 0.04,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.73
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      },
+      {
+        "waveform": 0,
+        "mode": 0,
+        "rateHz": 1.0,
+        "syncDivisionIndex": 4,
+        "phaseOffset": 0.0
+      }
+    ],
+    "modRoutes": [
+      {
+        "source": 29,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 14.0,
+        "scope": 0
+      },
+      {
+        "source": 29,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 21,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.2975,
+        "scope": 1
+      },
+      {
+        "source": 2,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.45,
+        "scope": 1
+      },
+      {
+        "source": 1,
+        "destination": 32,
+        "targetIndex": 2,
+        "amount": 0.14,
+        "scope": 2
+      },
+      {
+        "source": 1,
+        "destination": 37,
+        "targetIndex": 2,
+        "amount": 20.0,
+        "scope": 2
+      },
+      {
+        "source": 2,
+        "destination": 38,
+        "targetIndex": 2,
+        "amount": 0.55,
+        "scope": 2
+      },
+      {
+        "source": 2,
+        "destination": 32,
+        "targetIndex": 2,
+        "amount": 0.1,
+        "scope": 2
+      },
+      {
+        "source": 21,
+        "destination": 37,
+        "targetIndex": 2,
+        "amount": 28.0,
+        "scope": 2
+      },
+      {
+        "source": 21,
+        "destination": 32,
+        "targetIndex": 2,
+        "amount": 0.42,
+        "scope": 2
+      },
+      {
+        "source": 21,
+        "destination": 13,
+        "targetIndex": 2,
+        "amount": 0.28,
+        "scope": 2
+      },
+      {
+        "source": 21,
+        "destination": 32,
+        "targetIndex": 2,
+        "amount": 0.3,
+        "scope": 2
+      },
+      {
+        "source": 21,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.55,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 13,
+        "targetIndex": 2,
+        "amount": 0.35,
+        "scope": 2
+      },
+      {
+        "source": 23,
+        "destination": 32,
+        "targetIndex": 2,
+        "amount": 0.52,
+        "scope": 2
+      },
+      {
+        "source": 23,
+        "destination": 38,
+        "targetIndex": 2,
+        "amount": 1.15,
+        "scope": 2
+      },
+      {
+        "source": 23,
+        "destination": 37,
+        "targetIndex": 2,
+        "amount": 16.0,
+        "scope": 2
+      },
+      {
+        "source": 23,
+        "destination": 32,
+        "targetIndex": 2,
+        "amount": 0.26,
+        "scope": 2
+      },
+      {
+        "source": 22,
+        "destination": 13,
+        "targetIndex": 2,
+        "amount": 0.32,
+        "scope": 2
+      },
+      {
+        "source": 22,
+        "destination": 38,
+        "targetIndex": 2,
+        "amount": 1.0,
+        "scope": 2
+      },
+      {
+        "source": 22,
+        "destination": 37,
+        "targetIndex": 2,
+        "amount": 24.0,
+        "scope": 2
+      },
+      {
+        "source": 22,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": -12.0,
+        "scope": 0
+      },
+      {
+        "source": 22,
+        "destination": 32,
+        "targetIndex": 2,
+        "amount": 0.45,
+        "scope": 2
+      },
+      {
+        "source": 25,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 14.0,
+        "scope": 0
+      },
+      {
+        "source": 25,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.42,
+        "scope": 1
+      },
+      {
+        "source": 25,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.24,
+        "scope": 0
+      },
+      {
+        "source": 25,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.2,
+        "scope": 1
+      },
+      {
+        "source": 25,
+        "destination": 11,
+        "targetIndex": 1,
+        "amount": 0.32,
+        "scope": 1
+      },
+      {
+        "source": 17,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 10.0,
+        "scope": 0
+      },
+      {
+        "source": 18,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 8.0,
+        "scope": 0
+      },
+      {
+        "source": 30,
+        "destination": 5,
+        "targetIndex": 0,
+        "amount": 0.25,
+        "scope": 0
+      },
+      {
+        "source": 20,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 12.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 1,
+        "targetIndex": 0,
+        "amount": 12.0,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 2,
+        "targetIndex": 0,
+        "amount": 0.22,
+        "scope": 0
+      },
+      {
+        "source": 21,
+        "destination": 5,
+        "targetIndex": 1,
+        "amount": 0.2,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.45,
+        "scope": 1
+      },
+      {
+        "source": 22,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.3,
+        "scope": 0
+      },
+      {
+        "source": 23,
+        "destination": 7,
+        "targetIndex": 1,
+        "amount": 0.35,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 5,
+        "targetIndex": 2,
+        "amount": 0.25,
+        "scope": 1
+      },
+      {
+        "source": 23,
+        "destination": 6,
+        "targetIndex": 0,
+        "amount": 0.4,
+        "scope": 0
+      }
+    ],
+    "gain": 1.0,
+    "pan": 0.0,
+    "width": 1.0,
+    "centerGravity": 0.5,
+    "insertEffects": [
+      {
+        "type": 3,
+        "mix": 0.15,
+        "tapeDelayMs": 520.0,
+        "tapeFeedback": 0.25,
+        "tapeDriveDb": 4.0,
+        "tapeDuckAmount": 0.25,
+        "tapeDriftDepthMs": 6.0,
+        "tapeDriftRateHz": 0.12,
+        "tapePanMode": 2
+      }
+    ],
+    "filter2": {
+      "enabled": true,
+      "cutoffHz": 2400,
+      "resonance": 0.35,
+      "drive": 0.1,
+      "keyTrack": 0.15
+    }
+  },
+  "layerB": {
+    "operators": [
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      },
+      {
+        "engine": 0,
+        "level": 0.0
+      }
+    ],
+    "algorithm": {
+      "nodes": [
+        {
+          "id": 0,
+          "engine": 0,
+          "isOutput": true
+        },
+        {
+          "id": 1,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 2,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 3,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 4,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 5,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 6,
+          "engine": 0,
+          "isOutput": false
+        },
+        {
+          "id": 7,
+          "engine": 0,
+          "isOutput": false
+        }
+      ],
+      "edges": []
+    },
+    "envelopes": [
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      },
+      {
+        "delaySeconds": 0.0,
+        "attackSeconds": 0.002,
+        "holdSeconds": 0.0,
+        "decaySeconds": 0.15,
+        "sustainLevel": 0.0,
+        "releaseSeconds": 0.05,
+        "curveShape": 2.0,
+        "legato": false
+      }
+    ],
+    "gain": 1.0,
+    "pan": 0.0,
+    "width": 1.0,
+    "centerGravity": 0.5
+  },
+  "voiceSettings": {
+    "polyphony": 24,
+    "masterGain": 1.0,
+    "a4Hz": 440.0,
+    "macroDissemination": true,
+    "disseminationDepth": 0.29
+  },
+  "locks": {},
+  "macros": [
+    {
+      "id": "m1",
+      "name": "ORBIT",
+      "description": "Spatial macro \u2014 pair with standalone QUASAR plugin on the master bus.",
+      "value": 0.0
+    },
+    {
+      "id": "m2",
+      "name": "VOID",
+      "description": "Pulls CNTR back and opens void distance + filter darkness.",
+      "value": 0.0
+    },
+    {
+      "id": "m3",
+      "name": "SPACE",
+      "description": "Spatial macro \u2014 room, delay, and mix on master Quasar (M3).",
+      "value": 0.0
+    },
+    {
+      "id": "m4",
+      "name": "DRIFT",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m5",
+      "name": "BLOOM",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m6",
+      "name": "HAZE",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m7",
+      "name": "DEPTH",
+      "description": "Performance macro.",
+      "value": 0.0
+    },
+    {
+      "id": "m8",
+      "name": "AIR",
+      "description": "Performance macro.",
+      "value": 0.0
+    }
+  ],
+  "arpeggiator": {
+    "enabled": false
+  },
+  "masterEffects": [
+    {
+      "type": 8,
+      "mix": 1.0,
+      "eqLowFreqHz": 100,
+      "eqLowGainDb": 0.5,
+      "eqMidFreqHz": 600,
+      "eqMidGainDb": -1.0,
+      "eqMidQ": 0.7,
+      "eqHighFreqHz": 6000,
+      "eqHighGainDb": -0.6
+    },
+    {
+      "type": 2,
+      "mix": 0.24,
+      "chorusRateHz": 0.12,
+      "chorusDepthMs": 4.0,
+      "chorusBaseDelayMs": 14.0
+    },
+    {
+      "type": 13,
+      "mix": 0.76,
+      "qsr1Level": 0.6499874789712986,
+      "qsr2Level": 0.5195094634710791,
+      "cntrLevel": 0.8463631758933576,
+      "inputSplitHpfHz": 120.0,
+      "cntrHpfHz": 80.0,
+      "qsr1Height": 0.11,
+      "qsr1Distance": 0.48980045850944803,
+      "qsr2Height": -0.09000000000000001,
+      "qsr2Distance": 0.5373313956533604,
+      "qsr1RoomAmount": 0.44,
+      "qsr1RoomSize": 1.03,
+      "qsr1RoomDamping": 0.42870761306053995,
+      "qsr2RoomAmount": 0.4,
+      "qsr2RoomSize": 1.1199352516417382,
+      "qsr2RoomDamping": 0.42424548090469594,
+      "quasarDelayTimeMs": 906.0150997869684,
+      "quasarDelayFeedback": 0.32,
+      "quasarDelayVolume": 0.26,
+      "quasarOutputMode": 0,
+      "quasarCrossfeed": 0.0,
+      "quasarDelaySync": false,
+      "quasarDelaySyncDivision": 2,
+      "qsr1AngleDeg": 91.73179515571267,
+      "qsr2AngleDeg": 271.54228147987425,
+      "quasarDelaySyncDivisionIndex": 2
+    },
+    {
+      "type": 9,
+      "mix": 1.0,
+      "compThresholdDb": -16.0,
+      "compRatio": 2.2,
+      "compAttackMs": 22.0,
+      "compReleaseMs": 220.0,
+      "compKneeDb": 6.0,
+      "compMakeupDb": 3.0
+    },
+    {
+      "type": 10,
+      "mix": 1.0,
+      "limiterCeilingDb": -0.8,
+      "limiterLookaheadMs": 4.0,
+      "limiterReleaseMs": 60.0
+    }
+  ],
+  "uiFocus": {
+    "maxKnobs": 3,
+    "knobs": [
+      {
+        "kind": "morph",
+        "label": "SCENE"
+      },
+      {
+        "kind": "macro",
+        "index": 0,
+        "label": "ORBIT"
+      },
+      {
+        "kind": "macro",
+        "index": 2,
+        "label": "SPACE"
+      }
+    ]
+  },
+  "morphKoin": {
+    "label": "SCENE",
+    "description": "INTIMATE in-head \u2194 VOID wash \u2014 inline Quasar on master M3 + morph position.",
+    "defaultPosition": 0.35,
+    "position": 0.35,
+    "curve": "smooth",
+    "wrap": false,
+    "keyframes": [
+      {
+        "name": "INTIMATE",
+        "position": 0.0,
+        "macroValues": [
+          0.12,
+          0.05,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "paramOverrides": {
+          "layerA.filter1.cutoffHz": {
+            "value": 2360.0,
+            "easing": "smooth",
+            "response": ""
+          },
+          "layerA.filter1.resonance": {
+            "value": 0.0925,
+            "easing": "smooth",
+            "response": ""
+          }
+        }
+      },
+      {
+        "name": "STAGE",
+        "position": 0.45,
+        "macroValues": [
+          0.45,
+          0.28,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "paramOverrides": {
+          "layerA.filter1.cutoffHz": {
+            "value": 8300.0,
+            "easing": "smooth",
+            "response": ""
+          },
+          "layerA.filter1.resonance": {
+            "value": 0.28800000000000003,
+            "easing": "smooth",
+            "response": ""
+          }
+        }
+      },
+      {
+        "name": "VOID",
+        "position": 1.0,
+        "macroValues": [
+          0.78,
+          0.62,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "paramOverrides": {
+          "layerA.filter1.cutoffHz": {
+            "value": 14240.0,
+            "easing": "smooth",
+            "response": ""
+          },
+          "layerA.filter1.resonance": {
+            "value": 0.5770000000000001,
+            "easing": "smooth",
+            "response": ""
+          }
+        }
+      }
+    ]
+  }
+}
