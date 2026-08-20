@@ -148,6 +148,7 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/PresetBrowserOverlay.cpp
     src/ui/components/SplashOverlay.cpp
     src/ui/components/KeyActivationOverlay.cpp
+    src/ui/components/CuratorReviewOverlay.cpp
     src/ui/components/UpdateBadge.cpp
     src/ui/components/AmpEnvelopePanel.cpp
     src/ui/components/ObsidianEnvelopeVisualizer.cpp

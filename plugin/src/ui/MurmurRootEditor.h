@@ -8,6 +8,7 @@
 #include "DesignModeEditor.h"
 #include "PlayModeEditor.h"
 #include "SharedEditorChrome.h"
+#include "components/CuratorReviewOverlay.h"
 #include "components/KeyActivationOverlay.h"
 #include "components/MurmurChromeBar.h"
 #include "components/PatchBrowserBar.h"
@@ -55,6 +56,10 @@ namespace pw8::plugin::ui
         DesignModeEditor designModeEditor_;
         SplashOverlay splashOverlay_;
         KeyActivationOverlay keyActivationOverlay_;
+        CuratorReviewOverlay curatorReviewOverlay_;
+        juce::TextButton curatorEntryButton_{"CURATOR"}; // corner button, visible only
+                                                           // when the activated license
+                                                           // is curator-flagged
         layout::EditorMode editorMode_ = layout::EditorMode::Play;
         layout::DesignSubPage designSubPage_ = layout::DesignSubPage::Engine;
         layout::PlayViewMode lastNonCompactPlayView_ = layout::PlayViewMode::Desktop;

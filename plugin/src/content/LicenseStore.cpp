@@ -26,6 +26,7 @@ namespace pw8::plugin::content
         info_.email = parsed.getProperty("email", "").toString();
         info_.entitled = static_cast<bool>(parsed.getProperty("entitled", false));
         info_.activatedAt = parsed.getProperty("activatedAt", "").toString();
+        info_.isDevCurator = static_cast<bool>(parsed.getProperty("isDevCurator", false));
     }
 
     void LicenseStore::save()
@@ -39,6 +40,7 @@ namespace pw8::plugin::content
         obj->setProperty("email", info_.email);
         obj->setProperty("entitled", info_.entitled);
         obj->setProperty("activatedAt", info_.activatedAt);
+        obj->setProperty("isDevCurator", info_.isDevCurator);
 
         file.replaceWithText(juce::JSON::toString(juce::var(obj), true));
     }

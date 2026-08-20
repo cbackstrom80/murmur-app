@@ -21,6 +21,7 @@ namespace pw8::plugin::net
         juce::String email;
         bool entitled = false;
         juce::String keyName;
+        bool isCurator = false; // real -- see /api/v1/activate's own response field
     };
 
     struct LibraryPatch
@@ -36,6 +37,32 @@ namespace pw8::plugin::net
         bool success = false;
         juce::String errorMessage;
         juce::Array<LibraryPatch> patches;
+    };
+
+    /// One row in the curator review queue -- metadata only, no audio
+    /// preview (real limitation, see CuratorReviewOverlay's own doc
+    /// comment for why).
+    struct CuratorQueuePatch
+    {
+        juce::String slug;
+        juce::String name;
+        juce::String category;
+        juce::StringArray tags;
+        juce::String source; // "manual" | "ai_generated"
+    };
+
+    struct CuratorQueueResult
+    {
+        bool success = false;
+        juce::String errorMessage;
+        juce::Array<CuratorQueuePatch> patches;
+    };
+
+    struct CuratorVoteResult
+    {
+        bool success = false;
+        juce::String errorMessage;
+        bool removed = false;
     };
 
     class MurmurApiClient
@@ -55,6 +82,14 @@ namespace pw8::plugin::net
         /// GETs /api/v1/library with the key as a Bearer token. `callback`
         /// fires once, on the message thread.
         static void fetchLibrary(const juce::String& licenseKey, std::function<void(LibraryResult)> callback);
+
+        /// GETs /api/v1/curator-queue. Bearer auth, server-side isCurator-gated
+        /// (a non-curator key gets a real 403, surfaced as errorMessage).
+        static void fetchCuratorQueue(const juce::String& licenseKey, std::function<void(CuratorQueueResult)> callback);
+
+        /// POSTs /api/v1/patches/[slug]/curate with {"vote": "up"|"down"}.
+        static void submitCuratorVote(const juce::String& licenseKey, const juce::String& slug, bool voteUp,
+                                       std::function<void(CuratorVoteResult)> callback);
     };
 
 } // namespace pw8::plugin::net

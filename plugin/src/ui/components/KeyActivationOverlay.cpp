@@ -109,6 +109,7 @@ namespace pw8::plugin::ui
             info.displayName = result.displayName;
             info.email = result.email;
             info.entitled = result.entitled;
+            info.isDevCurator = result.isCurator;
             info.activatedAt = juce::Time::getCurrentTime().toISO8601(true);
             licenseStore_.setInfo(info);
 

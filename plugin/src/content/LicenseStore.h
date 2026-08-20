@@ -4,8 +4,16 @@
 
 // Persisted result of a successful ACTIVATE LICENSE call against
 // murmur-web's /api/v1/activate — see KeyActivationOverlay and
-// net/MurmurApiClient. Same load/save-to-Application-Support pattern as
-// FavoritesStore/PresetRatingsStore, not a new persistence mechanism.
+// net/MurmurApiClient. Same load/save pattern as FavoritesStore/
+// PresetRatingsStore, not a new persistence mechanism. Real path is
+// ~/Library/MURMUR/license.json, not "Application Support" -- verified
+// directly (stderr trace) while debugging curator-mode: JUCE's
+// userApplicationDataDirectory resolves to plain ~/Library on macOS, not
+// ~/Library/Application Support, despite what this comment (and the
+// sibling stores' own comments) previously assumed. Functionally
+// harmless -- every real read/write in this codebase goes through the
+// same getSpecialLocation() call, so it's self-consistent -- but matters
+// if you're ever hand-editing this file for a test, as I was.
 namespace pw8::plugin::content
 {
     struct LicenseInfo
@@ -20,6 +28,8 @@ namespace pw8::plugin::content
                                     // not enforced against features yet (Stripe isn't
                                     // wired on the backend), purely informational.
         juce::String activatedAt;  // ISO8601, local clock, informational only.
+        bool isDevCurator = false; // real -- unlocks CuratorReviewOverlay. See
+                                    // /api/v1/activate's own isCurator field.
 
         [[nodiscard]] bool isActivated() const noexcept { return licenseKey.isNotEmpty(); }
     };

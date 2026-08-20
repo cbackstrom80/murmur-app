@@ -131,7 +131,17 @@ namespace pw8::plugin::ui
         // picked up too).
         addChildComponent(keyActivationOverlay_);
         keyActivationOverlay_.setBounds(getLocalBounds());
-        keyActivationOverlay_.onDismissed = [this] { keyActivationOverlay_.setVisible(false); };
+        keyActivationOverlay_.onDismissed = [this] {
+            keyActivationOverlay_.setVisible(false);
+            // Real gap this closes: curatorEntryButton_'s visibility was only
+            // ever set once, at splash-dismiss time -- a license activated
+            // *after* that (the normal case) never made the button appear
+            // without a full relaunch. Re-check here too, every time the
+            // activation flow finishes (skip, activate, or activate-then-
+            // library-sync-fails all funnel through onDismissed).
+            const content::LicenseStore freshCheck;
+            curatorEntryButton_.setVisible(freshCheck.info().isDevCurator);
+        };
         keyActivationOverlay_.onLibraryFetched = [this](const juce::Array<net::LibraryPatch>& patches) {
             if (patches.isEmpty())
                 return;
@@ -174,6 +184,33 @@ namespace pw8::plugin::ui
             });
         };
 
+        // Curator review -- reachable via a small corner button rather than a
+        // new MurmurChromeBar menu entry, deliberately: that file's layout is
+        // dense and Figma-precise, and this is a rarely-used, license-gated
+        // surface, not core chrome. Button itself is only made visible once
+        // the splash clears and the stored license is curator-flagged.
+        addChildComponent(curatorReviewOverlay_);
+        curatorReviewOverlay_.setBounds(getLocalBounds());
+        curatorReviewOverlay_.getLicenseKey = [] {
+            const content::LicenseStore store;
+            return store.info().licenseKey;
+        };
+        curatorReviewOverlay_.onDismissed = [this] { curatorReviewOverlay_.setVisible(false); };
+
+        addChildComponent(curatorEntryButton_);
+        curatorEntryButton_.setColour(juce::TextButton::buttonColourId, palette::kMurmurViolet.withAlpha(0.15f));
+        curatorEntryButton_.setColour(juce::TextButton::textColourOffId, palette::kMurmurViolet);
+        curatorEntryButton_.onClick = [this] { curatorReviewOverlay_.setVisible(true); };
+        // Real bug caught by screenshot: resized() only sets this button's
+        // bounds when it's already visible, but resized() runs at initial
+        // layout time (before the license check below ever makes it
+        // visible) and never again afterward -- leaving it at zero-size
+        // default bounds forever. Set real bounds once, unconditionally,
+        // matching how keyActivationOverlay_/curatorReviewOverlay_ both
+        // already get an initial setBounds(getLocalBounds()) regardless of
+        // visibility.
+        curatorEntryButton_.setBounds(12, 12, 90, 24);
+
         // Splash goes last so it paints on top of everything else added above.
         // It owns the update-available check/banner itself now (matches the
         // Figma murmur-vst-splash frame's own update-notification-banner
@@ -186,6 +223,7 @@ namespace pw8::plugin::ui
             const content::LicenseStore licenseCheck;
             if (!licenseCheck.info().isActivated())
                 keyActivationOverlay_.setVisible(true);
+            curatorEntryButton_.setVisible(licenseCheck.info().isDevCurator);
         };
     }
 
@@ -384,6 +422,17 @@ namespace pw8::plugin::ui
 
         if (keyActivationOverlay_.isVisible())
             keyActivationOverlay_.setBounds(bounds);
+
+        if (curatorReviewOverlay_.isVisible())
+            curatorReviewOverlay_.setBounds(bounds);
+
+        if (curatorEntryButton_.isVisible())
+        {
+            constexpr int kButtonWidth = 90;
+            constexpr int kButtonHeight = 24;
+            constexpr int kMargin = 12;
+            curatorEntryButton_.setBounds(kMargin, kMargin, kButtonWidth, kButtonHeight);
+        }
 
         if (presetBrowserOverlay_.isVisible())
             presetBrowserOverlay_.setBounds(bounds);
