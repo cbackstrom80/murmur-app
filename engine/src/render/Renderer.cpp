@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <memory>
 #include <vector>
 
 #include "pw8/render/BlockMidi.hpp"
@@ -177,10 +178,17 @@ namespace pw8::render
     RenderResult render(const patch::Patch& patchToRender, const midi::MidiSequence& midi,
                          const RenderOptions& options) noexcept
     {
-        Engine engine;
-        engine.prepare(options.sampleRate);
-        engine.loadPatch(patchToRender); // Compile failure already falls back to a safe graph.
-        return renderWithEngine(engine, midi, options);
+        // Engine must be heap-allocated, not stack-allocated -- sizeof(Engine) is
+        // ~19MB (fixed-size voice/wavetable/effect-chain storage), well past the
+        // default 8MB thread stack on stock Linux (confirmed via a real crash on a
+        // bare Ubuntu 24.04 box: instant SIGSEGV on function entry, before a single
+        // line of render() ran). The JUCE plugin has always heap-allocated every
+        // Engine instance via std::make_unique (see MurmurProcessor.cpp) for exactly
+        // this reason -- this free function was the one place that didn't.
+        auto engine = std::make_unique<Engine>();
+        engine->prepare(options.sampleRate);
+        engine->loadPatch(patchToRender); // Compile failure already falls back to a safe graph.
+        return renderWithEngine(*engine, midi, options);
     }
 
 } // namespace pw8::render
