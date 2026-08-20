@@ -1,0 +1,10 @@
+radio/generated/murmur-clean-pluck-3280632704.murmur:content/test_midi/tide_arp.mid:01-clean-pluck
+radio/generated/murmur-bright-arp-pluck-1946116752.murmur:content/test_midi/bloom_arp.mid:02-bright-arp-pluck
+radio/generated/murmur-glass-bell-pluck-2013000581.murmur:content/test_midi/tide_arp.mid:03-glass-bell-pluck
+radio/generated/murmur-snap-pluck-2537622156.murmur:content/test_midi/bloom_arp.mid:04-snap-pluck
+radio/generated/murmur-steel-strike-3914399219.murmur:content/test_midi/tide_arp.mid:05-steel-strike
+radio/generated/murmur-bright-pluck-475748417.murmur:content/test_midi/bloom_arp.mid:06-bright-pluck
+radio/generated/murmur-staccato-spark-1653313528.murmur:content/test_midi/tide_arp.mid:07-staccato-spark
+radio/generated/murmur-glass-sequence-1692720947.murmur:content/test_midi/bloom_arp.mid:08-glass-sequence
+radio/generated/murmur-additive-strike-2458090564.murmur:content/test_midi/tide_arp.mid:09-additive-strike
+radio/generated/murmur-digital-snap-3977693062.murmur:content/test_midi/bloom_arp.mid:10-digital-snap
