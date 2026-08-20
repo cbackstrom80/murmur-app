@@ -19,7 +19,7 @@ radio/generated/murmur-distant-choir-pad-2489942795.murmur:content/test_midi/blo
 radio/generated/murmur-gentle-triangle-pad-3265396137.murmur:content/test_midi/dune-chords.mid:19-gentle-triangle-pad
 radio/generated/murmur-glacial-phase-476423523.murmur:content/test_midi/demo-lfo-wobble.mid:20-glacial-phase
 radio/generated/murmur-glacial-spectrum-1079468068.murmur:content/test_midi/single-note.mid:21-glacial-spectrum
-radio/generated/murmur-glass-shimmer-1704469132.murmur:content/test_midi/pad-chords.mid:22-glass-shimmer
+radio/generated/murmur-glass-shimmer-1704469132.murmur:content/test_midi/single-note.mid:22-glass-shimmer
 radio/generated/murmur-hazy-warmth-2143544380.murmur:content/test_midi/tide_pad.mid:23-hazy-warmth
 radio/generated/murmur-rain-on-glass-3618789390.murmur:content/test_midi/bloom_pad.mid:24-rain-on-glass
 radio/generated/murmur-soft-bell-chime-2433237892.murmur:content/test_midi/dune-chords.mid:25-soft-bell-chime
