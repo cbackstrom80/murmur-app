@@ -74,12 +74,21 @@ prev="[0]"
 for ((i = 1; i < ${#WAVS[@]}; i++)); do
   next_label="[a$(printf '%02d' "$i")]"
   if (( i == ${#WAVS[@]} - 1 )); then
-    next_label="[out]"
+    next_label="[xf]"
   fi
   filter+="${prev}[${i}]acrossfade=d=4:c1=tri:c2=tri${next_label};"
   prev="$next_label"
 done
-filter="${filter%;}"
+# Real loudness normalization on the final crossfaded output -- found via
+# actually measuring the live streams after the first multi-station cutover:
+# a station built from short plucky/staccato patches (silence between hits
+# is real and correct) reads dramatically quieter overall (-29dB mean) than
+# one built from sustained pads (-13dB mean) even though every individual
+# patch's own peak was healthy in isolation -- switching stations felt like
+# a jarring volume drop. EBU R128 target (-16 LUFS integrated, -1.5dBTP
+# ceiling) brings every station to the same real loudness regardless of
+# how much silence its patches naturally have between notes.
+filter+="[xf]loudnorm=I=-16:TP=-1.5:LRA=11[out]"
 
 ffmpeg -y \
   "${ffmpeg_inputs[@]}" \
