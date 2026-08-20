@@ -1,3 +1,4 @@
+#include <memory>
 #include <catch2/catch_test_macros.hpp>
 #include <cmath>
 #include <vector>
@@ -39,7 +40,8 @@ TEST_CASE("Engine::setFilterLive audibly changes a currently-held voice", "[engi
     p.layerA.envelopes[0].decaySeconds = 0.01f;
     p.layerA.envelopes[0].sustainLevel = 1.0f;
 
-    render::Engine engine;
+    auto engineHolder = std::make_unique<render::Engine>(); // 19MB object -- must be heap-allocated, not stack (see docs/TESTING.md)
+    auto& engine = *engineHolder;
     engine.prepare(kSampleRate);
     REQUIRE(engine.loadPatch(p));
     engine.noteOn(60, 0, 100);
@@ -69,7 +71,8 @@ TEST_CASE("Engine::setOperatorLive changes a currently-held voice's level", "[en
     p.layerA.envelopes[0].decaySeconds = 0.01f;
     p.layerA.envelopes[0].sustainLevel = 1.0f;
 
-    render::Engine engine;
+    auto engineHolder = std::make_unique<render::Engine>(); // 19MB object -- must be heap-allocated, not stack (see docs/TESTING.md)
+    auto& engine = *engineHolder;
     engine.prepare(kSampleRate);
     REQUIRE(engine.loadPatch(p));
     engine.noteOn(60, 0, 100);
@@ -105,7 +108,8 @@ TEST_CASE("Engine::setModRoutesLive audibly changes a currently-held voice, not 
     p.layerA.filter1.cutoffHz = 12000.0f; // wide open -- no route yet.
     p.layerA.filter1.resonance = 0.1f;
 
-    render::Engine engine;
+    auto engineHolder = std::make_unique<render::Engine>(); // 19MB object -- must be heap-allocated, not stack (see docs/TESTING.md)
+    auto& engine = *engineHolder;
     engine.prepare(kSampleRate);
     REQUIRE(engine.loadPatch(p));
     engine.noteOn(60, 0, 100); // velocity7=100 -> unit velocity ~0.787.
@@ -149,7 +153,8 @@ TEST_CASE("Engine::setInsertEffectLive changes a currently-held voice's output",
     p.layerA.envelopes[0].decaySeconds = 0.01f;
     p.layerA.envelopes[0].sustainLevel = 1.0f;
 
-    render::Engine engine;
+    auto engineHolder = std::make_unique<render::Engine>(); // 19MB object -- must be heap-allocated, not stack (see docs/TESTING.md)
+    auto& engine = *engineHolder;
     engine.prepare(kSampleRate);
     REQUIRE(engine.loadPatch(p));
     engine.noteOn(60, 0, 127);
@@ -188,7 +193,8 @@ TEST_CASE("Engine::setArpeggiatorScalarLive preserves held notes and pattern sta
     p.arpeggiator.numSteps = 1;
     p.arpeggiator.steps[0] = sequencer::ArpStep{};
 
-    render::Engine engine;
+    auto engineHolder = std::make_unique<render::Engine>(); // 19MB object -- must be heap-allocated, not stack (see docs/TESTING.md)
+    auto& engine = *engineHolder;
     engine.prepare(kSampleRate);
     REQUIRE(engine.loadPatch(p));
 
@@ -238,7 +244,8 @@ TEST_CASE("Engine::setFilterRoutingLive morphs dual-filter output on held voice"
     p.layerA.filter2.drive = 0.2f;
     p.layerA.filterRouting = 0.0f;
 
-    render::Engine engine;
+    auto engineHolder = std::make_unique<render::Engine>(); // 19MB object -- must be heap-allocated, not stack (see docs/TESTING.md)
+    auto& engine = *engineHolder;
     engine.prepare(kSampleRate);
     REQUIRE(engine.loadPatch(p));
     engine.noteOn(60, 0, 100);

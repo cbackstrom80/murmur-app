@@ -98,8 +98,13 @@ namespace pw8::algorithm
                 {
                     const float keyTrackFactor =
                         dsp::filterKeyTrackFactor(baseFrequencyHz, operatorFilterParams[i].keyTrack);
-                    const float cutoffHz = operatorFilterParams[i].cutoffHz * keyTrackFactor *
-                                           std::pow(2.0f, operatorFilterCutoffSemitones[i] / 12.0f);
+                    // operatorFilterCutoffSemitones[i] is an exact 0.0f whenever no active
+                    // route targets this operator's filter cutoff -- skip pow() then.
+                    const float cutoffModMultiplier = operatorFilterCutoffSemitones[i] != 0.0f
+                                                           ? std::pow(2.0f, operatorFilterCutoffSemitones[i] / 12.0f)
+                                                           : 1.0f;
+                    const float cutoffHz =
+                        operatorFilterParams[i].cutoffHz * keyTrackFactor * cutoffModMultiplier;
                     const float resonance =
                         dsp::clamp(operatorFilterParams[i].resonance + operatorFilterResonanceOffset[i], 0.0f, 1.0f);
                     shaped = operatorFilters[i].renderSample(shaped, operatorFilterParams[i].mode,

@@ -1,3 +1,4 @@
+#include <memory>
 #include <bit>
 #include <catch2/catch_test_macros.hpp>
 #include <cmath>
@@ -41,11 +42,13 @@ TEST_CASE("Engine dispatches block MIDI at sub-block sample offsets", "[render][
     p.layerA.envelopes[0].sustainLevel = 0.0f;
     p.layerA.envelopes[0].releaseSeconds = 0.05f;
 
-    render::Engine earlyEngine;
+    auto earlyEngineHolder = std::make_unique<render::Engine>(); // 19MB object -- must be heap-allocated, not stack (see docs/TESTING.md)
+    auto& earlyEngine = *earlyEngineHolder;
     earlyEngine.prepare(kSampleRate);
     earlyEngine.loadPatch(p);
 
-    render::Engine lateEngine;
+    auto lateEngineHolder = std::make_unique<render::Engine>(); // 19MB object -- must be heap-allocated, not stack (see docs/TESTING.md)
+    auto& lateEngine = *lateEngineHolder;
     lateEngine.prepare(kSampleRate);
     lateEngine.loadPatch(p);
 
@@ -102,7 +105,8 @@ TEST_CASE("Golden render fingerprints are deterministic", "[render][golden]")
     noteOn.velocity = 100;
 
     auto renderFingerprint = [&]() {
-        render::Engine engine;
+        auto engineHolder = std::make_unique<render::Engine>(); // 19MB object -- must be heap-allocated, not stack (see docs/TESTING.md)
+        auto& engine = *engineHolder;
         engine.prepare(kSampleRate);
         engine.loadPatch(p);
         std::vector<float> left(24000, 0.0f);

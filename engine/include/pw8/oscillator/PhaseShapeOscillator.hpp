@@ -54,7 +54,16 @@ namespace pw8::oscillator
     class PhaseShapeOscillator
     {
     public:
-        void prepare(double sampleRate) noexcept { sampleRate_ = sampleRate > 0.0 ? sampleRate : 48000.0; }
+        void prepare(double sampleRate) noexcept
+        {
+            sampleRate_ = sampleRate > 0.0 ? sampleRate : 48000.0;
+            // Real coefficients, re-derived on every sample-rate change (control-rate
+            // cost, not per-sample) -- see kFoldSmoothTimeSeconds2x/4x's doc comment.
+            foldSmoothCoeff2x_ =
+                static_cast<float>(1.0 - std::exp(-1.0 / (kFoldSmoothTimeSeconds2x * sampleRate_)));
+            foldSmoothCoeff4x_ =
+                static_cast<float>(1.0 - std::exp(-1.0 / (kFoldSmoothTimeSeconds4x * sampleRate_)));
+        }
 
         void reset(float initialPhase = 0.0f) noexcept
         {
@@ -129,8 +138,7 @@ namespace pw8::oscillator
                 const float y1 = foldShape(midCarrier, amount);
                 const float y2 = direct;
                 const float combined = dsp::halfBandDecimate3Tap(y0, y1, y2);
-                const float kSmoothCoeff = 0.35f;
-                foldSmoothState_ += (combined - foldSmoothState_) * kSmoothCoeff;
+                foldSmoothState_ += (combined - foldSmoothState_) * foldSmoothCoeff2x_;
                 prevCarrierRaw_ = carrierRaw;
                 return dsp::flushIfNotFinite(foldSmoothState_);
             }
@@ -141,17 +149,34 @@ namespace pw8::oscillator
             const float interior[3] = {foldShape(c1, amount), foldShape(c2, amount), foldShape(c3, amount)};
             const float combined =
                 dsp::decimateHalfBandFold(foldShape(prevCarrierRaw_, amount), direct, osFactor, interior);
-            const float kSmoothCoeff = osFactor >= 4 ? 0.25f : 0.35f;
-            foldSmoothState_ += (combined - foldSmoothState_) * kSmoothCoeff;
+            foldSmoothState_ +=
+                (combined - foldSmoothState_) * (osFactor >= 4 ? foldSmoothCoeff4x_ : foldSmoothCoeff2x_);
             prevCarrierRaw_ = carrierRaw;
             return dsp::flushIfNotFinite(foldSmoothState_);
         }
+
+        // Real time constants the previous fixed-literal coefficients (0.35f/0.25f)
+        // implicitly assumed at the then-implicit 48kHz default -- derived via
+        // coeff = 1-exp(-1/(tau*sampleRate)) solved in reverse. Fixing the ORIGINAL
+        // bug: those literals had no sample-rate scaling, so the post-fold
+        // brightness/smoothing character differed audibly between sample rates for
+        // the identical patch. foldSmoothCoeff2x_/4x_ (computed in prepare(), not
+        // per-sample) now derive the real coefficient from these fixed time
+        // constants instead, so the same tau -- and therefore the same real-world
+        // smoothing behavior -- holds at 44.1k/48k/96k alike. Oversampling (osFactor)
+        // happens *inside* a single applyFold() call (interior taps decimated back
+        // down before the smoother runs), so the base sample rate is the right one
+        // to derive these from, not an oversampled rate.
+        static constexpr double kFoldSmoothTimeSeconds2x = 4.836e-5; // ~3.3kHz corner (osFactor==2 branch).
+        static constexpr double kFoldSmoothTimeSeconds4x = 7.241e-5; // ~2.2kHz corner (osFactor>=4 branch).
 
         double sampleRate_ = 48000.0;
         float frequencyHz_ = 440.0f;
         float phase_ = 0.0f;
         float prevCarrierRaw_ = 0.0f;
         float foldSmoothState_ = 0.0f;
+        float foldSmoothCoeff2x_ = 0.35f; // overwritten by prepare() before first real use.
+        float foldSmoothCoeff4x_ = 0.25f; // overwritten by prepare() before first real use.
         bool didWrapThisSample_ = false;
     };
 

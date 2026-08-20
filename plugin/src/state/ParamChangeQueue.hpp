@@ -4,9 +4,29 @@
 #include <cstddef>
 #include <cstdint>
 
-// Lock-free SPSC queue: message thread (APVTS listener) produces, audio thread
-// consumes once per block. Stores a compact parameter-group index rather than
-// scanning all 361 atomics every callback.
+// Atomic dirty bitmask: any thread marks groups dirty, audio thread consumes
+// once per block. Stores a compact parameter-group index rather than scanning
+// all 361 atomics every callback.
+//
+// Replaces a previous lossy SPSC ring-buffer design (kept working as the
+// producer/consumer roles here suggested, but pushLiveParametersToEngine()
+// stopped trusting it -- see MurmurProcessor.cpp's own history). Two real
+// problems with the ring buffer, not just style:
+//   1. It could silently drop entries on overflow (fixed-capacity ring,
+//      "full -- drop"), which is a real correctness bug -- a dropped entry
+//      meant a knob drag never reached the engine.
+//   2. Its "message thread produces" comment describes an assumption already
+//      violated in practice: parameterChanged() (the sole producer) runs
+//      synchronously from whatever thread calls RangedAudioParameter::
+//      setValue(), and hosts apply automation from the audio thread as well
+//      as the message thread doing UI drags -- multiple concurrent
+//      producers, not one.
+// An atomic bitmask fixes both: fetch_or is safe under any number of
+// concurrent producers, and can never overflow or drop a bit -- marking the
+// same group dirty twice before a drain just coalesces to one bit, which is
+// correct (the *value* is always re-read fresh from APVTS at drain time;
+// this bitmask only ever signals "something in this group changed since the
+// last drain," never carries the value itself).
 
 namespace pw8::plugin
 {
@@ -57,43 +77,31 @@ namespace pw8::plugin
         Count
     };
 
-    class ParamChangeQueue
+    static_assert(static_cast<std::size_t>(ParamGroup::Count) <= 64,
+                  "ParamGroup must fit in a uint64_t dirty mask -- see ParamDirtyMask below.");
+
+    class ParamDirtyMask
     {
     public:
-        static constexpr std::size_t kCapacity = 256;
-
-        void push(ParamGroup group) noexcept
+        void markDirty(ParamGroup group) noexcept
         {
-            const auto write = writeIndex_.load(std::memory_order_relaxed);
-            const auto nextWrite = (write + 1) % kCapacity;
-            if (nextWrite == readIndex_.load(std::memory_order_acquire))
-                return; // full -- drop (next block's full scan is fallback if needed)
-
-            buffer_[write] = group;
-            writeIndex_.store(nextWrite, std::memory_order_release);
+            mask_.fetch_or(std::uint64_t{1} << static_cast<unsigned>(group), std::memory_order_release);
         }
 
-        [[nodiscard]] bool pop(ParamGroup& groupOut) noexcept
-        {
-            const auto read = readIndex_.load(std::memory_order_relaxed);
-            if (read == writeIndex_.load(std::memory_order_acquire))
-                return false;
+        void markAllDirty() noexcept { mask_.fetch_or(kAllGroupsMask, std::memory_order_release); }
 
-            groupOut = buffer_[read];
-            readIndex_.store((read + 1) % kCapacity, std::memory_order_release);
-            return true;
-        }
-
-        void pushAllGroups() noexcept
-        {
-            for (std::uint16_t i = 0; i < static_cast<std::uint16_t>(ParamGroup::Count); ++i)
-                push(static_cast<ParamGroup>(i));
-        }
+        /// Audio-thread only, once per block: atomically reads and clears the mask.
+        [[nodiscard]] std::uint64_t consume() noexcept { return mask_.exchange(0, std::memory_order_acq_rel); }
 
     private:
-        std::array<ParamGroup, kCapacity> buffer_{};
-        std::atomic<std::size_t> writeIndex_{0};
-        std::atomic<std::size_t> readIndex_{0};
+        static constexpr std::uint64_t kAllGroupsMask =
+            (std::uint64_t{1} << static_cast<unsigned>(ParamGroup::Count)) - 1;
+        // Dirty on construction: the very first block after prepare() has no
+        // prior drain to rely on, so it must full-rebuild -- matches the old
+        // ring buffer's documented "first block after prepare" fallback.
+        std::atomic<std::uint64_t> mask_{kAllGroupsMask};
     };
+    static_assert(std::atomic<std::uint64_t>::is_always_lock_free,
+                  "ParamDirtyMask::consume()/markDirty() must stay lock-free -- called from the audio thread.");
 
 } // namespace pw8::plugin

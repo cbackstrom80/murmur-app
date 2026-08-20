@@ -1,3 +1,4 @@
+#include <memory>
 #include <catch2/catch_test_macros.hpp>
 
 #include <array>
@@ -11,7 +12,8 @@ using namespace pw8;
 
 TEST_CASE("Engine::process realtime smoke — many blocks without allocation failures", "[realtime][engine]")
 {
-    render::Engine engine;
+    auto engineHolder = std::make_unique<render::Engine>(); // 19MB object -- must be heap-allocated, not stack (see docs/TESTING.md)
+    auto& engine = *engineHolder;
     engine.prepare(48000.0);
     auto patch = patch::Patch::makeInit();
     patch.layerA.operators[0].level = 0.8f;
@@ -37,7 +39,8 @@ TEST_CASE("Engine::process realtime smoke — many blocks without allocation fai
 
 TEST_CASE("Engine allSoundOff silences arpeggiator voices immediately", "[realtime][engine][midi]")
 {
-    render::Engine engine;
+    auto engineHolder = std::make_unique<render::Engine>(); // 19MB object -- must be heap-allocated, not stack (see docs/TESTING.md)
+    auto& engine = *engineHolder;
     engine.prepare(48000.0);
     auto patch = patch::Patch::makeInit();
     patch.arpeggiator.enabled = true;

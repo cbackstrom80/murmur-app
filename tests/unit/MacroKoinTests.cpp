@@ -1,3 +1,4 @@
+#include <memory>
 #include <catch2/catch_test_macros.hpp>
 #include <cmath>
 #include <filesystem>
@@ -77,7 +78,8 @@ TEST_CASE("CATHEDRAL NEBULA macro1 modulates a held voice", "[patch][macro][fact
     REQUIRE(patch.voiceSettings.macroDissemination);
     REQUIRE(patch.voiceSettings.disseminationDepth >= 0.15f);
 
-    render::Engine engine;
+    auto engineHolder = std::make_unique<render::Engine>(); // 19MB object -- must be heap-allocated, not stack (see docs/TESTING.md)
+    auto& engine = *engineHolder;
     engine.prepare(kSampleRate);
     REQUIRE(engine.loadPatch(patch));
 
@@ -97,7 +99,8 @@ TEST_CASE("CATHEDRAL NEBULA macro1 modulates a held voice", "[patch][macro][fact
     route.amount = -1.0f;
     fast.layerA.modRoutes.push_back(route);
 
-    render::Engine freezeEngine;
+    auto freezeEngineHolder = std::make_unique<render::Engine>(); // 19MB object -- must be heap-allocated, not stack (see docs/TESTING.md)
+    auto& freezeEngine = *freezeEngineHolder;
     freezeEngine.prepare(kSampleRate);
     REQUIRE(freezeEngine.loadPatch(fast));
 
@@ -115,7 +118,8 @@ TEST_CASE("CATHEDRAL NEBULA macro1 modulates a held voice", "[patch][macro][fact
 
     // Without dissemination, the same macro sweep should affect the held voice immediately.
     fast.voiceSettings.macroDissemination = false;
-    render::Engine liveEngine;
+    auto liveEngineHolder = std::make_unique<render::Engine>(); // 19MB object -- must be heap-allocated, not stack (see docs/TESTING.md)
+    auto& liveEngine = *liveEngineHolder;
     liveEngine.prepare(kSampleRate);
     REQUIRE(liveEngine.loadPatch(fast));
 

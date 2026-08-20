@@ -1,3 +1,4 @@
+#include <memory>
 #include <catch2/catch_test_macros.hpp>
 #include <cmath>
 #include <vector>
@@ -47,7 +48,8 @@ TEST_CASE("Engine::setMacroValue changes a currently-held voice's output immedia
     route.amount = -1.0f;
     p.layerA.modRoutes.push_back(route);
 
-    render::Engine engine;
+    auto engineHolder = std::make_unique<render::Engine>(); // 19MB object -- must be heap-allocated, not stack (see docs/TESTING.md)
+    auto& engine = *engineHolder;
     engine.prepare(kSampleRate);
     REQUIRE(engine.loadPatch(p));
 

@@ -1154,12 +1154,15 @@ namespace pw8::render
             const bool masterBusModActive =
                 modulation::ModMatrixExecutor::hasActiveMasterBusRoutes(patch_.layerA.modRoutes)
                 || patch_.masterDynamics.enabled;
+            // moddedMasterEffects always needs a mutable copy: Quasar macro koins (applied
+            // below, once per sub-block) mutate the master bus unconditionally regardless of
+            // masterBusModActive. moddedInsertEffects/B only need a copy when master-bus mod
+            // is actually active -- otherwise they alias patch_'s live arrays directly further
+            // down (no copy, no per-sample recompute; this used to run per-sample, see below).
             std::array<effects::EffectSlotParams, effects::kNumMasterSlots> moddedMasterEffects =
                 patch_.masterEffects;
-            std::array<effects::EffectSlotParams, effects::kNumLayerInsertSlots> moddedInsertEffects =
-                patch_.layerA.insertEffects;
-            std::array<effects::EffectSlotParams, effects::kNumLayerInsertSlots> moddedInsertEffectsB =
-                patch_.layerB.insertEffects;
+            std::array<effects::EffectSlotParams, effects::kNumLayerInsertSlots> moddedInsertEffectsStorage;
+            std::array<effects::EffectSlotParams, effects::kNumLayerInsertSlots> moddedInsertEffectsBStorage;
             float masterGainMul = 1.0f;
             float masterDynamicsMixMod = 0.0f;
             float sidechainDepthMod = 0.0f;
@@ -1190,11 +1193,32 @@ namespace pw8::render
                 const auto masterMod =
                     modulation::ModMatrixExecutor::applyMasterBus(patch_.layerA.modRoutes, modSources);
                 applyMasterModToEffects(moddedMasterEffects, masterMod);
-                applyInsertModToEffects(moddedInsertEffects, masterMod);
-                applyInsertModToEffects(moddedInsertEffectsB, masterMod);
+                moddedInsertEffectsStorage = patch_.layerA.insertEffects;
+                moddedInsertEffectsBStorage = patch_.layerB.insertEffects;
+                applyInsertModToEffects(moddedInsertEffectsStorage, masterMod);
+                applyInsertModToEffects(moddedInsertEffectsBStorage, masterMod);
                 masterGainMul = masterGainMultiplier(patch_.voiceSettings.masterGain, masterMod.masterGainOffset);
                 masterDynamicsMixMod = masterMod.masterDynamicsMixOffset;
                 sidechainDepthMod = masterMod.sidechainDepthOffset;
+            }
+
+            // moddedInsertEffects/B alias whichever array is actually live for this
+            // sub-block: the modulated copy above when master-bus mod is active, or
+            // patch_'s own arrays directly (no copy) otherwise.
+            const auto& moddedInsertEffects =
+                masterBusModActive ? moddedInsertEffectsStorage : patch_.layerA.insertEffects;
+            const auto& moddedInsertEffectsB =
+                masterBusModActive ? moddedInsertEffectsBStorage : patch_.layerB.insertEffects;
+
+            // Quasar macro koins apply to the master bus every sub-block regardless of
+            // masterBusModActive -- moved here from inside the per-sample loop below, where
+            // it previously ran (and, in the masterBusModActive==false case, also re-copied
+            // patch_.masterEffects) once per *sample* even though orbitMacro/spreadMacro are
+            // control-rate values that can't change within a sub-block.
+            {
+                const float orbitMacro = 0.5f + patch_.macros[3].value * 0.5f;
+                const float spreadMacro = 0.5f + patch_.macros[6].value * 0.5f;
+                applyQuasarMacroKoinsToMasterEffects(moddedMasterEffects, orbitMacro, spreadMacro);
             }
 
             float subBlockSynthPeak = 0.0f;
@@ -1343,7 +1367,7 @@ namespace pw8::render
                 const float sendTapL = fxInsertsPostFader_ ? sumL : preInsertTapL;
                 const float sendTapR = fxInsertsPostFader_ ? sumR : preInsertTapR;
 
-                const auto& masterFxForSend = masterBusModActive ? moddedMasterEffects : patch_.masterEffects;
+                const auto& masterFxForSend = moddedMasterEffects; // always the mod+koin'd sub-block copy now
 
                 float sendMixL = 0.0f;
                 float sendMixR = 0.0f;
@@ -1415,24 +1439,10 @@ namespace pw8::render
                     dynamicsGatePrev_ = false;
                 }
 
-                if (masterBusModActive)
-                {
-                    const float orbitMacro = 0.5f + patch_.macros[3].value * 0.5f;
-                    const float spreadMacro = 0.5f + patch_.macros[6].value * 0.5f;
-                    applyQuasarMacroKoinsToMasterEffects(moddedMasterEffects, orbitMacro, spreadMacro);
-                    masterChain_.process(moddedMasterEffects, patch_.fxProcessOrder.master, sumL, sumR, sidechainSampleL,
-                                         sidechainSampleR, sidechainConnected, bpm_);
-                }
-                else
-                {
-                    std::array<effects::EffectSlotParams, effects::kNumMasterSlots> macroMasterEffects =
-                        patch_.masterEffects;
-                    const float orbitMacro = 0.5f + patch_.macros[3].value * 0.5f;
-                    const float spreadMacro = 0.5f + patch_.macros[6].value * 0.5f;
-                    applyQuasarMacroKoinsToMasterEffects(macroMasterEffects, orbitMacro, spreadMacro);
-                    masterChain_.process(macroMasterEffects, patch_.fxProcessOrder.master, sumL, sumR,
-                                         sidechainSampleL, sidechainSampleR, sidechainConnected, bpm_);
-                }
+                // moddedMasterEffects is already mod-applied (if active) and Quasar-koin'd,
+                // computed once per sub-block above -- no per-sample branch needed anymore.
+                masterChain_.process(moddedMasterEffects, patch_.fxProcessOrder.master, sumL, sumR, sidechainSampleL,
+                                     sidechainSampleR, sidechainConnected, bpm_);
 
                 sumL += sendMixL;
                 sumR += sendMixR;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstddef>
@@ -57,7 +58,19 @@ namespace pw8::oscillator
     public:
         static constexpr int kMaxGrains = 12;
 
-        void prepare(double sampleRate) noexcept { sampleRate_ = sampleRate > 0.0 ? sampleRate : 48000.0; }
+        void prepare(double sampleRate) noexcept
+        {
+            sampleRate_ = sampleRate > 0.0 ? sampleRate : 48000.0;
+            // Force hannTable()'s lazy static-local init to happen here, off the audio
+            // thread (prepare() is guaranteed non-concurrent with processBlock/renderSample
+            // -- see MurmurProcessor.cpp), rather than on whichever thread happens to
+            // render the very first grain. C++11 static-local init is already
+            // thread-safe/one-time on its own, and per-Engine audio processing is
+            // single-threaded anyway, so this isn't fixing a real race -- it's just
+            // making "the table build cost never happens mid-render" explicit and
+            // provable rather than relying on that reasoning implicitly.
+            (void)hann(0.0f);
+        }
 
         /// `seed` should come from dsp::DeterministicRng::deriveSeed() at note-on
         /// (see Voice::noteOn / OperatorState::seedGranular()) -- never a
@@ -159,9 +172,36 @@ namespace pw8::oscillator
             g.active = true;
         }
 
+        // hann(t) is called once per active grain per sample (up to kMaxGrains/sample)
+        // -- a precomputed, linearly-interpolated table replaces the direct std::cos
+        // call. 512 entries is comfortably more resolution than a linear interpolant
+        // needs for a function this smooth; see tests/dsp/GranularOscillatorTests.cpp
+        // for the tolerance-checked comparison against the direct formula.
+        static constexpr int kHannTableSize = 512;
+
+        [[nodiscard]] static const std::array<float, kHannTableSize + 1>& hannTable() noexcept
+        {
+            static const std::array<float, kHannTableSize + 1> table = [] {
+                std::array<float, kHannTableSize + 1> t{};
+                for (int i = 0; i <= kHannTableSize; ++i)
+                {
+                    const float frac = static_cast<float>(i) / static_cast<float>(kHannTableSize);
+                    t[static_cast<std::size_t>(i)] = 0.5f - 0.5f * std::cos(dsp::kTwoPi * frac);
+                }
+                return t;
+            }();
+            return table;
+        }
+
         [[nodiscard]] static float hann(float t) noexcept
         {
-            return 0.5f - 0.5f * std::cos(dsp::kTwoPi * dsp::clamp(t, 0.0f, 1.0f));
+            const float tc = dsp::clamp(t, 0.0f, 1.0f);
+            const float pos = tc * static_cast<float>(kHannTableSize);
+            const auto i0 = static_cast<std::size_t>(pos);
+            const std::size_t i1 = std::min(i0 + 1, static_cast<std::size_t>(kHannTableSize));
+            const float frac = pos - static_cast<float>(i0);
+            const auto& table = hannTable();
+            return dsp::lerp(table[i0], table[i1], frac);
         }
 
         [[nodiscard]] static float flatSampleAt(const WavetableView& source, std::size_t flatIndex) noexcept

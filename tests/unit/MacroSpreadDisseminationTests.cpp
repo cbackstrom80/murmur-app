@@ -1,3 +1,4 @@
+#include <memory>
 #include <catch2/catch_test_macros.hpp>
 #include <cmath>
 #include <vector>
@@ -64,7 +65,8 @@ TEST_CASE("macroDissemination freezes held-voice macro values", "[engine][macro]
     route.amount = -1.0f;
     p.layerA.modRoutes.push_back(route);
 
-    render::Engine engine;
+    auto engineHolder = std::make_unique<render::Engine>(); // 19MB object -- must be heap-allocated, not stack (see docs/TESTING.md)
+    auto& engine = *engineHolder;
     engine.prepare(kSampleRate);
     REQUIRE(engine.loadPatch(p));
 
@@ -117,7 +119,8 @@ TEST_CASE("macroDissemination gives different macro samples per voice", "[engine
     route.amount = -0.5f;
     p.layerA.modRoutes.push_back(route);
 
-    render::Engine engine;
+    auto engineHolder = std::make_unique<render::Engine>(); // 19MB object -- must be heap-allocated, not stack (see docs/TESTING.md)
+    auto& engine = *engineHolder;
     engine.prepare(kSampleRate);
     REQUIRE(engine.loadPatch(p));
 
@@ -155,7 +158,8 @@ TEST_CASE("disseminationDepth gives different timbre per retriggered note", "[en
     route.amount = -1.0f;
     p.layerA.modRoutes.push_back(route);
 
-    render::Engine engine;
+    auto engineHolder = std::make_unique<render::Engine>(); // 19MB object -- must be heap-allocated, not stack (see docs/TESTING.md)
+    auto& engine = *engineHolder;
     engine.prepare(kSampleRate);
     REQUIRE(engine.loadPatch(p));
 
@@ -179,7 +183,8 @@ TEST_CASE("disseminationDepth gives different timbre per retriggered note", "[en
     REQUIRE(std::abs(rmsFirst - rmsSecond) > 0.025f);
 
     p.voiceSettings.macroDissemination = false;
-    render::Engine uniformEngine;
+    auto uniformEngineHolder = std::make_unique<render::Engine>(); // 19MB object -- must be heap-allocated, not stack (see docs/TESTING.md)
+    auto& uniformEngine = *uniformEngineHolder;
     uniformEngine.prepare(kSampleRate);
     REQUIRE(uniformEngine.loadPatch(p));
 

@@ -165,6 +165,85 @@ TEST_CASE("GranularOscillator: grain onset rate tracks grainDensity roughly line
     REQUIRE(highCount > lowCount);
 }
 
+TEST_CASE("GranularOscillator's per-sample Hann window (LUT-interpolated) matches the direct cosine "
+          "formula within tight tolerance",
+          "[granular][hann]")
+{
+    // hann() itself is private (matches this codebase's convention -- sibling
+    // oscillators' static math helpers are private too, tested through the
+    // public renderSample() surface, not by poking at internals). Isolate the
+    // window shape from everything else (source content, pitch, interpolation)
+    // with a CONSTANT-value source table: readInterpolated always returns
+    // exactly this value regardless of read position, so while exactly one
+    // grain is active, renderSample()'s output is just
+    // kConstant * hann(playPos/lengthSamples) -- the 1/sqrt(activeCount)
+    // energy-normalization is exactly 1.0 with a single active grain.
+    constexpr float kConstant = 0.5f;
+    WavetableTable table;
+    table.numFrames = 1;
+    table.samplesPerFrame = 4096;
+    WavetableTable::MipLevel mip;
+    mip.maxHarmonic = 1;
+    mip.samples.assign(static_cast<std::size_t>(table.samplesPerFrame), kConstant);
+    table.mips.push_back(std::move(mip));
+    const auto source = sourceViewFrom(table);
+
+    GranularParams params;
+    params.densityHz = 100.0f;   // triggers at exactly sample index 480 (100/48000 * 480 == 1.0).
+    params.grainSizeMs = 5.0f;   // 240 samples @ 48kHz -- finishes well before the *next* trigger at 960.
+    params.positionJitter = 0.0f;
+    params.pitchJitter = 0.0f;
+    params.framePosition01 = 0.5f;
+
+    GranularOscillator osc;
+    osc.prepare(kSampleRate);
+    osc.reset(0x5EED5EEDULL);
+    osc.setFrequency(kGranularRootHz); // baseRatio == frequencyHz_/kGranularRootHz == 1.0 exactly, no pitch jitter.
+
+    // Don't assume the exact trigger sample index (100.0f/48000.0f isn't exactly
+    // representable in float32, so 480 additions of it can drift a sample or two
+    // from the naive 1/(100/48000)==480 arithmetic) -- simulate the real
+    // clockPhase_ accumulation with the identical operation/type/order instead,
+    // so this test's alignment can't silently drift out of sync with the real
+    // implementation's.
+    std::size_t kTriggerSample = 0;
+    {
+        float clockPhase = 0.0f;
+        for (std::size_t i = 0;; ++i)
+        {
+            clockPhase += params.densityHz / static_cast<float>(kSampleRate);
+            if (clockPhase >= 1.0f)
+            {
+                kTriggerSample = i;
+                break;
+            }
+        }
+    }
+    constexpr std::size_t kLengthSamples = 240; // matches GranularOscillator's own lengthSamples computation.
+    const auto samples =
+        renderGranular(source, params, kGranularRootHz, 0x5EED5EEDULL, kTriggerSample + kLengthSamples + 4);
+
+    // Pre-trigger silence -- sanity-checks the simulated trigger index against
+    // real output before relying on it for the pointwise comparison below.
+    for (std::size_t i = 0; i + 2 < kTriggerSample; ++i)
+        REQUIRE(samples[i] == 0.0f);
+
+    double maxAbsError = 0.0;
+    for (std::size_t i = 0; i < kLengthSamples; ++i)
+    {
+        const float t = static_cast<float>(i) / static_cast<float>(kLengthSamples);
+        const float directHann = 0.5f - 0.5f * std::cos(dsp::kTwoPi * t);
+        const float expected = kConstant * directHann;
+        const float actual = samples[kTriggerSample + i];
+        maxAbsError = std::max(maxAbsError, static_cast<double>(std::abs(actual - expected)));
+    }
+    // Worst-case linear-interpolation error for a 512-entry table over one full
+    // period of a function this smooth is on the order of 1e-5; 1e-3 leaves
+    // generous headroom while still being tight enough to catch a real bug
+    // (e.g. an off-by-one in the table index or a wrong table size).
+    REQUIRE(maxAbsError < 1.0e-3);
+}
+
 TEST_CASE("OperatorState renders Granular through the full operator path", "[granular][operator]")
 {
     const auto table = makeSineSourceTable();

@@ -1,7 +1,7 @@
-# Meta-Modulation — Deferred Engine Work
+# Meta-Modulation — Engine Work
 
-**Date:** 2026-08-14  
-**Status:** Documented stub — not implemented in v1.1.1  
+**Date:** 2026-08-14 (plan), implemented since — see "Current gap" below.  
+**Status:** Implemented in the engine (`patch::MetaModRoute`, `ModMatrixExecutor`, JSON round-trip). **No UI or MCP exposure yet** — see "Why deferred" below, now reduced to that one remaining gap.  
 **Related:** `docs/ASM_MACRO_KOINS_RESEARCH.md`, `docs/MODULATION.md`, `docs/HORIZON2.md`
 
 ---
@@ -20,10 +20,10 @@ Example: Macro2 opens filter cutoff *and* increases LFO1→Cutoff route depth so
 |-------|--------|
 | `ModRoute.amount` per voice/layer | Shipped |
 | Macro → destination via `modRoutes` | Shipped |
-| Macro → **another route's amount** | **Not implemented** |
-| MCP / preset schema for meta routes | Not defined |
+| Macro → **another route's amount** | **Shipped** — `patch::MetaModRoute` (`engine/include/pw8/patch/Patch.hpp`), executed by `ModMatrixExecutor::apply()` (`engine/include/pw8/modulation/ModMatrixExecutor.hpp`), threaded through `Voice::renderSample`, round-tripped through patch JSON (`engine/src/patch/PatchSerializer.cpp`) |
+| MCP / preset schema for meta routes | Preset JSON schema shipped (see below); **no MCP tool exposure, no plugin UI** |
 
-`ModMatrixExecutor` applies routes once; there is no second pass for “modulate mod depth.”
+`ModMatrixExecutor::apply()` does take a real second pass over `metaRoutes`, applying each one's `amount` to the target route's depth before running the standard mod matrix — this doc's original claim that there's no second pass is no longer accurate.
 
 ---
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <cstdint>
 
 #include "pw8/dsp/Math.hpp"
@@ -78,6 +79,11 @@ namespace pw8::oscillator
         void prepare(double sampleRate) noexcept
         {
             sampleRate_ = sampleRate > 0.0 ? sampleRate : 48000.0;
+            // triangleLeakCoeff_ must be re-derived from the real time constant on
+            // every sample-rate change (control-rate cost, not per-sample -- see
+            // kTriangleLeakTimeSeconds's doc comment below for why this can't stay
+            // a fixed literal).
+            triangleLeakCoeff_ = static_cast<float>(std::exp(-1.0 / (kTriangleLeakTimeSeconds * sampleRate_)));
         }
 
         /// Reset phase (e.g. on voice start, or when a sync edge fires in the algorithm graph).
@@ -205,7 +211,7 @@ namespace pw8::oscillator
             // gain depends on frequency, so normalize by dt (a standard leaky-integrator
             // triangle trick -- higher frequency means faster leak-corrected settling).
             const float scaled = square * dt * 4.0f;
-            triangleIntegratorState_ = triangleIntegratorState_ * kTriangleLeak + scaled;
+            triangleIntegratorState_ = triangleIntegratorState_ * triangleLeakCoeff_ + scaled;
             return triangleIntegratorState_;
         }
 
@@ -216,12 +222,25 @@ namespace pw8::oscillator
             return 4.0f * std::abs(t - 0.5f) - 1.0f;
         }
 
-        static constexpr float kTriangleLeak = 0.9995f;
+        // The leaky integrator's real time constant, in seconds -- a DC-drift-
+        // correction leak on an otherwise-true integrator (~3.8Hz corner), not an
+        // audible filter. Derived from the previous fixed literal (kTriangleLeak =
+        // 0.9995f, a leak-retention coefficient: state = state*leak + input) via
+        // leak = exp(-1/(tau*sampleRate)) solved at the then-implicit 48kHz default:
+        // tau = 1/(48000 * -ln(0.9995)) ~= 0.0417s. Fixing the ORIGINAL bug: that
+        // literal was a fixed per-sample coefficient with no sample-rate scaling, so
+        // the triangle wave's leak-induced settling/DC-drift character differed
+        // audibly between sample rates for the identical patch. triangleLeakCoeff_
+        // (computed in prepare(), not per-sample) now derives the real coefficient
+        // from this fixed time constant instead, so the same tau -- and therefore
+        // the same real-world leak behavior -- holds at 44.1k/48k/96k alike.
+        static constexpr double kTriangleLeakTimeSeconds = 0.0417;
 
         double sampleRate_ = 48000.0;
         float frequencyHz_ = 440.0f;
         float phase_ = 0.0f;
         float triangleIntegratorState_ = 0.0f;
+        float triangleLeakCoeff_ = 0.9995f; // overwritten by prepare() before first real use.
         bool didWrapThisSample_ = false;
     };
 

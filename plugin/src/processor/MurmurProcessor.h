@@ -526,7 +526,13 @@ namespace pw8::plugin
         // first time setOrReplaceModRouteLive() runs, and never cleared.
         bool hasUserCreatedModRouteLive_ = false;
 
-        ParamChangeQueue paramChangeQueue_{};
+        ParamDirtyMask paramDirtyMask_{};
+        // Kill switch for the Phase 2 dirty-tracking rework: when false, needs()
+        // in pushLiveParametersToEngine() always returns true (the prior,
+        // known-safe full-rebuild-every-block behavior). Flip to false and
+        // rebuild to revert without a code change if real-world use surfaces a
+        // problem the new tests/telemetry didn't catch. Remove after burn-in.
+        bool paramDirtyTrackingEnabled_ = true;
         ScopeAudioTap scopeAudioTap_{};
         murmur8::AudioVisualizerBus visualizerBus_{};
         ui::ScopeViewMode scopeViewMode_ = ui::ScopeViewMode::Fft;

@@ -271,7 +271,7 @@ namespace pw8::plugin
         fresh->setQualityMode(qualityMode_);
         fresh->loadPatch(currentPatch_);
         publishEngine(std::move(fresh));
-        paramChangeQueue_.pushAllGroups();
+        paramDirtyMask_.markAllDirty();
         updateReportedLatency();
     }
 
@@ -506,13 +506,31 @@ namespace pw8::plugin
         if (const auto* pendingRoutes = pendingModRoutes_.exchange(nullptr, std::memory_order_acquire))
             engine.setModRoutesLive(*pendingRoutes);
 
-        // Drain APVTS change notifications (also used by updateReportedLatency side paths).
-        // Always push every live group: ParamChangeQueue is lossy (256-capacity drops) and
-        // focus-panel knob drags must reach the engine even when their group was dropped.
-        ParamGroup queued{};
-        while (paramChangeQueue_.pop(queued)) {}
-
-        const auto needs = [&](ParamGroup /*group*/) { return true; };
+        // Drain the dirty mask once per block. Real filtering now (see
+        // ParamChangeQueue.hpp's doc comment for why the old lossy ring-buffer
+        // queue was replaced with this non-lossy atomic bitmask) -- gated by
+        // paramDirtyTrackingEnabled_ as a kill switch: flip to false to force
+        // needs() back to always-true (the prior, known-safe full-rebuild
+        // behavior) without a code rollback.
+        // Why loadF/loadI/loadB's plain memory_order_relaxed loads (below, once
+        // per dirty group) are still safe even though only markDirty()/consume()
+        // synchronize: consume()'s acquire on paramDirtyMask_ establishes a
+        // happens-before edge covering *everything* markDirty()'s thread did
+        // before its release fetch_or -- including that parameter's own atomic
+        // float store, since JUCE stores the new value before synchronously
+        // invoking parameterChanged() (same thread, sequenced-before). Once that
+        // happens-before edge exists, any relaxed read sequenced-after this
+        // consume() is guaranteed to observe that write or a later one, never a
+        // stale earlier one -- this is standard release/acquire-as-fence
+        // transitivity, not a gap. Don't "fix" loadF's relaxed load without
+        // re-deriving this; don't weaken consume()'s acquire either.
+        const std::uint64_t dirty = paramDirtyMask_.consume();
+        const bool trackingEnabled = paramDirtyTrackingEnabled_;
+        const auto needs = [dirty, trackingEnabled](ParamGroup group) noexcept {
+            if (!trackingEnabled)
+                return true;
+            return (dirty & (std::uint64_t{1} << static_cast<unsigned>(group))) != 0;
+        };
 
         // Macros -- unchanged from before this pass, see Engine::setMacroValue().
         if (needs(ParamGroup::Macros))
@@ -894,7 +912,7 @@ namespace pw8::plugin
         morphKeyframeCrossedIndex_.store(-1, std::memory_order_relaxed);
         morphKeyframeCrossedFlash_.store(false, std::memory_order_relaxed);
         pendingModRoutes_.store(nullptr, std::memory_order_release);
-        paramChangeQueue_.pushAllGroups();
+        paramDirtyMask_.markAllDirty();
         setPatchDirty(intent == PatchReloadIntent::UserEdit);
         if (onPatchLoaded)
             onPatchLoaded();
@@ -1497,26 +1515,26 @@ namespace pw8::plugin
         {
             if (!morphTimelineIsModulated())
                 applyMorphFromPosition(apvts.getRawParameterValue(kMorphPositionId)->load());
-            paramChangeQueue_.pushAllGroups();
+            paramDirtyMask_.markAllDirty();
             return;
         }
 
-        paramChangeQueue_.push(paramGroupForId(parameterID));
+        paramDirtyMask_.markDirty(paramGroupForId(parameterID));
 
         if (parameterID.startsWith(kFxRoutingPrePostId) || parameterID.startsWith(kFxGlobalBypassId) ||
             parameterID.startsWith(kFxGlobalWetMixId))
         {
             for (std::size_t slot = 0; slot < kNumInsertFxSlots; ++slot)
-                paramChangeQueue_.push(static_cast<ParamGroup>(static_cast<std::uint16_t>(ParamGroup::InsertFx0) + slot));
+                paramDirtyMask_.markDirty(static_cast<ParamGroup>(static_cast<std::uint16_t>(ParamGroup::InsertFx0) + slot));
             for (std::size_t slot = 0; slot < kNumMasterFxSlots; ++slot)
-                paramChangeQueue_.push(static_cast<ParamGroup>(static_cast<std::uint16_t>(ParamGroup::MasterFx0) + slot));
+                paramDirtyMask_.markDirty(static_cast<ParamGroup>(static_cast<std::uint16_t>(ParamGroup::MasterFx0) + slot));
         }
 
         if (parameterID.contains("MixEnabled") || parameterID.contains("MixMute") ||
             parameterID.contains("MixSolo"))
         {
             for (std::size_t op = 0; op < kNumOperators; ++op)
-                paramChangeQueue_.push(static_cast<ParamGroup>(static_cast<std::uint16_t>(ParamGroup::Op0) + op));
+                paramDirtyMask_.markDirty(static_cast<ParamGroup>(static_cast<std::uint16_t>(ParamGroup::Op0) + op));
         }
 
         if (parameterID.contains("tapeDelayMs") || parameterID.contains("DelayMs") ||

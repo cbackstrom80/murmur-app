@@ -254,69 +254,81 @@ namespace pw8::voice
 
             const int nonlinearOsFactor = render::nonlinearOversamplingFactor(qualityMode);
 
-            // Operator-level modulation needs a per-sample-modified params copy; the
-            // multiplier defaults to 1.0 per operator when no route targets it, so this
-            // is a correctness-preserving no-op for patches with no such routes (fixed
-            // 8-struct stack copy, no allocation).
-            std::array<op::OperatorParams, core::kNodesPerLayer> modulatedParams = operatorParams;
-            for (std::size_t i = 0; i < core::kNodesPerLayer; ++i)
+            // Operator-level modulation needs a per-sample-modified params copy -- but
+            // only when at least one active route actually targets an Operator* field
+            // (see ModMatrixExecutor::hasActiveOperatorParamRoutes's doc comment for the
+            // exact field list). The common case (no such routes) skips the copy+clamp
+            // loop entirely and reads operatorParams directly downstream instead --
+            // safe because AlgorithmExecutor::processSample never mutates through its
+            // params reference despite taking it non-const (confirmed: every use is a
+            // read, passed further down into OperatorState::render(const OperatorParams&)).
+            const bool operatorParamRoutesActive =
+                modulation::ModMatrixExecutor::hasActiveOperatorParamRoutes(liveModRoutes);
+            std::array<op::OperatorParams, core::kNodesPerLayer> modulatedParamsStorage;
+            if (operatorParamRoutesActive)
             {
-                modulatedParams[i].level *= modOut.operatorLevelMultiplier[i];
-                modulatedParams[i].wavetableFramePosition = dsp::clamp(
-                    modulatedParams[i].wavetableFramePosition + modOut.operatorWavetablePositionOffset[i], 0.0f, 1.0f);
-                modulatedParams[i].wtBend = dsp::clamp(
-                    modulatedParams[i].wtBend + modOut.operatorWavetableBendOffset[i], -1.0f, 1.0f);
-                modulatedParams[i].wtAsymmetry = dsp::clamp(
-                    modulatedParams[i].wtAsymmetry + modOut.operatorWavetableAsymmetryOffset[i], -1.0f, 1.0f);
-                modulatedParams[i].wtSyncRatio = dsp::clamp(
-                    modulatedParams[i].wtSyncRatio + modOut.operatorWavetableSyncRatioOffset[i], 1.0f, 16.0f);
-                modulatedParams[i].wtSyncAmount = dsp::clamp(
-                    modulatedParams[i].wtSyncAmount + modOut.operatorWavetableSyncAmountOffset[i], 0.0f, 1.0f);
-                modulatedParams[i].wtFormantShift = dsp::clamp(
-                    modulatedParams[i].wtFormantShift + modOut.operatorWavetableFormantOffset[i], -1.0f, 1.0f);
-                modulatedParams[i].fmModulatorRatio = dsp::clamp(
-                    modulatedParams[i].fmModulatorRatio + modOut.operatorFmModulatorRatioOffset[i], 0.001f, 32.0f);
-                modulatedParams[i].fmModulatorIndex = dsp::clamp(
-                    modulatedParams[i].fmModulatorIndex + modOut.operatorFmModulatorIndexOffset[i], 0.0f, 2.0f);
-                modulatedParams[i].fmModulatorFeedback = dsp::clamp(
-                    modulatedParams[i].fmModulatorFeedback + modOut.operatorFmModulatorFeedbackOffset[i], 0.0f, 1.0f);
-                modulatedParams[i].frequencyRatio = dsp::clamp(
-                    modulatedParams[i].frequencyRatio + modOut.operatorFreqRatioOffset[i], 0.001f, 32.0f);
-                modulatedParams[i].phaseBend = dsp::clamp(
-                    modulatedParams[i].phaseBend + modOut.operatorPhaseBendOffset[i], -1.0f, 1.0f);
-                modulatedParams[i].phaseFold = dsp::clamp(
-                    modulatedParams[i].phaseFold + modOut.operatorPhaseFoldOffset[i], 0.0f, 1.0f);
-                modulatedParams[i].phaseAsymmetry = dsp::clamp(
-                    modulatedParams[i].phaseAsymmetry + modOut.operatorPhaseAsymmetryOffset[i], -1.0f, 1.0f);
-                modulatedParams[i].additivePartialCount = dsp::clamp(
-                    modulatedParams[i].additivePartialCount + modOut.operatorAdditivePartialCountOffset[i], 1.0f, 64.0f);
-                modulatedParams[i].additiveTilt = dsp::clamp(
-                    modulatedParams[i].additiveTilt + modOut.operatorAdditiveTiltOffset[i], -1.0f, 1.0f);
-                modulatedParams[i].additiveOddEven = dsp::clamp(
-                    modulatedParams[i].additiveOddEven + modOut.operatorAdditiveOddEvenOffset[i], 0.0f, 1.0f);
-                modulatedParams[i].additiveStretch = dsp::clamp(
-                    modulatedParams[i].additiveStretch + modOut.operatorAdditiveStretchOffset[i], -1.0f, 1.0f);
-                modulatedParams[i].resonatorStructure = dsp::clamp(
-                    modulatedParams[i].resonatorStructure + modOut.operatorResonatorStructureOffset[i], 0.0f, 1.0f);
-                modulatedParams[i].resonatorDecay = dsp::clamp(
-                    modulatedParams[i].resonatorDecay + modOut.operatorResonatorDecayOffset[i], 0.0f, 1.0f);
-                modulatedParams[i].resonatorDamping = dsp::clamp(
-                    modulatedParams[i].resonatorDamping + modOut.operatorResonatorDampingOffset[i], 0.0f, 1.0f);
-                modulatedParams[i].resonatorBrightness = dsp::clamp(
-                    modulatedParams[i].resonatorBrightness + modOut.operatorResonatorBrightnessOffset[i], 0.0f, 1.0f);
-                modulatedParams[i].resonatorModeCount = dsp::clamp(
-                    modulatedParams[i].resonatorModeCount + modOut.operatorResonatorModeCountOffset[i], 2.0f, 8.0f);
-                modulatedParams[i].grainDensity = dsp::clamp(
-                    modulatedParams[i].grainDensity + modOut.operatorGrainDensityOffset[i], 0.5f, 200.0f);
-                modulatedParams[i].grainSizeMs = dsp::clamp(
-                    modulatedParams[i].grainSizeMs + modOut.operatorGrainSizeMsOffset[i], 1.0f, 500.0f);
-                modulatedParams[i].grainPositionJitter = dsp::clamp(
-                    modulatedParams[i].grainPositionJitter + modOut.operatorGrainPositionJitterOffset[i], 0.0f, 1.0f);
-                modulatedParams[i].grainPitchJitter = dsp::clamp(
-                    modulatedParams[i].grainPitchJitter + modOut.operatorGrainPitchJitterOffset[i], 0.0f, 1.0f);
+                modulatedParamsStorage = operatorParams;
+                auto& modulatedParams = modulatedParamsStorage;
+                for (std::size_t i = 0; i < core::kNodesPerLayer; ++i)
+                {
+                    modulatedParams[i].level *= modOut.operatorLevelMultiplier[i];
+                    modulatedParams[i].wavetableFramePosition = dsp::clamp(
+                        modulatedParams[i].wavetableFramePosition + modOut.operatorWavetablePositionOffset[i], 0.0f, 1.0f);
+                    modulatedParams[i].wtBend = dsp::clamp(
+                        modulatedParams[i].wtBend + modOut.operatorWavetableBendOffset[i], -1.0f, 1.0f);
+                    modulatedParams[i].wtAsymmetry = dsp::clamp(
+                        modulatedParams[i].wtAsymmetry + modOut.operatorWavetableAsymmetryOffset[i], -1.0f, 1.0f);
+                    modulatedParams[i].wtSyncRatio = dsp::clamp(
+                        modulatedParams[i].wtSyncRatio + modOut.operatorWavetableSyncRatioOffset[i], 1.0f, 16.0f);
+                    modulatedParams[i].wtSyncAmount = dsp::clamp(
+                        modulatedParams[i].wtSyncAmount + modOut.operatorWavetableSyncAmountOffset[i], 0.0f, 1.0f);
+                    modulatedParams[i].wtFormantShift = dsp::clamp(
+                        modulatedParams[i].wtFormantShift + modOut.operatorWavetableFormantOffset[i], -1.0f, 1.0f);
+                    modulatedParams[i].fmModulatorRatio = dsp::clamp(
+                        modulatedParams[i].fmModulatorRatio + modOut.operatorFmModulatorRatioOffset[i], 0.001f, 32.0f);
+                    modulatedParams[i].fmModulatorIndex = dsp::clamp(
+                        modulatedParams[i].fmModulatorIndex + modOut.operatorFmModulatorIndexOffset[i], 0.0f, 2.0f);
+                    modulatedParams[i].fmModulatorFeedback = dsp::clamp(
+                        modulatedParams[i].fmModulatorFeedback + modOut.operatorFmModulatorFeedbackOffset[i], 0.0f, 1.0f);
+                    modulatedParams[i].frequencyRatio = dsp::clamp(
+                        modulatedParams[i].frequencyRatio + modOut.operatorFreqRatioOffset[i], 0.001f, 32.0f);
+                    modulatedParams[i].phaseBend = dsp::clamp(
+                        modulatedParams[i].phaseBend + modOut.operatorPhaseBendOffset[i], -1.0f, 1.0f);
+                    modulatedParams[i].phaseFold = dsp::clamp(
+                        modulatedParams[i].phaseFold + modOut.operatorPhaseFoldOffset[i], 0.0f, 1.0f);
+                    modulatedParams[i].phaseAsymmetry = dsp::clamp(
+                        modulatedParams[i].phaseAsymmetry + modOut.operatorPhaseAsymmetryOffset[i], -1.0f, 1.0f);
+                    modulatedParams[i].additivePartialCount = dsp::clamp(
+                        modulatedParams[i].additivePartialCount + modOut.operatorAdditivePartialCountOffset[i], 1.0f, 64.0f);
+                    modulatedParams[i].additiveTilt = dsp::clamp(
+                        modulatedParams[i].additiveTilt + modOut.operatorAdditiveTiltOffset[i], -1.0f, 1.0f);
+                    modulatedParams[i].additiveOddEven = dsp::clamp(
+                        modulatedParams[i].additiveOddEven + modOut.operatorAdditiveOddEvenOffset[i], 0.0f, 1.0f);
+                    modulatedParams[i].additiveStretch = dsp::clamp(
+                        modulatedParams[i].additiveStretch + modOut.operatorAdditiveStretchOffset[i], -1.0f, 1.0f);
+                    modulatedParams[i].resonatorStructure = dsp::clamp(
+                        modulatedParams[i].resonatorStructure + modOut.operatorResonatorStructureOffset[i], 0.0f, 1.0f);
+                    modulatedParams[i].resonatorDecay = dsp::clamp(
+                        modulatedParams[i].resonatorDecay + modOut.operatorResonatorDecayOffset[i], 0.0f, 1.0f);
+                    modulatedParams[i].resonatorDamping = dsp::clamp(
+                        modulatedParams[i].resonatorDamping + modOut.operatorResonatorDampingOffset[i], 0.0f, 1.0f);
+                    modulatedParams[i].resonatorBrightness = dsp::clamp(
+                        modulatedParams[i].resonatorBrightness + modOut.operatorResonatorBrightnessOffset[i], 0.0f, 1.0f);
+                    modulatedParams[i].resonatorModeCount = dsp::clamp(
+                        modulatedParams[i].resonatorModeCount + modOut.operatorResonatorModeCountOffset[i], 2.0f, 8.0f);
+                    modulatedParams[i].grainDensity = dsp::clamp(
+                        modulatedParams[i].grainDensity + modOut.operatorGrainDensityOffset[i], 0.5f, 200.0f);
+                    modulatedParams[i].grainSizeMs = dsp::clamp(
+                        modulatedParams[i].grainSizeMs + modOut.operatorGrainSizeMsOffset[i], 1.0f, 500.0f);
+                    modulatedParams[i].grainPositionJitter = dsp::clamp(
+                        modulatedParams[i].grainPositionJitter + modOut.operatorGrainPositionJitterOffset[i], 0.0f, 1.0f);
+                    modulatedParams[i].grainPitchJitter = dsp::clamp(
+                        modulatedParams[i].grainPitchJitter + modOut.operatorGrainPitchJitterOffset[i], 0.0f, 1.0f);
+                }
             }
+            auto& paramsForRender = operatorParamRoutesActive ? modulatedParamsStorage : operatorParams;
 
-            const float raw = executor.processSample(compiled, modulatedParams, operatorStates, wavetableTables,
+            const float raw = executor.processSample(compiled, paramsForRender, operatorStates, wavetableTables,
                                                       effectiveFreq, operatorFilterParams_, operatorFilters_,
                                                       modOut.operatorFilterCutoffSemitones,
                                                       modOut.operatorFilterResonanceOffset, externalSampleL,
@@ -335,8 +347,13 @@ namespace pw8::voice
             if (filterParams.enabled)
             {
                 const float keyTrackFactor = dsp::filterKeyTrackFactor(effectiveFreq, filterParams.keyTrack);
-                f1ModulatedCutoffHz = filterParams.cutoffHz * keyTrackFactor *
-                                      std::pow(2.0f, modOut.filterCutoffSemitones / 12.0f);
+                // modOut.filterCutoffSemitones is an exact 0.0f whenever no active route
+                // targets FilterCutoff (ModOutputs default-constructs to 0 and only active
+                // routes write non-default) -- skip the pow() call in the common case.
+                const float cutoffModMultiplier = modOut.filterCutoffSemitones != 0.0f
+                                                       ? std::pow(2.0f, modOut.filterCutoffSemitones / 12.0f)
+                                                       : 1.0f;
+                f1ModulatedCutoffHz = filterParams.cutoffHz * keyTrackFactor * cutoffModMultiplier;
             }
 
             const auto renderGlobalF1 = [&](float in) -> float {
@@ -367,9 +384,15 @@ namespace pw8::voice
             const float amp = dsp::clamp(filtered * env * velocity * outputGain * stealOutputGain_, -16.0f, 16.0f);
 
             const float panClamped = dsp::clamp(pan + modOut.panOffset, -1.0f, 1.0f);
-            const float panRad = (panClamped * 0.5f + 0.5f) * (dsp::kPi * 0.5f);
-            outLeft = amp * std::cos(panRad);
-            outRight = amp * std::sin(panRad);
+            if (panClamped != lastPanClamped_)
+            {
+                const float panRad = (panClamped * 0.5f + 0.5f) * (dsp::kPi * 0.5f);
+                cosPanCached_ = std::cos(panRad);
+                sinPanCached_ = std::sin(panRad);
+                lastPanClamped_ = panClamped;
+            }
+            outLeft = amp * cosPanCached_;
+            outRight = amp * sinPanCached_;
 
             advanceStealCrossfade();
             advancePortamentoGlide();
@@ -529,6 +552,18 @@ namespace pw8::voice
         float portamentoCoeff_ = 0.0f;
         float pan = 0.0f;
         float outputGain = 1.0f;
+
+        // Equal-power pan cos/sin cache -- renderSample() recomputes cosPanCached_/
+        // sinPanCached_ only when panClamped actually differs from lastPanClamped_
+        // (exact float equality, not epsilon: an epsilon-based cache could let a
+        // genuinely slowly-modulated pan silently stick stale between samples whose
+        // delta is below the epsilon; exact equality only skips the true static
+        // case, which is the common one -- a sustained note with no pan modulation).
+        // -2.0f is out of panClamped's real [-1,1] range, so the first real sample
+        // always misses the cache and computes for real.
+        float lastPanClamped_ = -2.0f;
+        float cosPanCached_ = 1.0f;
+        float sinPanCached_ = 0.0f;
 
         NoteExpression expression{};
 

@@ -184,6 +184,99 @@ namespace pw8::modulation
             return false;
         }
 
+        /// True if any active route targets one of the 27 ModDestination::Operator*
+        /// fields that Voice::renderSample's modulatedParams copy+clamp loop reads
+        /// (NOT OperatorFilterCutoff/OperatorFilterResonance -- those are separate,
+        /// applied directly as raw offsets, not part of that loop). Lets renderSample
+        /// skip the whole per-sample, per-operator copy+clamp when nothing targets
+        /// any of these -- the common case. Exhaustive switch, deliberately no
+        /// `default:` -- a future ModDestination addition must be explicitly
+        /// categorized here (compiler warns via -Wswitch otherwise), not silently
+        /// swallowed into either bucket.
+        template <typename RouteContainer>
+        [[nodiscard]] static bool hasActiveOperatorParamRoutes(const RouteContainer& routes) noexcept
+        {
+            for (const auto& route : routes)
+            {
+                if (!route.isActive())
+                    continue;
+                switch (route.destination)
+                {
+                    case ModDestination::OperatorLevel:
+                    case ModDestination::OperatorWavetablePosition:
+                    case ModDestination::OperatorWavetableBend:
+                    case ModDestination::OperatorWavetableAsymmetry:
+                    case ModDestination::OperatorWavetableSyncRatio:
+                    case ModDestination::OperatorWavetableFormant:
+                    case ModDestination::OperatorWavetableSyncAmount:
+                    case ModDestination::OperatorFmModulatorRatio:
+                    case ModDestination::OperatorFmModulatorIndex:
+                    case ModDestination::OperatorFmModulatorFeedback:
+                    case ModDestination::OperatorFreqRatio:
+                    case ModDestination::OperatorPhaseBend:
+                    case ModDestination::OperatorPhaseFold:
+                    case ModDestination::OperatorPhaseAsymmetry:
+                    case ModDestination::OperatorAdditivePartialCount:
+                    case ModDestination::OperatorAdditiveTilt:
+                    case ModDestination::OperatorAdditiveOddEven:
+                    case ModDestination::OperatorAdditiveStretch:
+                    case ModDestination::OperatorResonatorStructure:
+                    case ModDestination::OperatorResonatorDecay:
+                    case ModDestination::OperatorResonatorDamping:
+                    case ModDestination::OperatorResonatorBrightness:
+                    case ModDestination::OperatorResonatorModeCount:
+                    case ModDestination::OperatorGrainDensity:
+                    case ModDestination::OperatorGrainSizeMs:
+                    case ModDestination::OperatorGrainPositionJitter:
+                    case ModDestination::OperatorGrainPitchJitter:
+                        return true;
+
+                    case ModDestination::None:
+                    case ModDestination::FilterCutoff:
+                    case ModDestination::FilterResonance:
+                    case ModDestination::OperatorFilterCutoff:
+                    case ModDestination::OperatorFilterResonance:
+                    case ModDestination::Pan:
+                    case ModDestination::MasterFxMix:
+                    case ModDestination::MasterReverbMix:
+                    case ModDestination::MasterReverbSize:
+                    case ModDestination::MasterReverbDecay:
+                    case ModDestination::MasterReverbPreDelay:
+                    case ModDestination::MasterReverbDiffusion:
+                    case ModDestination::MasterReverbModDepth:
+                    case ModDestination::MasterGain:
+                    case ModDestination::VocoderMix:
+                    case ModDestination::VocoderFormant:
+                    case ModDestination::ModRouteDepth:
+                    case ModDestination::MorphPosition:
+                    case ModDestination::FilterModeMorph:
+                    case ModDestination::FilterRouting:
+                    case ModDestination::FilterDrive:
+                    case ModDestination::MasterDynamicsMix:
+                    case ModDestination::SidechainDepth:
+                    case ModDestination::QuasarQsr1Angle:
+                    case ModDestination::QuasarQsr2Angle:
+                    case ModDestination::QuasarRoomAmount:
+                    case ModDestination::QuasarCrossfeed:
+                    case ModDestination::QuasarDelayVolume:
+                    case ModDestination::QuasarQsr1Distance:
+                    case ModDestination::QuasarQsr2Distance:
+                    case ModDestination::QuasarDelayTime:
+                    case ModDestination::QuasarDelayFeedback:
+                    case ModDestination::QuasarQsr1Height:
+                    case ModDestination::QuasarQsr2Height:
+                    case ModDestination::QuasarCntrLevel:
+                    case ModDestination::QuasarQsr1Level:
+                    case ModDestination::QuasarQsr2Level:
+                    case ModDestination::UnisonVoices:
+                    case ModDestination::UnisonDetune:
+                    case ModDestination::UnisonSpread:
+                        break;
+                }
+            }
+            return false;
+        }
+
         template <typename RouteContainer>
         [[nodiscard]] static bool hasAudioRateModRoutes(const RouteContainer& routes) noexcept
         {
