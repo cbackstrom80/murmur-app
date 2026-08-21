@@ -75,6 +75,7 @@ namespace pw8::plugin
         {"Drive",     "Filter 2 Drive",   0.0f,  1.0f,     0.0f,    false},
         {"KeyTrack",  "Filter 2 Key Trk", -1.0f,  1.0f,     0.0f,    false},
         {"CutoffOffsetSemis", "Filter 2 Cutoff Offset Semis", -48.0f, 48.0f, 0.0f, false},
+        {"ModeMorph", "Filter 2 Mode Morph", 0.0f, 1.0f, 0.0f, false},
     }};
 
     const std::array<ParamFieldSpec, kNumOperatorFilterFields> kOperatorFilterFieldSpecs = {{

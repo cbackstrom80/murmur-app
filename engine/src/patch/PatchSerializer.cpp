@@ -326,7 +326,7 @@ namespace pw8::patch
         {
             j = json{{"enabled", f.enabled},     {"cutoffHz", f.cutoffHz}, {"resonance", f.resonance},
                      {"drive", f.drive},         {"cutoffOffsetSemis", f.cutoffOffsetSemitones},
-                     {"keyTrack", f.keyTrack}};
+                     {"keyTrack", f.keyTrack},   {"modeMorph", f.modeMorph}};
         }
 
         void fromJson(const json& j, filter::CharacterFilterParams& f)
@@ -337,6 +337,7 @@ namespace pw8::patch
             f.drive = clampNum(j.value("drive", 0.0f), 0.0f, 1.0f);
             f.cutoffOffsetSemitones = clampNum(j.value("cutoffOffsetSemis", 0.0f), -48.0f, 48.0f);
             f.keyTrack = clampNum(j.value("keyTrack", 0.0f), -1.0f, 1.0f);
+            f.modeMorph = clampNum(j.value("modeMorph", 0.0f), 0.0f, 1.0f);
         }
 
         void toJson(json& j, const lfo::LfoParams& l)

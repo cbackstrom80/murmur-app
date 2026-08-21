@@ -76,7 +76,7 @@ namespace pw8::plugin
     inline constexpr std::size_t kNumOperatorMixFields = 3;
     inline constexpr std::size_t kNumOperatorFilterFields = 5;
     inline constexpr std::size_t kNumFilterFields = 6;
-    inline constexpr std::size_t kNumFilter2Fields = 6;
+    inline constexpr std::size_t kNumFilter2Fields = 7;
     inline constexpr std::size_t kNumLfoFields = 5;
     inline constexpr std::size_t kNumEnvelopeFields = 8;
     inline constexpr std::size_t kNumEffectSlotFields = 99;

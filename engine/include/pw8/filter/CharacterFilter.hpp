@@ -4,9 +4,18 @@
 #include <cmath>
 
 #include "pw8/dsp/Math.hpp"
+#include "pw8/filter/StateVariableFilter.hpp" // reuses blendLpBpHp -- same morph math as Filter 1, no new UI/DSP paradigm.
 
 // Filter 2 — nonlinear character filter (docs/DSP_ENGINE.md "Filter System").
 // Original soft 4-pole ladder with tanh input drive; not a circuit clone.
+//
+// modeMorph (added after the initial LP-only MVP shipped) derives HP and BP taps
+// from the SAME 4-stage cascade rather than adding new circuit topologies -- real,
+// standard ladder-filter technique (complementary highpass = pre-cascade signal
+// minus the 4-pole lowpass output; bandpass = difference between two different-
+// order lowpass taps), not new DSP research. Blended via the identical
+// `blendLpBpHp` LP->BP->HP curve Filter 1's morph already uses, so the two
+// filters' morph knobs behave consistently to the ear.
 namespace pw8::filter
 {
     struct CharacterFilterParams
@@ -21,6 +30,9 @@ namespace pw8::filter
         float cutoffOffsetSemitones = 0.0f;
         /// Same semantics as Filter 1 keyTrack.
         float keyTrack = 0.0f;
+        /// Same LP->BP->HP morph convention as Filter 1's modeMorph (0 = LP4, 0.5 = BP, 1 = HP).
+        /// Defaults to 0.0 -- pure LP4, byte-identical to pre-morph output.
+        float modeMorph = 0.0f;
     };
 
     class CharacterFilter
@@ -36,7 +48,8 @@ namespace pw8::filter
             stage_.fill(0.0f);
         }
 
-        [[nodiscard]] float renderSample(float input, float cutoffHz, float resonance01, float drive01) noexcept
+        [[nodiscard]] float renderSample(float input, float cutoffHz, float resonance01, float drive01,
+                                          float modeMorph = 0.0f) noexcept
         {
             const float driveGain = 1.0f + dsp::clamp(drive01, 0.0f, 1.0f) * 4.0f;
             const float driven = std::tanh(input * driveGain);
@@ -48,15 +61,28 @@ namespace pw8::filter
             const float k = dsp::clamp(resonance01, 0.0f, 1.0f) * 4.0f;
 
             const float feedback = k * stage_[3];
-            float x = driven - feedback;
+            const float x = driven - feedback;
 
+            float prev = x;
             for (auto& s : stage_)
             {
-                s += G * (x - s);
-                x = s;
+                s += G * (prev - s);
+                prev = s;
             }
 
-            return dsp::flushIfNotFinite(stage_[3]);
+            const float lowpass = stage_[3];
+            if (modeMorph <= 0.0f)
+                return dsp::flushIfNotFinite(lowpass); // fast path, matches pre-morph behavior exactly.
+
+            // Complementary highpass at the same (4th) order: what the pre-cascade
+            // signal had that the lowpass didn't keep.
+            const float highpass = x - lowpass;
+            // Band emphasis: difference between the 2-pole and 4-pole taps, the same
+            // "difference of two lowpasses" technique the SVF's own Peak mode uses
+            // (`lowpass - highpass` there; here, two different-order LP outputs).
+            const float bandpass = stage_[1] - stage_[3];
+
+            return dsp::flushIfNotFinite(blendLpBpHp(lowpass, bandpass, highpass, modeMorph));
         }
 
     private:

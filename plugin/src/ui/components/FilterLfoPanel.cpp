@@ -242,6 +242,7 @@ namespace pw8::plugin::ui
         filter2Drive_.reset();
         filter2CutoffOffset_.reset();
         filter2KeyTrack_.reset();
+        filter2ModeMorph_.reset();
         filter2Panel_.removeAllChildren();
         filter2Panel_.addAndMakeVisible(*filter2EnabledButton_);
         filter2Panel_.addAndMakeVisible(filter2EnabledLabel_);
@@ -261,6 +262,12 @@ namespace pw8::plugin::ui
             filter2CutoffOffset_ =
                 std::make_unique<GlowKnob>(apvts, f2Prefix + "CutoffOffsetSemis", "F2 Off");
             filter2KeyTrack_ = std::make_unique<GlowKnob>(apvts, f2Prefix + "KeyTrack", "Key Trk");
+            // F2's own LP->BP->HP morph (see CharacterFilter.hpp) -- gives Filter 2 real
+            // response variety instead of the LP-only output it originally shipped with.
+            // Deliberately not wired as a mod-matrix destination (unlike F1's morph) --
+            // a static per-patch knob is enough to close the response-variety gap; live
+            // modulation of it is a separate, optional follow-up.
+            filter2ModeMorph_ = std::make_unique<GlowKnob>(apvts, f2Prefix + "ModeMorph", "F2 Morph");
 
             filterRouting_->enableModulationTarget(processor_, modulation::ModDestination::FilterRouting, 0);
             filterRouting_->setModAssignmentController(&assignmentController_);
@@ -277,9 +284,11 @@ namespace pw8::plugin::ui
             filter2Drive_->setDeckedStyle(true, GlowKnob::DeckedKnobSize::Medium);
             filter2CutoffOffset_->applyFigmaContext(figma::KnobContext::PlayBlades);
             filter2KeyTrack_->applyFigmaContext(figma::KnobContext::PlayBlades);
+            filter2ModeMorph_->applyFigmaContext(figma::KnobContext::PlayBlades);
 
             for (auto* k : {filterRouting_.get(), filterModeMorph_.get(), filter2Cutoff_.get(), filter2Resonance_.get(),
-                            filter2Drive_.get(), filter2CutoffOffset_.get(), filter2KeyTrack_.get()})
+                            filter2Drive_.get(), filter2CutoffOffset_.get(), filter2KeyTrack_.get(),
+                            filter2ModeMorph_.get()})
                 filter2Panel_.addAndMakeVisible(*k);
         }
     }
@@ -357,6 +366,8 @@ namespace pw8::plugin::ui
                         filter2CutoffOffset_->setBounds(content.removeFromLeft(knobSlotW).reduced(2));
                     if (filter2KeyTrack_)
                         filter2KeyTrack_->setBounds(content.removeFromLeft(knobSlotW).reduced(2));
+                    if (filter2ModeMorph_)
+                        filter2ModeMorph_->setBounds(content.removeFromLeft(knobSlotW).reduced(2));
                 }
                 bounds.removeFromBottom(4);
             }

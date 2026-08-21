@@ -740,7 +740,7 @@ namespace pw8::plugin::ui::layout
     inline constexpr int kPlayBladesHeaderRowHeight = 14;
     inline constexpr int kPlayBladesKnobsRowHeight = 68;
     inline constexpr int kPlayBladesKnobDialSize = 44;
-    inline constexpr int kPlayBladesKnobCount = 7;
+    inline constexpr int kPlayBladesKnobCount = 8; // +1 for filter2ModeMorph_ (F2's own LP->BP->HP morph knob).
     inline constexpr int kPlayBladesSectionHeight = 104;
     inline constexpr int kPlayBladesKnobLabelGap = 4;
 

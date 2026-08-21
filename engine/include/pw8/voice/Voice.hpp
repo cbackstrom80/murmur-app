@@ -373,7 +373,8 @@ namespace pw8::voice
                                                                       filter2Params, effectiveFreq);
                 const float resonance = dsp::clamp(filter2Params.resonance, 0.0f, 1.0f);
                 const float drive = dsp::clamp(filter2Params.drive + modOut.filterDriveOffset, 0.0f, 1.0f);
-                return filter2.renderSample(in, cutoffHz, resonance, drive);
+                const float modeMorph = dsp::clamp(filter2Params.modeMorph, 0.0f, 1.0f);
+                return filter2.renderSample(in, cutoffHz, resonance, drive, modeMorph);
             };
 
             const float routingMorph =

@@ -92,6 +92,7 @@ namespace pw8::plugin::ui
         std::unique_ptr<GlowKnob> filter2Drive_;
         std::unique_ptr<GlowKnob> filter2CutoffOffset_;
         std::unique_ptr<GlowKnob> filter2KeyTrack_;
+        std::unique_ptr<GlowKnob> filter2ModeMorph_;
         WireframePanel scopeFrame_{"SCOPE"};
         FilterPanelScopeView filterScope_;
 

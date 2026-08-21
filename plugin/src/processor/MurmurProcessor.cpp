@@ -558,6 +558,7 @@ namespace pw8::plugin
             f2.drive = loadF(filter2ParamPointers_[3]);
             f2.keyTrack = loadF(filter2ParamPointers_[4]);
             f2.cutoffOffsetSemitones = loadF(filter2ParamPointers_[5]);
+            f2.modeMorph = loadF(filter2ParamPointers_[6]);
             engine.setFilter2Live(f2);
             engine.setFilterRoutingLive(loadF(filterRoutingPointer_));
         }
@@ -1916,7 +1917,7 @@ namespace pw8::plugin
         const auto& filter2 = currentPatch_.layerA.filter2;
         const std::array<float, kNumFilter2Fields> filter2Values = {
             filter2.enabled ? 1.0f : 0.0f, filter2.cutoffHz, filter2.resonance, filter2.drive, filter2.keyTrack,
-            filter2.cutoffOffsetSemitones,
+            filter2.cutoffOffsetSemitones, filter2.modeMorph,
         };
         for (std::size_t i = 0; i < kNumFilter2Fields; ++i)
             setParam(juce::String(kFilter2IdPrefix) + kFilter2FieldSpecs[i].idSuffix, filter2Values[i]);
@@ -2107,6 +2108,7 @@ namespace pw8::plugin
         filter2.drive = loadF(filter2ParamPointers_[3]);
         filter2.keyTrack = loadF(filter2ParamPointers_[4]);
         filter2.cutoffOffsetSemitones = loadF(filter2ParamPointers_[5]);
+        filter2.modeMorph = loadF(filter2ParamPointers_[6]);
 
         for (std::size_t lfoIdx = 0; lfoIdx < kNumLfos; ++lfoIdx)
         {
