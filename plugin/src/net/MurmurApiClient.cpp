@@ -130,6 +130,7 @@ namespace pw8::plugin::net
                         patch.name = p.getProperty("name", "").toString();
                         patch.category = p.getProperty("category", "").toString();
                         patch.downloadUrl = p.getProperty("downloadUrl", "").toString();
+                        patch.isOwn = static_cast<bool>(p.getProperty("isOwn", false));
                         result.patches.add(std::move(patch));
                     }
                 }

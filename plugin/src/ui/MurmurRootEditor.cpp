@@ -141,47 +141,10 @@ namespace pw8::plugin::ui
             // library-sync-fails all funnel through onDismissed).
             const content::LicenseStore freshCheck;
             curatorEntryButton_.setVisible(freshCheck.info().isDevCurator);
+            refreshLibraryButton_.setVisible(freshCheck.info().isActivated());
         };
         keyActivationOverlay_.onLibraryFetched = [this](const juce::Array<net::LibraryPatch>& patches) {
-            if (patches.isEmpty())
-                return;
-
-            // Sequential downloads on one background thread (polite to the
-            // server, and there's no UI progress for this yet) into the real,
-            // already-scanned user preset root (pw8::content::presetSearchRoots()
-            // includes "<AppData>/MURMUR/Presets") -- refreshPresetIndex() below
-            // picks them up the same way any other user-dropped file would be.
-            juce::Thread::launch([this, patches] {
-                const auto destDir = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
-                                          .getChildFile("MURMUR/Presets/library");
-                destDir.createDirectory();
-
-                int downloaded = 0;
-                for (const auto& patch : patches)
-                {
-                    if (patch.downloadUrl.isEmpty() || patch.slug.isEmpty())
-                        continue;
-
-                    const juce::URL url(patch.downloadUrl);
-                    const auto options =
-                        juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress).withConnectionTimeoutMs(8000);
-                    auto stream = url.createInputStream(options);
-                    if (stream == nullptr)
-                        continue;
-
-                    const auto body = stream->readEntireStreamAsString();
-                    if (body.isEmpty())
-                        continue;
-
-                    destDir.getChildFile(patch.slug + ".murmur").replaceWithText(body);
-                    ++downloaded;
-                }
-
-                juce::MessageManager::callAsync([this, downloaded] {
-                    if (downloaded > 0)
-                        patchBrowserBar_.refreshPresetIndex();
-                });
-            });
+            downloadAndIndexLibraryPatches(patches);
         };
 
         // Curator review -- reachable via a small corner button rather than a
@@ -211,6 +174,14 @@ namespace pw8::plugin::ui
         // visibility.
         curatorEntryButton_.setBounds(12, 12, 90, 24);
 
+        addChildComponent(refreshLibraryButton_);
+        refreshLibraryButton_.setColour(juce::TextButton::buttonColourId, palette::kMurmurViolet.withAlpha(0.15f));
+        refreshLibraryButton_.setColour(juce::TextButton::textColourOffId, palette::kMurmurViolet);
+        refreshLibraryButton_.onClick = [this] { refreshLibraryFromServer(); };
+        // Sits to the right of curatorEntryButton_'s slot (12,12,90,24) so
+        // the two never overlap when both are visible at once.
+        refreshLibraryButton_.setBounds(12 + 90 + 8, 12, 110, 24);
+
         // Splash goes last so it paints on top of everything else added above.
         // It owns the update-available check/banner itself now (matches the
         // Figma murmur-vst-splash frame's own update-notification-banner
@@ -224,6 +195,7 @@ namespace pw8::plugin::ui
             if (!licenseCheck.info().isActivated())
                 keyActivationOverlay_.setVisible(true);
             curatorEntryButton_.setVisible(licenseCheck.info().isDevCurator);
+            refreshLibraryButton_.setVisible(licenseCheck.info().isActivated());
         };
     }
 
@@ -260,6 +232,75 @@ namespace pw8::plugin::ui
             murmurChromeBar_.setBrowseFilters(presetBrowserOverlay_.browseFilter());
             playModeEditor_.setBrowseFilter(presetBrowserOverlay_.browseFilter());
         };
+    }
+
+    void MurmurRootEditor::downloadAndIndexLibraryPatches(const juce::Array<net::LibraryPatch>& patches)
+    {
+        if (patches.isEmpty())
+            return;
+
+        // Sequential downloads on one background thread (polite to the
+        // server, and there's no UI progress for this yet -- a real rough
+        // edge now that the real catalog is 1,000+ patches rather than a
+        // 100-item preview, worth a proper progress UI in a later pass).
+        // Routed into the real, already-scanned user preset roots
+        // (pw8::content::presetSearchRoots() includes
+        // "<AppData>/MURMUR/Presets") -- refreshPresetIndex() below picks
+        // them up the same way any other user-dropped file would be.
+        // isOwn decides which real bank the patch lands in: "/user/" (the
+        // caller's own generations, so they read as visibly "mine" in
+        // PresetBrowserOverlay's User tab) vs "/library/community/" (real
+        // fix alongside this -- the old flat "/library/" destination didn't
+        // actually match that overlay's "/community/" or "/comm/"
+        // path-substring check, so synced patches previously showed up in
+        // none of the three preset-bank tabs at all).
+        juce::Thread::launch([this, patches] {
+            const auto appData = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory);
+            const auto mineDir = appData.getChildFile("MURMUR/Presets/user/library-mine");
+            const auto communityDir = appData.getChildFile("MURMUR/Presets/library/community");
+            mineDir.createDirectory();
+            communityDir.createDirectory();
+
+            int downloaded = 0;
+            for (const auto& patch : patches)
+            {
+                if (patch.downloadUrl.isEmpty() || patch.slug.isEmpty())
+                    continue;
+
+                const juce::URL url(patch.downloadUrl);
+                const auto options =
+                    juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress).withConnectionTimeoutMs(8000);
+                auto stream = url.createInputStream(options);
+                if (stream == nullptr)
+                    continue;
+
+                const auto body = stream->readEntireStreamAsString();
+                if (body.isEmpty())
+                    continue;
+
+                const auto& destDir = patch.isOwn ? mineDir : communityDir;
+                destDir.getChildFile(patch.slug + ".murmur").replaceWithText(body);
+                ++downloaded;
+            }
+
+            juce::MessageManager::callAsync([this, downloaded] {
+                if (downloaded > 0)
+                    patchBrowserBar_.refreshPresetIndex();
+            });
+        });
+    }
+
+    void MurmurRootEditor::refreshLibraryFromServer()
+    {
+        const content::LicenseStore store;
+        const auto key = store.info().licenseKey;
+        if (key.isEmpty())
+            return; // Not activated -- nothing to refresh against.
+
+        net::MurmurApiClient::fetchLibrary(key, [this](net::LibraryResult result) {
+            if (result.success)
+                downloadAndIndexLibraryPatches(result.patches);
+        });
     }
 
     void MurmurRootEditor::setEditorMode(layout::EditorMode mode)
@@ -432,6 +473,15 @@ namespace pw8::plugin::ui
             constexpr int kButtonHeight = 24;
             constexpr int kMargin = 12;
             curatorEntryButton_.setBounds(kMargin, kMargin, kButtonWidth, kButtonHeight);
+        }
+
+        if (refreshLibraryButton_.isVisible())
+        {
+            constexpr int kButtonWidth = 110;
+            constexpr int kButtonHeight = 24;
+            constexpr int kMargin = 12;
+            constexpr int kCuratorSlotWidth = 90;
+            refreshLibraryButton_.setBounds(kMargin + kCuratorSlotWidth + 8, kMargin, kButtonWidth, kButtonHeight);
         }
 
         if (presetBrowserOverlay_.isVisible())

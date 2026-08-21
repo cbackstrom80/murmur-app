@@ -30,6 +30,12 @@ namespace pw8::plugin::net
         juce::String name;
         juce::String category;
         juce::String downloadUrl;
+        /// Real, per-request field from /api/v1/library -- true when this
+        /// patch's author is the account the activated license key belongs
+        /// to. Still the same community-wide synced set; this just marks
+        /// which of those are the caller's own, so the plugin can route them
+        /// into the local "User" preset bank instead of "Community".
+        bool isOwn = false;
     };
 
     struct LibraryResult

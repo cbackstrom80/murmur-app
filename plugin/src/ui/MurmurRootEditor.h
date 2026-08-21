@@ -17,6 +17,7 @@
 #include "content/FavoritesStore.h"
 #include "content/LicenseStore.h"
 #include "content/PresetRatingsStore.h"
+#include "net/MurmurApiClient.h"
 #include "processor/MurmurProcessor.h"
 #include "theme/ObsidianLookAndFeel.h"
 
@@ -39,6 +40,16 @@ namespace pw8::plugin::ui
         void syncChromeState();
         void setEditorMode(layout::EditorMode mode);
         void setDesignSubPage(layout::DesignSubPage page);
+        /// Downloads each patch's real .murmur file, routed by patch.isOwn
+        /// into the local "User" preset bank (the caller's own generations)
+        /// or "Community" (everyone else's) -- see PresetBrowserOverlay's
+        /// real path-substring bank classification. Shared by the
+        /// activation-time sync and the manual refresh below.
+        void downloadAndIndexLibraryPatches(const juce::Array<net::LibraryPatch>& patches);
+        /// Manual re-sync against the currently-activated license, without
+        /// re-entering the key -- LicenseStore already persists it locally
+        /// for exactly this. No-ops (silently) if no license is activated.
+        void refreshLibraryFromServer();
         [[nodiscard]] int outerMarginForCurrentView() const;
         [[nodiscard]] juce::BorderSize<int> contentInsetsForCurrentView() const;
 
@@ -60,6 +71,11 @@ namespace pw8::plugin::ui
         juce::TextButton curatorEntryButton_{"CURATOR"}; // corner button, visible only
                                                            // when the activated license
                                                            // is curator-flagged
+        juce::TextButton refreshLibraryButton_{"SYNC LIBRARY"}; // corner button, visible
+                                                                  // only once a license is
+                                                                  // activated -- manual
+                                                                  // re-sync, see
+                                                                  // refreshLibraryFromServer()
         layout::EditorMode editorMode_ = layout::EditorMode::Play;
         layout::DesignSubPage designSubPage_ = layout::DesignSubPage::Engine;
         layout::PlayViewMode lastNonCompactPlayView_ = layout::PlayViewMode::Desktop;
