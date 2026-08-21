@@ -322,6 +322,18 @@ namespace pw8::patch
                 f.modeMorph = filter::modeMorphFromMode(f.mode);
         }
 
+        void toJson(json& j, const spatial::SubAnchorParams& s)
+        {
+            j = json{{"enabled", s.enabled}, {"crossoverHz", s.crossoverHz}, {"monoAmount", s.monoAmount}};
+        }
+
+        void fromJson(const json& j, spatial::SubAnchorParams& s)
+        {
+            s.enabled = j.value("enabled", false);
+            s.crossoverHz = clampNum(j.value("crossoverHz", 120.0f), 40.0f, 400.0f);
+            s.monoAmount = clampNum(j.value("monoAmount", 0.0f), 0.0f, 1.0f);
+        }
+
         void toJson(json& j, const filter::CharacterFilterParams& f)
         {
             j = json{{"enabled", f.enabled},     {"cutoffHz", f.cutoffHz}, {"resonance", f.resonance},
@@ -660,11 +672,12 @@ namespace pw8::patch
                 toJson(jo, o);
                 ops.push_back(jo);
             }
-            json algo, uni, filt, filt2;
+            json algo, uni, filt, filt2, subAnchor;
             toJson(algo, l.algorithm);
             toJson(uni, l.unison);
             toJson(filt, l.filter1);
             toJson(filt2, l.filter2);
+            toJson(subAnchor, l.subAnchor);
 
             json envelopes = json::array();
             for (std::size_t ei = 0; ei < l.envelopes.size(); ++ei)
@@ -715,6 +728,7 @@ namespace pw8::patch
                      {"lfos", lfos},            {"modRoutes", routes},         {"metaRoutes", metaRoutes},
                      {"gain", l.gain},
                      {"pan", l.pan},            {"width", l.width},            {"centerGravity", l.centerGravity},
+                     {"subAnchor", subAnchor},
                      {"insertEffects", inserts}};
         }
 
@@ -760,6 +774,8 @@ namespace pw8::patch
             if (j.contains("filter2"))
                 fromJson(j.at("filter2"), l.filter2);
             l.filterRouting = clampNum(j.value("filterRouting", 0.0f), 0.0f, 1.0f);
+            if (j.contains("subAnchor"))
+                fromJson(j.at("subAnchor"), l.subAnchor);
 
             l.lfos = std::array<lfo::LfoParams, core::kNumLfosPerLayer>{};
             if (j.contains("lfos") && j.at("lfos").is_array())

@@ -175,6 +175,7 @@ namespace pw8::plugin
 
         cacheGroup(apvts, filterParamPointers_, kFilterIdPrefix, kFilterFieldSpecs);
         cacheGroup(apvts, filter2ParamPointers_, kFilter2IdPrefix, kFilter2FieldSpecs);
+        cacheGroup(apvts, subAnchorParamPointers_, kSubAnchorIdPrefix, kSubAnchorFieldSpecs);
         filterRoutingPointer_ = apvts.getRawParameterValue(kFilterRoutingId);
         for (std::size_t i = 0; i < kNumMasterDynamicsFields; ++i)
             masterDynamicsParamPointers_[i] =
@@ -561,6 +562,12 @@ namespace pw8::plugin
             f2.modeMorph = loadF(filter2ParamPointers_[6]);
             engine.setFilter2Live(f2);
             engine.setFilterRoutingLive(loadF(filterRoutingPointer_));
+
+            spatial::SubAnchorParams sa;
+            sa.enabled = loadB(subAnchorParamPointers_[0]);
+            sa.crossoverHz = loadF(subAnchorParamPointers_[1]);
+            sa.monoAmount = loadF(subAnchorParamPointers_[2]);
+            engine.setSubAnchorLive(sa);
         }
 
         // 8 LFOs -- field order matches kLfoFieldSpecs / lfo::LfoParams. One
@@ -1447,7 +1454,7 @@ namespace pw8::plugin
         if (parameterID.startsWith("macro"))
             return ParamGroup::Macros;
         if (parameterID.startsWith(kFilterIdPrefix) || parameterID.startsWith(kFilter2IdPrefix) ||
-            parameterID == kFilterRoutingId)
+            parameterID.startsWith(kSubAnchorIdPrefix) || parameterID == kFilterRoutingId)
             return ParamGroup::Filter;
         if (parameterID.startsWith(kLayerGainId) || parameterID.startsWith(kLayerPanId))
             return ParamGroup::LayerGainPan;
@@ -1922,6 +1929,13 @@ namespace pw8::plugin
         for (std::size_t i = 0; i < kNumFilter2Fields; ++i)
             setParam(juce::String(kFilter2IdPrefix) + kFilter2FieldSpecs[i].idSuffix, filter2Values[i]);
 
+        const auto& subAnchor = currentPatch_.layerA.subAnchor;
+        const std::array<float, kNumSubAnchorFields> subAnchorValues = {
+            subAnchor.enabled ? 1.0f : 0.0f, subAnchor.crossoverHz, subAnchor.monoAmount,
+        };
+        for (std::size_t i = 0; i < kNumSubAnchorFields; ++i)
+            setParam(juce::String(kSubAnchorIdPrefix) + kSubAnchorFieldSpecs[i].idSuffix, subAnchorValues[i]);
+
         for (std::size_t lfoIdx = 0; lfoIdx < kNumLfos; ++lfoIdx)
         {
             const auto& lfo = currentPatch_.layerA.lfos[lfoIdx];
@@ -2109,6 +2123,11 @@ namespace pw8::plugin
         filter2.keyTrack = loadF(filter2ParamPointers_[4]);
         filter2.cutoffOffsetSemitones = loadF(filter2ParamPointers_[5]);
         filter2.modeMorph = loadF(filter2ParamPointers_[6]);
+
+        auto& subAnchor = currentPatch_.layerA.subAnchor;
+        subAnchor.enabled = loadB(subAnchorParamPointers_[0]);
+        subAnchor.crossoverHz = loadF(subAnchorParamPointers_[1]);
+        subAnchor.monoAmount = loadF(subAnchorParamPointers_[2]);
 
         for (std::size_t lfoIdx = 0; lfoIdx < kNumLfos; ++lfoIdx)
         {

@@ -77,6 +77,7 @@ namespace pw8::plugin
     inline constexpr std::size_t kNumOperatorFilterFields = 5;
     inline constexpr std::size_t kNumFilterFields = 6;
     inline constexpr std::size_t kNumFilter2Fields = 7;
+    inline constexpr std::size_t kNumSubAnchorFields = 3;
     inline constexpr std::size_t kNumLfoFields = 5;
     inline constexpr std::size_t kNumEnvelopeFields = 8;
     inline constexpr std::size_t kNumEffectSlotFields = 99;
@@ -108,6 +109,9 @@ namespace pw8::plugin
     // Field order matches filter::FilterParams (global layer filter).
     extern const std::array<ParamFieldSpec, kNumFilterFields> kFilterFieldSpecs;
     extern const std::array<ParamFieldSpec, kNumFilter2Fields> kFilter2FieldSpecs;
+    // Field order matches spatial::SubAnchorParams. Layer A only -- see that
+    // struct's own doc comment for why.
+    extern const std::array<ParamFieldSpec, kNumSubAnchorFields> kSubAnchorFieldSpecs;
     // Field order matches filter::FilterParams (per-engine filter on each operator).
     extern const std::array<ParamFieldSpec, kNumOperatorFilterFields> kOperatorFilterFieldSpecs;
     // Field order matches lfo::LfoParams.
@@ -138,6 +142,7 @@ namespace pw8::plugin
 
     inline constexpr const char* kFilterIdPrefix = "filter";
     inline constexpr const char* kFilter2IdPrefix = "filter2";
+    inline constexpr const char* kSubAnchorIdPrefix = "subAnchor";
     inline constexpr const char* kFilterRoutingId = "filterRouting";
     inline constexpr const char* kFilterRoutingName = "Filter Routing Morph";
     inline constexpr const char* kMasterDynamicsIdPrefix = "masterDynamics";

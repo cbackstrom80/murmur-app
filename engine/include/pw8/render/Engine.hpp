@@ -18,6 +18,7 @@
 #include "pw8/render/BlockMidi.hpp"
 #include "pw8/render/RenderTypes.hpp"
 #include "pw8/sequencer/Arpeggiator.hpp"
+#include "pw8/spatial/SubAnchor.hpp"
 #include "pw8/tuning/TuningService.hpp"
 #include "pw8/voice/VoiceAllocator.hpp"
 
@@ -126,6 +127,7 @@ namespace pw8::render
         [[nodiscard]] const filter::FilterParams& getFilterParams() const noexcept { return patch_.layerA.filter1; }
 
         void setFilter2Live(const filter::CharacterFilterParams& params) noexcept;
+        void setSubAnchorLive(const spatial::SubAnchorParams& params) noexcept;
         [[nodiscard]] const filter::CharacterFilterParams& getFilter2Params() const noexcept
         {
             return patch_.layerA.filter2;
@@ -409,6 +411,7 @@ namespace pw8::render
         /// docs/FX_BANK.md. STACK mode also runs layer B through its own insert chain.
         effects::LayerInsertChain layerAInsertChain_{};
         effects::LayerInsertChain layerBInsertChain_{};
+        spatial::SubAnchor subAnchor_{};
         effects::MasterChain masterChain_{};
         dynamics::MasterDynamicsProcessor masterDynamicsProcessor_{};
         modulation::GenerativeProcessor generativeProcessor_{};

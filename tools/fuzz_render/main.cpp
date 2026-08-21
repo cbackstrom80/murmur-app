@@ -413,6 +413,55 @@ namespace
         return allPassed;
     }
 
+    // Real, fixed check that Sub Anchor (pw8/spatial/SubAnchor.hpp) doesn't
+    // silently zero output when enabled -- the same class of bug the
+    // per-engine canonical checks above exist to catch, applied to this
+    // real cross-cutting layer feature rather than a specific engine.
+    bool runSubAnchorAudibilityCheck(double sampleRate, bool verbose)
+    {
+        constexpr float kAudibilityFloor = 0.05f;
+        constexpr double kHoldSeconds = 3.0;
+
+        patch::Patch p = patch::Patch::makeInit();
+        p.layerA.operators[0].engine = algorithm::EngineType::Classic;
+        p.layerA.operators[0].level = 0.85f;
+        for (std::size_t i = 1; i < p.layerA.operators.size(); ++i)
+            p.layerA.operators[i].level = 0.0f;
+        for (auto& e : p.layerA.envelopes)
+        {
+            e.attackSeconds = 0.01f;
+            e.decaySeconds = 0.01f;
+            e.sustainLevel = 1.0f;
+            e.releaseSeconds = 0.1f;
+        }
+        p.layerA.subAnchor.enabled = true;
+        p.layerA.subAnchor.crossoverHz = 120.0f;
+        p.layerA.subAnchor.monoAmount = 1.0f;
+
+        midi::MidiSequence seq;
+        seq.events.push_back(midi::MidiEvent{0.0, midi::EventType::NoteOn, 0, 45, 100, 0, 0}); // A2, real sub-range note
+        seq.events.push_back(midi::MidiEvent{kHoldSeconds, midi::EventType::NoteOff, 0, 45, 0, 0, 0});
+
+        render::RenderOptions options;
+        options.sampleRate = sampleRate;
+        options.durationSecondsOverride = kHoldSeconds + 1.0;
+        options.seed = 1;
+
+        const auto result = render::render(p, seq, options);
+        const bool passed = result.ok && !result.metrics.containsNaNOrInf && result.metrics.peak >= kAudibilityFloor;
+        if (!passed)
+        {
+            std::fprintf(stderr, "[canonical-audibility] FAIL SubAnchor: ok=%d peak=%f (floor=%f)\n", result.ok,
+                         static_cast<double>(result.metrics.peak), static_cast<double>(kAudibilityFloor));
+        }
+        else if (verbose)
+        {
+            std::fprintf(stderr, "[canonical-audibility] pass SubAnchor: peak=%f\n",
+                         static_cast<double>(result.metrics.peak));
+        }
+        return passed;
+    }
+
 } // namespace
 
 int main(int argc, char** argv)
@@ -424,6 +473,9 @@ int main(int argc, char** argv)
     std::printf("Running canonical per-engine audibility checks...\n");
     const bool canonicalPassed = runCanonicalAudibilityChecks(args.sampleRate, args.verbose);
     std::printf("  canonical audibility: %s\n", canonicalPassed ? "PASS" : "FAIL");
+
+    const bool subAnchorPassed = runSubAnchorAudibilityCheck(args.sampleRate, args.verbose);
+    std::printf("  SubAnchor audibility: %s\n", subAnchorPassed ? "PASS" : "FAIL");
 
     long long failures = 0;
     long long nanOrInfCount = 0;
@@ -496,5 +548,5 @@ int main(int argc, char** argv)
     std::printf("  wall time:       %.2fs (%.1f patches/sec)\n", wallSeconds,
                  wallSeconds > 0.0 ? static_cast<double>(args.count) / wallSeconds : 0.0);
 
-    return (failures > 0 || !canonicalPassed) ? 1 : 0;
+    return (failures > 0 || !canonicalPassed || !subAnchorPassed) ? 1 : 0;
 }

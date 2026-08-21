@@ -78,6 +78,12 @@ namespace pw8::plugin
         {"ModeMorph", "Filter 2 Mode Morph", 0.0f, 1.0f, 0.0f, false},
     }};
 
+    const std::array<ParamFieldSpec, kNumSubAnchorFields> kSubAnchorFieldSpecs = {{
+        {"Enabled",     "Sub Anchor Enabled",  0.0f,  1.0f,   0.0f,   true},
+        {"CrossoverHz", "Sub Anchor Crossover", 40.0f, 400.0f, 120.0f, false},
+        {"MonoAmount",  "Sub Anchor Mono Amount", 0.0f, 1.0f,  0.0f,  false},
+    }};
+
     const std::array<ParamFieldSpec, kNumOperatorFilterFields> kOperatorFilterFieldSpecs = {{
         {"FilterEnabled",   "Engine Filter Enabled", 0.0f,  1.0f,     0.0f,    true},
         {"FilterMode",      "Engine Filter Mode",    0.0f,  4.0f,     0.0f,    true},
@@ -363,6 +369,9 @@ namespace pw8::plugin
 
         for (const auto& spec : kFilter2FieldSpecs)
             addParam(params, juce::String(kFilter2IdPrefix) + spec.idSuffix, spec);
+
+        for (const auto& spec : kSubAnchorFieldSpecs)
+            addParam(params, juce::String(kSubAnchorIdPrefix) + spec.idSuffix, spec);
 
         addParam(params, kFilterRoutingId,
                  ParamFieldSpec{"", kFilterRoutingName, 0.0f, 1.0f, 0.0f, false});

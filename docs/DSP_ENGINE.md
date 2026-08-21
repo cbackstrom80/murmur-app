@@ -397,6 +397,44 @@ convention as Filter 1's) was added afterward, deriving HP/BP taps from the same
 comment. OTA-style, diode-style, and saturated-cascade variants named in this
 section's original scope remain genuinely unbuilt -- PLANNED, no phase assigned.
 
+## Spatial / Sub Anchor
+
+**Sub Anchor (`LayerPatch::subAnchor`, `pw8/spatial/SubAnchor.hpp`): IMPLEMENTED**
+-- the first real code in `pw8/spatial/`, previously an empty directory with only
+a README naming "low-frequency-mono" as a PLANNED capability (Phase 7/11). A
+frequency-selective mono lock on a layer's own summed output, applied before
+that layer is ever merged with the other one in Stack mode: content below
+`crossoverHz` is blended toward `(L+R)/2` by `monoAmount` (0 = untouched/
+default, 1 = fully blended); content above the crossover passes through
+untouched. Built entirely on the existing `StateVariableFilter` (one lowpass
+tap per channel, fixed internal Q chosen empirically -- see
+`SubAnchorTests.cpp`), exploiting its exact LP/HP-complementary identity
+(`highpass = input - lowpass`) for the recombination -- no new filter topology.
+
+Real, honest scope, found by measurement during development (naive design
+assumptions were wrong twice -- see `SubAnchorTests.cpp`'s own comments):
+this is a crossover-based technique, not a brick-wall phase-lock. It gives a
+*substantial, measurable reduction* in L/R difference for genuinely sub-range
+content well below the crossover (the real target use case), not perfect
+phase equality right at the crossover -- the same honest limitation every
+real "bass mono" tool has. It also only protects against *cross-layer*
+contamination (the other layer's character/distortion) plus whatever happens
+after the merge point -- not against effects placed on the anchored layer's
+own insert slots, which can still affect it afterward.
+
+Applied to Layer A's raw voice sum, before either layer's own insert FX and
+before Layer B is ever merged in (`Engine.cpp`) -- the only point that's
+correct regardless of `fxInsertsPostFader_`, which (in "post-fader" mode)
+merges Layer B in *before* Layer A's own insert chain even runs.
+
+Off by default (`enabled = false`, `monoAmount = 0.0`) -- every existing
+factory patch is unaffected; the full golden-hash preset regression suite
+confirms byte-identical output. No mod matrix destination yet (same
+deliberate scope decision as Filter 2's `modeMorph`) -- a real, optional
+follow-up, not needed for v1. Sub-harmonic synthesis (generating a clean
+fundamental an octave down even from distorted input) is a separate, harder
+DSP problem -- explicitly not built here.
+
 ## Voice, Envelope, Algorithm Graph, Filters, FX
 
 See dedicated docs:

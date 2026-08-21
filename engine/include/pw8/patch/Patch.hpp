@@ -20,6 +20,7 @@
 #include "pw8/modulation/PeaksUtility.hpp"
 #include "pw8/operator/OperatorNode.hpp"
 #include "pw8/sequencer/ArpeggiatorTypes.hpp"
+#include "pw8/spatial/SubAnchor.hpp"
 
 // Pure data model for the native `.pw8` patch format (schemaVersion 1).
 // Deliberately free of any JSON/serialization dependency -- see
@@ -207,6 +208,12 @@ namespace pw8::patch
         float pan = 0.0f;
         float width = 1.0f; ///< stereo width, 0 (mono) .. 1 (full) .. 2 (wide), reserved (PLANNED).
         float centerGravity = 0.5f; ///< see docs/DSP_ENGINE.md "Center Gravity" (PLANNED wiring).
+
+        /// Frequency-selective mono lock on this layer's own summed output,
+        /// applied before this layer is merged with the other one. See
+        /// pw8/spatial/SubAnchor.hpp. Off by default -- every existing patch
+        /// is unaffected until explicitly enabled.
+        spatial::SubAnchorParams subAnchor{};
 
         /// 3 layer insert FX slots, applied in order to this layer's summed voice
         /// output before it reaches the master bus. See docs/FX_BANK.md.

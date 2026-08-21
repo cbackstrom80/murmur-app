@@ -454,6 +454,7 @@ namespace pw8::plugin
         std::array<std::atomic<float>*, 8> macroParamPointers_{};
         std::array<std::atomic<float>*, kNumFilterFields> filterParamPointers_{};
         std::array<std::atomic<float>*, kNumFilter2Fields> filter2ParamPointers_{};
+        std::array<std::atomic<float>*, kNumSubAnchorFields> subAnchorParamPointers_{};
         std::atomic<float>* filterRoutingPointer_ = nullptr;
         std::array<std::atomic<float>*, kNumMasterDynamicsFields> masterDynamicsParamPointers_{};
         std::array<std::atomic<float>*, kNumGenerativeFields> generativeParamPointers_{};

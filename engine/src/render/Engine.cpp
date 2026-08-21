@@ -245,6 +245,7 @@ namespace pw8::render
         arpeggiator_.prepare(sampleRate_);
         layerAInsertChain_.prepare(sampleRate_);
         layerBInsertChain_.prepare(sampleRate_);
+        subAnchor_.prepare(sampleRate_);
         masterChain_.prepare(sampleRate_);
         masterDynamicsProcessor_.prepare(sampleRate_);
         generativeProcessor_.prepare(sampleRate_);
@@ -423,6 +424,7 @@ namespace pw8::render
 
         layerAInsertChain_.reset();
         layerBInsertChain_.reset();
+        subAnchor_.reset();
         masterChain_.reset();
         masterDynamicsProcessor_.reset();
         generativeProcessor_.reset(patch_.generative, patch_.seed);
@@ -918,6 +920,15 @@ namespace pw8::render
             v.filter2Params = params;
     }
 
+    void Engine::setSubAnchorLive(const spatial::SubAnchorParams& params) noexcept
+    {
+        // Layer-bus-level, not per-voice -- process()'s subAnchor_ call site
+        // reads patch_.layerA.subAnchor directly every sample, no per-voice
+        // cached copy to update (unlike filter1/filter2, which run inside
+        // each voice's own render path).
+        patch_.layerA.subAnchor = params;
+    }
+
     void Engine::setFilterRoutingLive(float routing) noexcept
     {
         patch_.layerA.filterRouting = dsp::clamp(routing, 0.0f, 1.0f);
@@ -1292,6 +1303,25 @@ namespace pw8::render
                         kahanAdd(sumL, kahanL, extMono * std::cos(panRad));
                         kahanAdd(sumR, kahanR, extMono * std::sin(panRad));
                     }
+                }
+
+                // Sub Anchor: applied to Layer A's raw voice sum, before either
+                // layer's insert FX and before Layer B is ever merged in --
+                // the only point that's correct regardless of fxInsertsPostFader_
+                // (which, in "post-fader" mode, merges Layer B in *before* Layer
+                // A's own insert chain even runs -- see renderAndMergeLayerB()/
+                // processLayerAInserts() call ordering below). Protects against
+                // cross-layer contamination specifically; a wild effect placed on
+                // Layer A's own insert slots can still affect it afterward, which
+                // is the honest, real scope -- see pw8/spatial/SubAnchor.hpp.
+                if (patch_.layerA.subAnchor.enabled)
+                {
+                    float anchoredL = sumL, anchoredR = sumR;
+                    subAnchor_.renderSample(sumL, sumR, patch_.layerA.subAnchor.crossoverHz,
+                                            patch_.layerA.subAnchor.monoAmount, anchoredL, anchoredR);
+                    sumL = anchoredL;
+                    sumR = anchoredR;
+                    kahanL = kahanR = 0.0f; // fresh Kahan compensation after a direct overwrite
                 }
 
                 subBlockSynthPeak =
