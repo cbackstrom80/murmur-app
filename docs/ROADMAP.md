@@ -10,7 +10,7 @@ Status as of this repository's initial engineering pass. Legend: **DONE** / **PA
 | 3 | 8-node algorithm graph (nodes, edges, validation, compiler, compiled execution, audio routing) | **DONE**, and beyond AUDIO-only -- all 7 edge types implemented |
 | 4 | PM/FM/AM/RING typed modulation edges | **DONE** at the graph level (stretch goal achieved); a dedicated Engine Type 3 (FM/PM), a self-contained 2-operator FM voice in one node, is now also **IMPLEMENTED** (see DSP_ENGINE.md) |
 | 5 | Modulation (envelopes, LFO, mod matrix, macros, performance controls) | **IMPLEMENTED** -- 8 envelopes and 8 LFOs per layer (VOICE + LAYER/GLOBAL scope for LFOs), a mod matrix with 29 sources and 5 destinations, and 8 macros, all live-automatable via the plugin. See "GATE 5" below |
-| 6 | Filters (clean multimode, first character filter) | **PARTIAL** -- Filter 1 (TPT state-variable: LP/HP/BP/notch/peak, per-voice, mod-matrix-modulatable cutoff/resonance, key tracking) is **IMPLEMENTED**; Filter 2 (nonlinear character filter) PLANNED |
+| 6 | Filters (clean multimode, first character filter) | **IMPLEMENTED** -- Filter 1 (TPT state-variable: LP/HP/BP/notch/peak, per-voice, mod-matrix-modulatable cutoff/resonance, key tracking) and Filter 2 (4-pole soft ladder + tanh drive, layer-global, with its own LP/BP/HP `modeMorph`) are both shipped. OTA-style/diode-style/saturated-cascade *additional* character topologies remain PLANNED, no phase assigned |
 | 7 | Unison / stereo (unison, voice drift, pan, width, center gravity) | **PARTIAL** -- data model present (`UnisonSettings`, `centerGravity` on `LayerPatch`); DSP wiring PLANNED. `content/presets/wide-saw.murmur` demonstrates the *effect* today via hand-detuned operators rather than an automated unison engine |
 | 8 | Dual layer (Layer A, Layer B, stack, layer morph) | **PARTIAL** -- schema complete (`LayerMode` enum, full `layerB` data), only `SINGLE_A` is actually voiced/rendered |
 | 9 | Algorithm morph (same-topology, different-topology) | **PLANNED** |
@@ -601,12 +601,15 @@ internal C++ `pw8::` namespace and `pw8_core`/`pw8_plugin` CMake target names ar
    built so far (`wide-saw.pw8`, `gate4-massive-dark-metallic-bass.pw8`) fake it
    via hand-detuned operators; real unison is the single biggest remaining gap
    for the "MASSIVE CENTER" sonic philosophy a later product brief called out.
-3. Filter 2 (nonlinear character filter) -- Filter 1's TPT SVF proved the per-voice
-   filter integration point; a second filter stage is now a smaller increment than
-   it was before Filter 1 existed.
+3. ~~Filter 2 (nonlinear character filter)~~ -- **shipped** (`8a502d2`, 2026-08-13:
+   4-pole soft ladder + tanh drive; `modeMorph` for real LP/BP/HP response
+   variety added later). OTA-style/diode-style/saturated-cascade topologies named
+   in the original DSP_ENGINE.md scope remain a real, still-open, unscheduled item.
 4. bitcrush/wavefold/ensemble/flanger/phaser/diffusion delay -- the FX bank now
-   covers 10 algorithms including the full "first effect set"; these are the
-   remaining items from the original `pw8/effects/README.md` scope.
+   covers 13 real types (Saturation, Chorus, TapeDelay, NodeDelay, FreqShiftEcho,
+   FractalEcho, Reverb, EQ, Compressor, Limiter, Vocoder, Clouds, BinauralSpace);
+   these specific algorithms are the remaining items from the original
+   `pw8/effects/README.md` scope.
 5. Wavetable content-addressed resource resolution (replacing the current
    filesystem-path-as-`wavetableId` scheme) as part of the broader content pipeline.
 6. Algorithm morph and dual-layer mixing (Phase 8/9) -- Layer B's full schema

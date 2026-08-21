@@ -389,15 +389,20 @@ Key tracking (`FilterParams::keyTrack`, -1..1) scales cutoff by the voice's
 effective (pitch-bent) frequency relative to middle C, so a patch's brightness can
 follow the keyboard the way an analog filter naturally would.
 
-**Filter 2** ("character" -- nonlinear ladder-style/OTA-style/diode-style/saturated
-cascade topologies): **PLANNED**, ROADMAP.md Phase 6 continuation.
+**Filter 2** ("character" -- `CharacterFilter.hpp`): **IMPLEMENTED** -- a 4-pole
+soft ladder with `tanh` input drive (not a circuit clone). Shipped LP-only
+(commit `8a502d2`, 2026-08-13); a `modeMorph` knob (0=LP, 0.5=BP, 1=HP, same
+convention as Filter 1's) was added afterward, deriving HP/BP taps from the same
+4-stage cascade rather than a new topology -- see the class's own derivation
+comment. OTA-style, diode-style, and saturated-cascade variants named in this
+section's original scope remain genuinely unbuilt -- PLANNED, no phase assigned.
 
 ## Voice, Envelope, Algorithm Graph, Filters, FX
 
 See dedicated docs:
 - [ALGORITHM_GRAPH.md](ALGORITHM_GRAPH.md) -- the 8-node graph, compiler, execution semantics
 - [MODULATION.md](MODULATION.md) -- envelope, LFO, and mod matrix (all IMPLEMENTED at VOICE scope)
-- Filter 1 is IMPLEMENTED (above); Filter 2 and FX (`pw8/effects/`) are PLANNED -- see ROADMAP.md Phase 6 / 11.
+- Filter 1 and Filter 2 are both IMPLEMENTED (above); FX (`pw8/effects/`) is IMPLEMENTED too -- 13 real types (Saturation, Chorus, TapeDelay, NodeDelay, FreqShiftEcho, FractalEcho, Reverb, EQ, Compressor, Limiter, Vocoder, Clouds, BinauralSpace).
 
 ## Voice Architecture
 
