@@ -36,9 +36,13 @@ namespace pw8::plugin::net
         if (const auto* override_ = std::getenv("MURMUR_WEB_API_BASE"); override_ != nullptr && *override_ != '\0')
             return juce::String(override_);
 
-        // Real production deployment (docs/DEPLOY.md) -- plain HTTP, no
-        // domain/TLS in front of it yet. Update this the day that changes.
-        return "http://178.156.212.103:8080";
+        // Real production deployment (docs/DEPLOY.md) -- https://murmurmusic.ai
+        // as of 2026-08-21 (real domain + Let's Encrypt cert). The old bare-IP
+        // origin still 307-redirects here for any plugin build still shipping
+        // the old URL (see murmur-web's DEPLOY.md for why 307, not 301 --
+        // method/body preservation matters for the POST calls below), but new
+        // builds should hit the real origin directly, not depend on that.
+        return "https://murmurmusic.ai";
     }
 
     void MurmurApiClient::activate(const juce::String& licenseKey, std::function<void(ActivateResult)> callback)
