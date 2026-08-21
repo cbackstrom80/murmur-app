@@ -15,6 +15,7 @@
 //   murmur-fuzz-render --count 10000 --seed 1
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cstdio>
 #include <string>
@@ -326,6 +327,92 @@ namespace
         return seq;
     }
 
+    // Canonical per-engine audibility check -- the class of bug the random fuzzing
+    // above can NOT reliably catch: a random patch can be legitimately near-silent
+    // for lots of honest reasons (level rolled near 0, attack longer than the gate,
+    // a slow-event engine that just didn't fire within a short random note), so
+    // asserting "every random patch must be audible" would be false-positive-prone.
+    // This instead runs one FIXED, generously-configured patch per self-contained
+    // engine (op0 alone, decent level, a real 3-second HELD note so slow-event
+    // engines like Granular/NoiseChaos at low rate settings get a fair chance to
+    // fire) and asserts peak clears a real floor. This is exactly the class of check
+    // that would have caught the Resonator near-silence bug this session found by
+    // hand (see engine/include/pw8/oscillator/ResonatorOscillator.hpp's fix comment)
+    // before it ever reached a real batch-generation run.
+    struct CanonicalCheck
+    {
+        const char* name;
+        algorithm::EngineType engine;
+    };
+
+    bool runCanonicalAudibilityChecks(double sampleRate, bool verbose)
+    {
+        constexpr float kAudibilityFloor = 0.05f;
+        constexpr double kHoldSeconds = 3.0;
+
+        const std::array<CanonicalCheck, 8> checks = {{
+            {"Classic", algorithm::EngineType::Classic},
+            {"Wavetable", algorithm::EngineType::Wavetable}, // no wavetableId -> expected silent, skipped below.
+            {"FmPm", algorithm::EngineType::FmPm},
+            {"Additive", algorithm::EngineType::Additive},
+            {"PhaseShape", algorithm::EngineType::PhaseShape},
+            {"Granular", algorithm::EngineType::Granular}, // no wavetableId -> expected silent, skipped below.
+            {"NoiseChaos", algorithm::EngineType::NoiseChaos},
+            {"Resonator", algorithm::EngineType::Resonator},
+        }};
+
+        bool allPassed = true;
+        for (const auto& check : checks)
+        {
+            if (check.engine == algorithm::EngineType::Wavetable || check.engine == algorithm::EngineType::Granular)
+                continue; // both require a real wavetableId (content-pipeline-resolved); not this tool's job to load one.
+
+            patch::Patch p = patch::Patch::makeInit();
+            p.layerA.operators[0].engine = check.engine;
+            p.layerA.operators[0].level = 0.85f;
+            p.layerA.operators[0].fmModulatorIndex = 1.0f; // harmless for engines that ignore it.
+            p.layerA.operators[0].additivePartialCount = 32.0f;
+            p.layerA.operators[0].resonatorDecay = 0.5f;
+            p.layerA.operators[0].resonatorStructure = 0.3f;
+            p.layerA.operators[0].resonatorBrightness = 0.5f;
+            p.layerA.operators[0].noiseVariant = 0.0f;
+            p.layerA.operators[0].noiseRate = 200.0f;
+            for (std::size_t i = 1; i < p.layerA.operators.size(); ++i)
+                p.layerA.operators[i].level = 0.0f;
+            for (auto& e : p.layerA.envelopes)
+            {
+                e.attackSeconds = 0.01f;
+                e.decaySeconds = 0.01f;
+                e.sustainLevel = 1.0f;
+                e.releaseSeconds = 0.1f;
+            }
+
+            midi::MidiSequence seq;
+            seq.events.push_back(midi::MidiEvent{0.0, midi::EventType::NoteOn, 0, 60, 100, 0, 0});
+            seq.events.push_back(midi::MidiEvent{kHoldSeconds, midi::EventType::NoteOff, 0, 60, 0, 0, 0});
+
+            render::RenderOptions options;
+            options.sampleRate = sampleRate;
+            options.durationSecondsOverride = kHoldSeconds + 1.0;
+            options.seed = 1;
+
+            const auto result = render::render(p, seq, options);
+            const bool passed = result.ok && !result.metrics.containsNaNOrInf && result.metrics.peak >= kAudibilityFloor;
+            if (!passed)
+            {
+                allPassed = false;
+                std::fprintf(stderr, "[canonical-audibility] FAIL %s: ok=%d peak=%f (floor=%f)\n", check.name,
+                             result.ok, static_cast<double>(result.metrics.peak), static_cast<double>(kAudibilityFloor));
+            }
+            else if (verbose)
+            {
+                std::fprintf(stderr, "[canonical-audibility] pass %s: peak=%f\n", check.name,
+                             static_cast<double>(result.metrics.peak));
+            }
+        }
+        return allPassed;
+    }
+
 } // namespace
 
 int main(int argc, char** argv)
@@ -333,6 +420,10 @@ int main(int argc, char** argv)
     Args args;
     if (!parseArgs(argc, argv, args))
         return 2;
+
+    std::printf("Running canonical per-engine audibility checks...\n");
+    const bool canonicalPassed = runCanonicalAudibilityChecks(args.sampleRate, args.verbose);
+    std::printf("  canonical audibility: %s\n", canonicalPassed ? "PASS" : "FAIL");
 
     long long failures = 0;
     long long nanOrInfCount = 0;
@@ -405,5 +496,5 @@ int main(int argc, char** argv)
     std::printf("  wall time:       %.2fs (%.1f patches/sec)\n", wallSeconds,
                  wallSeconds > 0.0 ? static_cast<double>(args.count) / wallSeconds : 0.0);
 
-    return failures > 0 ? 1 : 0;
+    return (failures > 0 || !canonicalPassed) ? 1 : 0;
 }
