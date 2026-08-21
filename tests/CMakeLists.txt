@@ -49,6 +49,7 @@ add_executable(pw8_tests
     unit/MacroKoinTests.cpp
     unit/MacroSpreadDisseminationTests.cpp
     unit/ParamDirtyMaskTests.cpp
+    unit/ResonatorEngineLevelTests.cpp
     serialization/PatchSerializerTests.cpp
     serialization/FactoryPresetLoadTests.cpp
     serialization/StandardMidiFileTests.cpp

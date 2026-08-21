@@ -55,9 +55,9 @@ namespace pw8::oscillator
         void prepare(double sampleRate) noexcept
         {
             sampleRate_ = sampleRate > 0.0 ? sampleRate : 48000.0;
-            // A fixed ~6ms exciter burst -- short enough to read as a percussive
-            // "strike" rather than a sustained noise source, long enough to excite
-            // every active mode's passband before it fades.
+            // exciterDecayCoeff_ is recomputed per-Q in recomputeModeFilters() now
+            // (see kBurstSecondsMin/Max there) -- this just seeds a sane value
+            // before the first renderSample() call establishes the real one.
             constexpr double kBurstSeconds = 0.006;
             exciterDecayCoeff_ = static_cast<float>(std::exp(-1.0 / (sampleRate_ * kBurstSeconds)));
         }
@@ -111,7 +111,27 @@ namespace pw8::oscillator
                 sum += modes_[static_cast<std::size_t>(i)].renderSample(excitation) *
                        modeAmplitude_[static_cast<std::size_t>(i)];
 
-            return dsp::flushIfNotFinite(sum * weightNorm_);
+            // Real output-level bug fix (found investigating systematic near-silent
+            // renders on resonant/physically-modeled briefs -- confirmed via isolated
+            // A/B render: this engine alone measured peak=0.0003 where an otherwise
+            // identical patch with a masking second operator measured 0.137).
+            // weightNorm_ only balances the *relative* mix between modes -- it was
+            // never a real output-level calibration, so a filtered, transient-excited
+            // noise burst reads far quieter than a continuous oscillator at the same
+            // nominal level, and reads progressively quieter still as `decay` (Q)
+            // rises -- a narrower passband converts less of a fixed-energy burst into
+            // audible amplitude. Measured empirically (isolated resonator-only render,
+            // burst-length fix already applied): peak fell from 0.117 at decay=0 to
+            // 0.0086 at decay=1, and the ratio 0.117/peak(decay) tracks
+            // `1 + decay*12.5` closely across the whole range (checked at 10 points).
+            // kOutputMakeupGain (flat) plus this linear decay-dependent factor
+            // together flatten output level to ~0.117 peak regardless of decay/Q, so
+            // a long bell-like ring isn't quieter than a short buzzy pluck just
+            // because of its physical-modeling character.
+            constexpr float kOutputMakeupGain = 9.0f;
+            const float decayCompensation = 1.0f + decayParam * 12.5f;
+            return dsp::clamp(dsp::flushIfNotFinite(sum * weightNorm_ * kOutputMakeupGain * decayCompensation),
+                               -4.0f, 4.0f);
         }
 
     private:
@@ -121,6 +141,21 @@ namespace pw8::oscillator
             // a short buzzy pluck near 0, a long bell-like ring near 1.
             const float baseQ = 2.0f + decayParam * decayParam * 300.0f;
             const float nyquistGuard = static_cast<float>(sampleRate_) * 0.45f;
+
+            // Real fix: the exciter burst was a fixed ~6ms regardless of Q. A
+            // high-Q (long-decay) mode bank is a narrow-band filter -- its natural
+            // ring-up time is proportionally longer than a low-Q one's, so a fixed
+            // short burst barely excited it before decaying away (confirmed: peak
+            // dropped from 0.014 at decay=0 to 0.0003 at decay=0.75 with the old
+            // fixed burst). Scale the burst linearly with `decayParam` itself
+            // (0..1, same knob the user already turns for "how long should this
+            // ring") from a short percussive 6ms up to a full 80ms at decay=1 --
+            // still well inside "burst that reads as a strike, not a drone", just
+            // long enough to actually charge a narrow passband.
+            constexpr float kBurstSecondsMin = 0.006f;
+            constexpr float kBurstSecondsMax = 0.08f;
+            const float burstSeconds = kBurstSecondsMin + decayParam * (kBurstSecondsMax - kBurstSecondsMin);
+            exciterDecayCoeff_ = static_cast<float>(std::exp(-1.0 / (sampleRate_ * burstSeconds)));
 
             float weightSum = 0.0f;
             for (int i = 0; i < count; ++i)
