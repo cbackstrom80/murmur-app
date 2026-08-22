@@ -22,7 +22,31 @@ namespace pw8::plugin::ui
     class KeyActivationOverlay : public juce::Component
     {
     public:
+        /// Real per-product branding seam, same shape as SplashOverlay's own
+        /// (see that class) -- Undertow's real approved
+        /// `undertow-vst-key-activation` Figma frame (node `282:4`) instead
+        /// of MURMUR's `murmur-vst-key-activation` one. `subtitle`/
+        /// `description` empty means "don't draw this line" -- MURMUR's real
+        /// current screen doesn't show either, so its default stays exactly
+        /// as before.
+        struct Branding
+        {
+            juce::Image markIcon;
+            juce::Image backgroundImage;
+            juce::Colour accentColour;
+            juce::String subtitle;    // under the mark, e.g. "BASS-FOCUSED COGNITIVE SUB-SYNTHESIZER"
+            juce::String panelTitle;  // "ACTIVATE YOUR ENGINE" / "ACTIVATE YOUR LICENSE"
+            juce::String description; // real copy under the title explaining what unlocks
+            juce::String getKeyLinkText;
+            juce::String footerLeft;
+
+            /// Real MURMUR defaults -- byte-identical visuals to before this
+            /// Branding seam existed.
+            static Branding makeMurmurDefault();
+        };
+
         KeyActivationOverlay();
+        explicit KeyActivationOverlay(Branding branding);
         ~KeyActivationOverlay() override;
 
         void paint(juce::Graphics& g) override;
@@ -55,10 +79,11 @@ namespace pw8::plugin::ui
         void dismiss();
         [[nodiscard]] juce::Rectangle<float> panelBounds() const;
 
-        juce::Image backgroundImage_;
-        juce::Image markIcon_;
+        Branding branding_;
 
+        juce::Label subtitleLabel_;
         juce::Label panelTitleLabel_;
+        juce::Label descriptionLabel_;
         juce::TextEditor keyInput_;
         juce::Label statusLabel_;
         juce::TextButton activateButton_{"ACTIVATE LICENSE"};

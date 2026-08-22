@@ -30,6 +30,26 @@ namespace pw8::plugin::ui
             };
         }
 
+        /// Real per-product key-activation branding, matching the approved
+        /// undertow-vst-key-activation Figma frame (node 282:4).
+        KeyActivationOverlay::Branding makeKeyActivationBranding(const MurmurProcessor::ProductIdentity& identity)
+        {
+            if (identity.kind != MurmurProcessor::ProductKind::Undertow)
+                return KeyActivationOverlay::Branding::makeMurmurDefault();
+
+            return KeyActivationOverlay::Branding{
+                branding::getUndertowSquidIcon(),
+                juce::Image(), // no background photo asset yet -- procedural fallback
+                juce::Colour(0xffD4603A),
+                "BASS-FOCUSED COGNITIVE SUB-SYNTHESIZER",
+                "ACTIVATE YOUR LICENSE",
+                "ENTER YOUR LICENSE KEY TO UNLOCK THE DEEP BASS ENGINE, "
+                "HARMONIC WAVETABLE EDITORS, AND SUB-ANCHOR MODULES.",
+                "NEED A LICENSE?  GET YOUR KEY ->",
+                "MURMUR AUDIO (C) 2026",
+            };
+        }
+
         void deferRootEditorSize(MurmurRootEditor* editor, int width, int height)
         {
             juce::Component::SafePointer<MurmurRootEditor> safe(editor);
@@ -50,7 +70,8 @@ namespace pw8::plugin::ui
           presetBrowserOverlay_(processor, patchBrowserBar_.getPresetIndex(), favoritesStore_, ratingsStore_),
           playModeEditor_(processor, chrome_),
           designModeEditor_(processor, chrome_),
-          splashOverlay_(makeSplashBranding(processor.getProductIdentity()))
+          splashOverlay_(makeSplashBranding(processor.getProductIdentity())),
+          keyActivationOverlay_(makeKeyActivationBranding(processor.getProductIdentity()))
     {
         setLookAndFeel(&lookAndFeel_);
 
