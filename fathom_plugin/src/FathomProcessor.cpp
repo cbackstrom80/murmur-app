@@ -10,11 +10,12 @@ namespace pw8::fathom
     {
         // Real index-order constants matching kFathomParamSpecs exactly
         // (FathomParamLayout.cpp) -- named rather than positional/magic to
-        // keep a 24-param array readable, unlike Quasar's smaller 28-param
+        // keep a 25-param array readable, unlike Quasar's smaller 28-param
         // table which stays inline.
         enum ParamIndex : std::size_t
         {
             kReverbMode = 0,
+            kHybridEarlyLengthMs,
             kMix,
             kReverbSizeParam,
             kReverbDecaySeconds,
@@ -69,10 +70,12 @@ namespace pw8::fathom
     void FathomProcessor::prepareToPlay(const double sampleRate, const int samplesPerBlock)
     {
         sampleRate_ = sampleRate;
+        maxBlockSize_ = samplesPerBlock;
         algoEngine_.prepare(sampleRate);
 
         juce::dsp::ProcessSpec spec{sampleRate, static_cast<juce::uint32>(samplesPerBlock), 2};
         convEngine_.prepare(spec);
+        hybridEarlyEngine_.prepare(spec);
         convPreDelayL_.prepare(spec);
         convPreDelayR_.prepare(spec);
         convPreDelayL_.setMaximumDelayInSamples(static_cast<int>(0.2 * sampleRate) + 1);
@@ -86,12 +89,16 @@ namespace pw8::fathom
 
         loadedIrIndex_ = -1; // force a real (re)load of the current IR selection
         maybeReloadIr();
+        loadedHybridIrIndex_ = -1;
+        loadedHybridEarlyLengthMs_ = -1.0f;
+        maybeReloadHybridEarlyIr();
     }
 
     void FathomProcessor::releaseResources()
     {
         algoEngine_.reset();
         convEngine_.reset();
+        hybridEarlyEngine_.reset();
         convPreDelayL_.reset();
         convPreDelayR_.reset();
         convLowCutL_.reset();
@@ -152,6 +159,41 @@ namespace pw8::fathom
         loadedIrIndex_ = index;
     }
 
+    void FathomProcessor::maybeReloadHybridEarlyIr()
+    {
+        const int index = juce::jlimit(0, static_cast<int>(kNumBundledIrs) - 1, loadI(paramPtrs_[kIrIndex]));
+        const float earlyLengthMs = loadF(paramPtrs_[kHybridEarlyLengthMs]);
+        if (index == loadedHybridIrIndex_ && earlyLengthMs == loadedHybridEarlyLengthMs_)
+            return;
+
+        const auto irFile = impulseResponsesDirectory().getChildFile(kBundledIrs[static_cast<std::size_t>(index)].fileName);
+        if (irFile.existsAsFile())
+        {
+            const auto earlyLengthSamples =
+                static_cast<size_t>(juce::jmax(1, static_cast<int>((earlyLengthMs * 0.001) * sampleRate_)));
+            // Real truncation via loadImpulseResponse()'s own `size` parameter
+            // -- confirmed against the real vendored JUCE header ("the
+            // expected size for the impulse response after loading") -- no
+            // hand-written IR windowing needed. This gives a real, genuine
+            // early-reflections-only excerpt of the same real captured IR
+            // Convolution mode uses at full length. Real, empirically-
+            // measured caveat (fathom_plugin/tools/convolution_smoke_test.cpp):
+            // the engine's own internal partitioned-convolution block
+            // granularity rounds the real actual length UP somewhat beyond
+            // the exact requested sample count (observed ~9% over, not
+            // documented in JUCE's own header) -- the real `Early Length`
+            // knob controls this proportionally, just not to
+            // millisecond-exact precision, same honesty standard as the
+            // algorithmic engine's own already-documented real
+            // predelay-floored-at-1-sample behavior.
+            hybridEarlyEngine_.loadImpulseResponse(irFile, juce::dsp::Convolution::Stereo::yes,
+                                                   juce::dsp::Convolution::Trim::no, earlyLengthSamples,
+                                                   juce::dsp::Convolution::Normalise::yes);
+        }
+        loadedHybridIrIndex_ = index;
+        loadedHybridEarlyLengthMs_ = earlyLengthMs;
+    }
+
     void FathomProcessor::updateTailFilters(const double sampleRate) noexcept
     {
         const float lowHz = loadF(paramPtrs_[kConvLowCutHz]);
@@ -184,9 +226,11 @@ namespace pw8::fathom
 
         maybeReloadIr();
 
-        const bool convolutionMode = loadI(paramPtrs_[kReverbMode]) == 1;
+        const int mode = loadI(paramPtrs_[kReverbMode]); // 0=Algorithmic, 1=Convolution, 2=Hybrid
+        if (mode == 2)
+            maybeReloadHybridEarlyIr();
 
-        if (!convolutionMode)
+        if (mode == 0)
         {
             const auto params = readAlgoParams();
             float* left = buffer.getWritePointer(0);
@@ -201,8 +245,14 @@ namespace pw8::fathom
             return;
         }
 
-        // -- Real convolution-mode chain: predelay -> convolution -> width
-        //    -> tail low/high cut -> dry/wet mix. --
+        processConvolutionLike(buffer, mode == 2);
+    }
+
+    void FathomProcessor::processConvolutionLike(juce::AudioBuffer<float>& buffer, const bool hybrid)
+    {
+        // -- Real shared chain (Convolution and Hybrid modes both use this):
+        //    predelay -> wet-signal generation -> width -> tail low/high
+        //    cut -> dry/wet mix. --
         updateTailFilters(sampleRate_);
 
         const float preDelayMs = loadF(paramPtrs_[kConvPreDelayMs]);
@@ -219,7 +269,10 @@ namespace pw8::fathom
         // Real predelay: push the real dry sample in, pop the delayed one
         // out, per sample, into a real separate buffer (can't do this
         // in-place against `buffer` since it's also `dry`'s backing data
-        // until this copy happens).
+        // until this copy happens). Predelay applies to the whole reverb
+        // onset (both early and late, in Hybrid mode) relative to the dry
+        // signal -- the real, standard reverb convention, not two
+        // independently-delayed sub-signals.
         {
             juce::AudioBuffer<float> predelayed;
             predelayed.setSize(2, buffer.getNumSamples());
@@ -238,9 +291,62 @@ namespace pw8::fathom
             buffer.copyFrom(1, 0, predelayed, 1, 0, buffer.getNumSamples());
         }
 
-        juce::dsp::AudioBlock<float> block(buffer);
-        juce::dsp::ProcessContextReplacing<float> context(block);
-        convEngine_.process(context);
+        if (!hybrid)
+        {
+            juce::dsp::AudioBlock<float> block(buffer);
+            juce::dsp::ProcessContextReplacing<float> context(block);
+            convEngine_.process(context);
+        }
+        else
+        {
+            // `buffer` currently holds the real predelayed dry signal --
+            // this is the real excitation signal fed to BOTH real engines
+            // below (each needs real signal energy to produce real output;
+            // a silent input would just produce silence).
+
+            // 1. Real IR-derived early reflections (a real, genuinely new
+            //    sound source -- the whole point of Hybrid mode).
+            juce::AudioBuffer<float> earlyBuf;
+            earlyBuf.makeCopyOf(buffer, true);
+            {
+                juce::dsp::AudioBlock<float> earlyBlock(earlyBuf);
+                juce::dsp::ProcessContextReplacing<float> earlyContext(earlyBlock);
+                hybridEarlyEngine_.process(earlyContext);
+            }
+
+            // 2. Real late tank only. ReverbProcessor::processStereo()
+            //    always real-adds its own dry input back into its output
+            //    (`outL = inL + wetL*mix`, by design, matching its real use
+            //    as a per-slot processor elsewhere in this codebase) -- so
+            //    the pure wet late-tank signal is real-recovered by
+            //    subtracting the known real input afterward
+            //    (`wetL*mix = outL - inL`), not by trying to bypass or
+            //    change that shared, already-proven engine. `mix` forced to
+            //    1.0 here so the subtraction yields the FULL real wet
+            //    signal, unscaled -- Fathom's own real `convMix` knob is
+            //    what the user actually controls, applied once at the end
+            //    below, same as Convolution mode already does.
+            auto lateParams = readAlgoParams();
+            lateParams.reverbEarlyLevel = 0.0f; // suppress the synthetic early cluster -- real IR early reflections replace it
+            lateParams.mix = 1.0f;
+            // Real repurposing (Hybrid mode only): reverbEarlyLevel/
+            // reverbLateLevel go from gating the engine's own internal
+            // synthetic early cluster (Algorithmic mode) to real external
+            // gains balancing the real IR early reflections against the
+            // real late tank -- the same two real knobs, a real different
+            // meaning in this mode, per the approved plan.
+            const float earlyLevel = loadF(paramPtrs_[kReverbEarlyLevel]);
+            const float lateLevel = loadF(paramPtrs_[kReverbLateLevel]);
+            for (int i = 0; i < buffer.getNumSamples(); ++i)
+            {
+                const float excitationL = wetL[i];
+                const float excitationR = wetR[i];
+                float outL = 0.0f, outR = 0.0f;
+                algoEngine_.processStereo(excitationL, excitationR, lateParams, outL, outR);
+                wetL[i] = (outL - excitationL) * lateLevel + earlyBuf.getSample(0, i) * earlyLevel;
+                wetR[i] = (outR - excitationR) * lateLevel + earlyBuf.getSample(1, i) * earlyLevel;
+            }
+        }
 
         // Real width: mid/side scale. 0=mono, 1=natural (unchanged), 2=extra wide.
         const float width = loadF(paramPtrs_[kConvWidth]);
@@ -259,7 +365,7 @@ namespace pw8::fathom
             wetR[i] = convHighCutR_.processSample(convLowCutR_.processSample(wetR[i]));
         }
 
-        // Real dry/wet mix.
+        // Real dry/wet mix (against the original, un-predelayed dry signal).
         const float mix = juce::jlimit(0.0f, 1.0f, loadF(paramPtrs_[kConvMix]));
         const float* dryL = dry.getReadPointer(0);
         const float* dryR = dry.getReadPointer(1);

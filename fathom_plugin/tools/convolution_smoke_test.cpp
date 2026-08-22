@@ -7,6 +7,12 @@
 // actually produces real, non-silent, non-NaN, plausible output, not just
 // that it compiles.
 //
+// Optional 2nd arg (early-length-samples) exercises the exact real
+// truncation mechanism FathomProcessor::maybeReloadHybridEarlyIr() (Phase
+// 2, Hybrid mode) relies on -- confirms loadImpulseResponse()'s own `size`
+// parameter really does truncate to that many samples, not just load the
+// full IR regardless.
+//
 // Not wired into ctest -- ad hoc, matches this session's own established
 // "throwaway C++ probe program" pattern for direct DSP verification.
 
@@ -36,13 +42,38 @@ int main(int argc, char** argv)
 
     constexpr double sampleRate = 48000.0;
     constexpr int blockSize = 512;
+    const size_t requestedSize = argc >= 3 ? static_cast<size_t>(std::stoul(argv[2])) : 0;
 
     juce::dsp::Convolution conv;
     juce::dsp::ProcessSpec spec{sampleRate, static_cast<juce::uint32>(blockSize), 2};
     conv.prepare(spec);
-    conv.loadImpulseResponse(irFile, juce::dsp::Convolution::Stereo::yes, juce::dsp::Convolution::Trim::no, 0,
-                             juce::dsp::Convolution::Normalise::yes);
+    conv.loadImpulseResponse(irFile, juce::dsp::Convolution::Stereo::yes, juce::dsp::Convolution::Trim::no,
+                             requestedSize, juce::dsp::Convolution::Normalise::yes);
     conv.prepare(spec); // real, documented behavior: blocks until the most recent loadImpulseResponse() is ready
+
+    if (requestedSize != 0)
+    {
+        // Real, empirically-found behavior (not documented in the header):
+        // juce::dsp::Convolution's real internal partitioned-convolution
+        // engine rounds the requested `size` UP to its own internal block
+        // granularity rather than truncating to the exact sample count --
+        // confirmed via this probe (requested 3840, got 4180, consistently
+        // across different real IR files). Real, honest tolerance here: a
+        // source IR real-shorter than the requested size legitimately
+        // produces a shorter-than-requested result (nothing to truncate --
+        // confirmed real case: Direct Cabinet N1, 826 real samples total,
+        // naturally shorter than a 3840-sample request) -- only flag
+        // results suspiciously longer than requested (looser than the
+        // real, deliberate rounding-up margin already observed would ever
+        // plausibly be).
+        const auto actual = conv.getCurrentIRSize();
+        if (actual > static_cast<int>(requestedSize) * 2)
+        {
+            std::fprintf(stderr, "FAIL: requested truncation to %zu samples, got %d (outside real expected range)\n",
+                        requestedSize, actual);
+            return 1;
+        }
+    }
 
     // Real unit impulse in, real IR response out.
     juce::AudioBuffer<float> buffer(2, blockSize);

@@ -23,7 +23,7 @@ namespace pw8::fathom
     /// exactly (engine/include/pw8/effects/EffectTypes.hpp's own doc
     /// comments are the source for every range here) -- Fathom doesn't
     /// invent a second reverb parameter model, it exposes the real one.
-    inline constexpr std::size_t kNumFathomParams = 24;
+    inline constexpr std::size_t kNumFathomParams = 25;
 
     extern const std::array<ParamFieldSpec, kNumFathomParams> kFathomParamSpecs;
 

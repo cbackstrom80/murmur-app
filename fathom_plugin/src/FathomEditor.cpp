@@ -22,6 +22,24 @@ namespace pw8::fathom
         }
     } // namespace
 
+    std::unique_ptr<juce::ComboBox> FathomEditor::makeIrComboBox()
+    {
+        auto box = std::make_unique<juce::ComboBox>();
+        int itemId = 1;
+        IrCategory lastCategory = kBundledIrs[0].category;
+        box->addSectionHeading(irCategoryLabel(lastCategory));
+        for (const auto& entry : kBundledIrs)
+        {
+            if (entry.category != lastCategory)
+            {
+                lastCategory = entry.category;
+                box->addSectionHeading(irCategoryLabel(lastCategory));
+            }
+            box->addItem(entry.displayName, itemId++);
+        }
+        return box;
+    }
+
     std::unique_ptr<FathomEditor::KnobControl> FathomEditor::makeKnob(const juce::String& paramId,
                                                                        const juce::String& labelText)
     {
@@ -61,12 +79,15 @@ namespace pw8::fathom
         subtitleLabel_.setColour(juce::Label::textColourId, plugin::ui::palette::kTextDim);
         addAndMakeVisible(subtitleLabel_);
 
-        modeToggle_ = std::make_unique<plugin::ui::GlowRingButton>("Convolution");
-        addAndMakeVisible(*modeToggle_);
-        modeToggleAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
-            processor_.getApvts(), "reverbMode", *modeToggle_);
-        modeToggle_->onClick = [this] { updateModeVisibility(); };
-        styleSectionLabel(modeLabel_, "ALGORITHMIC <-> CONVOLUTION");
+        modeBox_ = std::make_unique<juce::ComboBox>();
+        modeBox_->addItem("Algorithmic", 1);
+        modeBox_->addItem("Convolution", 2);
+        modeBox_->addItem("Hybrid", 3);
+        addAndMakeVisible(*modeBox_);
+        modeAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
+            processor_.getApvts(), "reverbMode", *modeBox_);
+        modeBox_->onChange = [this] { updateModeVisibility(); };
+        styleSectionLabel(modeLabel_, "MODE");
         addAndMakeVisible(modeLabel_);
 
         addAndMakeVisible(algoPanel_);
@@ -124,19 +145,7 @@ namespace pw8::fathom
 
         styleSectionLabel(irLabel_, "IMPULSE RESPONSE");
         convPanel_.addAndMakeVisible(irLabel_);
-        irBox_ = std::make_unique<juce::ComboBox>();
-        int itemId = 1;
-        IrCategory lastCategory = kBundledIrs[0].category;
-        irBox_->addSectionHeading(irCategoryLabel(lastCategory));
-        for (const auto& entry : kBundledIrs)
-        {
-            if (entry.category != lastCategory)
-            {
-                lastCategory = entry.category;
-                irBox_->addSectionHeading(irCategoryLabel(lastCategory));
-            }
-            irBox_->addItem(entry.displayName, itemId++);
-        }
+        irBox_ = makeIrComboBox();
         convPanel_.addAndMakeVisible(*irBox_);
         // Real, honest note: ComboBox item IDs are 1-based and sequential in
         // real bundled-IR order here, matching the real `irIndex` APVTS
@@ -145,6 +154,53 @@ namespace pw8::fathom
         // reverbCharacter above.
         irAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
             processor_.getApvts(), "irIndex", *irBox_);
+
+        // -- Phase 2: real Hybrid panel -- real IR-derived early
+        //    reflections (own picker, same real irIndex param) blended
+        //    with the real algorithmic late tank. --
+        addAndMakeVisible(hybridPanel_);
+
+        styleSectionLabel(hybridIrLabel_, "IMPULSE RESPONSE (EARLY)");
+        hybridPanel_.addAndMakeVisible(hybridIrLabel_);
+        hybridIrBox_ = makeIrComboBox();
+        hybridPanel_.addAndMakeVisible(*hybridIrBox_);
+        hybridIrAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
+            processor_.getApvts(), "irIndex", *hybridIrBox_);
+
+        for (const auto& [paramId, label] : std::vector<std::pair<juce::String, juce::String>>{
+                 {"hybridEarlyLengthMs", "EARLY LENGTH"},
+                 {"reverbEarlyLevel", "EARLY (IR) LVL"},
+                 {"reverbLateLevel", "LATE (TANK) LVL"},
+                 {"reverbSizeParam", "SIZE"},
+                 {"reverbDecaySeconds", "DECAY"},
+                 {"reverbPreDelayMs", "PRE-DELAY"},
+                 {"reverbDiffusion", "DIFFUSION"},
+                 {"reverbDensity", "DENSITY"},
+                 {"reverbHighRatio", "HF RT MULT"},
+                 {"reverbHighCrossoverHz", "HF XOVER"},
+                 {"reverbLowRatio", "LF RT MULT"},
+                 {"reverbLowCrossoverHz", "LF XOVER"},
+                 {"reverbModDepth", "MOD DEPTH"},
+                 {"reverbModRateHz", "MOD RATE"},
+             })
+        {
+            auto knob = makeKnob(paramId, label);
+            hybridPanel_.addAndMakeVisible(*knob->slider);
+            hybridPanel_.addAndMakeVisible(*knob->label);
+            hybridKnobs_.push_back(std::move(knob));
+        }
+
+        styleSectionLabel(hybridCharacterLabel_, "CHARACTER");
+        hybridPanel_.addAndMakeVisible(hybridCharacterLabel_);
+        hybridCharacterBox_ = std::make_unique<juce::ComboBox>();
+        hybridCharacterBox_->addItem("Default", 1);
+        hybridCharacterBox_->addItem("Plate", 2);
+        hybridCharacterBox_->addItem("Hall", 3);
+        hybridCharacterBox_->addItem("Room", 4);
+        hybridCharacterBox_->addItem("Spring", 5);
+        hybridPanel_.addAndMakeVisible(*hybridCharacterBox_);
+        hybridCharacterAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
+            processor_.getApvts(), "reverbCharacter", *hybridCharacterBox_);
 
         updateModeVisibility();
         setSize(kWindowWidth, kWindowHeight);
@@ -157,9 +213,10 @@ namespace pw8::fathom
 
     void FathomEditor::updateModeVisibility()
     {
-        const bool convolutionMode = modeToggle_->getToggleState();
-        algoPanel_.setVisible(!convolutionMode);
-        convPanel_.setVisible(convolutionMode);
+        const int mode = modeBox_->getSelectedId() - 1; // 0=Algorithmic, 1=Convolution, 2=Hybrid
+        algoPanel_.setVisible(mode == 0);
+        convPanel_.setVisible(mode == 1);
+        hybridPanel_.setVisible(mode == 2);
     }
 
     void FathomEditor::paint(juce::Graphics& g)
@@ -195,14 +252,15 @@ namespace pw8::fathom
 
         bounds.removeFromTop(8);
         auto modeRow = bounds.removeFromTop(32);
-        modeToggle_->setBounds(modeRow.removeFromLeft(48));
+        modeLabel_.setBounds(modeRow.removeFromLeft(50));
         modeRow.removeFromLeft(8);
-        modeLabel_.setBounds(modeRow);
+        modeBox_->setBounds(modeRow.removeFromLeft(160).reduced(0, 4));
 
         bounds.removeFromTop(12);
 
         algoPanel_.setBounds(bounds);
         convPanel_.setBounds(bounds);
+        hybridPanel_.setBounds(bounds);
 
         auto algoContent = algoPanel_.getContentBounds();
         std::vector<KnobControl*> algoPtrs;
@@ -222,6 +280,19 @@ namespace pw8::fathom
         irBox_->setBounds(irRow.reduced(0, 6));
         convContent.removeFromTop(8);
         layoutKnobGrid(convContent, convPtrs, 5);
+
+        auto hybridContent = hybridPanel_.getContentBounds();
+        std::vector<KnobControl*> hybridPtrs;
+        for (auto& k : hybridKnobs_)
+            hybridPtrs.push_back(k.get());
+        auto hybridIrRow = hybridContent.removeFromTop(40);
+        hybridIrLabel_.setBounds(hybridIrRow.removeFromLeft(150));
+        hybridIrBox_->setBounds(hybridIrRow.reduced(0, 6));
+        hybridContent.removeFromTop(4);
+        auto hybridCharacterRow = hybridContent.removeFromBottom(40);
+        hybridCharacterLabel_.setBounds(hybridCharacterRow.removeFromLeft(90));
+        hybridCharacterBox_->setBounds(hybridCharacterRow.removeFromLeft(160).reduced(0, 6));
+        layoutKnobGrid(hybridContent, hybridPtrs, 4);
     }
 
 } // namespace pw8::fathom

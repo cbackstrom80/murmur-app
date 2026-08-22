@@ -7,7 +7,12 @@ namespace pw8::fathom
     // already uses.
     const std::array<ParamFieldSpec, kNumFathomParams> kFathomParamSpecs = {{
         // -- Mode --
-        {"reverbMode", "Mode", 0.0f, 1.0f, 0.0f, true}, // 0=Algorithmic, 1=Convolution
+        {"reverbMode", "Mode", 0.0f, 2.0f, 0.0f, true}, // 0=Algorithmic, 1=Convolution, 2=Hybrid
+        // Real, new (Phase 2): length of the IR-derived early-reflection
+        // window used in Hybrid mode -- see FathomProcessor's real
+        // hybridEarlyEngine_. A real, direct answer to Phase 1's own named
+        // "Early Select variety" gap.
+        {"hybridEarlyLengthMs", "Early Length", 10.0f, 300.0f, 80.0f, false},
 
         // -- Algorithmic (real pw8::effects::ReverbProcessor fields, real
         //    ranges from EffectTypes.hpp's own doc comments) --

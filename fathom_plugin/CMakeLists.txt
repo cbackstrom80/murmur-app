@@ -70,9 +70,7 @@ target_sources(pw8_fathom_plugin PRIVATE
     src/FathomIrLibrary.cpp
     src/FathomEditor.cpp
     ../plugin/src/ui/theme/ObsidianLookAndFeel.cpp
-    ../plugin/src/ui/components/GlowRingButton.cpp
     ../plugin/src/ui/components/SectionPanel.cpp
-    ../plugin/src/ui/components/MetadataFacetRow.cpp
 )
 # Deliberately NOT reusing plugin/src/ui/components/GlowKnob.cpp here --
 # despite its generic-looking APVTS-bound constructor, its header

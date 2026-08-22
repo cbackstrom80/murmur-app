@@ -14,15 +14,23 @@ namespace pw8::fathom
 {
     /// Fathom's real processor -- real structural twin of QuasarProcessor
     /// (stereo in/out, no MIDI, no Patch/Engine/voice machinery), holding
-    /// two real DSP engines side by side:
+    /// real DSP engines side by side:
     ///   - algoEngine_: the real, already-shipping
     ///     pw8::effects::ReverbProcessor (the same 8-line Householder FDN
     ///     behind MURMUR's/Undertow's own master effect slot) -- zero fork.
-    ///   - convEngine_: a real, new juce::dsp::Convolution loading one of
-    ///     the 38 real bundled impulse responses (FathomIrLibrary.h) --
-    ///     genuinely new capability, previously unused anywhere in this
-    ///     codebase.
-    /// `reverbMode` (APVTS) selects which one actually processes audio.
+    ///   - convEngine_: a real juce::dsp::Convolution loading one of the 38
+    ///     real bundled impulse responses (FathomIrLibrary.h) at full
+    ///     length, for pure Convolution mode.
+    ///   - hybridEarlyEngine_ (Phase 2): a second, real
+    ///     juce::dsp::Convolution loading the SAME selected IR but
+    ///     truncated to `hybridEarlyLengthMs` real samples
+    ///     (juce::dsp::Convolution::loadImpulseResponse's own real `size`
+    ///     parameter does this truncation -- no hand-written windowing
+    ///     needed) -- real captured early reflections, summed with
+    ///     algoEngine_'s real late tank (reverbEarlyLevel forced to 0 at
+    ///     the call site so only the synthetic early cluster is
+    ///     suppressed, not the real late-tank params the user dialed in).
+    /// `reverbMode` (APVTS, 0/1/2) selects Algorithmic/Convolution/Hybrid.
     class FathomProcessor : public juce::AudioProcessor
     {
     public:
@@ -58,7 +66,9 @@ namespace pw8::fathom
         void cacheParameterPointers();
         [[nodiscard]] effects::EffectSlotParams readAlgoParams() const noexcept;
         void maybeReloadIr();
+        void maybeReloadHybridEarlyIr();
         void updateTailFilters(double sampleRate) noexcept;
+        void processConvolutionLike(juce::AudioBuffer<float>& buffer, bool hybrid);
 
         juce::AudioProcessorValueTreeState apvts_;
         std::array<std::atomic<float>*, kNumFathomParams> paramPtrs_{};
@@ -67,9 +77,16 @@ namespace pw8::fathom
         juce::dsp::Convolution convEngine_;
         int loadedIrIndex_ = -1;
 
-        // Real convolution-mode signal chain: predelay -> convolution ->
-        // width -> tail low/high cut -> dry/wet mix. All real, all
-        // functional -- no decorative unwired knobs.
+        // Phase 2: real second convolution engine for Hybrid mode's
+        // real IR-derived early reflections (see class doc comment above).
+        juce::dsp::Convolution hybridEarlyEngine_;
+        int loadedHybridIrIndex_ = -1;
+        float loadedHybridEarlyLengthMs_ = -1.0f;
+
+        // Real convolution-mode signal chain, shared by Convolution and
+        // Hybrid modes: predelay -> (convolution engine(s)) -> width ->
+        // tail low/high cut -> dry/wet mix. All real, all functional -- no
+        // decorative unwired knobs.
         juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear> convPreDelayL_{
             static_cast<int>(0.2 * 96000)}; // real kMaxReverbPreDelaySeconds-equivalent cap (200ms @ up to 96kHz)
         juce::dsp::DelayLine<float, juce::dsp::DelayLineInterpolationTypes::Linear> convPreDelayR_{
@@ -80,6 +97,7 @@ namespace pw8::fathom
         float lastHighCutHz_ = -1.0f;
 
         double sampleRate_ = 48000.0;
+        int maxBlockSize_ = 512;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FathomProcessor)
     };

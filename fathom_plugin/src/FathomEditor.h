@@ -9,7 +9,6 @@
 #include "FathomProcessor.h"
 #include "ui/theme/ObsidianLookAndFeel.h"
 #include "ui/components/SectionPanel.h"
-#include "ui/components/GlowRingButton.h"
 
 namespace pw8::fathom
 {
@@ -44,16 +43,18 @@ namespace pw8::fathom
         void layoutKnobGrid(juce::Rectangle<int> area, const std::vector<KnobControl*>& knobs, int cols);
         void updateModeVisibility();
 
+        [[nodiscard]] std::unique_ptr<juce::ComboBox> makeIrComboBox();
+
         FathomProcessor& processor_;
         plugin::ui::ObsidianLookAndFeel laf_;
 
         juce::Label titleLabel_;
         juce::Label subtitleLabel_;
 
-        // Single real toggle over the one real discrete `reverbMode` param
-        // (0=Algorithmic, 1=Convolution) -- pressed means Convolution.
-        std::unique_ptr<plugin::ui::GlowRingButton> modeToggle_;
-        std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> modeToggleAttachment_;
+        // Real 3-way mode selector over the real discrete `reverbMode`
+        // param (Phase 2: 0=Algorithmic, 1=Convolution, 2=Hybrid).
+        std::unique_ptr<juce::ComboBox> modeBox_;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> modeAttachment_;
         juce::Label modeLabel_;
 
         plugin::ui::SectionPanel algoPanel_{"Algorithmic"};
@@ -67,6 +68,23 @@ namespace pw8::fathom
         std::unique_ptr<juce::ComboBox> irBox_;
         std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> irAttachment_;
         juce::Label irLabel_;
+
+        // Phase 2: real Hybrid panel -- real IR-derived early reflections
+        // (own IR picker, same real `irIndex` param as Convolution mode's
+        // own picker) blended with the real algorithmic late tank (the
+        // same real late-tank knobs Algorithmic mode has, minus the ones
+        // that only mean something for the engine's own synthetic early
+        // cluster). reverbEarlyLevel/reverbLateLevel knobs here are real,
+        // relabeled to match what they actually control in this mode --
+        // see FathomProcessor::processConvolutionLike's own doc comment.
+        plugin::ui::SectionPanel hybridPanel_{"Hybrid"};
+        std::vector<std::unique_ptr<KnobControl>> hybridKnobs_;
+        std::unique_ptr<juce::ComboBox> hybridIrBox_;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> hybridIrAttachment_;
+        juce::Label hybridIrLabel_;
+        std::unique_ptr<juce::ComboBox> hybridCharacterBox_;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> hybridCharacterAttachment_;
+        juce::Label hybridCharacterLabel_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FathomEditor)
     };
