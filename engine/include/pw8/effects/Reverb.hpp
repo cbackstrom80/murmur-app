@@ -9,6 +9,7 @@
 #include "pw8/dsp/PitchShifter.hpp"
 #include "pw8/effects/EffectTypes.hpp"
 #include "pw8/effects/ReverbCharacter.hpp"
+#include "pw8/effects/ReverbEarlyPattern.hpp"
 #include "pw8/effects/ReverbTopology.hpp"
 
 // A "nuanced and massive" algorithmic reverb (GATE 11, docs/ROADMAP.md), redesigned
@@ -106,9 +107,14 @@ namespace pw8::effects
             // every per-line loop below in place of the fixed
             // `kNumReverbLines`; indices at/above it are simply never read
             // or written for that character.
-            const ReverbTopology& topo =
-                getReverbTopology(static_cast<ReverbCharacter>(dsp::clamp(params.reverbCharacter, 0, 5)));
+            const auto character = static_cast<ReverbCharacter>(dsp::clamp(params.reverbCharacter, 0, 5));
+            const ReverbTopology& topo = getReverbTopology(character);
             const std::size_t activeLines = topo.activeLines;
+            // Real per-character early-reflection pattern ("Early Select" --
+            // see ReverbEarlyPattern.hpp), same character selector as the
+            // late-tank topology above so a character shapes the space's
+            // whole early+late signature together.
+            const ReverbEarlyPattern& earlyPattern = getReverbEarlyPattern(character);
 
             // Pre-delay, floored at 1 sample not 0: `dsp::DelayLine` reads before
             // writing, so an exactly-0-sample delay reads stale (near-silent)
@@ -119,17 +125,19 @@ namespace pw8::effects
             const float predelayed = preDelay_.readInterpolated(preDelaySamples);
             preDelay_.write(mono);
 
-            // -- Early reflections: a fixed discrete tap cluster off one shared
-            // delay line, independent of the late tank, scaled by size, panned
-            // alternating L/R for width, mixed at `reverbEarlyLevel`. --
+            // -- Early reflections: a real per-character discrete tap cluster
+            // (`earlyPattern`, see ReverbEarlyPattern.hpp -- "Early Select")
+            // off one shared delay line, independent of the late tank, scaled
+            // by size, panned alternating L/R for width, mixed at
+            // `reverbEarlyLevel`. --
             earlyLine_.write(predelayed);
             float earlyL = 0.0f;
             float earlyR = 0.0f;
-            for (std::size_t i = 0; i < kNumReverbEarlyTaps; ++i)
+            for (std::size_t i = 0; i < earlyPattern.activeTaps; ++i)
             {
-                const float tapSamples = dsp::clamp(kEarlyTapMs[i] * sizeScale * 0.001f * sr, 1.0f,
+                const float tapSamples = dsp::clamp(earlyPattern.tapMs[i] * sizeScale * 0.001f * sr, 1.0f,
                                                      sr * kMaxReverbEarlyLineSeconds - 4.0f);
-                const float tap = earlyLine_.readInterpolated(tapSamples) * kEarlyTapGain[i];
+                const float tap = earlyLine_.readInterpolated(tapSamples) * earlyPattern.tapGain[i];
                 if (i % 2 == 0)
                     earlyL += tap;
                 else
@@ -333,10 +341,9 @@ namespace pw8::effects
         // hardcoded here directly (kept as the single, non-duplicated source
         // now that 5 real distinct tables exist instead of 1).
         static constexpr float kMaxDiffuserCoeff = 0.7f; // Standard safe Schroeder-allpass stability bound.
-        static constexpr std::array<float, kNumReverbEarlyTaps> kEarlyTapMs = {
-            6.1f, 9.7f, 13.3f, 17.9f, 21.1f, 26.3f, 31.7f, 38.9f};
-        static constexpr std::array<float, kNumReverbEarlyTaps> kEarlyTapGain = {
-            0.62f, 0.53f, 0.45f, 0.38f, 0.33f, 0.28f, 0.24f, 0.20f};
+        // Real per-character early-reflection tap timing/gain now lives in
+        // ReverbEarlyPattern.hpp's getReverbEarlyPattern() -- Default's own
+        // table there is byte-identical to what used to be hardcoded here.
         // Per-line modulation rate ratios and phase offsets -- deliberately
         // irregular so the 8 lines' modulation never synchronizes ("breathes"
         // together), which would reintroduce the periodic character the

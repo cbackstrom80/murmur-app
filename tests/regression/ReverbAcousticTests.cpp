@@ -173,6 +173,42 @@ TEST_CASE("Selecting a non-Default reverb character produces genuinely different
     }
 }
 
+TEST_CASE("Selecting a non-Default reverb character produces genuinely different early reflections than Default",
+          "[regression][reverb][early]")
+{
+    // Isolates the early-reflection cluster specifically (earlyLevel=1,
+    // lateLevel=0) so this is a real, direct proof of ReverbEarlyPattern.hpp's
+    // own contribution -- not conflated with the late-tank topology change
+    // (Phase 6) or the existing parameter remap, the way the combined-signal
+    // distinctness test above necessarily is.
+    EffectSlotParams base = baseReverbParams(2.0f);
+    base.reverbEarlyLevel = 1.0f;
+    base.reverbLateLevel = 0.0f;
+    const int totalSamples = static_cast<int>(kSampleRate * 0.2); // early reflections live in the first ~150ms
+
+    EffectSlotParams defaultParams = base;
+    defaultParams.reverbCharacter = static_cast<int>(ReverbCharacter::Default);
+    const auto defaultTail = renderReverbTail(defaultParams, totalSamples);
+
+    for (const auto character :
+         {ReverbCharacter::Plate, ReverbCharacter::Hall, ReverbCharacter::Room, ReverbCharacter::Spring})
+    {
+        EffectSlotParams p = base;
+        p.reverbCharacter = static_cast<int>(character);
+        const auto tail = renderReverbTail(p, totalSamples);
+
+        double diffSq = 0.0;
+        for (std::size_t i = 0; i < tail.size(); ++i)
+        {
+            const double d = static_cast<double>(tail[i]) - static_cast<double>(defaultTail[i]);
+            diffSq += d * d;
+        }
+        const double diffRms = std::sqrt(diffSq / static_cast<double>(tail.size()));
+        INFO("character=" << static_cast<int>(character) << " early-only diffRms=" << diffRms);
+        REQUIRE(diffRms > 1.0e-4);
+    }
+}
+
 TEST_CASE("All six reverb characters produce finite, stable output across parameter extremes",
           "[regression][reverb][topology][stability]")
 {
