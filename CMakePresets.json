@@ -127,6 +127,21 @@
         "PW8_BUILD_PLUGIN": "OFF",
         "PW8_BUILD_UNDERTOW_PLUGIN": "ON"
       }
+    },
+    {
+      "name": "fathom-release",
+      "displayName": "Fathom Plugin (JUCE) -- Release",
+      "description": "Optimized arm64 VST3/AU/Standalone build for the real Fathom reverb plugin.",
+      "binaryDir": "${sourceDir}/build/fathom-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_OSX_ARCHITECTURES": "arm64",
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "13.0",
+        "PW8_BUILD_TESTS": "OFF",
+        "PW8_BUILD_TOOLS": "OFF",
+        "PW8_BUILD_PLUGIN": "OFF",
+        "PW8_BUILD_FATHOM_PLUGIN": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -139,7 +154,8 @@
     { "name": "plugin", "configurePreset": "plugin" },
     { "name": "plugin-release", "configurePreset": "plugin-release" },
     { "name": "quasar-release", "configurePreset": "quasar-release" },
-    { "name": "undertow-release", "configurePreset": "undertow-release" }
+    { "name": "undertow-release", "configurePreset": "undertow-release" },
+    { "name": "fathom-release", "configurePreset": "fathom-release" }
   ],
   "testPresets": [
     {
