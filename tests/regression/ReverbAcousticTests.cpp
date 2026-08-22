@@ -136,3 +136,82 @@ TEST_CASE("Reverb's low/high RT60 ratio and crossover parameters produce corresp
     REQUIRE(measuredLow > measuredMid);
     REQUIRE(measuredMid > measuredHigh);
 }
+
+TEST_CASE("Selecting a non-Default reverb character produces genuinely different output than Default",
+          "[regression][reverb][topology]")
+{
+    // End-to-end companion to ReverbTopologyTests.cpp's direct table-level
+    // distinctness checks: this confirms the *real render*, not just the
+    // topology data, actually changes when a character is selected. Doesn't
+    // isolate topology's own contribution from the existing parameter remap
+    // (applyReverbCharacter() also rescales size/decay/etc.) -- the direct
+    // topology-table test is what isolates that specifically. This is the
+    // honest, complementary "the feature does something end to end" proof.
+    const EffectSlotParams base = baseReverbParams(2.0f);
+    const int totalSamples = static_cast<int>(kSampleRate * 1.0);
+
+    EffectSlotParams defaultParams = base;
+    defaultParams.reverbCharacter = static_cast<int>(ReverbCharacter::Default);
+    const auto defaultTail = renderReverbTail(defaultParams, totalSamples);
+
+    for (const auto character :
+         {ReverbCharacter::Plate, ReverbCharacter::Hall, ReverbCharacter::Room, ReverbCharacter::Spring})
+    {
+        EffectSlotParams p = base;
+        p.reverbCharacter = static_cast<int>(character);
+        const auto tail = renderReverbTail(p, totalSamples);
+
+        double diffSq = 0.0;
+        for (std::size_t i = 0; i < tail.size(); ++i)
+        {
+            const double d = static_cast<double>(tail[i]) - static_cast<double>(defaultTail[i]);
+            diffSq += d * d;
+        }
+        const double diffRms = std::sqrt(diffSq / static_cast<double>(tail.size()));
+        INFO("character=" << static_cast<int>(character) << " diffRms=" << diffRms);
+        REQUIRE(diffRms > 1.0e-4); // a real, substantial difference, not float noise
+    }
+}
+
+TEST_CASE("All six reverb characters produce finite, stable output across parameter extremes",
+          "[regression][reverb][topology][stability]")
+{
+    // Real NaN/stability sweep, specifically to confirm Spring's reduced-N
+    // (4, not 8) Householder math stays as sound as the already-proven N=8
+    // case, at the real parameter extremes most likely to expose a mistake
+    // (e.g. a divide against the wrong line count).
+    for (const auto character : {ReverbCharacter::Default, ReverbCharacter::Plate, ReverbCharacter::Hall,
+                                  ReverbCharacter::Room, ReverbCharacter::Spring, ReverbCharacter::Shimmer})
+    {
+        for (const float decay : {0.05f, 30.0f})
+        {
+            for (const float size : {0.2f, 3.0f})
+            {
+                for (const float modDepth : {0.0f, 1.0f})
+                {
+                    EffectSlotParams p = baseReverbParams(decay);
+                    p.reverbCharacter = static_cast<int>(character);
+                    p.reverbSizeParam = size;
+                    p.reverbModDepth = modDepth;
+                    p.reverbEarlyLevel = 0.3f;
+                    p.reverbShimmerAmount = 0.85f; // exercise the shimmer path too, regardless of character
+
+                    ReverbProcessor reverb;
+                    reverb.prepare(kSampleRate);
+                    bool allFinite = true;
+                    for (int i = 0; i < 4800; ++i)
+                    {
+                        const float in = (i == 0) ? 1.0f : 0.0f;
+                        float outL = 0.0f, outR = 0.0f;
+                        reverb.processStereo(in, in, p, outL, outR);
+                        if (!std::isfinite(outL) || !std::isfinite(outR))
+                            allFinite = false;
+                    }
+                    INFO("character=" << static_cast<int>(character) << " decay=" << decay << " size=" << size
+                                       << " modDepth=" << modDepth);
+                    REQUIRE(allFinite);
+                }
+            }
+        }
+    }
+}

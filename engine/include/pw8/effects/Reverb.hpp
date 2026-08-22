@@ -9,6 +9,7 @@
 #include "pw8/dsp/PitchShifter.hpp"
 #include "pw8/effects/EffectTypes.hpp"
 #include "pw8/effects/ReverbCharacter.hpp"
+#include "pw8/effects/ReverbTopology.hpp"
 
 // A "nuanced and massive" algorithmic reverb (GATE 11, docs/ROADMAP.md), redesigned
 // from GATE 10's simpler 4-line FDN. Informed by (not ported from) a family of
@@ -97,6 +98,18 @@ namespace pw8::effects
             const float mono = (inL + inR) * 0.5f;
             const float sizeScale = dsp::clamp(params.reverbSizeParam, 0.2f, 3.0f);
 
+            // Real per-character topology (ReverbTopology.hpp): distinct
+            // base delay-length distribution + diffuser timing (+ active
+            // line count for Spring) per character, not just a uniform
+            // rescale of one shared table -- see that file's own header
+            // comment for the real acoustic rationale. `activeLines` bounds
+            // every per-line loop below in place of the fixed
+            // `kNumReverbLines`; indices at/above it are simply never read
+            // or written for that character.
+            const ReverbTopology& topo =
+                getReverbTopology(static_cast<ReverbCharacter>(dsp::clamp(params.reverbCharacter, 0, 5)));
+            const std::size_t activeLines = topo.activeLines;
+
             // Pre-delay, floored at 1 sample not 0: `dsp::DelayLine` reads before
             // writing, so an exactly-0-sample delay reads stale (near-silent)
             // buffer content instead of "undelayed" -- the real bug this project
@@ -138,7 +151,7 @@ namespace pw8::effects
             for (std::size_t i = 0; i < kNumReverbDiffuserStages; ++i)
             {
                 const float stageAmount = dsp::clamp(densityStages - static_cast<float>(i), 0.0f, 1.0f);
-                const float d = kDiffuserStageMs[i] * 0.001f * sr;
+                const float d = topo.diffuserStageMs[i] * 0.001f * sr;
                 const float vDelayed = diffuserLines_[i].readInterpolated(d);
                 const float v = diffused + diffusionCoeff * vDelayed;
                 const float apOut = -diffusionCoeff * v + vDelayed;
@@ -146,7 +159,9 @@ namespace pw8::effects
                 diffused = dsp::lerp(diffused, apOut, stageAmount);
             }
 
-            // -- Late tank: 8-line Householder FDN. Each line's read position gets
+            // -- Late tank: up-to-8-line Householder FDN (`activeLines`, real
+            // per-character topology -- see ReverbTopology.hpp; Spring uses
+            // 4). Each line's read position gets
             // a small, slow, per-line-decorrelated sinusoidal modulation (different
             // rate ratio and phase offset per line) before the Householder mix, so
             // the network's comb resonances drift apart over time instead of
@@ -160,22 +175,27 @@ namespace pw8::effects
             std::array<float, kNumReverbLines> delaySamples{};
             const float modRateHz = dsp::clamp(params.reverbModRateHz, 0.05f, 2.0f);
             const float modDepthMs = dsp::clamp(params.reverbModDepth, 0.0f, 1.0f) * kMaxReverbModDepthMs;
-            for (std::size_t i = 0; i < kNumReverbLines; ++i)
+            for (std::size_t i = 0; i < activeLines; ++i)
             {
                 modPhase_[i] += dsp::kTwoPi * modRateHz * kModRateRatio[i] / sr;
                 if (modPhase_[i] > dsp::kTwoPi)
                     modPhase_[i] -= dsp::kTwoPi;
                 const float modOffsetMs = modDepthMs * std::sin(modPhase_[i] + kModPhaseOffset[i]);
-                const float baseMs = kBaseDelayMs[i] * sizeScale;
+                const float baseMs = topo.baseDelayMs[i] * sizeScale;
                 delaySamples[i] = dsp::clamp((baseMs + modOffsetMs) * 0.001f * sr, 1.0f,
                                               sr * kMaxReverbLineSeconds - 4.0f);
                 lineOut[i] = lines_[i].readInterpolatedHermite(delaySamples[i]);
             }
 
+            // Real Householder reflection sum: I - (2/N)*ones*onesT is valid
+            // for any N, so a character with fewer active lines (Spring)
+            // just uses its own real N here rather than the fixed 8 --
+            // indices >= activeLines are zero-initialized in `lineOut` and
+            // never contribute.
             float sum = 0.0f;
-            for (const float v : lineOut)
-                sum += v;
-            const float householderFactor = 2.0f / static_cast<float>(kNumReverbLines);
+            for (std::size_t i = 0; i < activeLines; ++i)
+                sum += lineOut[i];
+            const float householderFactor = 2.0f / static_cast<float>(activeLines);
 
             // Frequency-dependent per-line decay: independent target RT60 for the
             // low/mid/high bands (mid is the "Reverb Time" parameter itself; low
@@ -191,7 +211,7 @@ namespace pw8::effects
 
             float wetLateL = 0.0f;
             float wetLateR = 0.0f;
-            const float tapGain = 2.0f / static_cast<float>(kNumReverbLines);
+            const float tapGain = 2.0f / static_cast<float>(activeLines);
             // Real Phase 3 guard: `shimmerAmount <= 0` (the real default,
             // every existing patch/preset) takes the ORIGINAL, completely
             // unmodified single-pass loop below -- not a restructured
@@ -207,7 +227,7 @@ namespace pw8::effects
             const float shimmerAmount = dsp::clamp(params.reverbShimmerAmount, 0.0f, 1.0f);
             if (shimmerAmount <= 0.0f)
             {
-                for (std::size_t i = 0; i < kNumReverbLines; ++i)
+                for (std::size_t i = 0; i < activeLines; ++i)
                 {
                     const float mixed = lineOut[i] - householderFactor * sum; // Householder reflection.
 
@@ -242,7 +262,7 @@ namespace pw8::effects
                 // -- the real ascending-overtone shimmer wash.
                 std::array<float, kNumReverbLines> absorbedVals{};
                 float absorbedSum = 0.0f;
-                for (std::size_t i = 0; i < kNumReverbLines; ++i)
+                for (std::size_t i = 0; i < activeLines; ++i)
                 {
                     const float mixed = lineOut[i] - householderFactor * sum;
 
@@ -272,12 +292,12 @@ namespace pw8::effects
                 // produce a non-finite value for specific extreme real
                 // decay/crossover combinations; without this it would
                 // silently corrupt every line once shimmer folds it back in.
-                const float shimmerInput = dsp::flushIfNotFinite(absorbedSum / static_cast<float>(kNumReverbLines));
+                const float shimmerInput = dsp::flushIfNotFinite(absorbedSum / static_cast<float>(activeLines));
                 const float shimmerTap =
                     dsp::flushIfNotFinite(shimmerShifter_.renderSample(shimmerInput, kShimmerPitchRatio)) *
                     shimmerAmount;
 
-                for (std::size_t i = 0; i < kNumReverbLines; ++i)
+                for (std::size_t i = 0; i < activeLines; ++i)
                     lines_[i].write(diffused * 0.5f + absorbedVals[i] + shimmerTap);
             }
 
@@ -307,12 +327,11 @@ namespace pw8::effects
         }
 
     private:
-        // 8 mutually-irrational-ish base lengths (no small common integer ratios,
-        // same discipline GATE 10's 4-line version used) to avoid metallic,
-        // comb-filtered ringing -- extended to 8 lines for higher echo density.
-        static constexpr std::array<float, kNumReverbLines> kBaseDelayMs = {
-            23.1f, 29.7f, 31.3f, 37.1f, 41.3f, 43.7f, 47.9f, 53.3f};
-        static constexpr std::array<float, kNumReverbDiffuserStages> kDiffuserStageMs = {4.7f, 6.1f, 7.9f, 9.7f};
+        // Real per-character base delay lengths + diffuser timing (+ active
+        // line count) now live in ReverbTopology.hpp's getReverbTopology() --
+        // Default's own table there is byte-identical to what used to be
+        // hardcoded here directly (kept as the single, non-duplicated source
+        // now that 5 real distinct tables exist instead of 1).
         static constexpr float kMaxDiffuserCoeff = 0.7f; // Standard safe Schroeder-allpass stability bound.
         static constexpr std::array<float, kNumReverbEarlyTaps> kEarlyTapMs = {
             6.1f, 9.7f, 13.3f, 17.9f, 21.1f, 26.3f, 31.7f, 38.9f};
