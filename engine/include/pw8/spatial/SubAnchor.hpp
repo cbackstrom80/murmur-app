@@ -67,6 +67,8 @@ namespace pw8::spatial
         {
             loL_.reset();
             loR_.reset();
+            lastSubBandL_ = 0.0f;
+            lastSubBandR_ = 0.0f;
         }
 
         /// Renders one stereo sample. `crossoverHz`/`monoAmount` may vary
@@ -83,11 +85,21 @@ namespace pw8::spatial
             const float mixedLoR = loR + (mono - loR) * monoAmount;
             outL = mixedLoL + (inL - loL);
             outR = mixedLoR + (inR - loR);
+            // The real anchored sub-band alone (not the recombined full
+            // signal) -- what a real correlation/level meter should read,
+            // since that's the actual content this feature protects.
+            lastSubBandL_ = mixedLoL;
+            lastSubBandR_ = mixedLoR;
         }
+
+        [[nodiscard]] float lastSubBandL() const noexcept { return lastSubBandL_; }
+        [[nodiscard]] float lastSubBandR() const noexcept { return lastSubBandR_; }
 
     private:
         filter::StateVariableFilter loL_;
         filter::StateVariableFilter loR_;
+        float lastSubBandL_ = 0.0f;
+        float lastSubBandR_ = 0.0f;
     };
 
 } // namespace pw8::spatial

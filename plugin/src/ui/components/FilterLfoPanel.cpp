@@ -72,7 +72,8 @@ namespace pw8::plugin::ui
           lfoWireframe_(processor.apvts, 0),
           modSourcePalette_(assignmentController),
           filterScope_(processor),
-          filterRoutingWireframe_(processor.apvts)
+          filterRoutingWireframe_(processor.apvts),
+          subAnchorMeter_(processor)
     {
         addAndMakeVisible(filterPanel_);
         addAndMakeVisible(lfoPanel_);
@@ -110,6 +111,17 @@ namespace pw8::plugin::ui
         addAndMakeVisible(scopeFrame_);
         scopeFrame_.addAndMakeVisible(filterScope_);
 
+        subAnchorEnabledButton_ = std::make_unique<GlowRingButton>("Sub Anchor Enable");
+        subAnchorEnabledButton_->setAccentColour(juce::Colour(0xffD4603A));
+        subAnchorEnabledLabel_.setText("SUB ANCHOR", juce::dontSendNotification);
+        subAnchorEnabledLabel_.setFont(fonts::label(9.5f));
+        subAnchorEnabledLabel_.setColour(juce::Label::textColourId, palette::kTextSecondary);
+        subAnchorEnabledLabel_.setJustificationType(juce::Justification::centredLeft);
+        subAnchorPanel_.addAndMakeVisible(*subAnchorEnabledButton_);
+        subAnchorPanel_.addAndMakeVisible(subAnchorEnabledLabel_);
+        subAnchorPanel_.addAndMakeVisible(subAnchorMeter_);
+        addAndMakeVisible(subAnchorPanel_);
+
         lfoLabChip_ = std::make_unique<LabLauncherChip>();
         lfoLabChip_->setLabel("LFO 1·2 →");
         lfoLabChip_->setAccentColour(juce::Colour(0xff9f80ff));
@@ -144,6 +156,7 @@ namespace pw8::plugin::ui
         filterSlopeChipLabel_.setVisible(dashboardMode_ && scope_ == FilterPanelScope::Global);
         lfoPanel_.setVisible(!dashboardMode_ && scope_ == FilterPanelScope::Global);
         filter2Panel_.setVisible(!dashboardMode_ && scope_ == FilterPanelScope::Global);
+        subAnchorPanel_.setVisible(!dashboardMode_ && scope_ == FilterPanelScope::Global);
         modSourcePalette_.setVisible(!dashboardMode_);
         scopeFrame_.setVisible(!dashboardMode_);
         filterWireframe_.setVisible(!dashboardMode_);
@@ -157,6 +170,7 @@ namespace pw8::plugin::ui
         rebuildAttachments();
         lfoPanel_.setVisible(!dashboardMode_ && scope_ == FilterPanelScope::Global);
         filter2Panel_.setVisible(!dashboardMode_ && scope_ == FilterPanelScope::Global);
+        subAnchorPanel_.setVisible(!dashboardMode_ && scope_ == FilterPanelScope::Global);
         filterPanel_.setTitle(scope_ == FilterPanelScope::Global
                                   ? (dashboardMode_ ? "Global Filter" : "Global Filter")
                                   : "Engine " + juce::String(engineIndex_) + " Filter");
@@ -248,6 +262,14 @@ namespace pw8::plugin::ui
         filter2Panel_.addAndMakeVisible(filter2EnabledLabel_);
         filter2Panel_.addAndMakeVisible(filterRoutingWireframe_);
 
+        subAnchorEnabledAttachment_.reset();
+        subAnchorCrossover_.reset();
+        subAnchorMonoAmount_.reset();
+        subAnchorPanel_.removeAllChildren();
+        subAnchorPanel_.addAndMakeVisible(*subAnchorEnabledButton_);
+        subAnchorPanel_.addAndMakeVisible(subAnchorEnabledLabel_);
+        subAnchorPanel_.addAndMakeVisible(subAnchorMeter_);
+
         if (scope_ == FilterPanelScope::Global)
         {
             const juce::String f2Prefix = juce::String(kFilter2IdPrefix);
@@ -290,6 +312,24 @@ namespace pw8::plugin::ui
                             filter2Drive_.get(), filter2CutoffOffset_.get(), filter2KeyTrack_.get(),
                             filter2ModeMorph_.get()})
                 filter2Panel_.addAndMakeVisible(*k);
+
+            // Sub Anchor -- Layer A only (see pw8/spatial/SubAnchor.hpp's own
+            // doc comment on why it's scoped to Layer A), so like Filter 2
+            // this only exists in Global scope, not per-operator.
+            const juce::Colour copper(0xffD4603A);
+            subAnchorEnabledAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
+                apvts, juce::String(kSubAnchorIdPrefix) + "Enabled", *subAnchorEnabledButton_);
+            subAnchorCrossover_ = std::make_unique<GlowKnob>(
+                apvts, juce::String(kSubAnchorIdPrefix) + "CrossoverHz", "Crossover", nullptr, copper);
+            subAnchorMonoAmount_ = std::make_unique<GlowKnob>(
+                apvts, juce::String(kSubAnchorIdPrefix) + "MonoAmount", "Mono Amt", nullptr, copper);
+            subAnchorCrossover_->applyFigmaContext(figma::KnobContext::PlayBlades);
+            subAnchorMonoAmount_->applyFigmaContext(figma::KnobContext::PlayBlades);
+            // Deliberately no enableModulationTarget() call -- no mod-matrix
+            // destination for Sub Anchor yet, same real scope decision as
+            // Filter 2's own modeMorph (see that knob's own comment above).
+            subAnchorPanel_.addAndMakeVisible(*subAnchorCrossover_);
+            subAnchorPanel_.addAndMakeVisible(*subAnchorMonoAmount_);
         }
     }
 
@@ -368,6 +408,30 @@ namespace pw8::plugin::ui
                         filter2KeyTrack_->setBounds(content.removeFromLeft(knobSlotW).reduced(2));
                     if (filter2ModeMorph_)
                         filter2ModeMorph_->setBounds(content.removeFromLeft(knobSlotW).reduced(2));
+                }
+                bounds.removeFromBottom(4);
+
+                // Sub Anchor -- compact row (button + 2 knobs + meter), real
+                // scope Filter 2 doesn't need since it's only 3 controls.
+                constexpr int kSubAnchorRowHeight = 72;
+                auto subAnchorRow = bounds.removeFromBottom(kSubAnchorRowHeight);
+                subAnchorPanel_.setBounds(subAnchorRow.reduced(4, 0));
+                {
+                    auto content =
+                        subAnchorPanel_.getContentBounds().reduced(layout::kPlayBladesSectionPadding / 2, 0);
+                    auto headerRow = content.removeFromTop(layout::kPlayBladesHeaderRowHeight);
+                    const int ringSize = 22;
+                    subAnchorEnabledButton_->setBounds(
+                        headerRow.removeFromRight(ringSize + 4).withSizeKeepingCentre(ringSize, ringSize));
+                    subAnchorEnabledLabel_.setBounds(headerRow);
+                    content.removeFromTop(layout::kPlayBladesSectionGap);
+
+                    const int knobSlotW = content.getWidth() / 4;
+                    if (subAnchorCrossover_)
+                        subAnchorCrossover_->setBounds(content.removeFromLeft(knobSlotW).reduced(2));
+                    if (subAnchorMonoAmount_)
+                        subAnchorMonoAmount_->setBounds(content.removeFromLeft(knobSlotW).reduced(2));
+                    subAnchorMeter_.setBounds(content.reduced(2));
                 }
                 bounds.removeFromBottom(4);
             }

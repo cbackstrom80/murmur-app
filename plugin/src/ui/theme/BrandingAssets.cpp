@@ -81,6 +81,25 @@ namespace pw8::plugin::ui::branding
             static const juce::Image whale = buildWhaleIcon();
             return whale;
         }
+
+        juce::Image buildUndertowSquidIcon()
+        {
+            auto squid =
+                loadEmbedded(BinaryData::undertow_squid_512_png, BinaryData::undertow_squid_512_pngSize);
+            if (!squid.isValid())
+                return {};
+
+            // Real source PNG already has a transparent background
+            // (verified: corner alpha 0) -- no black-keying needed, same as
+            // the whale icon.
+            return squid.convertedToFormat(juce::Image::ARGB);
+        }
+
+        const juce::Image& cachedUndertowSquidIcon()
+        {
+            static const juce::Image squid = buildUndertowSquidIcon();
+            return squid;
+        }
     } // namespace
 
     juce::Colour glowColour() noexcept
@@ -101,6 +120,11 @@ namespace pw8::plugin::ui::branding
     juce::Image getWhaleIcon()
     {
         return cachedWhaleIcon();
+    }
+
+    juce::Image getUndertowSquidIcon()
+    {
+        return cachedUndertowSquidIcon();
     }
 
     int logoLockupWidth() noexcept

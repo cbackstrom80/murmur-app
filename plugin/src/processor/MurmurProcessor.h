@@ -50,7 +50,27 @@ namespace pw8::plugin
                                      private juce::AudioProcessorValueTreeState::Listener
     {
     public:
-        MurmurProcessor();
+        /// Real per-product branding hook so a second, fully separate plugin
+        /// binary (Undertow, docs/UNDERTOW.md) can host this exact same
+        /// processor -- same engine, same 361 params, same DSP -- instead of
+        /// forking a second AudioProcessor subclass. Defaults to MURMUR's
+        /// real current identity, so every existing call site
+        /// (`MurmurProcessor()`) is byte-identical to before this existed.
+        enum class ProductKind
+        {
+            Murmur,
+            Undertow,
+        };
+
+        struct ProductIdentity
+        {
+            ProductKind kind = ProductKind::Murmur;
+            juce::String displayName; // getName(), MCP bridge "product" field
+            juce::String folderName;  // ~/Library/Application Support/<folderName>
+            juce::String mcpTag;      // standalone MCP bridge status payload
+        };
+
+        explicit MurmurProcessor(ProductIdentity identity = ProductIdentity{ProductKind::Murmur, "MURMUR", "MURMUR", "MURMUR"});
         ~MurmurProcessor() override;
 
         void prepareToPlay(double sampleRate, int samplesPerBlock) override;
@@ -60,7 +80,9 @@ namespace pw8::plugin
         juce::AudioProcessorEditor* createEditor() override;
         bool hasEditor() const override { return true; }
 
-        const juce::String getName() const override { return "MURMUR"; }
+        const juce::String getName() const override { return identity_.displayName; }
+
+        [[nodiscard]] const ProductIdentity& getProductIdentity() const noexcept { return identity_; }
         bool acceptsMidi() const override { return true; }
         bool producesMidi() const override { return false; }
         double getTailLengthSeconds() const override { return 4.0; }
@@ -99,8 +121,13 @@ namespace pw8::plugin
         /// Message-thread only: write current patch to disk and update preset path.
         bool saveCurrentPatchToFile(const juce::String& filePath);
 
-        [[nodiscard]] static juce::File userPresetsDirectory();
-        [[nodiscard]] static bool isUserPresetPath(const juce::String& filePath);
+        /// Instance methods, not static: the directory is product-scoped
+        /// (identity_.folderName), so it differs between MURMUR and
+        /// Undertow's real separate binaries. Callers without a
+        /// MurmurProcessor& in scope should get one threaded through rather
+        /// than reintroducing a global/static assumption here.
+        [[nodiscard]] juce::File userPresetsDirectory() const;
+        [[nodiscard]] bool isUserPresetPath(const juce::String& filePath) const;
 
         /// Message-thread only: lightweight UI refresh after patch metadata edits that do
         /// not require a full engine reload (e.g. operator engine pill, graph output flags).
@@ -339,6 +366,21 @@ namespace pw8::plugin
             return engine != nullptr ? engine->getMasterOutPeakLinear() : 0.0f;
         }
 
+        /// Real Sub Anchor metering passthrough -- see Engine::
+        /// getSubAnchorCorrelation()/getSubAnchorLevelDb()'s own doc comment
+        /// for what these actually measure (the real anchored sub-band, not
+        /// the full mix; neutral defaults when Sub Anchor is disabled).
+        [[nodiscard]] float getSubAnchorCorrelation() const noexcept
+        {
+            const auto* engine = activeEngine_.load(std::memory_order_acquire);
+            return engine != nullptr ? engine->getSubAnchorCorrelation() : 1.0f;
+        }
+        [[nodiscard]] float getSubAnchorLevelDb() const noexcept
+        {
+            const auto* engine = activeEngine_.load(std::memory_order_acquire);
+            return engine != nullptr ? engine->getSubAnchorLevelDb() : -100.0f;
+        }
+
         /// Per-engine audio peak for PLAY board meters. Linear; compare to level param range 0..4.
         [[nodiscard]] float getOperatorPeakLinear(std::size_t opIndex) const noexcept
         {
@@ -441,6 +483,7 @@ namespace pw8::plugin
         void updateMorphTimelineModulation(render::Engine& engine, float bpm, int numSamples) noexcept;
         [[nodiscard]] bool morphTimelineIsModulated() const noexcept;
 
+        ProductIdentity identity_{ProductKind::Murmur, "MURMUR", "MURMUR", "MURMUR"};
         patch::Patch currentPatch_ = patch::Patch::makeInit();
         juce::String currentPresetPath_;
         bool patchDirty_ = false;

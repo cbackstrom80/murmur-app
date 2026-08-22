@@ -23,6 +23,14 @@ namespace pw8::plugin::ui::branding
     /// name renders twice.
     [[nodiscard]] juce::Image getWhaleIcon();
 
+    /// Real approved Undertow mark (Figma `undertow-vst-splash`, node
+    /// `277:918`, "undertow-squid-splash" layer) -- a squid, not the whale,
+    /// matching Undertow's own real brand identity as a genuinely separate
+    /// product (docs/UNDERTOW.md). Source PNG already has a transparent
+    /// background and bakes in a faint "UNDERTOW" wordmark under the mark,
+    /// same convention as getWhaleIcon().
+    [[nodiscard]] juce::Image getUndertowSquidIcon();
+
     [[nodiscard]] int logoLockupWidth() noexcept;
     [[nodiscard]] int logoLockupHeight() noexcept;
     [[nodiscard]] int compactLogoWidth() noexcept;

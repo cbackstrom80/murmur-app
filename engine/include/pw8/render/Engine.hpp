@@ -128,6 +128,21 @@ namespace pw8::render
 
         void setFilter2Live(const filter::CharacterFilterParams& params) noexcept;
         void setSubAnchorLive(const spatial::SubAnchorParams& params) noexcept;
+
+        /// Real, live Sub Anchor metering -- Pearson correlation (1 = mono,
+        /// 0 = fully decorrelated, -1 = inverted) and windowed RMS level in
+        /// dBFS of the real anchored sub-band signal (not the full mix).
+        /// Plain atomics, audio-thread-written/UI-thread-read, same pattern
+        /// as the plugin's own AudioVisualizerBus. Neutral defaults
+        /// (correlation=1, level=-100dB) when Sub Anchor is disabled.
+        [[nodiscard]] float getSubAnchorCorrelation() const noexcept
+        {
+            return subAnchorCorrelation_.load(std::memory_order_relaxed);
+        }
+        [[nodiscard]] float getSubAnchorLevelDb() const noexcept
+        {
+            return subAnchorLevelDb_.load(std::memory_order_relaxed);
+        }
         [[nodiscard]] const filter::CharacterFilterParams& getFilter2Params() const noexcept
         {
             return patch_.layerA.filter2;
@@ -412,6 +427,19 @@ namespace pw8::render
         effects::LayerInsertChain layerAInsertChain_{};
         effects::LayerInsertChain layerBInsertChain_{};
         spatial::SubAnchor subAnchor_{};
+        // Real windowed accumulator for Sub Anchor metering -- resets and
+        // republishes to the atomics below every kSubAnchorMeterWindow
+        // samples, matching QuasarEngineCard's real ~512-sample window
+        // convention for a UI meter (not per-sample, that would be noise).
+        static constexpr std::size_t kSubAnchorMeterWindow = 512;
+        std::size_t subAnchorMeterSampleCount_ = 0;
+        double subAnchorMeterSumL_ = 0.0;
+        double subAnchorMeterSumR_ = 0.0;
+        double subAnchorMeterSumLR_ = 0.0;
+        double subAnchorMeterSumL2_ = 0.0;
+        double subAnchorMeterSumR2_ = 0.0;
+        std::atomic<float> subAnchorCorrelation_{1.0f};
+        std::atomic<float> subAnchorLevelDb_{-100.0f};
         effects::MasterChain masterChain_{};
         dynamics::MasterDynamicsProcessor masterDynamicsProcessor_{};
         modulation::GenerativeProcessor generativeProcessor_{};

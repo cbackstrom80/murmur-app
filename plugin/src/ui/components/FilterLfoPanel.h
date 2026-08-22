@@ -14,6 +14,7 @@
 #include "ModSourcePalette.h"
 #include "FilterPanelScopeView.h"
 #include "SectionPanel.h"
+#include "SubAnchorMeter.h"
 #include "WireframePanel.h"
 #include "processor/MurmurProcessor.h"
 #include "wireframe/FilterWireframeView.h"
@@ -95,6 +96,21 @@ namespace pw8::plugin::ui
         std::unique_ptr<GlowKnob> filter2ModeMorph_;
         WireframePanel scopeFrame_{"SCOPE"};
         FilterPanelScopeView filterScope_;
+
+        // Sub Anchor -- real protected mono-lock sub layer (see
+        // pw8/spatial/SubAnchor.hpp). Sits alongside Filter 2 since both
+        // operate on Layer A's own signal. Undertow's real approved copper
+        // accent (#D4603A, Figma 277:671) tints just this section's
+        // controls, via SectionPanel/GlowKnob/GlowRingButton's own real
+        // accentColour parameters -- not a new LookAndFeel, not a global
+        // reskin.
+        SectionPanel subAnchorPanel_{"Sub Anchor", juce::Colour(0xffD4603A)};
+        std::unique_ptr<GlowRingButton> subAnchorEnabledButton_;
+        juce::Label subAnchorEnabledLabel_;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> subAnchorEnabledAttachment_;
+        std::unique_ptr<GlowKnob> subAnchorCrossover_;
+        std::unique_ptr<GlowKnob> subAnchorMonoAmount_;
+        SubAnchorMeter subAnchorMeter_;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FilterLfoPanel)
     };

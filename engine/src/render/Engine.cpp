@@ -1322,6 +1322,52 @@ namespace pw8::render
                     sumL = anchoredL;
                     sumR = anchoredR;
                     kahanL = kahanR = 0.0f; // fresh Kahan compensation after a direct overwrite
+
+                    // Real windowed metering over the real anchored sub-band
+                    // (subAnchor_.lastSubBand{L,R}(), not the recombined full
+                    // signal) -- see Engine.hpp's getSubAnchorCorrelation()/
+                    // getSubAnchorLevelDb() doc comment.
+                    const double sbL = subAnchor_.lastSubBandL();
+                    const double sbR = subAnchor_.lastSubBandR();
+                    subAnchorMeterSumL_ += sbL;
+                    subAnchorMeterSumR_ += sbR;
+                    subAnchorMeterSumLR_ += sbL * sbR;
+                    subAnchorMeterSumL2_ += sbL * sbL;
+                    subAnchorMeterSumR2_ += sbR * sbR;
+                    if (++subAnchorMeterSampleCount_ >= kSubAnchorMeterWindow)
+                    {
+                        const double n = static_cast<double>(subAnchorMeterSampleCount_);
+                        const double denom = std::sqrt(
+                            std::max(0.0, n * subAnchorMeterSumL2_ - subAnchorMeterSumL_ * subAnchorMeterSumL_) *
+                            std::max(0.0, n * subAnchorMeterSumR2_ - subAnchorMeterSumR_ * subAnchorMeterSumR_));
+                        const float correlation =
+                            denom > 1.0e-9
+                                ? dsp::clamp(static_cast<float>(
+                                                 (n * subAnchorMeterSumLR_ - subAnchorMeterSumL_ * subAnchorMeterSumR_) /
+                                                 denom),
+                                             -1.0f, 1.0f)
+                                : 1.0f;
+                        const double meanSquare = (subAnchorMeterSumL2_ + subAnchorMeterSumR2_) / (2.0 * n);
+                        const float levelDb =
+                            meanSquare > 1.0e-12 ? static_cast<float>(10.0 * std::log10(meanSquare)) : -100.0f;
+                        subAnchorCorrelation_.store(correlation, std::memory_order_relaxed);
+                        subAnchorLevelDb_.store(levelDb, std::memory_order_relaxed);
+                        subAnchorMeterSampleCount_ = 0;
+                        subAnchorMeterSumL_ = subAnchorMeterSumR_ = subAnchorMeterSumLR_ = 0.0;
+                        subAnchorMeterSumL2_ = subAnchorMeterSumR2_ = 0.0;
+                    }
+                }
+                else if (subAnchorMeterSampleCount_ != 0 ||
+                         subAnchorCorrelation_.load(std::memory_order_relaxed) != 1.0f ||
+                         subAnchorLevelDb_.load(std::memory_order_relaxed) != -100.0f)
+                {
+                    // Feature just turned off (or was never on this render) --
+                    // don't leave a stale reading on the meter.
+                    subAnchorMeterSampleCount_ = 0;
+                    subAnchorMeterSumL_ = subAnchorMeterSumR_ = subAnchorMeterSumLR_ = 0.0;
+                    subAnchorMeterSumL2_ = subAnchorMeterSumR2_ = 0.0;
+                    subAnchorCorrelation_.store(1.0f, std::memory_order_relaxed);
+                    subAnchorLevelDb_.store(-100.0f, std::memory_order_relaxed);
                 }
 
                 subBlockSynthPeak =

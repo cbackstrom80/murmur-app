@@ -11,6 +11,25 @@ namespace pw8::plugin::ui
 {
     namespace
     {
+        /// Real per-product splash branding, keyed off MurmurProcessor's
+        /// ProductIdentity (docs/UNDERTOW.md) -- Undertow gets its own real
+        /// approved mark/accent/tagline (Figma `undertow-vst-splash`), no
+        /// background photo asset (SplashOverlay's procedural radial-glow
+        /// fallback covers that). MURMUR keeps its exact real defaults.
+        SplashOverlay::Branding makeSplashBranding(const MurmurProcessor::ProductIdentity& identity)
+        {
+            if (identity.kind != MurmurProcessor::ProductKind::Undertow)
+                return SplashOverlay::Branding::makeMurmurDefault();
+
+            return SplashOverlay::Branding{
+                branding::getUndertowSquidIcon(),
+                juce::Image(), // no background photo asset yet -- procedural fallback
+                juce::Colour(0xffD4603A), // real approved Undertow copper accent
+                "DEEP FREQUENCY SYNTHESIS ENGINE",
+                "MURMUR AUDIO (C) 2026", // same real company footer -- same brand family
+            };
+        }
+
         void deferRootEditorSize(MurmurRootEditor* editor, int width, int height)
         {
             juce::Component::SafePointer<MurmurRootEditor> safe(editor);
@@ -30,7 +49,8 @@ namespace pw8::plugin::ui
           murmurChromeBar_(processor),
           presetBrowserOverlay_(processor, patchBrowserBar_.getPresetIndex(), favoritesStore_, ratingsStore_),
           playModeEditor_(processor, chrome_),
-          designModeEditor_(processor, chrome_)
+          designModeEditor_(processor, chrome_),
+          splashOverlay_(makeSplashBranding(processor.getProductIdentity()))
     {
         setLookAndFeel(&lookAndFeel_);
 

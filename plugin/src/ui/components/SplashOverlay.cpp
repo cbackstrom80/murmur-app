@@ -38,11 +38,21 @@ namespace pw8::plugin::ui
         }
     } // namespace
 
-    SplashOverlay::SplashOverlay()
+    SplashOverlay::Branding SplashOverlay::Branding::makeMurmurDefault()
     {
-        backgroundImage_ =
-            juce::ImageCache::getFromMemory(BinaryData::murmur_splash_bg_jpg, BinaryData::murmur_splash_bg_jpgSize);
-        markIcon_ = branding::getWhaleIcon();
+        return Branding{
+            branding::getWhaleIcon(),
+            juce::ImageCache::getFromMemory(BinaryData::murmur_splash_bg_jpg, BinaryData::murmur_splash_bg_jpgSize),
+            palette::kFigmaTeal,
+            "8-ENGINE COGNITIVE SYNTHESIZER",
+            "MURMUR AUDIO (C) 2026",
+        };
+    }
+
+    SplashOverlay::SplashOverlay() : SplashOverlay(Branding::makeMurmurDefault()) {}
+
+    SplashOverlay::SplashOverlay(Branding branding) : branding_(std::move(branding))
+    {
         // false/true, not false/false: the overlay itself stays click-through
         // (splash isn't modal), but updateBadge_ -- a real child component --
         // still needs to receive its own click to open the release URL.
@@ -90,14 +100,34 @@ namespace pw8::plugin::ui
         // (1024x1024) but the editor window is wide.
         g.fillAll(juce::Colour(0xff0d0f14));
 
-        if (backgroundImage_.isValid())
+        if (branding_.backgroundImage.isValid())
         {
-            g.drawImage(backgroundImage_, bounds, juce::RectanglePlacement::fillDestination);
+            g.drawImage(branding_.backgroundImage, bounds, juce::RectanglePlacement::fillDestination);
             // Darker than the original pass -- the mark now carries the
             // brand alone (no wordmark line under it), so it needs more
             // contrast against the photo to read as the hero element.
             g.setColour(juce::Colours::black.withAlpha(0.55f));
             g.fillRect(bounds);
+        }
+        else
+        {
+            // No photo asset for this product (Undertow) -- real procedural
+            // radial-glow + concentric-ring background instead, matching the
+            // approved undertow-vst-splash Figma frame's own
+            // "volcanic-radial-glow"/"seismic-ring" motif in vector form.
+            const auto centre = bounds.getCentre();
+            juce::ColourGradient glow(branding_.accentColour.withAlpha(0.28f), centre,
+                                       branding_.accentColour.withAlpha(0.0f),
+                                       centre.translated(bounds.getWidth() * 0.45f, 0.0f), true);
+            g.setGradientFill(glow);
+            g.fillRect(bounds);
+
+            g.setColour(branding_.accentColour.withAlpha(0.10f));
+            for (int i = 1; i <= 4; ++i)
+            {
+                const float radius = 60.0f * static_cast<float>(i) + 40.0f;
+                g.drawEllipse(centre.x - radius, centre.y - radius, radius * 2.0f, radius * 2.0f, 1.0f);
+            }
         }
 
         const auto centreY = bounds.getCentreY();
@@ -109,12 +139,13 @@ namespace pw8::plugin::ui
         constexpr float markSize = 150.0f;
         const juce::Rectangle<float> markBounds(bounds.getCentreX() - markSize * 0.5f, centreY - 180.0f, markSize,
                                                  markSize);
-        if (markIcon_.isValid())
-            g.drawImageWithin(markIcon_, (int)markBounds.getX(), (int)markBounds.getY(), (int)markBounds.getWidth(),
-                              (int)markBounds.getHeight(), juce::RectanglePlacement::centred);
+        if (branding_.markIcon.isValid())
+            g.drawImageWithin(branding_.markIcon, (int)markBounds.getX(), (int)markBounds.getY(),
+                              (int)markBounds.getWidth(), (int)markBounds.getHeight(),
+                              juce::RectanglePlacement::centred);
 
-        g.setColour(palette::kFigmaTeal);
-        drawTracked(g, "8-ENGINE COGNITIVE SYNTHESIZER",
+        g.setColour(branding_.accentColour);
+        drawTracked(g, branding_.tagline,
                    juce::Rectangle<float>(bounds.getX(), centreY - 22.0f, bounds.getWidth(), 20.0f),
                    fonts::label(12.0f), 3.0f, juce::Justification::centred);
 
@@ -127,7 +158,7 @@ namespace pw8::plugin::ui
         g.setColour(palette::kFigmaTextDim.withAlpha(0.3f));
         g.fillRect(barBounds);
         const float fillFraction = juce::jlimit(0.0f, 1.0f, static_cast<float>(elapsedMs_ / kDisplayMs));
-        g.setColour(palette::kFigmaTeal);
+        g.setColour(branding_.accentColour);
         g.fillRect(barBounds.withWidth(barWidth * fillFraction));
 
         const juce::String statusText = fillFraction < 1.0f ? "INITIALIZING ENGINES" : "READY";
@@ -140,7 +171,7 @@ namespace pw8::plugin::ui
         // macro VstBottomBar.cpp already uses), not a fabricated one.
         g.setFont(fonts::micro(9.0f));
         g.setColour(palette::kFigmaTextDim.withAlpha(0.7f));
-        g.drawText("MURMUR AUDIO (C) 2026", juce::Rectangle<float>(16.0f, bounds.getBottom() - 26.0f, 240.0f, 16.0f),
+        g.drawText(branding_.footerLeft, juce::Rectangle<float>(16.0f, bounds.getBottom() - 26.0f, 240.0f, 16.0f),
                   juce::Justification::centredLeft, false);
         g.drawText("v" + juce::String(JucePlugin_VersionString),
                   juce::Rectangle<float>(bounds.getWidth() - 100.0f, bounds.getBottom() - 26.0f, 84.0f, 16.0f),

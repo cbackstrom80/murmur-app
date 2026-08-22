@@ -103,7 +103,7 @@ namespace pw8::plugin
         }
     } // namespace
 
-    MurmurProcessor::MurmurProcessor()
+    MurmurProcessor::MurmurProcessor(ProductIdentity identity)
 #if JucePlugin_Build_AU || JucePlugin_Build_VST3
         : juce::AudioProcessor(BusesProperties()
                                    .withInput("Sidechain", juce::AudioChannelSet::stereo(), true)
@@ -111,7 +111,8 @@ namespace pw8::plugin
 #else
         : juce::AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)),
 #endif
-          apvts(*this, nullptr, "PARAMETERS", createParameterLayout())
+          apvts(*this, nullptr, "PARAMETERS", createParameterLayout()),
+          identity_(std::move(identity))
     {
         cacheParameterPointers();
         registerParamListeners();
@@ -122,11 +123,16 @@ namespace pw8::plugin
         activeEngine_.store(engineStorageA_.get(), std::memory_order_release);
 
 #if defined(__APPLE__)
-        pw8::content::addSearchRoot("/Library/Application Support/MURMUR");
+        // Product-specific root (identity_.folderName -- "MURMUR" or
+        // "Undertow") plus the shared "Patchwork Eight" company root, which
+        // stays unconditional: it's a real cross-product asset location
+        // (e.g. shared wavetables), not specific to either binary.
+        const std::string productRoot = identity_.folderName.toStdString();
+        pw8::content::addSearchRoot("/Library/Application Support/" + productRoot);
         pw8::content::addSearchRoot("/Library/Application Support/Patchwork Eight");
         if (const char* home = std::getenv("HOME"))
         {
-            pw8::content::addSearchRoot(std::string(home) + "/Library/Application Support/MURMUR");
+            pw8::content::addSearchRoot(std::string(home) + "/Library/Application Support/" + productRoot);
             pw8::content::addSearchRoot(std::string(home) + "/Library/Application Support/Patchwork Eight");
         }
 #endif
@@ -151,7 +157,7 @@ namespace pw8::plugin
             [this]() {
                 juce::DynamicObject::Ptr body(new juce::DynamicObject());
                 body->setProperty("ok", true);
-                body->setProperty("product", "MURMUR");
+                body->setProperty("product", identity_.mcpTag);
                 body->setProperty("patch_name", juce::String(currentPatch_.metadata.name));
                 body->setProperty("preset_path", currentPresetPath_);
                 if (standaloneMcpBridge_ != nullptr)
@@ -860,15 +866,15 @@ namespace pw8::plugin
             onPatchDirtyChanged();
     }
 
-    juce::File MurmurProcessor::userPresetsDirectory()
+    juce::File MurmurProcessor::userPresetsDirectory() const
     {
         return juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
-            .getChildFile("MURMUR")
+            .getChildFile(identity_.folderName)
             .getChildFile("Presets")
             .getChildFile("user");
     }
 
-    bool MurmurProcessor::isUserPresetPath(const juce::String& filePath)
+    bool MurmurProcessor::isUserPresetPath(const juce::String& filePath) const
     {
         if (filePath.isEmpty())
             return false;
@@ -2334,8 +2340,9 @@ namespace pw8::plugin
 
 } // namespace pw8::plugin
 
-// Standard JUCE plugin entry point.
-juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
-{
-    return new pw8::plugin::MurmurProcessor();
-}
+// Real `createPluginFilter()` (JUCE's one-per-binary plugin entry point) now
+// lives in MurmurPluginMain.cpp -- Undertow's own binary needs its own
+// factory returning MurmurProcessor{kUndertowIdentity} instead, and JUCE
+// requires exactly one definition of this symbol per plugin binary. Keeping
+// it in this shared, by-reference-reused .cpp (see docs/UNDERTOW.md) would
+// mean MURMUR's factory silently won in both binaries.

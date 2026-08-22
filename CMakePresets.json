@@ -112,6 +112,21 @@
         "PW8_BUILD_PLUGIN": "OFF",
         "PW8_BUILD_QUASAR_PLUGIN": "ON"
       }
+    },
+    {
+      "name": "undertow-release",
+      "displayName": "Undertow Plugin (JUCE) -- Release",
+      "description": "Optimized arm64 VST3/AU/Standalone build for the real, separately-installed Undertow instrument. See docs/UNDERTOW.md.",
+      "binaryDir": "${sourceDir}/build/undertow-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_OSX_ARCHITECTURES": "arm64",
+        "CMAKE_OSX_DEPLOYMENT_TARGET": "13.0",
+        "PW8_BUILD_TESTS": "OFF",
+        "PW8_BUILD_TOOLS": "OFF",
+        "PW8_BUILD_PLUGIN": "OFF",
+        "PW8_BUILD_UNDERTOW_PLUGIN": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -123,7 +138,8 @@
     { "name": "python", "configurePreset": "python" },
     { "name": "plugin", "configurePreset": "plugin" },
     { "name": "plugin-release", "configurePreset": "plugin-release" },
-    { "name": "quasar-release", "configurePreset": "quasar-release" }
+    { "name": "quasar-release", "configurePreset": "quasar-release" },
+    { "name": "undertow-release", "configurePreset": "undertow-release" }
   ],
   "testPresets": [
     {

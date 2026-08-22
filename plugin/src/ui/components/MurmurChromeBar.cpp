@@ -758,7 +758,7 @@ namespace pw8::plugin::ui
             return;
 
         const auto path = processor_.getCurrentPresetPath();
-        const bool canOverwrite = MurmurProcessor::isUserPresetPath(path);
+        const bool canOverwrite = processor_.isUserPresetPath(path);
 
         juce::PopupMenu menu;
         if (canOverwrite)
@@ -780,7 +780,7 @@ namespace pw8::plugin::ui
 
     void MurmurChromeBar::launchSaveAsCopyDialog()
     {
-        const auto defaultDir = MurmurProcessor::userPresetsDirectory();
+        const auto defaultDir = processor_.userPresetsDirectory();
         defaultDir.createDirectory();
 
         const auto& meta = processor_.getCurrentPatch().metadata;

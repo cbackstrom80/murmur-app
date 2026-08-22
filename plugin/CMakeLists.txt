@@ -31,6 +31,7 @@ juce_add_binary_data(pw8_branding_data
         resources/branding/murmur_logo_lockup.png
         resources/branding/murmur_splash_bg.jpg
         resources/branding/murmur_whale_512.png
+        resources/branding/undertow_squid_512.png
         resources/fx-glyphs/fx_bypass.svg
         resources/fx-glyphs/fx_sat.svg
         resources/fx-glyphs/fx_chr.svg
@@ -77,6 +78,7 @@ endif()
 
 target_sources(pw8_plugin PRIVATE
     src/processor/MurmurProcessor.cpp
+    src/processor/MurmurPluginMain.cpp
     src/state/PluginState.cpp
     src/content/PresetIndex.cpp
     src/content/WavetableIndex.cpp
@@ -98,6 +100,7 @@ target_sources(pw8_plugin PRIVATE
     src/ui/components/TripleGlowKnob.cpp
     src/ui/components/GlowRingButton.cpp
     src/ui/components/SectionPanel.cpp
+    src/ui/components/SubAnchorMeter.cpp
     src/ui/components/WireframePanel.cpp
     src/ui/components/InterstellarHudDraw.cpp
     src/ui/components/AlgorithmGraphView.cpp
