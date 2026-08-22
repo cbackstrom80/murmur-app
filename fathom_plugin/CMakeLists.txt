@@ -29,11 +29,12 @@ endif()
 
 juce_add_binary_data(pw8_fathom_branding_data
     SOURCES
-        # Real placeholder icon -- Fathom doesn't have its own approved brand
-        # asset yet (no Figma pass has happened for this product), so this
-        # reuses the same generic mark Quasar's own real precedent used.
-        # Replace once a real Fathom mark exists.
-        ../plugin/resources/branding/murmur_mark_512.png
+        # Real Fathom brand mark -- a nautilus/cephalopod, mint spiral on a
+        # near-black shell, sourced from Fathom's real Figma file
+        # (PFt0LG6XmOiZWcSoUXIWIg, node 307:2 "fathom-nautilus-logo-official"),
+        # exported at 800x800. Replaces the earlier placeholder (Quasar's
+        # generic mark, reused only because no real Fathom asset existed yet).
+        resources/branding/fathom_nautilus_800.png
 )
 
 juce_add_plugin(pw8_fathom_plugin
@@ -43,7 +44,7 @@ juce_add_plugin(pw8_fathom_plugin
     VERSION 1.0.0
     PLUGIN_MANUFACTURER_CODE Murr
     PLUGIN_CODE Fthm
-    ICON_BIG ../plugin/resources/branding/murmur_mark_512.png
+    ICON_BIG resources/branding/fathom_nautilus_800.png
     FORMATS VST3 AU Standalone
     IS_SYNTH FALSE
     NEEDS_MIDI_INPUT FALSE
