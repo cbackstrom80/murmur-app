@@ -60,6 +60,7 @@ add_executable(pw8_tests
     regression/EngineLayerUnisonTests.cpp
     regression/BlockMidiTests.cpp
     regression/GoldenPresetTests.cpp
+    regression/ReverbAcousticTests.cpp
     dsp/DahdsrEnvelopeLiveTests.cpp
     realtime/EngineProcessRealtimeTests.cpp
 )
