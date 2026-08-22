@@ -3,6 +3,7 @@
 #include <array>
 #include <cmath>
 
+#include "pw8/dsp/AllpassDispersion.hpp"
 #include "pw8/dsp/Biquad.hpp"
 #include "pw8/dsp/DelayLine.hpp"
 #include "pw8/dsp/Math.hpp"
@@ -85,6 +86,8 @@ namespace pw8::effects
                 f.reset();
             for (auto& f : absorptionHigh_)
                 f.reset();
+            for (auto& d : springDispersion_)
+                d.reset();
             vlfShelfL_.reset();
             vlfShelfR_.reset();
             rollOffL_.reset();
@@ -250,8 +253,18 @@ namespace pw8::effects
                     absorptionHigh_[i].setHighShelf(highXover, highShelfDb, sampleRate_);
                     const float absorbed =
                         gMid * absorptionHigh_[i].renderSample(absorptionLow_[i].renderSample(mixed));
+                    // Real per-line spring dispersion (ReverbEarlyPattern.hpp's
+                    // sibling, AllpassDispersion.hpp): only Spring calls this,
+                    // applied to each line's own recirculating signal on every
+                    // pass through the tank -- the real published placement
+                    // (a physical spring's wave disperses on every round trip
+                    // through the coil, not just once on entry), so it
+                    // compounds over the whole decay instead of one subtle
+                    // smear at the start.
+                    const float dispersed =
+                        (character == ReverbCharacter::Spring) ? springDispersion_[i].renderSample(absorbed) : absorbed;
 
-                    lines_[i].write(diffused * 0.5f + absorbed);
+                    lines_[i].write(diffused * 0.5f + dispersed);
 
                     if (i % 2 == 0)
                         wetLateL += lineOut[i] * tapGain;
@@ -285,8 +298,14 @@ namespace pw8::effects
                     absorptionHigh_[i].setHighShelf(highXover, highShelfDb, sampleRate_);
                     const float absorbed =
                         gMid * absorptionHigh_[i].renderSample(absorptionLow_[i].renderSample(mixed));
-                    absorbedVals[i] = absorbed;
-                    absorbedSum += absorbed;
+                    // Same real per-line spring dispersion as the shimmer-
+                    // inactive branch above -- Spring + a manually-dialed
+                    // reverbShimmerAmount can both be active at once (they're
+                    // independent params), so absorbedVals[i] carries the
+                    // dispersed signal into the shimmer sum/tap too.
+                    absorbedVals[i] =
+                        (character == ReverbCharacter::Spring) ? springDispersion_[i].renderSample(absorbed) : absorbed;
+                    absorbedSum += absorbedVals[i];
 
                     if (i % 2 == 0)
                         wetLateL += lineOut[i] * tapGain;
@@ -364,6 +383,11 @@ namespace pw8::effects
         dsp::PitchShifter shimmerShifter_;
         std::array<dsp::Biquad, kNumReverbLines> absorptionLow_{};
         std::array<dsp::Biquad, kNumReverbLines> absorptionHigh_{};
+        // Real per-line spring dispersion (AllpassDispersion.hpp) -- sized to
+        // the max line count like lines_/absorptionLow_/absorptionHigh_
+        // above, only the first `activeLines` are ever used, and only when
+        // character==Spring (see the per-line write sections above).
+        std::array<dsp::AllpassDispersion, kNumReverbLines> springDispersion_{};
         std::array<float, kNumReverbLines> modPhase_{};
         dsp::Biquad vlfShelfL_{};
         dsp::Biquad vlfShelfR_{};
