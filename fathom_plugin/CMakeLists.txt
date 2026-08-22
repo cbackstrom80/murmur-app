@@ -115,6 +115,12 @@ target_compile_definitions(pw8_fathom_convolution_smoke_test PRIVATE
     JUCE_WEB_BROWSER=0
 )
 
+# Real, throwaway smoke test for Phase 3's Shimmer DSP -- see
+# tools/shimmer_smoke_test.cpp's own header comment. Pure pw8::core, no JUCE.
+add_executable(pw8_fathom_shimmer_smoke_test tools/shimmer_smoke_test.cpp)
+target_link_libraries(pw8_fathom_shimmer_smoke_test PRIVATE pw8::core)
+pw8_set_warnings(pw8_fathom_shimmer_smoke_test)
+
 # Real bundled impulse responses (38 real Voxengo Impulse Modeler IRs,
 # royalty-free incl. commercial use -- VOXENGO_IR_LICENSE.txt travels with
 # them per the real license's redistribution terms) -- loose files in the

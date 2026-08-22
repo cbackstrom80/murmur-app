@@ -108,6 +108,7 @@ namespace pw8::fathom
                  {"reverbModRateHz", "MOD RATE"},
                  {"reverbRollOffHz", "ROLL OFF"},
                  {"reverbVlfCutDb", "VLF CUT"},
+                 {"reverbShimmerAmount", "SHIMMER"},
              })
         {
             auto knob = makeKnob(paramId, label);
@@ -124,6 +125,7 @@ namespace pw8::fathom
         characterBox_->addItem("Hall", 3);
         characterBox_->addItem("Room", 4);
         characterBox_->addItem("Spring", 5);
+        characterBox_->addItem("Shimmer", 6);
         algoPanel_.addAndMakeVisible(*characterBox_);
         characterAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
             processor_.getApvts(), "reverbCharacter", *characterBox_);
@@ -182,6 +184,7 @@ namespace pw8::fathom
                  {"reverbLowCrossoverHz", "LF XOVER"},
                  {"reverbModDepth", "MOD DEPTH"},
                  {"reverbModRateHz", "MOD RATE"},
+                 {"reverbShimmerAmount", "SHIMMER"},
              })
         {
             auto knob = makeKnob(paramId, label);
@@ -198,6 +201,7 @@ namespace pw8::fathom
         hybridCharacterBox_->addItem("Hall", 3);
         hybridCharacterBox_->addItem("Room", 4);
         hybridCharacterBox_->addItem("Spring", 5);
+        hybridCharacterBox_->addItem("Shimmer", 6);
         hybridPanel_.addAndMakeVisible(*hybridCharacterBox_);
         hybridCharacterAttachment_ = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
             processor_.getApvts(), "reverbCharacter", *hybridCharacterBox_);
@@ -269,7 +273,7 @@ namespace pw8::fathom
         auto characterRow = algoContent.removeFromBottom(40);
         characterLabel_.setBounds(characterRow.removeFromLeft(90));
         characterBox_->setBounds(characterRow.removeFromLeft(160).reduced(0, 6));
-        layoutKnobGrid(algoContent, algoPtrs, 4);
+        layoutKnobGrid(algoContent, algoPtrs, 5); // 17 real knobs (Phase 3 added Shimmer) -- 5 cols keeps this to 4 rows, matching the panel's real available height
 
         auto convContent = convPanel_.getContentBounds();
         std::vector<KnobControl*> convPtrs;

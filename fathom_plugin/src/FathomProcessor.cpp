@@ -33,6 +33,7 @@ namespace pw8::fathom
             kReverbRollOffHz,
             kReverbVlfCutDb,
             kReverbCharacter,
+            kReverbShimmerAmount,
             kIrIndex,
             kConvPreDelayMs,
             kConvMix,
@@ -134,6 +135,7 @@ namespace pw8::fathom
         p.reverbRollOffHz = loadF(paramPtrs_[kReverbRollOffHz]);
         p.reverbVlfCutDb = loadF(paramPtrs_[kReverbVlfCutDb]);
         p.reverbCharacter = loadI(paramPtrs_[kReverbCharacter]);
+        p.reverbShimmerAmount = loadF(paramPtrs_[kReverbShimmerAmount]);
         return p;
     }
 

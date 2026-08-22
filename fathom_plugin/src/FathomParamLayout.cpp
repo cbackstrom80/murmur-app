@@ -32,7 +32,11 @@ namespace pw8::fathom
         {"reverbLateLevel", "Late Level", 0.0f, 1.0f, 1.0f, false},
         {"reverbRollOffHz", "Roll Off", 80.0f, 20000.0f, 12000.0f, false},
         {"reverbVlfCutDb", "VLF Cut", -18.0f, 0.0f, 0.0f, false},
-        {"reverbCharacter", "Character", 0.0f, 4.0f, 0.0f, true}, // Default/Plate/Hall/Room/Spring
+        {"reverbCharacter", "Character", 0.0f, 5.0f, 0.0f, true}, // Default/Plate/Hall/Room/Spring/Shimmer
+        // Real, new (Phase 3): pitch-shifted (+1 octave) feedback tap
+        // injected into the late tank -- see the shared engine's real
+        // shimmerShifter_ (engine/include/pw8/effects/Reverb.hpp).
+        {"reverbShimmerAmount", "Shimmer", 0.0f, 1.0f, 0.0f, false},
 
         // -- Convolution (new, real -- juce::dsp::Convolution over the real
         //    bundled IRs, see FathomIrLibrary.h) --

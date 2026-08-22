@@ -84,6 +84,7 @@ namespace pw8::effects
         Hall,
         Room,
         Spring,
+        Shimmer, ///< real DSP added for Fathom Phase 3 -- see effects::Reverb's shimmerShifter_.
     };
 
     /// Compressor topology character (FX deep pass).
@@ -194,7 +195,8 @@ namespace pw8::effects
         float reverbLateLevel = 1.0f;      ///< 0..1, late-tank level (M7 "Early/Reverb Mix", reverb half).
         float reverbRollOffHz = 12000.0f;  ///< 80..20000, final output lowpass (M7 "Roll Off").
         float reverbVlfCutDb = 0.0f;       ///< -18..0 dB, low-shelf cut of very-low-frequency wet content (M7 "VLF Cut").
-        int reverbCharacter = 0;           ///< ReverbCharacter — Plate/Hall/Room/Spring preset bundles on FDN.
+        int reverbCharacter = 0;           ///< ReverbCharacter — Plate/Hall/Room/Spring/Shimmer preset bundles on FDN.
+        float reverbShimmerAmount = 0.0f;  ///< 0..1, real pitch-shifted (+1 octave) feedback tap injected into the late tank -- see effects::Reverb's shimmerShifter_. 0 = fully inert (real default, byte-identical to before this field existed).
 
         // -- Eq (3-band: low shelf, mid peak, high shelf; RBJ Audio EQ Cookbook biquads) --
         float eqLowFreqHz = 200.0f;

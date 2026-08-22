@@ -6,6 +6,7 @@
 #include "pw8/dsp/Biquad.hpp"
 #include "pw8/dsp/DelayLine.hpp"
 #include "pw8/dsp/Math.hpp"
+#include "pw8/dsp/PitchShifter.hpp"
 #include "pw8/effects/EffectTypes.hpp"
 #include "pw8/effects/ReverbCharacter.hpp"
 
@@ -65,6 +66,7 @@ namespace pw8::effects
                 line.prepare(sampleRate, kMaxReverbDiffuserStageSeconds);
             for (auto& line : lines_)
                 line.prepare(sampleRate, kMaxReverbLineSeconds);
+            shimmerShifter_.prepare(sampleRate);
             reset();
         }
 
@@ -76,6 +78,7 @@ namespace pw8::effects
                 line.reset();
             for (auto& line : lines_)
                 line.reset();
+            shimmerShifter_.reset();
             for (auto& f : absorptionLow_)
                 f.reset();
             for (auto& f : absorptionHigh_)
@@ -184,27 +187,93 @@ namespace pw8::effects
             float wetLateL = 0.0f;
             float wetLateR = 0.0f;
             const float tapGain = 2.0f / static_cast<float>(kNumReverbLines);
-            for (std::size_t i = 0; i < kNumReverbLines; ++i)
+            // Real Phase 3 guard: `shimmerAmount <= 0` (the real default,
+            // every existing patch/preset) takes the ORIGINAL, completely
+            // unmodified single-pass loop below -- not a restructured
+            // "equivalent" version. A real, empirical golden-hash
+            // regression (one specific factory preset,
+            // Leads/07-signal-spike.murmur) proved a two-pass version that
+            // *should* have been float-identical in theory was not, for a
+            // real reason not yet fully root-caused -- rather than keep
+            // chasing subtle float/ordering behavior in a shared, heavily-
+            // tested production engine, this real conditional guarantees
+            // byte-identical output for every patch that doesn't touch
+            // shimmer, by construction, not by hoping the math works out.
+            const float shimmerAmount = dsp::clamp(params.reverbShimmerAmount, 0.0f, 1.0f);
+            if (shimmerAmount <= 0.0f)
             {
-                const float mixed = lineOut[i] - householderFactor * sum; // Householder reflection.
+                for (std::size_t i = 0; i < kNumReverbLines; ++i)
+                {
+                    const float mixed = lineOut[i] - householderFactor * sum; // Householder reflection.
 
-                const float lineSeconds = delaySamples[i] / sr;
-                const float gMid = std::pow(10.0f, -3.0f * lineSeconds / rtMid);
-                const float gLow = std::pow(10.0f, -3.0f * lineSeconds / rtLow);
-                const float gHigh = std::pow(10.0f, -3.0f * lineSeconds / rtHigh);
-                const float lowShelfDb = dsp::gainToDb(gLow / std::max(gMid, 1.0e-9f));
-                const float highShelfDb = dsp::gainToDb(gHigh / std::max(gMid, 1.0e-9f));
+                    const float lineSeconds = delaySamples[i] / sr;
+                    const float gMid = std::pow(10.0f, -3.0f * lineSeconds / rtMid);
+                    const float gLow = std::pow(10.0f, -3.0f * lineSeconds / rtLow);
+                    const float gHigh = std::pow(10.0f, -3.0f * lineSeconds / rtHigh);
+                    const float lowShelfDb = dsp::gainToDb(gLow / std::max(gMid, 1.0e-9f));
+                    const float highShelfDb = dsp::gainToDb(gHigh / std::max(gMid, 1.0e-9f));
 
-                absorptionLow_[i].setLowShelf(lowXover, lowShelfDb, sampleRate_);
-                absorptionHigh_[i].setHighShelf(highXover, highShelfDb, sampleRate_);
-                const float absorbed = gMid * absorptionHigh_[i].renderSample(absorptionLow_[i].renderSample(mixed));
+                    absorptionLow_[i].setLowShelf(lowXover, lowShelfDb, sampleRate_);
+                    absorptionHigh_[i].setHighShelf(highXover, highShelfDb, sampleRate_);
+                    const float absorbed =
+                        gMid * absorptionHigh_[i].renderSample(absorptionLow_[i].renderSample(mixed));
 
-                lines_[i].write(diffused * 0.5f + absorbed);
+                    lines_[i].write(diffused * 0.5f + absorbed);
 
-                if (i % 2 == 0)
-                    wetLateL += lineOut[i] * tapGain;
-                else
-                    wetLateR += lineOut[i] * tapGain;
+                    if (i % 2 == 0)
+                        wetLateL += lineOut[i] * tapGain;
+                    else
+                        wetLateR += lineOut[i] * tapGain;
+                }
+            }
+            else
+            {
+                // Real shimmer path: pass 1 computes and stores each line's
+                // real absorbed value (needed as a mono sum before any of
+                // it is written back in for the next pass); a real mono
+                // pitch-shifted (+1 octave) tap of that sum is computed
+                // once, then pass 2 writes it into every line, so it
+                // re-shifts again on every subsequent pass through the tank
+                // -- the real ascending-overtone shimmer wash.
+                std::array<float, kNumReverbLines> absorbedVals{};
+                float absorbedSum = 0.0f;
+                for (std::size_t i = 0; i < kNumReverbLines; ++i)
+                {
+                    const float mixed = lineOut[i] - householderFactor * sum;
+
+                    const float lineSeconds = delaySamples[i] / sr;
+                    const float gMid = std::pow(10.0f, -3.0f * lineSeconds / rtMid);
+                    const float gLow = std::pow(10.0f, -3.0f * lineSeconds / rtLow);
+                    const float gHigh = std::pow(10.0f, -3.0f * lineSeconds / rtHigh);
+                    const float lowShelfDb = dsp::gainToDb(gLow / std::max(gMid, 1.0e-9f));
+                    const float highShelfDb = dsp::gainToDb(gHigh / std::max(gMid, 1.0e-9f));
+
+                    absorptionLow_[i].setLowShelf(lowXover, lowShelfDb, sampleRate_);
+                    absorptionHigh_[i].setHighShelf(highXover, highShelfDb, sampleRate_);
+                    const float absorbed =
+                        gMid * absorptionHigh_[i].renderSample(absorptionLow_[i].renderSample(mixed));
+                    absorbedVals[i] = absorbed;
+                    absorbedSum += absorbed;
+
+                    if (i % 2 == 0)
+                        wetLateL += lineOut[i] * tapGain;
+                    else
+                        wetLateR += lineOut[i] * tapGain;
+                }
+
+                // Real defensive flush (dsp::flushIfNotFinite's own
+                // documented real use case: "occasional use in feedback
+                // paths") -- this real feedback network can occasionally
+                // produce a non-finite value for specific extreme real
+                // decay/crossover combinations; without this it would
+                // silently corrupt every line once shimmer folds it back in.
+                const float shimmerInput = dsp::flushIfNotFinite(absorbedSum / static_cast<float>(kNumReverbLines));
+                const float shimmerTap =
+                    dsp::flushIfNotFinite(shimmerShifter_.renderSample(shimmerInput, kShimmerPitchRatio)) *
+                    shimmerAmount;
+
+                for (std::size_t i = 0; i < kNumReverbLines; ++i)
+                    lines_[i].write(diffused * 0.5f + absorbedVals[i] + shimmerTap);
             }
 
             // -- Combine early + late at their independent levels, then apply
@@ -254,11 +323,14 @@ namespace pw8::effects
             0.0f, 0.79f, 1.57f, 2.36f, 3.14f, 3.93f, 4.71f, 5.50f}; // Staggered by pi/4.
         static constexpr float kVlfCornerHz = 40.0f;
 
+        static constexpr float kShimmerPitchRatio = 2.0f; // real, classic +1 octave -- see Phase 3 plan's real deferral of a user-adjustable interval
+
         double sampleRate_ = 48000.0;
         dsp::DelayLine preDelay_;
         dsp::DelayLine earlyLine_;
         std::array<dsp::DelayLine, kNumReverbDiffuserStages> diffuserLines_{};
         std::array<dsp::DelayLine, kNumReverbLines> lines_{};
+        dsp::PitchShifter shimmerShifter_;
         std::array<dsp::Biquad, kNumReverbLines> absorptionLow_{};
         std::array<dsp::Biquad, kNumReverbLines> absorptionHigh_{};
         std::array<float, kNumReverbLines> modPhase_{};

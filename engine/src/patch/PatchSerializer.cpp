@@ -442,6 +442,7 @@ namespace pw8::patch
                 {"reverbEarlyLevel", e.reverbEarlyLevel},           {"reverbLateLevel", e.reverbLateLevel},
                 {"reverbRollOffHz", e.reverbRollOffHz},             {"reverbVlfCutDb", e.reverbVlfCutDb},
                 {"reverbCharacter", e.reverbCharacter},
+                {"reverbShimmerAmount", e.reverbShimmerAmount},
                 {"eqLowFreqHz", e.eqLowFreqHz},                     {"eqLowGainDb", e.eqLowGainDb},
                 {"eqMidFreqHz", e.eqMidFreqHz},                     {"eqMidGainDb", e.eqMidGainDb},
                 {"eqMidQ", e.eqMidQ},
@@ -582,7 +583,10 @@ namespace pw8::patch
             e.reverbLateLevel = clampNum(j.value("reverbLateLevel", 1.0f), 0.0f, 1.0f);
             e.reverbRollOffHz = clampNum(j.value("reverbRollOffHz", 12000.0f), 80.0f, 20000.0f);
             e.reverbVlfCutDb = clampNum(j.value("reverbVlfCutDb", 0.0f), -18.0f, 0.0f);
-            e.reverbCharacter = static_cast<int>(clampNum(j.value("reverbCharacter", 0), 0, 4));
+            e.reverbCharacter = static_cast<int>(clampNum(j.value("reverbCharacter", 0), 0, 5));
+            // Real Phase 3 addition -- see effects::ReverbProcessor's real
+            // shimmerShifter_.
+            e.reverbShimmerAmount = clampNum(j.value("reverbShimmerAmount", 0.0f), 0.0f, 1.0f);
 
             e.eqLowFreqHz = clampNum(j.value("eqLowFreqHz", 200.0f), 20.0f, 20000.0f);
             e.eqLowGainDb = clampNum(j.value("eqLowGainDb", 0.0f), -24.0f, 24.0f);
