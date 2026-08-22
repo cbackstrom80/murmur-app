@@ -19,8 +19,10 @@
 // deterministic wrap never clicks, a short (~100ms) buffer sized for the
 // grain window rather than seconds of texture.
 //
-// Built on the real, already-proven `dsp::DelayLine` (write/readInterpolated)
-// rather than a hand-rolled circular buffer.
+// Built on the real, already-proven `dsp::DelayLine` (write/
+// readInterpolatedHermite -- cubic, not linear, since a continuously
+// pitch-swept read is exactly where linear interpolation's error is most
+// audible) rather than a hand-rolled circular buffer.
 namespace pw8::dsp
 {
     class PitchShifter
@@ -53,7 +55,7 @@ namespace pw8::dsp
             {
                 const float t = clamp(delay / grainSamples_, 0.0f, 1.0f);
                 const float envelope = 0.5f - 0.5f * std::cos(kTwoPi * t); // real Hann window -- 0 at both edges
-                out += buffer_.readInterpolated(delay) * envelope;
+                out += buffer_.readInterpolatedHermite(delay) * envelope;
 
                 delay -= (pitchRatio - 1.0f);
                 if (delay <= 0.0f)

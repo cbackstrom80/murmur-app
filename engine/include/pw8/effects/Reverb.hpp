@@ -150,7 +150,12 @@ namespace pw8::effects
             // a small, slow, per-line-decorrelated sinusoidal modulation (different
             // rate ratio and phase offset per line) before the Householder mix, so
             // the network's comb resonances drift apart over time instead of
-            // ringing at fixed frequencies. --
+            // ringing at fixed frequencies. This is the one read in this file under
+            // *continuous* modulation (pre-delay/early-taps/diffuser below only move
+            // when a parameter changes), so it's the one upgraded to
+            // `readInterpolatedHermite()` (cubic, not linear) -- lower interpolation
+            // error on a position that's sweeping every sample, real measured
+            // improvement, see tests/dsp/DelayLineInterpolationTests.cpp. --
             std::array<float, kNumReverbLines> lineOut{};
             std::array<float, kNumReverbLines> delaySamples{};
             const float modRateHz = dsp::clamp(params.reverbModRateHz, 0.05f, 2.0f);
@@ -164,7 +169,7 @@ namespace pw8::effects
                 const float baseMs = kBaseDelayMs[i] * sizeScale;
                 delaySamples[i] = dsp::clamp((baseMs + modOffsetMs) * 0.001f * sr, 1.0f,
                                               sr * kMaxReverbLineSeconds - 4.0f);
-                lineOut[i] = lines_[i].readInterpolated(delaySamples[i]);
+                lineOut[i] = lines_[i].readInterpolatedHermite(delaySamples[i]);
             }
 
             float sum = 0.0f;

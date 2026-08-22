@@ -18,6 +18,7 @@ add_executable(pw8_tests
     dsp/FilterRoutingTests.cpp
     dsp/CharacterFilterTests.cpp
     dsp/SubAnchorTests.cpp
+    dsp/DelayLineInterpolationTests.cpp
     dsp/LfoTests.cpp
     dsp/NoiseChaosOperatorTests.cpp
     dsp/PhaseShapeOscillatorTests.cpp
